@@ -28,9 +28,9 @@ $app->post('/password/reset', 'PasswordController@postReset');
 
 $app->get('/test/lorem/ispum', function(){
 	// echo '';
-	Illuminate\Support\Facades\Mail::raw('Hola! Whats up mate...', function($message) {
-        $message->to(['ntestinfo@gmail.com'])->subject('[ALERT] notification');
-    });
+	// Illuminate\Support\Facades\Mail::raw('Hola! Whats up mate...', function($message) {
+ //        $message->to(['ntestinfo@gmail.com'])->subject('[ALERT] notification');
+ //    });
 });
 
 // Rest of all APIs are secured with token

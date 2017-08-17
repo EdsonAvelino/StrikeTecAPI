@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\UserTokens;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -39,13 +38,6 @@ class AuthController extends Controller
         } catch (JWTException $e) {
             return response()->json(['token_absent' => $e->getMessage()], $e->getStatusCode());
         }
-
-        UserTokens::create([
-            'user_id' => \Auth::user()->id,
-            'token' => $token,
-            'revoked' => null,
-            'expires_at' => date('Y-m-d')
-        ]);
 
         return response()->json(compact('token'));
     }
