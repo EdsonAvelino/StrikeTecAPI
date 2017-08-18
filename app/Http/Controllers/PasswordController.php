@@ -77,7 +77,7 @@ class PasswordController extends Controller
                         ->make();
             
             $token = $this->jwt->encode($payload)->get();
-            return response()->json(['success' => 'true']);
+            return response()->json(['success' => 'true', 'token' => $token]);
         }
 
         return null;
