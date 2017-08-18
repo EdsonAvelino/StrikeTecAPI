@@ -29,16 +29,16 @@ class AuthController extends Controller
 
         try {
             if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
-                return response()->json(['user_not_found'], 404);
+                return response()->json(['error' => 'true', 'message' => 'Invalid credentials or user is not registered'], 200);
             }
         } catch (TokenExpiredException $e) {
-            return response()->json(['token_expired'], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
         } catch (TokenInvalidException $e) {
-            return response()->json(['token_invalid'], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
         } catch (JWTException $e) {
-            return response()->json(['token_absent' => $e->getMessage()], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        return response()->json(compact('token'));
+        return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => \Auth::user()]);
     }
 }

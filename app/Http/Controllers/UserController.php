@@ -25,7 +25,7 @@ class UserController extends Controller
     {
         $this->validate($request, [
             'email' => 'required|max:64|unique:users',
-            'password' => 'required|min:10|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{10,}$/',
+            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@.#&+-]{6,}$/',
         ]);
 
         // Creates a new user
@@ -36,17 +36,17 @@ class UserController extends Controller
         
         try {
             if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
-                return response()->json(['error' => 'Invalid credentials OR User not found'], 404);
+                return response()->json(['error' => 'ture', 'message' => 'Invalid credentials user is not registered']);
             }
         } catch (TokenExpiredException $e) {
-            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
         } catch (TokenInvalidException $e) {
-            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
         } catch (JWTException $e) {
-            return response()->json(['token_absent' => $e->getMessage()], $e->getStatusCode());
+            return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        return response()->json(compact('token'));
+        return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
     }
 
     public function update(Request $request)
@@ -71,9 +71,9 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Information not updated',
-                'error' => $e->getMessage()
-            ], 400);
+                'error' => 'true',
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }
