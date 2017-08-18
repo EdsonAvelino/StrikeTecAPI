@@ -99,6 +99,8 @@ class PasswordController extends Controller
                 ->update(['password' => app('hash')->make($request->get('password'))]);
 
             return response()->json(['success' => 'true']);
+        } else {
+            return response()->json(['error' => 'Bad request'], 400);   
         }
     }
 }
