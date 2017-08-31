@@ -29,7 +29,7 @@ class PasswordController extends Controller
         $user = User::where('email', $request->get('email'))->first();
 
         if (!$user) {
-            return response()->json(['error' => 'Invalid request, User not found.'], 204);
+            return response()->json(['error' => 'true', 'message' => 'Invalid request, User not found.'], 204);
         } else {
             $code = sprintf("%06d", mt_rand(1, 999999));
 
@@ -48,7 +48,7 @@ class PasswordController extends Controller
             
             $token = $this->jwt->encode($payload)->get();
 
-            return response()->json(['token' => $token]);
+            return response()->json(['error' => 'false', 'token' => $token]);
         }
     }
 
@@ -68,7 +68,7 @@ class PasswordController extends Controller
         $object = PasswordResets::where('key', $key)->where('user_id', $userId)->first();
         
         if (!$object || $object->code != $code) {
-            return response()->json(['error' => 'Invalid code']);
+            return response()->json(['error' => 'true', 'message' => 'Invalid code']);
         } else {
             $object->delete();
             $payload = JWTFactory::sub($userId)
@@ -77,7 +77,7 @@ class PasswordController extends Controller
                         ->make();
             
             $token = $this->jwt->encode($payload)->get();
-            return response()->json(['success' => 'true', 'token' => $token]);
+            return response()->json(['error' => 'false', 'message' => 'Successfully verified' 'token' => $token]);
         }
 
         return null;
@@ -98,9 +98,9 @@ class PasswordController extends Controller
             $user = User::find($userId)
                 ->update(['password' => app('hash')->make($request->get('password'))]);
 
-            return response()->json(['success' => 'true']);
+            return response()->json(['error' => 'false', 'message' => 'Password successfully set']);
         } else {
-            return response()->json(['error' => 'Bad request'], 400);   
+            return response()->json(['error' => 'true', 'message' => 'Bad request'], 400);   
         }
     }
 }

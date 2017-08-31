@@ -17,6 +17,7 @@ $app->get('/', function () use ($app) {
 
 // Login
 $app->post('/auth/login', 'AuthController@authenticate');
+$app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
 // User Signup
 $app->post('/user/register', 'UserController@register');
