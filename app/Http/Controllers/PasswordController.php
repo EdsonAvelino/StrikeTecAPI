@@ -25,14 +25,14 @@ class PasswordController extends Controller
     }
 
     /**
-     * @api {post} /password Sends user password reset email with code
+     * @api {post} /password Password reset email
      * @apiGroup Passwords
      * @apiParam {String} email Email
      * @apiParamExample {json} Input
      *    {
      *      "email": "john@smith.com"
      *    }
-     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {String} token Access token
      * @apiSuccessExample {json} Success
@@ -42,7 +42,7 @@ class PasswordController extends Controller
      *      "message": "Successfully sent an email with reset password code",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *    }
-     * @apiErrorExample {json} Invalid request, email not found in records
+     * @apiErrorExample {json} Invalid request, user not found
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
@@ -77,6 +77,36 @@ class PasswordController extends Controller
         }
     }
 
+    /**
+     * @api {post} /password/verify_code Verify code
+     * @apiGroup Passwords
+     * @apiHeader {String} authorization Authorization value, got while /password call
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} code User entered 6 digit code, got in email
+     * @apiParamExample {json} Input
+     *    {
+     *      "code": "123456"
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Successfully verified",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *    }
+     * @apiErrorExample {json} Invalid code
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid code"
+     *      }
+     */
     public function postVerifyCode(Request $request)
     {
         $this->validate($request, [
@@ -108,6 +138,36 @@ class PasswordController extends Controller
         return null;
     }
 
+    /**
+     * @api {post} /password/reset Reset to new password
+     * @apiGroup Passwords
+     * @apiHeader {String} authorization Authorization value, got while /password call
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} password New Password to set
+     * @apiParamExample {json} Input
+     *    {
+     *      "password": "NewPassword123"
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Password successfully set",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *    }
+     * @apiErrorExample {json} Invalid request
+     *    HTTP/1.1 400
+     *      {
+     *          "error": "true",
+     *          "message": "Bad request"
+     *      }
+     */
     public function postReset(Request $request)
     {
         $this->validate($request, [

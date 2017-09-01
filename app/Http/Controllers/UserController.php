@@ -97,20 +97,42 @@ class UserController extends Controller
     }
 
     /**
-     * @api {put} /tasks/:id Update a task
-     * @apiGroup Tasks
-     * @apiParam {id} id Task id
-     * @apiParam {String} title Task title
-     * @apiParam {Boolean} done Task is done?
+     * @api {post} /users Update a user
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} first_name First Name
+     * @apiParam {String} last_name Last Name
+     * @apiParam {String="male","female"} gender Gender
+     * @apiParam {Date} birthday Birthday in MM-DD-YYYY e.g. 09/11/1987
+     * @apiParam {Number} weight Weight
+     * @apiParam {Number} height Height
+     * @apiParam {String} stance Stance
      * @apiParamExample {json} Input
      *    {
-     *      "title": "Work",
-     *      "done": true
+     *      "first_name": "John",
+     *      "last_name": "Smith",
+     *      "gender": "male",
+     *      "birthday": "09/11/1987",
+     *      "weight": 25,
+     *      "height": 6,
+     *      "stance": "traditional",
      *    }
      * @apiSuccessExample {json} Success
-     *    HTTP/1.1 204 No Content
-     * @apiErrorExample {json} Update error
-     *    HTTP/1.1 500 Internal Server Error
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "User details have been updated successfully"
+     *      }
+     * @apiErrorExample {json} Invalid request
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
      */
     public function update(Request $request)
     {
@@ -130,7 +152,10 @@ class UserController extends Controller
             $user->stance = $request->get('stance');
 
             $user->save();
-            return null;
+            return response()->json([
+                'error' => 'false',
+                'message' => 'User details have been updated successfully'
+            ]);
 
         } catch (\Exception $e) {
             return response()->json([
