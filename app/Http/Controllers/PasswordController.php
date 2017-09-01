@@ -24,12 +24,37 @@ class PasswordController extends Controller
         $this->jwt = $jwt;
     }
 
+    /**
+     * @api {post} /password Sends user password reset email with code
+     * @apiGroup Passwords
+     * @apiParam {String} email Email
+     * @apiParamExample {json} Input
+     *    {
+     *      "email": "john@smith.com"
+     *    }
+     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Successfully sent an email with reset password code",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *    }
+     * @apiErrorExample {json} Invalid request, email not found in records
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request, user not found"
+     *      }
+     */
     public function postEmail(Request $request)
     {
         $user = User::where('email', $request->get('email'))->first();
 
         if (!$user) {
-            return response()->json(['error' => 'true', 'message' => 'Invalid request, User not found.'], 204);
+            return response()->json(['error' => 'true', 'message' => 'Invalid request, user not found.'], 200);
         } else {
             $code = sprintf("%06d", mt_rand(1, 999999));
 
@@ -48,7 +73,7 @@ class PasswordController extends Controller
             
             $token = $this->jwt->encode($payload)->get();
 
-            return response()->json(['error' => 'false', 'token' => $token]);
+            return response()->json(['error' => 'false', 'message' => 'Successfully sent an email with reset password code', 'token' => $token]);
         }
     }
 
@@ -77,7 +102,7 @@ class PasswordController extends Controller
                         ->make();
             
             $token = $this->jwt->encode($payload)->get();
-            return response()->json(['error' => 'false', 'message' => 'Successfully verified' 'token' => $token]);
+            return response()->json(['error' => 'false', 'message' => 'Successfully verified', 'token' => $token]);
         }
 
         return null;

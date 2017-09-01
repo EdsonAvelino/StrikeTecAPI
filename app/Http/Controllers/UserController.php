@@ -21,6 +21,53 @@ class UserController extends Controller
         $this->jwt = $jwt;
     }
 
+    /**
+     * @api {post} /user/register Register a new user
+     * @apiGroup Users
+     * @apiParam {String} email Email
+     * @apiParam {String} password Password
+     * @apiParamExample {json} Input
+     *    {
+     *      "email": "john@smith.com",
+     *      "password": "Something123"
+     *    }
+     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccess {Object} user User object contains all user's information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Authentication successful",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *      "user": {
+                "id": 1,
+     *          "facebook_id": null,
+     *          "first_name": "Nawaz",
+     *          "last_name": "Me",
+     *          "email": "ntestinfo@gmail.com",
+     *          "gender": null,
+     *          "birthday": "1970-01-01",
+     *          "weight": null,
+     *          "height": null,
+     *          "left_hand_sensor": null,
+     *          "right_hand_sensor": null,
+     *          "left_kick_sensor": null,
+     *          "right_kick_sensor": null,
+     *          "is_spectator": null,
+     *          "stance": null,
+     *          "updated_at": "2016-02-10T15:46:51.778Z",
+     *          "created_at": "2016-02-10T15:46:51.778Z"
+     *      }
+     *    }
+     * @apiErrorExample {json} Login error (Invalid credentials)
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     */
     public function register(Request $request)
     {
         $this->validate($request, [
@@ -36,7 +83,7 @@ class UserController extends Controller
         
         try {
             if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
-                return response()->json(['error' => 'ture', 'message' => 'Invalid credentials user is not registered']);
+                return response()->json(['error' => 'ture', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
@@ -49,6 +96,22 @@ class UserController extends Controller
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
     }
 
+    /**
+     * @api {put} /tasks/:id Update a task
+     * @apiGroup Tasks
+     * @apiParam {id} id Task id
+     * @apiParam {String} title Task title
+     * @apiParam {Boolean} done Task is done?
+     * @apiParamExample {json} Input
+     *    {
+     *      "title": "Work",
+     *      "done": true
+     *    }
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 204 No Content
+     * @apiErrorExample {json} Update error
+     *    HTTP/1.1 500 Internal Server Error
+     */
     public function update(Request $request)
     {
         $this->validate($request, [
