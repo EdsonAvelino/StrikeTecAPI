@@ -31,10 +31,10 @@ class UserController extends Controller
      *      "email": "john@smith.com",
      *      "password": "Something123"
      *    }
-     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {String} token Access token
-     * @apiSuccess {Object} user User object contains all user's information
+     * @apiSuccess {Object} user User object contains user's all information
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -61,12 +61,13 @@ class UserController extends Controller
      *          "created_at": "2016-02-10T15:46:51.778Z"
      *      }
      *    }
-     * @apiErrorExample {json} Login error (Invalid credentials)
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
      *          "message": "Invalid request"
      *      }
+     * @apiVersion 1.0.0
      */
     public function register(Request $request)
     {
@@ -127,12 +128,13 @@ class UserController extends Controller
      *          "error": "false",
      *          "message": "User details have been updated successfully"
      *      }
-     * @apiErrorExample {json} Invalid request
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
      *          "message": "Error message what problem is..."
      *      }
+     * @apiVersion 1.0.0
      */
     public function update(Request $request)
     {

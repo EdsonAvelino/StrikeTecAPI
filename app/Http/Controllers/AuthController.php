@@ -31,10 +31,10 @@ class AuthController extends Controller
      *      "email": "john@smith.com",
      *      "password": "Something123"
      *    }
-     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {String} token Access token
-     * @apiSuccess {Object} user User object contains all user's information
+     * @apiSuccess {Object} user User object contains user's all information
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -67,6 +67,7 @@ class AuthController extends Controller
      *          "error": "true",
      *          "message": "Invalid credentials or user is not registered"
      *      }
+     * @apiVersion 1.0.0
      */
 
     public function authenticate(Request $request)
@@ -105,10 +106,10 @@ class AuthController extends Controller
      *      "last_name": "Smith",
      *      "email": "john@smith.com",
      *    }
-     * @apiSuccess {Bookean} error Error flag 
+     * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {String} token Access token
-     * @apiSuccess {Object} user User object contains all user's information
+     * @apiSuccess {Object} user User object contains user's all information
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -141,6 +142,7 @@ class AuthController extends Controller
      *          "error": "true",
      *          "message": "Invalid credentials or user is not registered"
      *      }
+     * @apiVersion 1.0.0
      */
     public function authenticateFacebook(Request $request)
     {

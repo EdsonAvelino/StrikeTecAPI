@@ -42,12 +42,13 @@ class PasswordController extends Controller
      *      "message": "Successfully sent an email with reset password code",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *    }
-     * @apiErrorExample {json} Invalid request, user not found
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
      *          "message": "Invalid request, user not found"
      *      }
+     * @apiVersion 1.0.0
      */
     public function postEmail(Request $request)
     {
@@ -100,12 +101,13 @@ class PasswordController extends Controller
      *      "message": "Successfully verified",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *    }
-     * @apiErrorExample {json} Invalid code
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
      *          "message": "Invalid code"
      *      }
+     * @apiVersion 1.0.0
      */
     public function postVerifyCode(Request $request)
     {
@@ -141,7 +143,7 @@ class PasswordController extends Controller
     /**
      * @api {post} /password/reset Reset to new password
      * @apiGroup Passwords
-     * @apiHeader {String} authorization Authorization value, got while /password call
+     * @apiHeader {String} authorization Authorization value, got while /password/verify_code call
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -161,12 +163,13 @@ class PasswordController extends Controller
      *      "message": "Password successfully set",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *    }
-     * @apiErrorExample {json} Invalid request
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 400
      *      {
      *          "error": "true",
      *          "message": "Bad request"
      *      }
+     * @apiVersion 1.0.0
      */
     public function postReset(Request $request)
     {
