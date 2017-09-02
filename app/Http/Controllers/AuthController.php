@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Validator;
 use App\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -72,10 +73,16 @@ class AuthController extends Controller
 
     public function authenticate(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'email'    => 'required|email|max:255',
-            'password' => 'required',
+            'password' => 'required'
         ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            
+            return response()->json(['error' => 'ture', 'message' => $errors->first('email') .' & '. $errors->first('password')]);
+        }
 
         try {
             if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Validator;
 use App\User;
 use App\PasswordResets;
 use Illuminate\Http\Request;
@@ -111,9 +112,16 @@ class PasswordController extends Controller
      */
     public function postVerifyCode(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'code' => 'required|numeric',
         ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'ture', 'message' => $errors->first('code')]);
+        }
+        
 
         $code = $request->get('code');
 
@@ -173,9 +181,15 @@ class PasswordController extends Controller
      */
     public function postReset(Request $request)
     {
-        $this->validate($request, [
-            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@!.#&+-]{6,!}$/',
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@.!#&+-]{8,}$/',
         ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            
+            return response()->json(['error' => 'ture', 'message' => $errors->first('password')]);
+        }
 
         $token = $this->jwt->parseToken();
         

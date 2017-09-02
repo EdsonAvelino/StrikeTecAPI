@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Validator;
 use App\User;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -71,10 +72,19 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        $this->validate($request, [
+        $validator = Validator::make($request->all(), [
             'email' => 'required|max:64|unique:users',
-            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@!.#&+-]{6,!}$/',
+            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@.!#&+-]{8,}$/',
         ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            if ($errors->get('email'))
+                return response()->json(['error' => 'ture', 'message' => $errors->first('email')]);
+            else 
+                return response()->json(['error' => 'ture', 'message' => $errors->first('password')]);
+        }
 
         // Creates a new user
         $user = User::create([
