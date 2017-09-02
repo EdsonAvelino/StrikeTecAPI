@@ -174,7 +174,7 @@ class PasswordController extends Controller
     public function postReset(Request $request)
     {
         $this->validate($request, [
-            'password' => 'required|min:10|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{10,}$/',
+            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@!.#&+-]{6,!}$/',
         ]);
 
         $token = $this->jwt->parseToken();

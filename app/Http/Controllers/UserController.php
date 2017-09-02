@@ -73,7 +73,7 @@ class UserController extends Controller
     {
         $this->validate($request, [
             'email' => 'required|max:64|unique:users',
-            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@.#&+-]{6,}$/',
+            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[ A-Za-z0-9_@!.#&+-]{6,!}$/',
         ]);
 
         // Creates a new user
