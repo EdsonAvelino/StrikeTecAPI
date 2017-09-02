@@ -80,8 +80,7 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             $errors = $validator->errors();
-            
-            return response()->json(['error' => 'ture', 'message' => $errors->first('email') .' & '. $errors->first('password')]);
+            return response()->json(['error' => 'ture', 'message' =>  $errors->first('email')]);
         }
 
         try {
