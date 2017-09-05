@@ -35,7 +35,10 @@ class User extends Model implements AuthenticatableContract,
         'left_kick_sensor',
         'right_kick_sensor',
         'is_spectator',
-        'stance'
+        'stance',
+        'is_spectator',
+        'show_tip',
+        'photo_url'
     ];
 
     /**
