@@ -270,6 +270,8 @@ class UserController extends Controller
             $user->height = $request->get('height');
             $user->is_spectator = (int) $request->get('is_spectator');
             $user->stance = $request->get('stance');
+            $user->show_tip = (int) $request->get('show_tip');
+            $user->photo_url = (int) $request->get('photo_url');
 
             $user->save();
             
