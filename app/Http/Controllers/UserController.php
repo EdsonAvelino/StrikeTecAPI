@@ -60,9 +60,9 @@ class UserController extends Controller
      *          "right_hand_sensor": null,
      *          "left_kick_sensor": null,
      *          "right_kick_sensor": null,
-     *          "is_spectator": null,
+     *          "is_spectator": 0,
      *          "stance": null,
-     *          "show_tip": null,
+     *          "show_tip": 1,
      *          "skill_level": null,
      *          "photo_url": null,
      *          "updated_at": "2016-02-10 15:46:51",
@@ -98,7 +98,9 @@ class UserController extends Controller
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
             'email' => $request->get('email'),
-            'password' => app('hash')->make($request->get('password'))
+            'password' => app('hash')->make($request->get('password')),
+            'show_tip' => 1,
+            'is_spectator' => 0
         ]);
         
         try {
@@ -154,9 +156,9 @@ class UserController extends Controller
      *          "right_hand_sensor": null,
      *          "left_kick_sensor": null,
      *          "right_kick_sensor": null,
-     *          "is_spectator": null,
+     *          "is_spectator": 0,
      *          "stance": null,
-     *          "show_tip": null,
+     *          "show_tip": 1,
      *          "skill_level": null,
      *          "photo_url": null,
      *          "updated_at": "2016-02-10 15:46:51",
@@ -189,6 +191,8 @@ class UserController extends Controller
                     'last_name' => $request->get('last_name'),
                     'email' => $request->get('email'),
                     'password' => app('hash')->make(strrev($request->get('facebook_id'))),
+                    'show_tip' => 1,
+                    'is_spectator' => 0
                 ]);
 
         try {
