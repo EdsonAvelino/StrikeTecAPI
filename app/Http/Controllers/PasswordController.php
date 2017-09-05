@@ -119,7 +119,7 @@ class PasswordController extends Controller
         if ($validator->fails()) {
             $errors = $validator->errors();
 
-            return response()->json(['error' => 'ture', 'message' => $errors->first('code')]);
+            return response()->json(['error' => 'true', 'message' => $errors->first('code')]);
         }
         
 
@@ -188,7 +188,7 @@ class PasswordController extends Controller
         if ($validator->fails()) {
             $errors = $validator->errors();
             
-            return response()->json(['error' => 'ture', 'message' => $errors->first('password')]);
+            return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
         }
 
         $token = $this->jwt->parseToken();

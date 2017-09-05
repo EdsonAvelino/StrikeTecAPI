@@ -65,8 +65,8 @@ class UserController extends Controller
      *          "show_tip": null,
      *          "skill_level": null,
      *          "photo_url": null,
-     *          "updated_at": "2016-02-10T15:46:51.778Z",
-     *          "created_at": "2016-02-10T15:46:51.778Z"
+     *          "updated_at": "2016-02-10 15:46:51",
+     *          "created_at": "2016-02-10 15:46:51"
      *      }
      *    }
      * @apiErrorExample {json} Error Response
@@ -88,9 +88,9 @@ class UserController extends Controller
             $errors = $validator->errors();
 
             if ($errors->get('email'))
-                return response()->json(['error' => 'ture', 'message' => $errors->first('email')]);
+                return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
             else 
-                return response()->json(['error' => 'ture', 'message' => $errors->first('password')]);
+                return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
         }
 
         // Creates a new user
@@ -103,7 +103,7 @@ class UserController extends Controller
         
         try {
             if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
-                return response()->json(['error' => 'ture', 'message' => 'Invalid request']);
+                return response()->json(['error' => 'true', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
@@ -114,6 +114,98 @@ class UserController extends Controller
         }
 
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
+    }
+
+    /**
+     * @api {post} /user/register/facebook Signup with Facebook
+     * @apiGroup Facebook Auth
+     * @apiParam {String} facebook_id Facebook ID from facebook response
+     * @apiParam {String} first_name First Name from facebook response
+     * @apiParam {String} last_name Last Name from facebook response
+     * @apiParam {String} email Email from facebook response
+     * @apiParamExample {json} Input
+     *    {
+     *      "facebook_id": "1234567890",
+     *      "first_name": "John",
+     *      "last_name": "Smith",
+     *      "email": "john@smith.com",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccess {Object} user User object contains user's all information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Facebook registration successful",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *      "user": {
+                "id": 1,
+     *          "facebook_id": 1234567890,
+     *          "first_name": "Nawaz",
+     *          "last_name": "Me",
+     *          "email": "ntestinfo@gmail.com",
+     *          "gender": null,
+     *          "birthday": "1970-01-01",
+     *          "weight": null,
+     *          "height": null,
+     *          "left_hand_sensor": null,
+     *          "right_hand_sensor": null,
+     *          "left_kick_sensor": null,
+     *          "right_kick_sensor": null,
+     *          "is_spectator": null,
+     *          "stance": null,
+     *          "show_tip": null,
+     *          "skill_level": null,
+     *          "photo_url": null,
+     *          "updated_at": "2016-02-10 15:46:51",
+     *          "created_at": "2016-02-10 15:46:51"
+     *      }
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid credentials or user is not registered"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function registerFacebook(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'facebook_id' => 'required|unique:users,facebook_id',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            if ($errors->get('facebook_id'))
+                return response()->json(['error' => 'true', 'message' => 'User already registered']);
+        }
+
+        $user = User::create(['facebook_id' => $request->get('facebook_id'),
+                    'first_name' => $request->get('first_name'),
+                    'last_name' => $request->get('last_name'),
+                    'email' => $request->get('email'),
+                    'password' => app('hash')->make(strrev($request->get('facebook_id'))),
+                ]);
+
+        try {
+            if (! $token = $this->jwt->attempt(['email' => $user->email,
+                    'password' => strrev($request->get('facebook_id'))]))
+            {
+                return response()->json(['error' => 'true', 'message' => 'Invalid request']);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
+        } catch (TokenInvalidException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
+        }
+
+        return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => \Auth::user()]);
     }
 
     /**

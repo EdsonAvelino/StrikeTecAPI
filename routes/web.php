@@ -21,6 +21,7 @@ $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
 // User Signup
 $app->post('/user/register', 'UserController@register');
+$app->post('/user/register/facebook', 'UserController@registerFacebook');
 
 // Password Reset
 $app->post('/password', 'PasswordController@postEmail');

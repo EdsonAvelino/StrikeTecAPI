@@ -61,8 +61,8 @@ class AuthController extends Controller
      *          "show_tip": null,
      *          "skill_level": null,
      *          "photo_url": null,
-     *          "updated_at": "2016-02-10T15:46:51.778Z",
-     *          "created_at": "2016-02-10T15:46:51.778Z"
+     *          "updated_at": "2016-02-10 15:46:51",
+     *          "created_at": "2016-02-10 15:46:51"
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
@@ -83,7 +83,7 @@ class AuthController extends Controller
 
         if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['error' => 'ture', 'message' =>  $errors->first('email')]);
+            return response()->json(['error' => 'true', 'message' =>  $errors->first('email')]);
         }
 
         try {
@@ -103,17 +103,11 @@ class AuthController extends Controller
 
     /**
      * @api {post} /auth/facebook Login with Facebook
-     * @apiGroup Authentication
+     * @apiGroup Facebook Auth
      * @apiParam {String} facebook_id Facebook ID from facebook response
-     * @apiParam {String} first_name First Name from facebook response
-     * @apiParam {String} last_name Last Name from facebook response
-     * @apiParam {String} email Email from facebook response
      * @apiParamExample {json} Input
      *    {
      *      "facebook_id": "1234567890",
-     *      "first_name": "John",
-     *      "last_name": "Smith",
-     *      "email": "john@smith.com",
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -144,32 +138,31 @@ class AuthController extends Controller
      *          "show_tip": null,
      *          "skill_level": null,
      *          "photo_url": null,
-     *          "updated_at": "2016-02-10T15:46:51.778Z",
-     *          "created_at": "2016-02-10T15:46:51.778Z"
+     *          "updated_at": "2016-02-10 15:46:51",
+     *          "created_at": "2016-02-10 15:46:51"
      *      }
      *    }
-     * @apiErrorExample {json} Login error (Invalid credentials)
+     * @apiErrorExample {json} Authentication error
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
-     *          "message": "Invalid credentials or user is not registered"
+     *          "message": "Invalid credentials or user not found"
      *      }
      * @apiVersion 1.0.0
      */
     public function authenticateFacebook(Request $request)
     {
-        $user = User::firstOrNew(['facebook_id' => $request->get('facebook_id')]);
-        $user->first_name = $request->get('first_name');
-        $user->last_name = $request->get('last_name');
-        $user->email = $request->get('email');
-        $user->password = app('hash')->make(strrev($request->get('facebook_id')));
-        $user->save();
+        $user = User::where('facebook_id', $request->get('facebook_id'))->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid request or user not found']);
+        }
 
         try {
             if (! $token = $this->jwt->attempt(['email' => $user->email,
                     'password' => strrev($request->get('facebook_id'))]))
             {
-                return response()->json(['error' => 'ture', 'message' => 'Invalid request']);
+                return response()->json(['error' => 'true', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
