@@ -25,10 +25,14 @@ class UserController extends Controller
     /**
      * @api {post} /user/register Register a new user
      * @apiGroup Users
+     * @apiParam {String} first_name First Name of user
+     * @apiParam {String} last_name Last Name of user
      * @apiParam {String} email Email
      * @apiParam {String} password Password
      * @apiParamExample {json} Input
      *    {
+     *      "first_name": "John",
+     *      "last_name": "Smith",
      *      "email": "john@smith.com",
      *      "password": "Something123"
      *    }
@@ -58,6 +62,9 @@ class UserController extends Controller
      *          "right_kick_sensor": null,
      *          "is_spectator": null,
      *          "stance": null,
+     *          "show_tip": null,
+     *          "skill_level": null,
+     *          "photo_url": null,
      *          "updated_at": "2016-02-10T15:46:51.778Z",
      *          "created_at": "2016-02-10T15:46:51.778Z"
      *      }
@@ -88,6 +95,8 @@ class UserController extends Controller
 
         // Creates a new user
         $user = User::create([
+            'first_name' => $request->get('first_name'),
+            'last_name' => $request->get('last_name'),
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password'))
         ]);
@@ -121,6 +130,7 @@ class UserController extends Controller
      * @apiParam {Date} birthday Birthday in MM-DD-YYYY e.g. 09/11/1987
      * @apiParam {Number} weight Weight
      * @apiParam {Number} height Height
+     * @apiParam {Boolean} is_spectator Spectator true / false
      * @apiParam {String} stance Stance
      * @apiParamExample {json} Input
      *    {
@@ -130,6 +140,7 @@ class UserController extends Controller
      *      "birthday": "09/11/1987",
      *      "weight": 25,
      *      "height": 6,
+     *      "is_spectator": true,
      *      "stance": "traditional",
      *    }
      * @apiSuccessExample {json} Success
@@ -161,9 +172,11 @@ class UserController extends Controller
             $user->birthday = date('Y-m-d', strtotime($request->get('birthday')));
             $user->weight = $request->get('weight');
             $user->height = $request->get('height');
+            $user->is_spectator = (int) $request->get('is_spectator');
             $user->stance = $request->get('stance');
 
             $user->save();
+            
             return response()->json([
                 'error' => 'false',
                 'message' => 'User details have been updated successfully'

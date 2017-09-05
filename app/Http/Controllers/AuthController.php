@@ -58,6 +58,9 @@ class AuthController extends Controller
      *          "right_kick_sensor": null,
      *          "is_spectator": null,
      *          "stance": null,
+     *          "show_tip": null,
+     *          "skill_level": null,
+     *          "photo_url": null,
      *          "updated_at": "2016-02-10T15:46:51.778Z",
      *          "created_at": "2016-02-10T15:46:51.778Z"
      *      }
@@ -138,6 +141,9 @@ class AuthController extends Controller
      *          "right_kick_sensor": null,
      *          "is_spectator": null,
      *          "stance": null,
+     *          "show_tip": null,
+     *          "skill_level": null,
+     *          "photo_url": null,
      *          "updated_at": "2016-02-10T15:46:51.778Z",
      *          "created_at": "2016-02-10T15:46:51.778Z"
      *      }
