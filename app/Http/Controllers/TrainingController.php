@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\TrainingSessions;
+use App\TrainingSessionRounds;
 
 class TrainingController extends Controller
 {
@@ -94,7 +95,8 @@ class TrainingController extends Controller
      * @apiGroup Training
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} sessions List of sessions betweeen given date range
+     * @apiSuccess {Object} session Sessions information
+     * @apiSuccess {Object} rounds List of current session's rounds
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -110,6 +112,22 @@ class TrainingController extends Controller
      *          "created_at": "2017-09-09 18:03:57",
      *          "updated_at": "2017-09-09 18:03:57"
      *      }
+     *      "rounds": [{
+     *          "id": 1,
+     *          "training_session_id": 1,
+     *          "start_time": "1504960422890",
+     *          "end_time": null,
+     *          "created_at": "2017-09-09 18:06:33",
+     *          "updated_at": "2017-09-09 18:06:33"
+     *      },
+     *      {
+     *          "id": 2,
+     *          "training_session_id": 1,
+     *          "start_time": "1504960422890",
+     *          "end_time": null,
+     *          "created_at": "2017-09-09 18:06:33",
+     *          "updated_at": "2017-09-09 18:06:33"
+     *      }],
      *    }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -124,11 +142,13 @@ class TrainingController extends Controller
         $userId = \Auth::user()->id;
 
         $session = TrainingSessions::where('id', $sessionId)->first();
+        $rounds = TrainingSessionRounds::where('training_session_id', $sessionId)->get();
 
         return response()->json([
                 'error' => 'false',
                 'message' => '',
-                'session' => $session->toArray()
+                'session' => $session->toArray(),
+                'rounds' => $rounds->toArray()
             ]);
     }
 
