@@ -31,11 +31,22 @@ $app->post('/password/reset', 'PasswordController@postReset');
 $app->get('/test/lorem/ispum', function(){
 	// echo '';
 	// Illuminate\Support\Facades\Mail::raw('Hola! Whats up mate...', function($message) {
- //        $message->to(['ntestinfo@gmail.com'])->subject('[ALERT] notification');
- //    });
+	//        $message->to(['ntestinfo@gmail.com'])->subject('[ALERT] notification');
+	//    });
 });
 
 // Rest of all APIs are secured with token
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Update user's profile data
     $app->post('/users', 'UserController@update');
+
+    // Training APIs//
+    // Training sessions list
+    $app->get('/user/training/sessions', 'TrainingController@getSessions');
+
+    // Get particular session
+    $app->get('/user/training/sessions/{session_id}', 'TrainingController@getSession');
+
+    // Save Training sessions list to db
+    $app->post('/user/training/sessions', 'TrainingController@storeSessions');
 });
