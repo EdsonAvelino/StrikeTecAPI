@@ -210,7 +210,7 @@ class TrainingController extends Controller
             foreach ($data as $session) {
                 $_session = TrainingSessions::create([
                         'user_id' => \Auth::user()->id,
-                        'training_session_id' => $session['training_type_id'],
+                        'training_type_id' => $session['training_type_id'],
                         'start_time' => $session['start_time'],
                         'end_time' => $session['end_time'],
                         'plan_id' => $session['plan_id'],
