@@ -45,12 +45,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        // if ($e instanceof NotFoundHttpException) {
-        //     return response(['error' => 'Not found'], 404);
-        // } else {
-        //     return response(['error' => $e->getMessage()], 400);
-        // }
+        if (env('APP_DEBUG')) {
+            return parent::render($request, $e);
+        }
 
-        return parent::render($request, $e);
+        if ($e instanceof NotFoundHttpException) {
+            return response(['error' => 'true', 'message' => 'Not found'], 404);
+        } else {
+            return response(['error' => 'true', 'message' => 'Invalid request']);
+        }
     }
 }

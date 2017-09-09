@@ -11,6 +11,11 @@ class TrainingController extends Controller
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
      * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
      * @apiParamExample {json} Input
@@ -93,6 +98,11 @@ class TrainingController extends Controller
     /**
      * @api {get} /user/training/sessions/<session_id> Get session and its rounds
      * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} session Sessions information
@@ -152,8 +162,73 @@ class TrainingController extends Controller
             ]);
     }
 
+    /**
+     * @api {post} /user/training/sessions Upload sessions
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} content-type Content-Type set to "application/json"
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+             "Content-Type": "application/json"
+     *     }
+     * @apiParam {json} data Json formatted sessions data
+     * @apiParamExample {json} Input
+     * {
+     * "data": [
+     *      { "training_type_id": 1, "start_time": 1505745766000, "end_time": "", "plan_id":-1 },
+     *      { "training_type_id": 1, "start_time": 1505792485000, "end_time": "", "plan_id":-1 }
+     *  ]
+     * }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains each sessions' start_time
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {[
+     *          {"start_time": 1505745766000},
+     *          {"start_time": 1505745775000},
+     *      ]}
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
     public function storeSessions(Request $request)
     {
+        $data = $request->get('data');
+        $sessions = [];
 
+        try {
+            foreach ($data as $session) {
+                $_session = TrainingSessions::create([
+                        'user_id' => \Auth::user()->id,
+                        'training_session_id' => $session['training_type_id'],
+                        'start_time' => $session['start_time'],
+                        'end_time' => $session['end_time'],
+                        'plan_id' => $session['plan_id'],
+                    ]);
+
+                $sessions[] = ['start_time' => $_session->start_time];
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Training sessions saved successfully',
+                'data' => $sessions
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request',
+            ]);
+        }
     }
 }
