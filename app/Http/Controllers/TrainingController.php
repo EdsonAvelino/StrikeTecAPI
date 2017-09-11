@@ -40,7 +40,8 @@ class TrainingController extends Controller
      *          "end_time": null,
      *          "plan_id": -1,
      *          "created_at": "2017-09-09 18:03:57",
-     *          "updated_at": "2017-09-09 18:03:57"
+     *          "updated_at": "2017-09-09 18:03:57",
+     *          "round_ids" : [{ "id":1},{"id":2} ]}
      *      },
      *      {
      *          "id": 2,
@@ -51,6 +52,7 @@ class TrainingController extends Controller
      *          "plan_id": -1,
      *          "created_at": "2017-09-09 18:08:21",
      *          "updated_at": "2017-09-09 18:08:21"
+     *          "round_ids" : [{ "id":3},{"id":4} ]}
      *      },
      *      {
      *          "id": 3,
@@ -61,6 +63,7 @@ class TrainingController extends Controller
      *          "plan_id": -1,
      *          "created_at": "2017-09-10 18:09:30",
      *          "updated_at": "2017-09-10 18:09:30"
+     *          "round_ids" : [{ "id":5},{"id":6} ]}
      *      }
      *    }
      * @apiErrorExample {json} Error Response
