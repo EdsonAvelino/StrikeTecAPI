@@ -243,25 +243,25 @@ class TrainingController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
              "Content-Type": "application/json"
      *     }
-     * @apiParam {json} data Json formatted sessions data
+     * @apiParam {json} data Json formatted rounds data
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "start_time": 1505745766000, "end_time": "" },
-     *      { "start_time": 1505792485000, "end_time": "" }
+     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000 },
+     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000 }
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each sessions' start_time
+     * @apiSuccess {Array} data Data contains each rounds' session_start_time
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
      *      "message": "Sessions rounds saved successfully",
      *      "data": {[
-     *          {"start_time": 1505745766000},
-     *          {"start_time": 1505745775000},
+     *          {"session_start_time": 1505745766000},
+     *          {"session_start_time": 1505745775000},
      *      ]}
      *    }
      * @apiErrorExample {json} Error Response
@@ -279,7 +279,7 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $round) {
-                $sessionId = TrainingSessions::where('start_time', $round['start_time'])->first()->id;
+                $sessionId = TrainingSessions::where('start_time', $round['session_start_time'])->first()->id;
 
                 $_round = TrainingSessionRounds::create([
                         'training_session_id' => $sessionId,
@@ -287,7 +287,7 @@ class TrainingController extends Controller
                         'end_time' => $round['end_time'],
                     ]);
 
-                $rounds[] = ['start_time' => $_round->start_time];
+                $rounds[] = ['session_start_time' => $round['session_start_time']];
             }
 
             return response()->json([
@@ -313,7 +313,7 @@ class TrainingController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
              "Content-Type": "application/json"
      *     }
-     * @apiParam {json} data Json formatted sessions data
+     * @apiParam {json} data Json formatted punches data
      * @apiParamExample {json} Input
      * {
      * "data": [
@@ -325,12 +325,12 @@ class TrainingController extends Controller
      * }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each sessions' start_time
+     * @apiSuccess {Array} data Data contains each punches' round_start_time
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
-     *      "message": "Sessions rounds saved successfully",
+     *      "message": "Rounds punches saved successfully",
      *      "data": {[
      *          {"round_start_time": 1505745766000},
      *          {"round_start_time": 1505745775000},
