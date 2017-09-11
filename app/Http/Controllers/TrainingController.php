@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\TrainingSessions;
 use App\TrainingSessionRounds;
+use App\TrainingSessionRoundsPunches;
 
 class TrainingController extends Controller
 {
@@ -293,6 +294,84 @@ class TrainingController extends Controller
                 'error' => 'false',
                 'message' => 'Sessions rounds saved successfully',
                 'data' => $rounds
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request',
+            ]);
+        }
+    }
+
+    /**
+     * @api {post} /user/training/sessions/rounds/punches Upload rounds' punches
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} content-type Content-Type set to "application/json"
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+             "Content-Type": "application/json"
+     *     }
+     * @apiParam {json} data Json formatted sessions data
+     * @apiParamExample {json} Input
+     * {
+     * "data": [
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
+     *  ]
+     * }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains each sessions' start_time
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Sessions rounds saved successfully",
+     *      "data": {[
+     *          {"round_start_time": 1505745766000},
+     *          {"round_start_time": 1505745775000},
+     *          {"round_start_time": 1505745775000},
+     *          {"round_start_time": 1505745775000},
+     *      ]}
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function storeSessionsRoundsPunches(Request $request)
+    {
+        $data = $request->get('data');
+        $punches = [];
+
+        try {
+            foreach ($data as $punch) {
+                $sessionRoundId = TrainingSessionRounds::where('start_time', $punch['round_start_time'])->first()->id;
+
+                $_punch = TrainingSessionRoundsPunches::create([
+                        'session_round_id' => $sessionRoundId,
+                        'punch_time' => $punch['punch_time'],
+                        'punch_duration' => $punch['punch_duration'],
+                        'force' => $punch['force'],
+                        'speed' => $punch['speed'],
+                        'punch_type' => $punch['punch_type'],
+                        'hand' => $punch['hand'],
+                    ]);
+
+                $punches[] = ['round_start_time' => $punch['round_start_time']];
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Rounds punches saved successfully',
+                'data' => $punches
             ]);
         } catch (Exception $e) {
             return response()->json([

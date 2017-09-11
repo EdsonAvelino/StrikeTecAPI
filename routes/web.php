@@ -52,4 +52,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Save Training sessoins' rounds data to db
     $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
+
+    // Save Training sessoins' rounds' punches data to db
+    $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 });
