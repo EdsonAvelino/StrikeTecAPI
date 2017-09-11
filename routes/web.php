@@ -47,6 +47,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get particular session
     $app->get('/user/training/sessions/{session_id}', 'TrainingController@getSession');
 
-    // Save Training sessions list to db
+    // Save Training sessions data to db
     $app->post('/user/training/sessions', 'TrainingController@storeSessions');
+
+    // Save Training sessoins' rounds data to db
+    $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
 });

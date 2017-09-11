@@ -187,7 +187,7 @@ class TrainingController extends Controller
      *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
-     *      "message": "",
+     *      "message": "Training sessions saved successfully",
      *      "data": {[
      *          {"start_time": 1505745766000},
      *          {"start_time": 1505745775000},
@@ -223,6 +223,76 @@ class TrainingController extends Controller
                 'error' => 'false',
                 'message' => 'Training sessions saved successfully',
                 'data' => $sessions
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request',
+            ]);
+        }
+    }
+
+    /**
+     * @api {post} /user/training/sessions/rounds Upload sessions' rounds
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} content-type Content-Type set to "application/json"
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+             "Content-Type": "application/json"
+     *     }
+     * @apiParam {json} data Json formatted sessions data
+     * @apiParamExample {json} Input
+     * {
+     * "data": [
+     *      { "start_time": 1505745766000, "end_time": "" },
+     *      { "start_time": 1505792485000, "end_time": "" }
+     *  ]
+     * }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains each sessions' start_time
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Sessions rounds saved successfully",
+     *      "data": {[
+     *          {"start_time": 1505745766000},
+     *          {"start_time": 1505745775000},
+     *      ]}
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function storeSessionsRounds(Request $request)
+    {
+        $data = $request->get('data');
+        $rounds = [];
+
+        try {
+            foreach ($data as $round) {
+                $sessionId = TrainingSessions::where('start_time', $round['start_time'])->first()->id;
+
+                $_round = TrainingSessionRounds::create([
+                        'training_session_id' => $sessionId,
+                        'start_time' => $round['start_time'],
+                        'end_time' => $round['end_time'],
+                    ]);
+
+                $rounds[] = ['start_time' => $_round->start_time];
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Sessions rounds saved successfully',
+                'data' => $rounds
             ]);
         } catch (Exception $e) {
             return response()->json([
