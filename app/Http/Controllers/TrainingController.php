@@ -233,6 +233,11 @@ class TrainingController extends Controller
         }
     }
 
+    public function getSessionsRounds($sessionId)
+    {
+
+    }
+
     /**
      * @api {post} /user/training/sessions/rounds Upload sessions' rounds
      * @apiGroup Training
@@ -260,8 +265,8 @@ class TrainingController extends Controller
      *      "error": "false",
      *      "message": "Sessions rounds saved successfully",
      *      "data": {[
-     *          {"session_start_time": 1505745766000},
-     *          {"session_start_time": 1505745775000},
+     *          {"start_time": 1505745866000},
+     *          {"start_time": 1505792485080},
      *      ]}
      *    }
      * @apiErrorExample {json} Error Response
@@ -287,7 +292,7 @@ class TrainingController extends Controller
                         'end_time' => $round['end_time'],
                     ]);
 
-                $rounds[] = ['session_start_time' => $round['session_start_time']];
+                $rounds[] = ['start_time' => $round->start_time];
             }
 
             return response()->json([
@@ -332,10 +337,10 @@ class TrainingController extends Controller
      *      "error": "false",
      *      "message": "Rounds punches saved successfully",
      *      "data": {[
-     *          {"round_start_time": 1505745766000},
-     *          {"round_start_time": 1505745775000},
-     *          {"round_start_time": 1505745775000},
-     *          {"round_start_time": 1505745775000},
+     *          {"start_time": 1505745766000},
+     *          {"start_time": 1505745766000},
+     *          {"start_time": 1505745766000},
+     *          {"start_time": 1505745766000},
      *      ]}
      *    }
      * @apiErrorExample {json} Error Response
@@ -365,7 +370,7 @@ class TrainingController extends Controller
                         'hand' => $punch['hand'],
                     ]);
 
-                $punches[] = ['round_start_time' => $punch['round_start_time']];
+                $punches[] = ['start_time' => $punch->punch_time];
             }
 
             return response()->json([
