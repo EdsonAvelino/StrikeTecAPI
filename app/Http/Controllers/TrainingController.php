@@ -292,7 +292,7 @@ class TrainingController extends Controller
                         'end_time' => $round['end_time'],
                     ]);
 
-                $rounds[] = ['start_time' => $round->start_time];
+                $rounds[] = ['start_time' => $_round->start_time];
             }
 
             return response()->json([
@@ -370,7 +370,7 @@ class TrainingController extends Controller
                         'hand' => $punch['hand'],
                     ]);
 
-                $punches[] = ['start_time' => $punch->punch_time];
+                $punches[] = ['start_time' => $_punch->punch_time];
             }
 
             return response()->json([
