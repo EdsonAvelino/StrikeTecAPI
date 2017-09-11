@@ -32,7 +32,7 @@ class TrainingController extends Controller
      *    {
      *      "error": "false",
      *      "message": "",
-     *      sessions": [{
+     *      "sessions": [{
      *          "id": 1,
      *          "user_id": 1,
      *          "training_type_id": 1,
@@ -87,12 +87,22 @@ class TrainingController extends Controller
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
         }
 
-        $sessions = $_sessions->get();
+        $sessions = [];
+
+        foreach ($result = $_sessions->get() as $_session) {
+            $temp = $_session->toArray();
+
+            $roundIDs = \DB::select( \DB::raw("SELECT id FROM training_session_rounds WHERE training_session_id = $_session->id") );
+
+            $temp['round_ids'] = $roundIDs;
+            $sessions[] = $temp;
+        }
+        
 
         return response()->json([
                 'error' => 'false',
                 'message' => '',
-                'sessions' => $sessions->toArray()
+                'sessions' => $sessions
             ]);
     }
 
