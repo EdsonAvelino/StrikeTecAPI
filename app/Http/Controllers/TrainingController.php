@@ -233,9 +233,59 @@ class TrainingController extends Controller
         }
     }
 
+    /**
+     * @api {get} /user/training/sessions/rounds/{session_id} Get rounds of session
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} rounds List of requested session's rounds
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "rounds": [{
+     *          "id": 1,
+     *          "training_session_id": 1,
+     *          "start_time": "1504960422890",
+     *          "end_time": null,
+     *          "created_at": "2017-09-09 18:06:33",
+     *          "updated_at": "2017-09-09 18:06:33"
+     *      },
+     *      {
+     *          "id": 2,
+     *          "training_session_id": 1,
+     *          "start_time": "1504960422890",
+     *          "end_time": null,
+     *          "created_at": "2017-09-09 18:06:33",
+     *          "updated_at": "2017-09-09 18:06:33"
+     *      }],
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
     public function getSessionsRounds($sessionId)
     {
+        $session = TrainingSessions::where('id', $sessionId)->first();
 
+        $rounds = TrainingSessionRounds::where('training_session_id', $sessionId)->get();
+
+        return response()->json([
+                'error' => 'false',
+                'message' => '',
+                // 'session' => $session->toArray(),
+                'rounds' => $rounds->toArray()
+            ]);
     }
 
     /**
