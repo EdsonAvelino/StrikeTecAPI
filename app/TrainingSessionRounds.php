@@ -16,5 +16,12 @@ class TrainingSessionRounds extends Model
         'training_session_id',
         'start_time',
         'end_time',
+        'avg_speed',
+        'avg_force',
+        'punches_count',
+        'max_speed',
+        'max_force',
+        'best_time',
+        'avg_time',
     ];
 }

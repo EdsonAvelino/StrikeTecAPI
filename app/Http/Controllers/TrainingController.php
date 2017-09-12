@@ -141,6 +141,13 @@ class TrainingController extends Controller
      *          "training_session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
+     *          "avg_speed": 20.71,
+     *          "avg_force": 358.64,
+     *          "punches_count": 28,
+     *          "max_speed": 34,
+     *          "max_force": 549,
+     *          "best_time": "0.39",
+     *          "avg_time": "0.51",
      *          "created_at": "2017-09-09 18:06:33",
      *          "updated_at": "2017-09-09 18:06:33"
      *      },
@@ -149,6 +156,13 @@ class TrainingController extends Controller
      *          "training_session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
+     *          "avg_speed": 20.71,
+     *          "avg_force": 358.64,
+     *          "punches_count": 28,
+     *          "max_speed": 34,
+     *          "max_force": 549,
+     *          "best_time": "0.39",
+     *          "avg_time": "0.51",
      *          "created_at": "2017-09-09 18:06:33",
      *          "updated_at": "2017-09-09 18:06:33"
      *      }],
@@ -419,10 +433,31 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $punches = [];
 
+        $avgForce = []; $avgForceCount = [];
+        $avgSpeed = []; $avgSpeedCount = [];
+        $maxSpeed = []; $maxForce = [];
+        $punchDurations = [];
+
+        $sessionRounds = [];
+
         try {
             foreach ($data as $punch) {
-                $sessionRoundId = TrainingSessionRounds::where('start_time', $punch['round_start_time'])->first()->id;
+                $sessionRound = TrainingSessionRounds::where('start_time', $punch['round_start_time'])->first();
 
+                // $sessionRoundId storing sessionRound->id for most usage
+                $sessionRoundId = $sessionRound->id;
+
+                // Generating total-session-rounds to loop through it in next step
+                $sessionRounds[] = $sessionRoundId;
+
+                // Storing force/speed data, grouping by sessionRoundId for ease of calculation
+                $avgForce[$sessionRoundId] = ($avgForce[$sessionRoundId]) ?? 0;
+                $avgForceCount[$sessionRoundId] = ($avgForceCount[$sessionRoundId]) ?? 0;
+                
+                $avgSpeed[$sessionRoundId] = ($avgSpeed[$sessionRoundId]) ?? 0;
+                $avgSpeedCount[$sessionRoundId] = ($avgSpeedCount[$sessionRoundId]) ?? 0;
+
+                // Store punch
                 $_punch = TrainingSessionRoundsPunches::create([
                         'session_round_id' => $sessionRoundId,
                         'punch_time' => $punch['punch_time'],
@@ -434,6 +469,49 @@ class TrainingController extends Controller
                     ]);
 
                 $punches[] = ['start_time' => $_punch->punch_time];
+
+                // Sum of puches force & speed
+                $avgForce[$sessionRoundId] += $punch['force'];
+                $avgForceCount[$sessionRoundId] += 1;
+
+                $avgSpeed[$sessionRoundId] += $punch['speed'];
+                $avgSpeedCount[$sessionRoundId] += 1;
+
+                // Storing max of force/speed into an array to get max of each easily
+                $maxForce[$sessionRoundId][] = $punch['force'];
+                $maxSpeed[$sessionRoundId][] = $punch['speed'];
+
+                // Storing all punches' punch_duration into an array
+                // to get best-time (min of puch_duration)
+                // and avg-time = sum of punch_duration / total num of punch_duration
+                $punchDurations[$sessionRoundId][] = $punch['punch_duration'];
+            }
+
+            // ------------------------------------------------------------------
+            // CALCULATIONS & Store its results to appropriate rounds
+            // ------------------------------------------------------------------
+            foreach ($sessionRounds as $sessionRoundId) {
+                $sessionRound = TrainingSessionRounds::where('id', $sessionRoundId)->first();
+
+                // Round wise avg / max calculation
+                $_avgSpeed = $avgSpeed[$sessionRoundId] / $avgSpeedCount[$sessionRoundId];
+                $_avgForce = $avgForce[$sessionRoundId] / $avgForceCount[$sessionRoundId];
+
+                $sessionRound->avg_speed = $_avgSpeed;
+                $sessionRound->avg_force = $_avgForce;
+
+                // Note: avgForceCount & avgSpeedCount both will have same values of punches count
+                // So using one of them for  punches_count field
+                $sessionRound->punches_count = $avgForceCount[$sessionRoundId];
+                
+                $sessionRound->max_speed = max($maxSpeed[$sessionRoundId]);
+                $sessionRound->max_force = max($maxForce[$sessionRoundId]);
+                
+                $sessionRound->best_time = min($punchDurations[$sessionRoundId]);
+                
+                $sessionRound->avg_time = array_sum($punchDurations[$sessionRoundId]) / count($punchDurations[$sessionRoundId]);
+
+                $sessionRound->save();
             }
 
             return response()->json([
