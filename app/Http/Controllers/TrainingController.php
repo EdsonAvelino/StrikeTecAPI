@@ -281,7 +281,7 @@ class TrainingController extends Controller
     }
 
     /**
-     * @api {get} /user/training/sessions/rounds/{session_id} Get rounds of session
+     * @api {get} /user/training/sessions/rounds/{round_id} Get rounds and its punches
      * @apiGroup Training
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -290,13 +290,14 @@ class TrainingController extends Controller
      *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} rounds List of requested session's rounds
+     * @apiSuccess {Object} round Round information
+     * @apiSuccess {Object} punches List of round's punches
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
      *      "message": "",
-     *      "rounds": [{
+     *      "round": {
      *          "id": 1,
      *          "training_session_id": 1,
      *          "start_time": "1504960422890",
@@ -304,14 +305,42 @@ class TrainingController extends Controller
      *          "created_at": "2017-09-09 18:06:33",
      *          "updated_at": "2017-09-09 18:06:33"
      *      },
+     *      "punches": [{
+     *          "id": 1,
+     *          "session_round_id": 1,
+     *          "punch_time": "1505089499658",
+     *          "punch_duration": "0.60",
+     *          "force": 270,
+     *          "speed": 14,
+     *          "punch_type": "H",
+     *          "hand": "L",
+     *          "created_at": "2017-09-13 17:55:00",
+     *          "updated_at": "2017-09-13 17:55:00"
+     *      },
      *      {
      *          "id": 2,
-     *          "training_session_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": null,
-     *          "created_at": "2017-09-09 18:06:33",
-     *          "updated_at": "2017-09-09 18:06:33"
-     *      }],
+     *          "session_round_id": 1,
+     *          "punch_time": "1505089500659",
+     *          "punch_duration": "0.40",
+     *          "force": 217,
+     *          "speed": 23,
+     *          "punch_type": "H",
+     *          "hand": "L",
+     *          "created_at": "2017-09-13 17:55:01",
+     *          "updated_at": "2017-09-13 17:55:01"
+     *      },
+     *     {
+     *          "id": 3,
+     *          "session_round_id": 1,
+     *          "punch_time": "1505089501660",
+     *          "punch_duration": "0.50",
+     *          "force": 549,
+     *          "speed": 22,
+     *          "punch_type": "J",
+     *          "hand": "R",
+     *          "created_at": "2017-09-13 17:55:02",
+     *          "updated_at": "2017-09-13 17:55:02"
+     *      }]
      *    }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -321,17 +350,16 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRounds($sessionId)
+    public function getSessionsRound($roundId)
     {
-        $session = TrainingSessions::where('id', $sessionId)->first();
-
-        $rounds = TrainingSessionRounds::where('training_session_id', $sessionId)->get();
+        $round = TrainingSessionRounds::where('id', $roundId)->first();
+        $punches = TrainingSessionRoundsPunches::where('session_round_id', $roundId)->get();
 
         return response()->json([
                 'error' => 'false',
                 'message' => '',
-                // 'session' => $session->toArray(),
-                'rounds' => $rounds->toArray()
+                'round' => $round->toArray(),
+                'punches' => $punches->toArray()
             ]);
     }
 

@@ -50,8 +50,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save Training sessions data to db
     $app->post('/user/training/sessions', 'TrainingController@storeSessions');
 
-    // Get Training sessoins' rounds list
-    $app->get('/user/training/sessions/rounds/{session_id}', 'TrainingController@getSessionsRounds');
+    // Get round and its punches
+    $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
 
     // Save Training sessoins' rounds data to db
     $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
