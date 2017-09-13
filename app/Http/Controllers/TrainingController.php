@@ -39,6 +39,11 @@ class TrainingController extends Controller
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "plan_id": -1,
+     *          "avg_speed": "20.16",
+     *          "avg_force": "348.03",
+     *          "punches_count": 31,
+     *          "max_speed": "34.00",
+     *          "max_force": "549.00",
      *          "created_at": "2017-09-09 18:03:57",
      *          "updated_at": "2017-09-09 18:03:57",
      *          "round_ids" : [{ "id":1},{"id":2} ]}
@@ -50,6 +55,11 @@ class TrainingController extends Controller
      *          "start_time": "1504978767000",
      *          "end_time": null,
      *          "plan_id": -1,
+     *          "avg_speed": "20.16",
+     *          "avg_force": "348.03",
+     *          "punches_count": 31,
+     *          "max_speed": "34.00",
+     *          "max_force": "549.00",
      *          "created_at": "2017-09-09 18:08:21",
      *          "updated_at": "2017-09-09 18:08:21"
      *          "round_ids" : [{ "id":3},{"id":4} ]}
@@ -61,6 +71,11 @@ class TrainingController extends Controller
      *          "start_time": "1505025567000",
      *          "end_time": null,
      *          "plan_id": -1,
+     *          "avg_speed": "20.16",
+     *          "avg_force": "348.03",
+     *          "punches_count": 31,
+     *          "max_speed": "34.00",
+     *          "max_force": "549.00",
      *          "created_at": "2017-09-10 18:09:30",
      *          "updated_at": "2017-09-10 18:09:30"
      *          "round_ids" : [{ "id":5},{"id":6} ]}
@@ -439,6 +454,7 @@ class TrainingController extends Controller
         $punchDurations = [];
 
         $sessionRounds = [];
+        $trainingSessions = [];
 
         try {
             foreach ($data as $punch) {
@@ -490,8 +506,12 @@ class TrainingController extends Controller
             // ------------------------------------------------------------------
             // CALCULATIONS & Store its results to appropriate rounds
             // ------------------------------------------------------------------
-            foreach ($sessionRounds as $sessionRoundId) {
+            
+            // Removes duplicate values and loops through list of session-rounds
+            foreach (array_unique($sessionRounds) as $sessionRoundId) {
                 $sessionRound = TrainingSessionRounds::where('id', $sessionRoundId)->first();
+
+                $trainingSessions[] = $sessionRound->training_session_id;
 
                 // Round wise avg / max calculation
                 $_avgSpeed = $avgSpeed[$sessionRoundId] / $avgSpeedCount[$sessionRoundId];
@@ -512,6 +532,32 @@ class TrainingController extends Controller
                 $sessionRound->avg_time = array_sum($punchDurations[$sessionRoundId]) / count($punchDurations[$sessionRoundId]);
 
                 $sessionRound->save();
+            }
+
+            // Removes duplicate values of trainingSessions and loops through it
+            foreach (array_unique($trainingSessions) as $trainingSessionId) {
+                // echo "\nID:".$trainingSessionId;
+                $trainingSession = TrainingSessions::where('id', $trainingSessionId)->first();
+
+                $stats = collect(
+                        \DB::select("SELECT
+                        SUM(`speed`) AS total_speed, SUM(`force`) AS total_force,
+                        COUNT(speed) AS speed_count, COUNT(`force`) AS force_count,
+                        MAX(`speed`) AS max_speed,  MAX(`force`) AS max_force
+                        FROM `training_session_rounds_punches`
+                        WHERE session_round_id IN (
+                            SELECT id FROM training_session_rounds
+                            WHERE training_session_id = $trainingSessionId
+                        )")
+                    )->first();
+
+                $trainingSession->avg_speed = $stats->total_speed / $stats->speed_count;
+                $trainingSession->avg_force = $stats->total_force / $stats->force_count;
+                $trainingSession->punches_count = $stats->force_count;
+                $trainingSession->max_speed = $stats->max_speed;
+                $trainingSession->max_force = $stats->max_force;
+
+                $trainingSession->save();
             }
 
             return response()->json([

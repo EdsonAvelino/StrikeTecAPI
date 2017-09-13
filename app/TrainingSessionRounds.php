@@ -24,4 +24,9 @@ class TrainingSessionRounds extends Model
         'best_time',
         'avg_time',
     ];
+
+    public function session()
+    {
+        return $this->belongsTo('App\TrainingSessions');
+    }
 }
