@@ -19,10 +19,12 @@ class TrainingController extends Controller
      *     }
      * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
      * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
+     * @apiParam {Number} [training_type_id] Optional Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
      * @apiParamExample {json} Input
      *    {
      *      "start_date": "09/11/2017",
      *      "end_date": "09/15/2017",
+     *      "training_type_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -95,6 +97,7 @@ class TrainingController extends Controller
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
+        $trainingTypeId = (int) $request->get('training_type_id');
 
         $startDate = date('Y-m-d', strtotime($startDate)) . ' 00:00:00';
         $endDate = date('Y-m-d', strtotime($endDate)) . ' 23:59:59';
@@ -103,6 +106,10 @@ class TrainingController extends Controller
 
         if (!empty($startDate) && !empty($endDate)) {
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        if ($trainingTypeId) {
+            $_sessions->where('training_type_id', $trainingTypeId);
         }
 
         $sessions = [];
