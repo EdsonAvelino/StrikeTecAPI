@@ -302,6 +302,13 @@ class TrainingController extends Controller
      *          "training_session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
+     *          "avg_speed": 20.71,
+     *          "avg_force": 358.64,
+     *          "punches_count": 28,
+     *          "max_speed": 34,
+     *          "max_force": 549,
+     *          "best_time": "0.39",
+     *          "avg_time": "0.51",
      *          "created_at": "2017-09-09 18:06:33",
      *          "updated_at": "2017-09-09 18:06:33"
      *      },
