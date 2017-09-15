@@ -294,6 +294,7 @@ class UserController extends Controller
             $showTip = filter_var($request->get('show_tip'), FILTER_VALIDATE_BOOLEAN);
             $user->show_tip = $request->get('show_tip') ? $showTip : $user->show_tip;
 
+            $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
 
