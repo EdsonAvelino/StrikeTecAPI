@@ -619,4 +619,86 @@ class TrainingController extends Controller
             ]);
         }
     }
+
+    /**
+     * @api {get} /user/training/sessions/rounds_by_training Get rounds by training-type
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *     }
+     * @apiParam {Number} training_type_id Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
+     * @apiParamExample {json} Input
+     *    {
+     *      "training_type_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} rounds List of rounds by filtered by training-type
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Rounds punches saved successfully",
+     *      "rounds": [
+     *          {
+     *          "id": 4,
+     *          "training_session_id": 11,
+     *          "start_time": "1505243114094",
+     *          "end_time": "1505243115773",
+     *          "avg_speed": 22,
+     *          "avg_force": 258,
+     *          "punches_count": 3,
+     *          "max_speed": 24,
+     *          "max_force": 269,
+     *          "best_time": "0.47",
+     *          "avg_time": "0.49",
+     *          "created_at": "2017-09-12 19:07:28",
+     *          "updated_at": "2017-09-13 17:55:18"
+     *      },
+     *          {
+     *          "id": 5,
+     *          "training_session_id": 10,
+     *          "start_time": "1505243114090",
+     *          "end_time": "1505243115780",
+     *          "avg_speed": 29,
+     *          "avg_force": 252,
+     *          "punches_count": 9,
+     *          "max_speed": 23,
+     *          "max_force": 219,
+     *          "best_time": "0.57",
+     *          "avg_time": "0.47",
+     *          "created_at": "2017-09-14 18:17:48",
+     *          "updated_at": "2017-09-15 19:50:32"
+     *      }
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getSessionsRoundsByTrainingType($trainingTypeId)
+    {
+        $sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId)->get();
+
+        if (!$sessions) return null;        
+
+        $sessionIds = [];
+
+        foreach ($sessions as $session)
+            $sessionIds[] = $session->id;
+
+        $rounds = TrainingSessionRounds::whereIn('training_session_id', $sessionIds)->get();
+
+        return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'rounds' => $rounds
+            ]);
+    }
 }
