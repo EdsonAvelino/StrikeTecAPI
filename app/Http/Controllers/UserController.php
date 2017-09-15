@@ -220,14 +220,22 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {String} first_name First Name
-     * @apiParam {String} last_name Last Name
-     * @apiParam {String="male","female"} gender Gender
-     * @apiParam {Date} birthday Birthday in MM-DD-YYYY e.g. 09/11/1987
-     * @apiParam {Number} weight Weight
-     * @apiParam {Number} height Height
-     * @apiParam {Boolean} is_spectator Spectator true / false
-     * @apiParam {String} stance Stance
+     * @apiParam {String} [first_name] First Name
+     * @apiParam {String} [last_name] Last Name
+     * @apiParam {String="male","female"} [gender] Gender
+     * @apiParam {Date} [birthday] Birthday in MM-DD-YYYY e.g. 09/11/1987
+     * @apiParam {Number} [weight] Weight
+     * @apiParam {Number} [height] Height
+     * @apiParam {Boolean} [is_spectator] Spectator true / false
+     * @apiParam {String} [stance] Stance
+     * @apiParam {Boolean} [show_tip] Show tips true / false
+     * @apiParam {String} [skill_level] Skill level of user
+     * @apiParam {String} [photo_url] User profile photo-url
+     * @apiParam {String} [left_hand_sensor] Left Hand Sensor
+     * @apiParam {String} [right_hand_sensor] Right Hand Sensor
+     * @apiParam {String} [left_kick_sensor] Left Kick Sensor
+     * @apiParam {String} [right_kick_sensor] Right Kick Sensor
+
      * @apiParamExample {json} Input
      *    {
      *      "first_name": "John",
@@ -262,16 +270,32 @@ class UserController extends Controller
 
         try {
             $user = \Auth::user();
-            $user->first_name = $request->get('first_name');
-            $user->last_name = $request->get('last_name');
-            $user->gender = $request->get('gender');
-            $user->birthday = date('Y-m-d', strtotime($request->get('birthday')));
-            $user->weight = $request->get('weight');
-            $user->height = $request->get('height');
-            $user->is_spectator = (int) $request->get('is_spectator');
-            $user->stance = $request->get('stance');
-            $user->show_tip = (int) $request->get('show_tip');
-            $user->photo_url = (int) $request->get('photo_url');
+
+            $user->first_name = ($request->get('first_name')) ?? $user->first_name;
+            $user->last_name = ($request->get('last_name')) ?? $user->last_name;
+            $user->gender = ($request->get('gender')) ?? $user->gender;
+            
+            $birthday = $request->get('birthday') ?
+                date('Y-m-d', strtotime($request->get('birthday'))) :
+                $user->birthday;
+            $user->birthday = $birthday;
+
+            $user->weight = $request->get('weight') ?? $user->weight;
+            $user->height = $request->get('height') ?? $user->height;
+            
+            $user->left_hand_sensor = $request->get('left_hand_sensor') ?? $user->left_hand_sensor;
+            $user->right_hand_sensor = $request->get('right_hand_sensor') ?? $user->right_hand_sensor;
+            $user->left_kick_sensor = $request->get('left_kick_sensor') ?? $user->left_kick_sensor;
+            $user->right_kick_sensor = $request->get('right_kick_sensor') ?? $user->right_kick_sensor;
+
+            $isSpectator = filter_var($request->get('is_spectator'), FILTER_VALIDATE_BOOLEAN);
+            $user->is_spectator = $request->get('is_spectator') ? $isSpectator : $user->is_spectator;
+
+            $showTip = filter_var($request->get('show_tip'), FILTER_VALIDATE_BOOLEAN);
+            $user->show_tip = $request->get('show_tip') ? $showTip : $user->show_tip;
+
+            $user->stance = $request->get('stance') ?? $user->stance;
+            $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
 
             $user->save();
             
