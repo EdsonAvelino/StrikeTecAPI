@@ -451,7 +451,7 @@ class UserController extends Controller
 
     /**
      * @api {get} /user/follow/<user_id> Follow other user
-     * @apiGroup Users
+     * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -503,7 +503,7 @@ class UserController extends Controller
 
     /**
      * @api {get} /user/unfollow/<user_id> Unfollow user
-     * @apiGroup Users
+     * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -546,7 +546,7 @@ class UserController extends Controller
 
     /**
      * @api {get} /user/followers Get user's followers
-     * @apiGroup Users
+     * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -609,7 +609,7 @@ class UserController extends Controller
 
     /**
      * @api {get} /user/following Get user's following
-     * @apiGroup Users
+     * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
