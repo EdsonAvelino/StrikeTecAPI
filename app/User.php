@@ -50,7 +50,7 @@ class User extends Model implements AuthenticatableContract,
         'password',
     ];
 
-    /**
+            /**
      * @return mixed
      */
     public function getJWTIdentifier()
@@ -64,5 +64,25 @@ class User extends Model implements AuthenticatableContract,
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function preferences()
+    {
+        return $this->hasOne('App\UserPreferences', 'user_id');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            UserPreferences::create([
+                'user_id' => $user->id,
+                'public_profile' => true,
+                'show_achivements' => true,
+                'show_training_stats' => true,
+                'show_challenges_history' => true,
+            ]);
+        });
     }
 }

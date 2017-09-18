@@ -36,16 +36,26 @@ $app->get('/test/lorem/ispum', function(){
 });
 
 // Rest of all APIs are secured with token
+
+// User APIs//
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's profile data
     $app->post('/users', 'UserController@update');
 
-    // Training APIs//
+    // Get user's information
+    $app->get('/users/{userId}', 'UserController@getUser');
+
+    // Get user's information
+    $app->post('/user/preferences', 'UserController@updatePreferences');
+});
+
+// Training APIs//
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
 
     // Get particular session
-    $app->get('/user/training/sessions/{session_id}', 'TrainingController@getSession');
+    $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
 
     // Save Training sessions data to db
     $app->post('/user/training/sessions', 'TrainingController@storeSessions');
@@ -62,18 +72,3 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save Training sessoins' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 });
-
-/*
-- session_id
-- user_id
-- training_type_id
-- start_time
-- end_time
-- plan_id
-- avg_speed
-- avg_force
-- punch_count
-- max_force
-- max_speed
-- rounds : array of round_id
-*/

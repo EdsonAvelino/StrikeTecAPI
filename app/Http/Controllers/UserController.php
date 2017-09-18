@@ -312,4 +312,133 @@ class UserController extends Controller
             ]);
         }
     }
+
+    /**
+     * @api {get} /users/<user_id> Get user information
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {number} [user_id] User's ID, if not given it will give current logged in user's info
+
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "user": {
+     *              "id": 1,
+     *              "facebook_id": 1234567890,
+     *              "first_name": "Nawaz",
+     *              "last_name": "Me",
+     *              "email": "ntestinfo@gmail.com",
+     *              "gender": null,
+     *              "birthday": "1970-01-01",
+     *              "weight": null,
+     *              "height": null,
+     *              "left_hand_sensor": null,
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 0,
+     *              "stance": null,
+     *              "show_tip": 1,
+     *              "skill_level": null,
+     *              "photo_url": null,
+     *              "updated_at": "2016-02-10 15:46:51",
+     *              "created_at": "2016-02-10 15:46:51"
+     *          }
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUser($userId = null)
+    {
+        if (!$userId) {
+            $userId = \Auth::user()->id;
+        }
+
+        $user = User::find($userId);
+        $userPreferences = $user->preferences;
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * @api {post} /users/preferences Update user's preferences
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Boolean} [public_profile] Profile show public
+     * @apiParam {Boolean} [show_achivements] Show achivements on to public profile or not
+     * @apiParam {Boolean} [show_training_stats] Show training statistics on to public profile or not
+     * @apiParam {Boolean} [show_challenges_history] Show challenges history on to public profile or not
+     * @apiParamExample {json} Input
+     *    {
+     *      "public_profile": true,
+     *      "show_achivements": false,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Preferences have been updated successfully",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function updatePreferences(Request $request)
+    {
+        $userId = \Auth::user()->id;
+
+        $user = User::find($userId);
+        $userPreferences = $user->preferences;
+
+        $publicProfile = filter_var($request->get('public_profile'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->public_profile = $request->get('public_profile') ? $publicProfile : $userPreferences->public_profile;
+
+        $showAchivements = filter_var($request->get('show_achivements'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->show_achivements = $request->get('show_achivements') ? $showAchivements : $userPreferences->show_achivements;
+
+        $showTrainingStats = filter_var($request->get('show_training_stats'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->show_training_stats = $request->get('show_training_stats') ? $showTrainingStats : $userPreferences->show_training_stats;
+
+        $showChallengesHistory = filter_var($request->get('show_challenges_history'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->show_challenges_history = $request->get('show_challenges_history') ? $showChallengesHistory : $userPreferences->show_challenges_history;
+
+        $userPreferences->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Preferences have been updated successfully',
+        ]);
+    }
 }
