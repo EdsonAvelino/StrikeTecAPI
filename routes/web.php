@@ -47,6 +47,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get user's information
     $app->post('/user/preferences', 'UserController@updatePreferences');
+
+    // User's social connectivity
+    $app->get('/user/follow/{userId}', 'UserController@follow');
+    $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
+    $app->get('/user/followers', 'UserController@getFollowers');
+    $app->get('/user/following', 'UserController@getFollowing');
 });
 
 // Training APIs//

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Validator;
 use App\User;
+use App\UserConnections;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -445,6 +446,222 @@ class UserController extends Controller
         return response()->json([
             'error' => 'false',
             'message' => 'Preferences have been updated successfully',
+        ]);
+    }
+
+    /**
+     * @api {get} /user/follow/<user_id> Follow other user
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} user_id Follow user's ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 9,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "User now following",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function follow($userId = null)
+    {
+        if ($userId == \Auth::user()->id || !$userId)
+            return null;
+
+        $connection = UserConnections::where('user_id', \Auth::user()->id)
+            ->where('follow_user_id', $userId)->first();
+
+        if (!$connection) {
+            UserConnections::create([
+                'user_id' => \Auth::user()->id,
+                'follow_user_id' => $userId,
+            ]);
+
+            $followUser = User::find($userId);
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'User now following '.$followUser->first_name.' '.$followUser->last_name,
+            ]);
+        }
+    }
+
+    /**
+     * @api {get} /user/unfollow/<user_id> Unfollow user
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} user_id Follow user's ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 9,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Unfollow successfull",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function unfollow($userId = null)
+    {
+        if ($userId == \Auth::user()->id || !$userId)
+            return null;
+
+        $connection = UserConnections::where('user_id', \Auth::user()->id)
+            ->where('follow_user_id', $userId)->delete();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Unfollow successfull',
+        ]);
+    }
+
+    /**
+     * @api {get} /user/followers Get user's followers
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "followers": [
+     *          {
+     *              "id": 5,
+     *              "first_name": "Max",
+     *              "last_name": "Zuck"
+     *          },
+     *          {
+     *              "id": 6,
+     *              "first_name": "Elena",
+     *              "last_name": "Jaz"
+     *          },
+     *          {
+     *              "id": 8,
+     *              "first_name": "Carl",
+     *              "last_name": "Lobstor"
+     *          },
+     *          {
+     *              "id": 9,
+     *              "first_name": "Keily",
+     *              "last_name": "Maxi"
+     *          }
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getFollowers()
+    {
+        $followers = UserConnections::where('follow_user_id', \Auth::user()->id)->get();
+
+        $_followers = [];
+
+        foreach($followers as $follower) {
+            $_followers[] = ['id' => $follower->user_id, 'first_name' => $follower->user->first_name, 'last_name' => $follower->user->last_name];
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'followers' => $_followers
+        ]);
+    }
+
+    /**
+     * @api {get} /user/following Get user's following
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "following": [
+     *          {
+     *              "id": 5,
+     *              "first_name": "Max",
+     *              "last_name": "Zuck"
+     *          },
+     *          {
+     *              "id": 6,
+     *              "first_name": "Elena",
+     *              "last_name": "Jaz"
+     *          },
+     *          {
+     *              "id": 8,
+     *              "first_name": "Carl",
+     *              "last_name": "Lobstor"
+     *          },
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getFollowing()
+    {
+        $following = UserConnections::where('user_id', \Auth::user()->id)->get();
+
+        $_following = [];
+
+        foreach($following as $follower) {
+            $_following[] = ['id' => $follower->follow_user_id, 'first_name' => $follower->followUser->first_name, 'last_name' => $follower->followUser->last_name];
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'following' => $_following
         ]);
     }
 }
