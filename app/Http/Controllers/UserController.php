@@ -355,7 +355,13 @@ class UserController extends Controller
      *              "skill_level": null,
      *              "photo_url": null,
      *              "updated_at": "2016-02-10 15:46:51",
-     *              "created_at": "2016-02-10 15:46:51"
+     *              "created_at": "2016-02-10 15:46:51",
+     *              "preferences": {
+     *                  "public_profile": 1,
+     *                  "show_achivements": 1,
+     *                  "show_training_stats": 1,
+     *                  "show_challenges_history": 1
+     *              }
      *          }
      *      }
      * @apiErrorExample {json} Error Response
