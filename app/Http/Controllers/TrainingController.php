@@ -99,8 +99,8 @@ class TrainingController extends Controller
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('training_type_id');
 
-        $startDate = date('Y-m-d', strtotime($startDate)) . ' 00:00:00';
-        $endDate = date('Y-m-d', strtotime($endDate)) . ' 23:59:59';
+        $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
+        $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
 
         $_sessions = TrainingSessions::where('user_id', $userId);
 
@@ -629,9 +629,13 @@ class TrainingController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *     }
      * @apiParam {Number} training_type_id Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
+     * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
+     * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
      * @apiParamExample {json} Input
      *    {
      *      "training_type_id": 1,
+     *      "start_date": "09/11/2017",
+     *      "end_date": "09/15/2017",
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -682,9 +686,31 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRoundsByTrainingType($trainingTypeId)
+    public function getSessionsRoundsByTrainingType(Request $request)
     {
-        $sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId)->get();
+        // $sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId)->get();
+
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $trainingTypeId = (int) $request->get('training_type_id');
+
+        if (!$trainingTypeId) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request',
+            ]);
+        }
+
+        $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
+        $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
+
+        $_sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId);
+
+        if (!empty($startDate) && !empty($endDate)) {
+            $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        $sessions = $_sessions->get();
 
         if (!$sessions) return null;        
 

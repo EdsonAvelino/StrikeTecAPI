@@ -70,7 +70,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
 
     // Get rounds by Training-Type
-    $app->get('/user/training/sessions/rounds_by_training/{training_type_id}', 'TrainingController@getSessionsRoundsByTrainingType');
+    $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
     // Save Training sessoins' rounds data to db
     $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
