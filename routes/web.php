@@ -57,6 +57,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Training APIs//
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get rounds by Training-Type
+    $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
+    
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
 
@@ -68,9 +71,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get round and its punches
     $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
-
-    // Get rounds by Training-Type
-    $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
     // Save Training sessoins' rounds data to db
     $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
