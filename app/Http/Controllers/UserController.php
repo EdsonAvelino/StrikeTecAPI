@@ -357,6 +357,8 @@ class UserController extends Controller
      *              "photo_url": null,
      *              "updated_at": "2016-02-10 15:46:51",
      *              "created_at": "2016-02-10 15:46:51",
+     *              "followers_count": 99,
+     *              "following_count": 51,
      *              "preferences": {
      *                  "public_profile": 1,
      *                  "show_achivements": 1,
@@ -379,8 +381,7 @@ class UserController extends Controller
             $userId = \Auth::user()->id;
         }
 
-        $user = User::find($userId);
-        $userPreferences = $user->preferences;
+        $user = User::with('preferences')->where('id', $userId)->withCount('followers')->withCount('following')->first();
 
         return response()->json([
             'error' => 'false',

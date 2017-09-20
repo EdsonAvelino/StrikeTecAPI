@@ -25,8 +25,24 @@ class TrainingSessionRounds extends Model
         'avg_time',
     ];
 
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     public function session()
     {
         return $this->belongsTo('App\TrainingSessions');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $timestamp = $model->start_time / 1000;
+            
+            $micro = sprintf("%06d",($timestamp - floor($timestamp)) * 1000000);
+            $d = new \DateTime( date('Y-m-d H:i:s.'.$micro, $timestamp) );
+            
+            $model->created_at = $d->format("Y-m-d H:i:s.u");
+        });
     }
 }

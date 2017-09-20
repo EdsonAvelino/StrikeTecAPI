@@ -71,6 +71,16 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasOne('App\UserPreferences', 'user_id');
     }
 
+    public function followers()
+    {
+        return $this->hasMany('App\UserConnections', 'follow_user_id');
+    }
+
+    public function following()
+    {
+        return $this->hasMany('App\UserConnections', 'user_id');
+    }
+
     public static function boot()
     {
         parent::boot();

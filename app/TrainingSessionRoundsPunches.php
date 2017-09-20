@@ -21,4 +21,20 @@ class TrainingSessionRoundsPunches extends Model
         'punch_type',
         'hand',
     ];
+
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+    
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $timestamp = $model->punch_time / 1000;
+            
+            $micro = sprintf("%06d",($timestamp - floor($timestamp)) * 1000000);
+            $d = new \DateTime( date('Y-m-d H:i:s.'.$micro, $timestamp) );
+            
+            $model->created_at = $d->format("Y-m-d H:i:s.u");
+        });
+    }
 }

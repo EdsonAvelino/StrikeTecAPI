@@ -25,6 +25,8 @@ class TrainingSessions extends Model
         'max_speed',
     ];
 
+    protected $dateFormat = 'Y-m-d H:i:s.u';
+
     public function rounds()
     {
         return $this->hasMany('App\TrainingSessionRounds', 'training_session_id');
@@ -33,5 +35,19 @@ class TrainingSessions extends Model
     public function roundsPunches()
     {
         return $this->hasMany('App\TrainingSessionRoundsPunches', 'session_round_id', 'id');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $timestamp = $model->start_time / 1000;
+            
+            $micro = sprintf("%06d",($timestamp - floor($timestamp)) * 1000000);
+            $d = new \DateTime( date('Y-m-d H:i:s.'.$micro, $timestamp) );
+            
+            $model->created_at = $d->format("Y-m-d H:i:s.u");
+        });
     }
 }
