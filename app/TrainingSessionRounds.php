@@ -25,6 +25,11 @@ class TrainingSessionRounds extends Model
         'avg_time',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
     public function session()
@@ -44,5 +49,10 @@ class TrainingSessionRounds extends Model
             
             $model->created_at = $d->format("Y-m-d H:i:s.u");
         });
+    }
+
+    protected function getDateFormat()
+    {
+        return 'Y-m-d H:i:s.u';
     }
 }

@@ -25,6 +25,11 @@ class TrainingSessions extends Model
         'max_speed',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     protected $dateFormat = 'Y-m-d H:i:s.u';
 
     public function rounds()
@@ -44,10 +49,15 @@ class TrainingSessions extends Model
         static::creating(function ($model) {
             $timestamp = $model->start_time / 1000;
             
-            $micro = sprintf("%06d",($timestamp - floor($timestamp)) * 1000000);
+            $micro = sprintf("%06d", ($timestamp - floor($timestamp)) * 1000000);
             $d = new \DateTime( date('Y-m-d H:i:s.'.$micro, $timestamp) );
             
             $model->created_at = $d->format("Y-m-d H:i:s.u");
         });
+    }
+
+    protected function getDateFormat()
+    {
+        return 'Y-m-d H:i:s.u';
     }
 }

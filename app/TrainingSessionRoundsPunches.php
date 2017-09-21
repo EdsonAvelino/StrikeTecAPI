@@ -22,6 +22,11 @@ class TrainingSessionRoundsPunches extends Model
         'hand',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     protected $dateFormat = 'Y-m-d H:i:s.u';
     
     public static function boot()
@@ -36,5 +41,10 @@ class TrainingSessionRoundsPunches extends Model
             
             $model->created_at = $d->format("Y-m-d H:i:s.u");
         });
+    }
+
+    protected function getDateFormat()
+    {
+        return 'Y-m-d H:i:s.u';
     }
 }
