@@ -20,17 +20,12 @@ class TrainingSessions extends Model
         'plan_id',
         'avg_speed',
         'avg_force',
-        'punch_count',
+        'punches_count',
         'max_force',
         'max_speed',
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at'
-    ];
-
-    protected $dateFormat = 'Y-m-d H:i:s.u';
+    protected $dateFormat = 'Y-m-d\TH:i:s.u';
 
     public function rounds()
     {
@@ -56,8 +51,12 @@ class TrainingSessions extends Model
         });
     }
 
-    protected function getDateFormat()
+    protected function asDateTime($value)
     {
-        return 'Y-m-d H:i:s.u';
+        try {
+            return parent::asDateTime($value);
+        } catch (\InvalidArgumentException $e) {
+            return parent::asDateTime(new \DateTimeImmutable($value));
+        }
     }
 }
