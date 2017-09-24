@@ -22,12 +22,7 @@ class TrainingSessionRoundsPunches extends Model
         'hand',
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at'
-    ];
-
-    protected $dateFormat = 'Y-m-d H:i:s.u';
+    protected $dateFormat = 'Y-m-d\TH:i:s.u';
     
     public static function boot()
     {
@@ -43,8 +38,12 @@ class TrainingSessionRoundsPunches extends Model
         });
     }
 
-    protected function getDateFormat()
+    protected function asDateTime($value)
     {
-        return 'Y-m-d H:i:s.u';
+        try {
+            return parent::asDateTime($value);
+        } catch (\InvalidArgumentException $e) {
+            return parent::asDateTime(new \DateTimeImmutable($value));
+        }
     }
 }
