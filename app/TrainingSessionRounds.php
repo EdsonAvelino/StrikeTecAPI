@@ -22,7 +22,7 @@ class TrainingSessionRounds extends Model
         'max_speed',
         'max_force',
         'best_time',
-        'avg_time',
+        // 'avg_time',
     ];
 
     protected $dateFormat = 'Y-m-d\TH:i:s.u';

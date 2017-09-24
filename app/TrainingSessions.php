@@ -23,6 +23,7 @@ class TrainingSessions extends Model
         'punches_count',
         'max_force',
         'max_speed',
+        'best_time',
     ];
 
     protected $dateFormat = 'Y-m-d\TH:i:s.u';

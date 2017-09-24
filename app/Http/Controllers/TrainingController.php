@@ -231,8 +231,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "training_type_id": 1, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599 },
-     *      { "training_type_id": 1, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576 }
+     *      { "training_type_id": 1, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
+     *      { "training_type_id": 1, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -273,7 +273,8 @@ class TrainingController extends Controller
                         'avg_force' => $session['avg_force'],
                         'punches_count' => $session['punches_count'],
                         'max_force' => $session['max_force'],
-                        'max_speed' => $session['max_speed']
+                        'max_speed' => $session['max_speed'],
+                        'best_time' => $session['best_time']
                     ]);
 
                 $sessions[] = ['start_time' => $_session->start_time];
@@ -396,8 +397,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50, "avg_time" : 0.50 },
-     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43, "avg_time" : 0.49 }
+     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
+     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -440,7 +441,7 @@ class TrainingController extends Controller
                         'max_speed' => $round['max_speed'],
                         'max_force' => $round['max_force'],
                         'best_time' => $round['best_time'],
-                        'avg_time' => $round['avg_time']
+                        // 'avg_time' => $round['avg_time']
                     ]);
 
                 $rounds[] = ['start_time' => $_round->start_time];
