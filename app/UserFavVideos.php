@@ -1,10 +1,10 @@
-    <?php
+<?php
 
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserPreferences extends Model
+class UserFavVideos extends Model
 {
 
     /**
@@ -14,16 +14,11 @@ class UserPreferences extends Model
      */
     protected $fillable = [
         'user_id',
-        'public_profile',
-        'show_achivements',
-        'show_training_stats',
-        'show_challenges_history',
+        'video_id',
     ];
 
     protected $hidden = [
-        'id',
-        'user_id',
-        'updated_at'
+        'created_at'
     ];
 
     public $timestamps = false;
@@ -32,8 +27,8 @@ class UserPreferences extends Model
     {
         parent::boot();
 
-        static::updating(function ($model) {
-            $model->updated_at = $model->freshTimestamp();
+        static::creating(function ($model) {
+            $model->created_at = $model->freshTimestamp();
         });
     }
 }

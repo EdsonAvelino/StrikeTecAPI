@@ -78,3 +78,25 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save Training sessoins' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 });
+
+// Video APIs//
+
+// Sync list of videos from storage/videos dir to db
+$app->get('/videos/sync', 'VideoController@syncVideos');
+
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of videos available on server
+    $app->get('/videos', 'VideoController@getVideos');
+
+    // Update video
+    $app->get('/videos/add_view/{videoId}', 'VideoController@addViewCount');
+
+    // Set video favourite for user
+    $app->get('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
+
+    // Set video unfavourite for user
+    $app->get('/videos/unfavourite/{videoId}', 'VideoController@setVideoUnFav');
+
+    // Get user's favourited videos
+    $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
+});
