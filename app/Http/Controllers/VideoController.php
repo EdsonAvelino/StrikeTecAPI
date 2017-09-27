@@ -51,12 +51,14 @@ class VideoController extends Controller
     }
     
     /**
-     * @api {get} /videos Get list of videos
+     * @api {get} /videos Get videos by category
      * @apiGroup Videos
+     * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
+     *      "category_id": 1,
      *      "start": 20,
      *      "limit": 50,
      *    }
@@ -71,16 +73,18 @@ class VideoController extends Controller
      *      "videos": [
      *          {
      *              "id": 1,
-     *              "title": null,
+     *              "title": "Sample Video",
      *              "file": "SampleVideo_1280x720_10mb.mp4",
-     *              "view_counts": 0,
+     *              "view_counts": 250,
+     *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02"
      *          },
      *          {
      *              "id": 2,
-     *              "title": null,
+     *              "title": "Another Sample Video",
      *              "file": "SampleVideo_1280x720_20mb.mp4",
-     *              "view_counts": 0,
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27"
      *          },
      *      ]
@@ -95,16 +99,18 @@ class VideoController extends Controller
      */
     public function getVideos(Request $request)
     {
-        $offset = (int) $request->get('start') ?? 0;
-        $limit = (int) $request->get('limit') ?? 20;
+        $categoryId = (int) $request->get('category_id') ?? 0;
 
-        $videos = Videos::offset($offset)->limit($limit)->get();
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $videos = Videos::where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
     }
 
     /**
-     * @api {get} /videos/favourite/{videoId} Add video to Favourite
+     * @api {post} /videos/favourite/{videoId} Add video to Favourite
      * @apiGroup Videos
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -134,7 +140,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @api {get} /videos/unfavourite/{videoId} Remove video from Favourite
+     * @api {post} /videos/unfavourite/{videoId} Remove video from Favourite
      * @apiGroup Videos
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -164,7 +170,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @api {get} /videos/add_view/{videoId} Add view_counts to video
+     * @api {post} /videos/add_view/{videoId} Add view_counts to video
      * @apiGroup Videos
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message

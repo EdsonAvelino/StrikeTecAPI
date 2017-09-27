@@ -88,14 +88,17 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of videos available on server
     $app->get('/videos', 'VideoController@getVideos');
 
+    // Get list of videos available on server
+    $app->get('/videos/search', 'VideoController@searchVideos');
+
     // Update video
-    $app->get('/videos/add_view/{videoId}', 'VideoController@addViewCount');
+    $app->post('/videos/add_view/{videoId}', 'VideoController@addViewCount');
 
     // Set video favourite for user
-    $app->get('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
+    $app->post('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
 
     // Set video unfavourite for user
-    $app->get('/videos/unfavourite/{videoId}', 'VideoController@setVideoUnFav');
+    $app->post('/videos/unfavourite/{videoId}', 'VideoController@setVideoUnFav');
 
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');

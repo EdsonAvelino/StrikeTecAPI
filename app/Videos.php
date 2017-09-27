@@ -15,7 +15,9 @@ class Videos extends Model
     protected $fillable = [
         'title',
         'file',
-        'view_counts'
+        'view_counts',
+        'duration',
+        'author_name'
     ];
 
     protected $hidden = [
