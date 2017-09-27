@@ -15,6 +15,7 @@ class Videos extends Model
     protected $fillable = [
         'title',
         'file',
+        'thumbnail',    
         'view_counts',
         'duration',
         'author_name'
@@ -24,4 +25,17 @@ class Videos extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function getFileAttribute($value)
+    {
+        if (strpos($value, 'youtube') > 0 || strpos($value, 'youtu.be') > 0)
+            return $value;
+        else
+            return env('APP_URL').'/storage/videos/'.$value;
+    }
+
+    public function getThumbnailAttribute($value)
+    {
+        return env('APP_URL').'/storage/videos/thumbnail/'.$value;
+    }
 }
