@@ -114,12 +114,12 @@ class VideoController extends Controller
     /**
      * @api {get} /videos/search Search videos
      * @apiGroup Videos
-     * @apiParam {String} q Search term e.g. "boxing+stance+and+footwork"
+     * @apiParam {String} query Search term e.g. "boxing+stance+and+footwork"
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
-     *      "q": "boxing+stance+and+footwork",
+     *      "query": "boxing+stance+and+footwork",
      *      "start": 0,
      *      "limit": 10,
      *    }
@@ -160,7 +160,7 @@ class VideoController extends Controller
      */
     public function searchVideos(Request $request)
     {
-        $query = str_replace('+', ' ', $request->get('q'));
+        $query = str_replace('+', ' ', $request->get('query'));
 
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
