@@ -76,7 +76,8 @@ class VideoController extends Controller
      *          {
      *              "id": 1,
      *              "title": "Sample Video",
-     *              "file": "SampleVideo_1280x720_10mb.mp4",
+     *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
+     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02"
@@ -84,7 +85,8 @@ class VideoController extends Controller
      *          {
      *              "id": 2,
      *              "title": "Another Sample Video",
-     *              "file": "SampleVideo_1280x720_20mb.mp4",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27"
@@ -135,7 +137,8 @@ class VideoController extends Controller
      *          {
      *              "id": 1,
      *              "title": "Sample Video",
-     *              "file": "SampleVideo_1280x720_10mb.mp4",
+     *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
+     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02"
@@ -143,7 +146,8 @@ class VideoController extends Controller
      *          {
      *              "id": 2,
      *              "title": "Another Sample Video",
-     *              "file": "SampleVideo_1280x720_20mb.mp4",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27"
