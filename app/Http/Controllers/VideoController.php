@@ -33,7 +33,9 @@ class VideoController extends Controller
         return null;
     }
 
-    // Format to AA::BB:CC
+    /**
+     * Format to AA::BB:CC
+     */
     private function formatDuration($duration)
     {
         // The base case is A:BB
@@ -107,6 +109,82 @@ class VideoController extends Controller
         $videos = Videos::where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
+    }
+
+    /**
+     * @api {get} /videos/search Search videos
+     * @apiGroup Videos
+     * @apiParam {String} q Search term e.g. "boxing+stance+and+footwork"
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of videos
+     * @apiParamExample {json} Input
+     *    {
+     *      "q": "boxing+stance+and+footwork",
+     *      "start": 0,
+     *      "limit": 10,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} videos List of videos
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "videos": [
+     *          {
+     *              "id": 1,
+     *              "title": "Sample Video",
+     *              "file": "SampleVideo_1280x720_10mb.mp4",
+     *              "view_counts": 250,
+     *              "author_name": "Limer Waughts",
+     *              "duration": "00:01:02"
+     *          },
+     *          {
+     *              "id": 2,
+     *              "title": "Another Sample Video",
+     *              "file": "SampleVideo_1280x720_20mb.mp4",
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:27"
+     *          },
+     *      ]
+     *    }
+     * @apiErrorExample {json} Login error (Invalid credentials)
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function searchVideos(Request $request)
+    {
+        $query = str_replace('+', ' ', $request->get('q'));
+
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $queryBreaks = preg_split('/\s+/', $query);
+        array_walk($queryBreaks, [$this, 'alterParam']);
+        
+        $videos = Videos::where('title', 'like', (str_replace('+', '%', $request->get('q'))) );
+
+        foreach ($queryBreaks as $queryBreak) {
+            $videos->orWhere('title', 'like', $queryBreak);
+        }
+
+        $videos = $videos->offset($offset)->limit($limit)->get();
+
+        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
+    }
+
+    /**
+     * Alter param
+     */
+    private function alterParam(&$param)
+    {
+        $param = "%$param%";
     }
 
     /**
