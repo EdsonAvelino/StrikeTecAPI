@@ -36,6 +36,6 @@ class Videos extends Model
 
     public function getThumbnailAttribute($value)
     {
-        return env('APP_URL').'/storage/videos/thumbnail/'.$value;
+        return env('APP_URL').'/storage/videos/thumbnails/'.$value;
     }
 }
