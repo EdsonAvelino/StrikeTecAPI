@@ -82,16 +82,13 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|max:64|unique:users',
-            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+            // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
         ]);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
 
-            if ($errors->get('email'))
-                return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
-            else 
-                return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
+            return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
         }
 
         // Creates a new user
