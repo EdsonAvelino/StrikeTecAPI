@@ -80,7 +80,8 @@ class VideoController extends Controller
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02"
+     *              "duration": "00:01:02",
+     *              "user_favourited": true
      *          },
      *          {
      *              "id": 2,
@@ -89,7 +90,8 @@ class VideoController extends Controller
      *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27"
+     *              "duration": "00:01:27",
+     *              "user_favourited": false
      *          },
      *      ]
      *    }
@@ -108,9 +110,19 @@ class VideoController extends Controller
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
-        $videos = Videos::where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
+        $_videos = Videos::where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
+        $videos = [];
+
+        foreach ($_videos as $video) {
+            $userFavourited = UserFavVideos::where('user_id', \Auth::user()->id)->where('video_id', $video->id)->exists();
+
+            $video['user_favourited'] = $userFavourited;
+
+            $videos[] = $video;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 
     /**
@@ -141,7 +153,8 @@ class VideoController extends Controller
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02"
+     *              "duration": "00:01:02",
+     *              "user_favourited": true
      *          },
      *          {
      *              "id": 2,
@@ -150,7 +163,8 @@ class VideoController extends Controller
      *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27"
+     *              "duration": "00:01:27",
+     *              "user_favourited": false
      *          },
      *      ]
      *    }
@@ -178,9 +192,19 @@ class VideoController extends Controller
             $videos->orWhere('title', 'like', $queryBreak);
         }
 
-        $videos = $videos->offset($offset)->limit($limit)->get();
+        $_videos = $videos->offset($offset)->limit($limit)->get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
+        $videos = [];
+
+        foreach ($_videos as $video) {
+            $userFavourited = UserFavVideos::where('user_id', \Auth::user()->id)->where('video_id', $video->id)->exists();
+
+            $video['user_favourited'] = $userFavourited;
+
+            $videos[] = $video;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 
     /**
