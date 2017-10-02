@@ -309,7 +309,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @api {get} /user/fav_videos Get user's videos
+     * @api {get} /user/fav_videos Get user's fav videos
      * @apiGroup Videos
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
@@ -330,16 +330,22 @@ class VideoController extends Controller
      *          {
      *              "id": 1,
      *              "title": null,
-     *              "file": "SampleVideo_1280x720_10mb.mp4",
-     *              "view_counts": 0,
-     *              "duration": "00:01:02"
+     *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
+     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
+     *              "view_counts": 250,
+     *              "author_name": "Limer Waughts",
+     *              "duration": "00:01:02",
+     *              "user_favourited": true
      *          },
      *          {
      *              "id": 2,
      *              "title": null,
-     *              "file": "SampleVideo_1280x720_20mb.mp4",
-     *              "view_counts": 0,
-     *              "duration": "00:01:27"
+     *              "file": "http://example.com/videos/SampleVideo_1280x720_20mb.mp4",
+     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_20mb.png",
+     *              "view_counts": 170,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:12",
+     *              "user_favourited": true
      *          },
      *      ]
      *    }
@@ -357,8 +363,18 @@ class VideoController extends Controller
         $limit = (int) $request->get('limit') ?? 20;
 
         $userId = \Auth::user()->id;
-        $videos = Videos::whereRaw("id IN (SELECT video_id from user_fav_videos WHERE user_id = $userId)")->offset($offset)->limit($limit)->get();
+        $_videos = Videos::whereRaw("id IN (SELECT video_id from user_fav_videos WHERE user_id = $userId)")->offset($offset)->limit($limit)->get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos->toArray()]);
+        $videos = [];
+
+        foreach ($_videos as $video) {
+            $userFavourited = UserFavVideos::where('user_id', \Auth::user()->id)->where('video_id', $video->id)->exists();
+
+            $video['user_favourited'] = $userFavourited;
+
+            $videos[] = $video;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 }
