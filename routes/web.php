@@ -28,15 +28,26 @@ $app->post('/password', 'PasswordController@postEmail');
 $app->post('/password/verify_code', 'PasswordController@postVerifyCode');
 $app->post('/password/reset', 'PasswordController@postReset');
 
-$app->get('/test/lorem/ispum', function(){
-	// echo '';
-	// Illuminate\Support\Facades\Mail::raw('Hola! Whats up mate...', function($message) {
-	//        $message->to(['ntestinfo@gmail.com'])->subject('[ALERT] notification');
-	//    });
+// Countries / States / Cities
+$app->get('/countries', function () use ($app) {
+    $countries = \App\Countries::get();
+
+    return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
 });
 
-// Rest of all APIs are secured with token
+$app->get('/states_by_country/{countryId}', function ($countryId) use ($app) {
+    $states = \App\States::where('country_id', $countryId)->get();
 
+    return response()->json(['error' => 'false', 'message' => '', 'data' => $states->toArray()]);
+});
+
+$app->get('/cities_by_state/{stateId}', function ($stateId) use ($app) {
+    $cities = \App\Cities::where('state_id', $stateId)->get();
+
+    return response()->json(['error' => 'false', 'message' => '', 'data' => $cities->toArray()]);
+});
+
+// Rest of all APIs are secured with access-token
 // User APIs//
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's profile data
