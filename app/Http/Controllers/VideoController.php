@@ -100,7 +100,7 @@ class VideoController extends Controller
      *          },
      *      ]
      *    }
-     * @apiErrorExample {json} Login error (Invalid credentials)
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
@@ -178,7 +178,7 @@ class VideoController extends Controller
      *          },
      *      ]
      *    }
-     * @apiErrorExample {json} Login error (Invalid credentials)
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
@@ -379,7 +379,7 @@ class VideoController extends Controller
      *          },
      *      ]
      *    }
-     * @apiErrorExample {json} Login error (Invalid credentials)
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",

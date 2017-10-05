@@ -78,8 +78,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Video APIs//
 
-// Sync list of videos from storage/videos dir to db
-$app->get('/videos/sync', 'VideoController@syncVideos');
+// TEMP: Sync list of videos from storage/videos dir to db
+// $app->get('/videos/sync', 'VideoController@syncVideos');
 
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of videos available on server
@@ -103,6 +103,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Leaderboard APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of videos available on server
+    // Get list of leaderboard data
     $app->get('/leaderboard', 'LeaderboardController@getList');
 });
