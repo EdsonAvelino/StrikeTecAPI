@@ -55,6 +55,11 @@ class VideoController extends Controller
     /**
      * @api {get} /videos Get videos by category
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
@@ -128,6 +133,11 @@ class VideoController extends Controller
     /**
      * @api {get} /videos/search Search videos
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiParam {String} query Search term e.g. "boxing+stance+and+footwork"
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
@@ -218,6 +228,11 @@ class VideoController extends Controller
     /**
      * @api {post} /videos/favourite/{videoId} Add video to Favourite
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
@@ -248,6 +263,11 @@ class VideoController extends Controller
     /**
      * @api {post} /videos/unfavourite/{videoId} Remove video from Favourite
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
@@ -278,6 +298,11 @@ class VideoController extends Controller
     /**
      * @api {post} /videos/add_view/{videoId} Add view_counts to video
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
@@ -311,6 +336,11 @@ class VideoController extends Controller
     /**
      * @api {get} /user/fav_videos Get user's fav videos
      * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input

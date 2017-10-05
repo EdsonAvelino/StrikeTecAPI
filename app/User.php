@@ -38,7 +38,10 @@ class User extends Model implements AuthenticatableContract,
         'stance',
         'is_spectator',
         'show_tip',
-        'photo_url'
+        'photo_url',
+        'city_id',
+        'state_id',
+        'country_id'
     ];
 
     /**
@@ -50,7 +53,11 @@ class User extends Model implements AuthenticatableContract,
         'password',
     ];
 
-            /**
+    protected $attributes = array(
+        'age' => '',
+    );
+
+    /**
      * @return mixed
      */
     public function getJWTIdentifier()
@@ -94,5 +101,26 @@ class User extends Model implements AuthenticatableContract,
                 'show_challenges_history' => true,
             ]);
         });
+    }
+
+    public function getAgeAttribute($birthday)
+    {
+         return ($birthday) ? \Carbon\Carbon::parse($birthday)->age : null;
+    }
+
+    public function getUserFollowingAttribute($userId)
+    {
+        $following = UserConnections::where('follow_user_id', $userId)
+            ->where('user_id', \Auth::user()->id)->exists();
+
+        return (bool) $following;
+    }
+
+    public function getUserFollowerAttribute($userId)
+    {
+        $follower = UserConnections::where('user_id', $userId)
+            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+        return (bool) $follower;
     }
 }
