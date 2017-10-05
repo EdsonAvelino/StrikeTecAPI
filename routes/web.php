@@ -29,23 +29,9 @@ $app->post('/password/verify_code', 'PasswordController@postVerifyCode');
 $app->post('/password/reset', 'PasswordController@postReset');
 
 // Countries / States / Cities
-$app->get('/countries', function () use ($app) {
-    $countries = \App\Countries::get();
-
-    return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
-});
-
-$app->get('/states_by_country/{countryId}', function ($countryId) use ($app) {
-    $states = \App\States::where('country_id', $countryId)->get();
-
-    return response()->json(['error' => 'false', 'message' => '', 'data' => $states->toArray()]);
-});
-
-$app->get('/cities_by_state/{stateId}', function ($stateId) use ($app) {
-    $cities = \App\Cities::where('state_id', $stateId)->get();
-
-    return response()->json(['error' => 'false', 'message' => '', 'data' => $cities->toArray()]);
-});
+$app->get('/countries', 'WorldController@getCountries');
+$app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
+$app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
 // Rest of all APIs are secured with access-token
 // User APIs//
@@ -113,4 +99,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
+});
+
+// Leaderboard APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of videos available on server
+    $app->get('/leaderboard', 'LeaderboardController@getList');
 });
