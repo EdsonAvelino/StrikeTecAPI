@@ -53,9 +53,9 @@ class User extends Model implements AuthenticatableContract,
         'password',
     ];
 
-    protected $attributes = array(
-        'age' => '',
-    );
+    // protected $attributes = array(
+    //     'age' => '',
+    // );
 
     /**
      * @return mixed
@@ -71,6 +71,11 @@ class User extends Model implements AuthenticatableContract,
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function leaderboard()
+    {
+        return $this->hasOne('App\Leaderboard', 'id', 'user_id');
     }
 
     public function preferences()
