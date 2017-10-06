@@ -15,12 +15,10 @@ class LeaderboardController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
+     * @apiParam {Number} [country_id] Filter by country, no country_id will return users across all countries
      * @apiParamExample {json} Input
      *    {
-     *      "start": 20,
-     *      "limit": 50,
+     *      "country_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -99,22 +97,84 @@ class LeaderboardController extends Controller
     {
     	// \DB::enableQueryLog();
 
-    	$offset = (int) ($request->get('start') ?? 0);
-        $limit = (int) ($request->get('limit') ?? 20);
+    	$countryId = (int) $request->get('country_id');
+        $limit = 100;
 
-    	\DB::statement(\DB::raw('SET @rank = 0'));
+		\DB::statement(\DB::raw('SET @rank = 0'));
 
-        $leadersList = Leaderboard::with(['user' => function ($query) {
+		// Get ranks first, so that we can know requesting user's rank
+		$_leadersRanksList = Leaderboard::select('user_id', \DB::raw('@rank:=@rank+1 AS rank'))
+			->orderBy('punches_count', 'desc');
+		
+		if ($countryId) {
+			$_leadersRanksList->whereHas('user', function ($query) use ($countryId) {
+				$query->where('country_id', $countryId);
+			});
+		}
+
+		$currentUserRank = $this->getCurrentUserRank($_leadersRanksList->get()->toArray());
+		
+		// If current user's in top 100, will return result
+		if ($currentUserRank <= 100) {
+			\DB::statement(\DB::raw('SET @rank = 0'));
+
+			$leadersList = Leaderboard::with(['user' => function ($query) {
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
-
             }])
+        	->whereHas('user', function($query) use ($countryId) {
+        		if ($countryId) {
+        			$query->where('country_id', $countryId);
+        		}
+        	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
-        	->orderByRaw('(user_id = '. \Auth::user()->id .') desc')
         	->orderBy('punches_count', 'desc')
-        	->offset($offset)->limit($limit)->get();
+        	->limit(100)->get()->toArray();
+		} 
+		// Else, will break down current result set to get current user's rank in list
+		// So, if rank is 500 return 1 to 50 and 475 to 525
+		else {
+			\DB::statement(\DB::raw('SET @rank = 0'));
+			$leadersListFirstSet = Leaderboard::with(['user' => function ($query) {
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
+            }])
+        	->whereHas('user', function($query) use ($countryId) {
+        		if ($countryId) {
+        			$query->where('country_id', $countryId);
+        		}
+        	})
+        	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
+        	->orderBy('punches_count', 'desc')
+        	->limit(50)->get();
 
+        	\DB::statement(\DB::raw('SET @rank = ' . ($currentUserRank - 25) ));
+        	$leadersListSecondSet = Leaderboard::with(['user' => function ($query) {
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
+            }])
+        	->whereHas('user', function($query) use ($countryId) {
+        		if ($countryId) {
+        			$query->where('country_id', $countryId);
+        		}
+        	})
+        	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
+        	->orderBy('punches_count', 'desc')
+        	->offset(($currentUserRank - 25))->limit(50)->get();
+
+        	$leadersList = array_merge($leadersListFirstSet->toArray(), $leadersListSecondSet->toArray());
+		}
+
+		// ->orderByRaw('(user_id = '. \Auth::user()->id .') desc')
         // dd(\DB::getQueryLog());
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList->toArray()]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
+
+    private function getCurrentUserRank($list)
+	{
+	   foreach($list as $row) {
+	      if ( $row['user_id'] === \Auth::user()->id )
+	         return $row['rank'];
+	   }
+
+	   return null;
+	}
 }
