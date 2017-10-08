@@ -70,7 +70,27 @@ class AuthController extends Controller
      *          "state_id": 1,
      *          "country_id": 1,
      *          "updated_at": "2016-02-10 15:46:51",
-     *          "created_at": "2016-02-10 15:46:51"
+     *          "created_at": "2016-02-10 15:46:51",
+     *          "preferences": {
+     *              "public_profile": 0,
+     *              "show_achivements": 1,
+     *              "show_training_stats": 1,
+     *              "show_challenges_history": 1
+     *          },
+     *          "country": {
+     *              "id": 14,
+     *              "name": "Austria"
+     *          },
+     *          "state": {
+     *              "id": 286,
+     *              "country_id": 14,
+     *              "name": "Oberosterreich"
+     *          },
+     *          "city": {
+     *              "id": 6997,
+     *              "state_id": 286,
+     *              "name": "Pettenbach"
+     *          }
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
@@ -157,7 +177,27 @@ class AuthController extends Controller
      *          "state_id": 1,
      *          "country_id": 1,
      *          "updated_at": "2016-02-10 15:46:51",
-     *          "created_at": "2016-02-10 15:46:51"
+     *          "created_at": "2016-02-10 15:46:51",
+     *          "preferences": {
+     *              "public_profile": 0,
+     *              "show_achivements": 1,
+     *              "show_training_stats": 1,
+     *              "show_challenges_history": 1
+     *          },
+     *          "country": {
+     *              "id": 14,
+     *              "name": "Austria"
+     *          },
+     *          "state": {
+     *              "id": 286,
+     *              "country_id": 14,
+     *              "name": "Oberosterreich"
+     *          },
+     *          "city": {
+     *              "id": 6997,
+     *              "state_id": 286,
+     *              "name": "Pettenbach"
+     *          }
      *      }
      *    }
      * @apiErrorExample {json} Authentication error
@@ -189,6 +229,8 @@ class AuthController extends Controller
         } catch (JWTException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
+
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => \Auth::user()]);
     }

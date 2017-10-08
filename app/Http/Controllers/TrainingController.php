@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\TrainingSessions;
 use App\TrainingSessionRounds;
 use App\TrainingSessionRoundsPunches;
+use App\Leaderboard;
 
 class TrainingController extends Controller
 {
@@ -259,7 +260,8 @@ class TrainingController extends Controller
     public function storeSessions(Request $request)
     {
         $data = $request->get('data');
-        $sessions = [];
+        $sessions = []; // will use for response
+        $_sessions = []; // will use for calculations
 
         try {
             foreach ($data as $session) {
@@ -281,6 +283,61 @@ class TrainingController extends Controller
 
                 $sessions[] = ['start_time' => $_session->start_time];
             }
+
+            // User's total sessions count
+            $sessionsCount = TrainingSessions::where('user_id', \Auth::user()->id)->count();
+            $punchesCount = TrainingSessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
+
+            // Create / Update Leaderboard entry for this user
+            $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
+
+            // Set all old averate data to 0
+            $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
+
+            if (!$leaderboardStatus) {
+                $leaderboardStatus = Leaderboard::create([
+                    'user_id' => \Auth::user()->id,
+                    'sessions_count' => $sessionsCount,
+                    'punches_count' => $punchesCount
+                ]);
+            } else {
+                $oldAvgSpeed = $leaderboardStatus->avg_speed;
+                $oldAvgForce = $leaderboardStatus->avg_force;
+                $oldPunchesCount = $leaderboardStatus->punches_count;
+
+                $leaderboardStatus->sessions_count = $sessionsCount;
+                $leaderboardStatus->punches_count = $punchesCount;
+                $leaderboardStatus->save();
+            }
+
+            // Formula
+            // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+
+            $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
+            $avgForceData[] = $oldAvgForce * $oldPunchesCount;
+
+            $division = $oldPunchesCount;
+
+            foreach ($data as $session) {
+                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+
+                $division += $session['punches_count'];
+            }
+            
+            $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
+            $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
+
+            $temp = TrainingSessionRounds::select(
+                    \DB::raw('MAX(max_speed) as max_speed'),
+                    \DB::raw('MAX(max_force) as max_force')
+                )
+            ->whereRaw('training_session_id IN (SELECT id from training_sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
+
+            $leaderboardStatus->max_speed = $temp->max_speed;
+            $leaderboardStatus->max_force = $temp->max_force;
+
+            $leaderboardStatus->save();
 
             return response()->json([
                 'error' => 'false',
