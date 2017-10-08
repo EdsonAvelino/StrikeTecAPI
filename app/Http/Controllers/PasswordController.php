@@ -181,15 +181,17 @@ class PasswordController extends Controller
      */
     public function postReset(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
-        ]);
+        // No password pattern
+        
+        // $validator = Validator::make($request->all(), [
+        //     'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+        // ]);
 
-        if ($validator->fails()) {
-            $errors = $validator->errors();
+        // if ($validator->fails()) {
+        //     $errors = $validator->errors();
             
-            return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
-        }
+        //     return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
+        // }
 
         $token = $this->jwt->parseToken();
         

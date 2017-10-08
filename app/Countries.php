@@ -18,5 +18,7 @@ class Countries extends Model
         'phone_code',
     ];
 
+    protected $hidden = ['abbr', 'phone_code'];
+
     public $timestamps = false;
 }

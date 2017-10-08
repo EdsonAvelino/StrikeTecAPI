@@ -93,6 +93,21 @@ class User extends Model implements AuthenticatableContract,
         return $this->hasMany('App\UserConnections', 'user_id');
     }
 
+    public function country()
+    {
+        return $this->hasOne('App\Countries', 'id', 'country_id');
+    }
+
+    public function state()
+    {
+        return $this->hasOne('App\States', 'id', 'state_id');
+    }
+
+    public function city()
+    {
+        return $this->hasOne('App\Cities', 'id', 'city_id');
+    }
+
     public static function boot()
     {
         parent::boot();

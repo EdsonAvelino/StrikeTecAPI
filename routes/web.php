@@ -39,11 +39,11 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's profile data
     $app->post('/users', 'UserController@update');
 
-    // Get user's information
-    $app->get('/users/{userId}', 'UserController@getUser');
+    // Update user's preferences
+    $app->post('/users/preferences', 'UserController@updatePreferences');
 
     // Get user's information
-    $app->post('/user/preferences', 'UserController@updatePreferences');
+    $app->get('/users/{userId}', 'UserController@getUser');
 
     // User's social connectivity
     $app->get('/user/follow/{userId}', 'UserController@follow');

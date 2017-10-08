@@ -26,6 +26,11 @@ class UserController extends Controller
     /**
      * @api {post} /user/register Register a new user
      * @apiGroup Users
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *     }
      * @apiParam {String} first_name First Name of user
      * @apiParam {String} last_name Last Name of user
      * @apiParam {String} email Email
@@ -122,6 +127,11 @@ class UserController extends Controller
     /**
      * @api {post} /user/register/facebook Signup with Facebook
      * @apiGroup Facebook Auth
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *     }
      * @apiParam {String} facebook_id Facebook ID from facebook response
      * @apiParam {String} first_name First Name from facebook response
      * @apiParam {String} last_name Last Name from facebook response
@@ -219,9 +229,11 @@ class UserController extends Controller
     /**
      * @api {post} /users Update a user
      * @apiGroup Users
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {String} [first_name] First Name
@@ -239,6 +251,9 @@ class UserController extends Controller
      * @apiParam {String} [right_hand_sensor] Right Hand Sensor
      * @apiParam {String} [left_kick_sensor] Left Kick Sensor
      * @apiParam {String} [right_kick_sensor] Right Kick Sensor
+     * @apiParam {Number} [city_id] City ID
+     * @apiParam {Number} [state_id] State ID
+     * @apiParam {Number} [country_id] Country ID
 
      * @apiParamExample {json} Input
      *    {
@@ -301,6 +316,10 @@ class UserController extends Controller
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
+            
+            $user->city_id = $request->get('city_id') ?? $user->city_id;
+            $user->state_id = $request->get('state_id') ?? $user->state_id;
+            $user->country_id = $request->get('country_id') ?? $user->country_id;
 
             $user->save();
             
@@ -387,7 +406,11 @@ class UserController extends Controller
             $userId = \Auth::user()->id;
         }
 
-        $user = User::with('preferences')->where('id', $userId)->withCount('followers')->withCount('following')->first();
+        $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
+
+        if (!$user) {
+            return response()->json(['error' => 'true', 'message' => 'User not found']);
+        }
 
         return response()->json([
             'error' => 'false',
@@ -399,9 +422,11 @@ class UserController extends Controller
     /**
      * @api {post} /users/preferences Update user's preferences
      * @apiGroup Users
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Boolean} [public_profile] Profile show public

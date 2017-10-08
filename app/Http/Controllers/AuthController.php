@@ -25,6 +25,11 @@ class AuthController extends Controller
     /**
      * @api {post} /auth/login Login with creds
      * @apiGroup Authentication
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *     }
      * @apiParam {String} email Email
      * @apiParam {String} password Password
      * @apiParamExample {json} Input
@@ -101,12 +106,19 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => \Auth::user()]);
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+
+        return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
 
     /**
      * @api {post} /auth/facebook Login with Facebook
      * @apiGroup Facebook Auth
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *     }
      * @apiParam {String} facebook_id Facebook ID from facebook response
      * @apiParamExample {json} Input
      *    {
