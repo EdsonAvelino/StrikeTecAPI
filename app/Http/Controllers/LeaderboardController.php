@@ -119,41 +119,55 @@ class LeaderboardController extends Controller
 			\DB::statement(\DB::raw('SET @rank = 0'));
 
 			$leadersList = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+                	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
         		if ($countryId) {
         			$query->where('country_id', $countryId);
         		}
+        	})
+        	->whereHas('user.preferences', function($q) {
+				$q->where('public_profile', 1);
         	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
         	->limit(100)->get()->toArray();
 		} 
 		// Else, will break down current result set to get current user's rank in list
-		// So, if rank is 500 return 1 to 50 and 475 to 525
+		// So, if current user's rank is 500, then return 1 to 50 and 475 to 525
 		else {
+			// First set of result, showing top 50
 			\DB::statement(\DB::raw('SET @rank = 0'));
 			$leadersListFirstSet = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
+                	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
         		if ($countryId) {
         			$query->where('country_id', $countryId);
         		}
         	})
+        	->whereHas('user.preferences', function($q) {
+				$q->where('public_profile', 1);
+        	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
         	->limit(50)->get();
 
+        	// Another set of result, this will include current user
         	\DB::statement(\DB::raw('SET @rank = ' . ($currentUserRank - 25) ));
         	$leadersListSecondSet = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'country_id', 'state_id', 'city_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'));
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+                	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
         		if ($countryId) {
         			$query->where('country_id', $countryId);
         		}
+        	})
+        	->whereHas('user.preferences', function($q) {
+				$q->where('public_profile', 1);
         	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
