@@ -48,12 +48,28 @@ class LeaderboardController extends Controller
 	 *				"last_name": "Smith",
 	 *				"skill_level": "Box like a Professional",
 	 *				"weight": 200,
-	 *				"country_id": null,
-	 *				"state_id": null,
-	 *				"city_id": null,
-	 *				"age": 14,
-	 *				"user_following": true,
+	 *				"country_id": 30199,
+	 *				"state_id": 2594,
+	 *				"city_id": 155,
+	 *				"age": 24,
+	 *				"user_following": false,
 	 *				"user_follower": false
+	 *				"photo_url": null,
+	 *				"gender": "female",
+	 *				"country": {
+	 *					"id": 155,
+	 *					"name": "Netherlands The"
+	 *				},
+	 *				"state": {
+	 *					"id": 2594,
+	 *					"country_id": 155,
+	 *					"name": "Noord-Holland"
+	 *				},
+	 *				"city": {
+	 *					"id": 30199,
+	 *					"state_id": 2594,
+	 *					"name": "Haarlem"
+	 *				}
 	 *			}
 	 *		},
 	 *		{
@@ -74,13 +90,29 @@ class LeaderboardController extends Controller
 	 *				"first_name": "Jack",
 	 *				"last_name": "Carrie",
 	 *				"skill_level": null,
-	 *				"weight": null,
-	 *				"country_id": null,
-	 *				"state_id": null,
-	 *				"city_id": null,
-	 *				"age": null,
+	 *				"weight": 108,
+	 *				"country_id": 30199,
+	 *				"state_id": 2594,
+	 *				"city_id": 155,
+	 *				"age": 24,
 	 *				"user_following": false,
 	 *				"user_follower": false
+	 *				"photo_url": null,
+	 *				"gender": "female",
+	 *				"country": {
+	 *					"id": 155,
+	 *					"name": "Netherlands The"
+	 *				},
+	 *				"state": {
+	 *					"id": 2594,
+	 *					"country_id": 155,
+	 *					"name": "Noord-Holland"
+	 *				},
+	 *				"city": {
+	 *					"id": 30199,
+	 *					"state_id": 2594,
+	 *					"name": "Haarlem"
+	 *				}
 	 *			}
 	 *		}
      *      ]
@@ -119,7 +151,7 @@ class LeaderboardController extends Controller
 			\DB::statement(\DB::raw('SET @rank = 0'));
 
 			$leadersList = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
@@ -141,7 +173,7 @@ class LeaderboardController extends Controller
 			// First set of result, showing top 50
 			\DB::statement(\DB::raw('SET @rank = 0'));
 			$leadersListFirstSet = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
                 	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
@@ -160,7 +192,7 @@ class LeaderboardController extends Controller
         	// Another set of result, this will include current user
         	\DB::statement(\DB::raw('SET @rank = ' . ($currentUserRank - 25) ));
         	$leadersListSecondSet = Leaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
         	->whereHas('user', function($query) use ($countryId) {
@@ -232,12 +264,28 @@ class LeaderboardController extends Controller
 	 *				"last_name": "Smith",
 	 *				"skill_level": "Box like a Professional",
 	 *				"weight": 200,
-	 *				"country_id": null,
-	 *				"state_id": null,
-	 *				"city_id": null,
-	 *				"age": 14,
-	 *				"user_following": true,
+	 *				"country_id": 30199,
+	 *				"state_id": 2594,
+	 *				"city_id": 155,
+	 *				"age": 24,
+	 *				"user_following": false,
 	 *				"user_follower": false
+	 *				"photo_url": null,
+	 *				"gender": "female",
+	 *				"country": {
+	 *					"id": 155,
+	 *					"name": "Netherlands The"
+	 *				},
+	 *				"state": {
+	 *					"id": 2594,
+	 *					"country_id": 155,
+	 *					"name": "Noord-Holland"
+	 *				},
+	 *				"city": {
+	 *					"id": 30199,
+	 *					"state_id": 2594,
+	 *					"name": "Haarlem"
+	 *				}
 	 *			}
 	 *		},
 	 *		{
@@ -259,12 +307,28 @@ class LeaderboardController extends Controller
 	 *				"last_name": "Carrie",
 	 *				"skill_level": null,
 	 *				"weight": null,
-	 *				"country_id": null,
-	 *				"state_id": null,
-	 *				"city_id": null,
-	 *				"age": null,
+	 *				"country_id": 30199,
+	 *				"state_id": 2594,
+	 *				"city_id": 155,
+	 *				"age": 24,
 	 *				"user_following": false,
 	 *				"user_follower": false
+	 *				"photo_url": null,
+	 *				"gender": "female",
+	 *				"country": {
+	 *					"id": 155,
+	 *					"name": "Netherlands The"
+	 *				},
+	 *				"state": {
+	 *					"id": 2594,
+	 *					"country_id": 155,
+	 *					"name": "Noord-Holland"
+	 *				},
+	 *				"city": {
+	 *					"id": 30199,
+	 *					"state_id": 2594,
+	 *					"name": "Haarlem"
+	 *				}
 	 *			}
 	 *		}
      *      ]
@@ -299,7 +363,7 @@ class LeaderboardController extends Controller
 		\DB::statement(\DB::raw('SET @rank = 0'));
 
 		$leadersList = Leaderboard::with(['user' => function ($query) {
-            $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+            $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
             	->with(['country', 'state', 'city']);
         }])
     	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
