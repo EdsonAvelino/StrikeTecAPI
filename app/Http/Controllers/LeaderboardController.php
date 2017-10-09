@@ -129,6 +129,7 @@ class LeaderboardController extends Controller
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
+				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
@@ -150,6 +151,7 @@ class LeaderboardController extends Controller
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
+				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
@@ -168,6 +170,7 @@ class LeaderboardController extends Controller
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
+				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
         	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
         	->orderBy('punches_count', 'desc')
