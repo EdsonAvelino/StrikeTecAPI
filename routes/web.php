@@ -108,4 +108,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of leaderboard data
     $app->get('/leaderboard', 'LeaderboardController@getList');
+
+    // Explore data
+    $app->get('/explore', 'LeaderboardController@getExploreList');
 });
