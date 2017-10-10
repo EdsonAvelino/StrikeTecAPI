@@ -15,12 +15,6 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
-$app->get('/test-dt', function() {
-    $dt = \Carbon\Carbon::createFromTimestamp(1506280854215/1000)->toDateTimeString();
-    echo '<pre>';
-    print_r($dt);
-});
-
 // Login
 $app->post('/auth/login', 'AuthController@authenticate');
 $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
