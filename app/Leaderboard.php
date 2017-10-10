@@ -22,7 +22,7 @@ class Leaderboard extends Model
         'punches_count',
         'max_speed',
         'max_force',
-        'avg_time',
+        'total_time_trained',
     ];
 
     public function user()

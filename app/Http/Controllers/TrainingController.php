@@ -337,6 +337,12 @@ class TrainingController extends Controller
             $leaderboardStatus->max_speed = $temp->max_speed;
             $leaderboardStatus->max_force = $temp->max_force;
 
+            // TODO avg_time
+            
+            $totalTimeTrained = TrainingSessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+
+            $leaderboardStatus->total_time_trained = $totalTimeTrained;
+
             $leaderboardStatus->save();
 
             return response()->json([
