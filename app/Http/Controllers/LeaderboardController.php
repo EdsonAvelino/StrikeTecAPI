@@ -225,6 +225,8 @@ class LeaderboardController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number records
      * @apiParam {Number} [country_id] Filter by country, no country_id will return data across all countries
      * @apiParam {Number} [state_id] Filter by state
      * @apiParam {Number} [age] Age range e.g. 25-40
