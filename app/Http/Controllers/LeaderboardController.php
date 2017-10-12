@@ -374,7 +374,7 @@ class LeaderboardController extends Controller
 
     			// State (can be null when no country selected)
     			if ($stateId)
-    				$query->where('state_id', $state_id);
+    				$query->where('state_id', $stateId);
     		}
 
     		if (sizeof($ageRange)) {
