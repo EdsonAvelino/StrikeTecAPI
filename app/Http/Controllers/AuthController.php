@@ -232,6 +232,6 @@ class AuthController extends Controller
 
         $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
 
-        return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => \Auth::user()]);
+        return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
 }

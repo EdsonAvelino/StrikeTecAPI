@@ -112,6 +112,12 @@ class User extends Model implements AuthenticatableContract,
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if ($fbId = $model->facebook_id) {
+                $model->photo_url = "http://graph.facebook.com/$fbId/picture?type=large";
+            }            
+        });
+
         static::created(function ($user) {
             UserPreferences::create([
                 'user_id' => $user->id,
