@@ -58,4 +58,18 @@ class Videos extends Model
     {
         return env('APP_URL').'/storage/videos/thumbnails/'.$value;
     }
+
+    public function getThumbWidthAttribute($thumb)
+    {
+        list($width, $height, $type, $attr) = getimagesize(storage_path("videos/thumbnails/{$thumb}"));
+
+        return $width;
+    }
+
+    public function getThumbHeightAttribute($thumb)
+    {
+        list($width, $height, $type, $attr) = getimagesize(storage_path("videos/thumbnails/{$thumb}"));
+
+        return $height;
+    }
 }

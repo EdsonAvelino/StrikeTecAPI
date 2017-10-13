@@ -86,7 +86,9 @@ class VideoController extends Controller
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
-     *              "user_favourited": true
+     *              "user_favourited": true,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
      *          },
      *          {
      *              "id": 2,
@@ -96,7 +98,9 @@ class VideoController extends Controller
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27",
-     *              "user_favourited": false
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
      *          },
      *      ]
      *    }
@@ -115,7 +119,7 @@ class VideoController extends Controller
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
-        $_videos = Videos::where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
+        $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
 
         $videos = [];
 
@@ -164,7 +168,9 @@ class VideoController extends Controller
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
-     *              "user_favourited": true
+     *              "user_favourited": true,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
      *          },
      *          {
      *              "id": 2,
@@ -174,7 +180,9 @@ class VideoController extends Controller
      *              "view_counts": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27",
-     *              "user_favourited": false
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
      *          },
      *      ]
      *    }
@@ -196,7 +204,7 @@ class VideoController extends Controller
         $queryBreaks = preg_split('/\s+/', $query);
         array_walk($queryBreaks, [$this, 'alterParam']);
         
-        $videos = Videos::where('title', 'like', (str_replace('+', '%', $request->get('q'))) );
+        $videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->where('title', 'like', (str_replace('+', '%', $request->get('q'))) );
 
         foreach ($queryBreaks as $queryBreak) {
             $videos->orWhere('title', 'like', $queryBreak);
