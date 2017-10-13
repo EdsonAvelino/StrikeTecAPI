@@ -34,7 +34,7 @@ $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry'
 $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
 // Rest of all APIs are secured with access-token
-// User APIs//
+// User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's profile data
     $app->post('/users', 'UserController@update');
@@ -55,7 +55,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/following', 'UserController@getFollowing');
 });
 
-// Training APIs//
+// Training APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get rounds by Training-Type
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
@@ -79,7 +79,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 });
 
-// Video APIs//
+// Video APIs
 
 // TEMP: Sync list of videos from storage/videos dir to db
 // $app->get('/videos/sync', 'VideoController@syncVideos');
@@ -111,4 +111,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Explore data
     $app->get('/explore', 'LeaderboardController@getExploreList');
+});
+
+// Push notifications APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Save customer token for push notifications
+    $app->post('/user/app_token', 'PushController@storeAppToken');
 });
