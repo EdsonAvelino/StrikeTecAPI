@@ -74,7 +74,7 @@ class PushController extends Controller
 
         $body = ['to' => $token,
                         'data' => [
-                            'message' => 'Hey there! This is push notification test.',
+                            'message' => 'Hey there! This is push notification test.'
                         ]
                     ];
 
@@ -95,7 +95,7 @@ class PushController extends Controller
 
              return $result->error;
         } else {
-            return 'Push notification success.'
+            return 'Push notification success.';
         }
     }
 }
