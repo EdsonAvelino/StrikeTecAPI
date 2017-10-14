@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\UserAppTokens;
+use GuzzleHttp\Client;
 
 class PushController extends Controller
 {
@@ -63,5 +64,38 @@ class PushController extends Controller
         ]);
 
         return response()->json(['error' => 'false', 'message' => 'Token saved successfully']);
+    }
+
+    public function testPush()
+    {
+        $client = new Client(['base_uri' => 'https://fcm.googleapis.com']);
+
+        $token = 'eWAyP3HAnsU:APA91bFUBqI7503M-tKXlg2VqOilR0xTpE1OEZkq6QDf0CN37YnFDmbCb3AbGXEKgMzya_a9vXfw3v5WbeHA7HDexF6D_bhFltL_TeanHbEUh1lP2cwUuETG44EvAZhkDXBuuyKnvRXG';
+
+        $body = ['to' => $token,
+                        'data' => [
+                            'message' => 'Hey there! This is push notification test.',
+                        ]
+                    ];
+
+        $response = $client->request('post', '/fcm/send', [
+                        'headers' => [
+                            'Authorization' => 'key=' . env('GOOGLE_FCM_SERVER_KEY'),
+                            'Content-Type' => 'application/json'
+                        ],
+                        'body' => json_encode($body)
+                    ]);
+        $respContent = json_decode($response->getBody()->getContents());
+        \Log::info("Resp=" . $response->getStatusCode());
+
+        if (($response->getStatusCode() == 200) && ($respContent->failure == 1)) {
+            $result = current($respContent->results);
+
+             \Log::info("Failure=" . $result->error);
+
+             return $result->error;
+        } else {
+            return 'Push notification success.'
+        }
     }
 }

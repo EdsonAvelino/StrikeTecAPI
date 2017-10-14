@@ -118,3 +118,5 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save customer token for push notifications
     $app->post('/user/app_token', 'PushController@storeAppToken');
 });
+
+$app->post('/push/test', 'PushController@testPush');
