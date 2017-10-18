@@ -655,6 +655,7 @@ class UserController extends Controller
      *              "first_name": "Max",
      *              "last_name": "Zuck",
      *              "user_following": true,
+     *              "user_follower": true,
      *              "points": 125,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
@@ -663,6 +664,7 @@ class UserController extends Controller
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
      *              "user_following": false,
+     *              "user_follower": false,
      *              "points": 130,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
@@ -671,6 +673,7 @@ class UserController extends Controller
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
      *              "user_following": true,
+     *              "user_follower": false,
      *              "points": 150,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
@@ -679,6 +682,7 @@ class UserController extends Controller
      *              "first_name": "Keily",
      *              "last_name": "Maxi",
      *              "user_following": true,
+     *              "user_follower": false,
      *              "points": 120,
      *              "photo_url": "http://example.com/image.jpg"
      *          }
@@ -704,6 +708,9 @@ class UserController extends Controller
         foreach($followers as $follower) {
             $following = UserConnections::where('follow_user_id', $follower->user_id)
             ->where('user_id', \Auth::user()->id)->exists();
+            
+            $follow = UserConnections::where('user_id', $follower->follow_user_id)
+            ->where('follow_user_id', \Auth::user()->id)->exists();
 
             $points = Leaderboard::where('user_id', $follower->user_id)->first()->punches_count;
 
@@ -713,7 +720,8 @@ class UserController extends Controller
                 'last_name' => $follower->user->last_name,
                 'photo_url' => $follower->user->photo_url,
                 'points' => (int) $points,
-                'user_following' => (bool) $following
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
             ];
         }
 
@@ -752,6 +760,7 @@ class UserController extends Controller
      *              "id": 5,
      *              "first_name": "Max",
      *              "last_name": "Zuck",
+     *              "user_following": true,
      *              "user_follower": false,
      *              "points": 125,
      *              "photo_url": "http://example.com/image.jpg"
@@ -760,6 +769,7 @@ class UserController extends Controller
      *              "id": 6,
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
+     *              "user_following": true,
      *              "user_follower": false,
      *              "points": 135,
      *              "photo_url": "http://example.com/image.jpg"
@@ -768,6 +778,7 @@ class UserController extends Controller
      *              "id": 8,
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
+     *              "user_following": false,
      *              "user_follower": true,
      *              "points": 140,
      *              "photo_url": "http://example.com/image.jpg"
@@ -792,6 +803,9 @@ class UserController extends Controller
         $_following = [];
 
         foreach ($following as $follower) {
+            $following = UserConnections::where('follow_user_id', $follower->user_id)
+            ->where('user_id', \Auth::user()->id)->exists();
+
             $follow = UserConnections::where('user_id', $follower->follow_user_id)
             ->where('follow_user_id', \Auth::user()->id)->exists();
 
@@ -803,7 +817,8 @@ class UserController extends Controller
                 'last_name' => $follower->followUser->last_name,
                 'photo_url' => $follower->followUser->photo_url,
                 'points' => (int) $points,
-                'user_follower' => $follow
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
             ];
         }
 
