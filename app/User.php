@@ -51,11 +51,10 @@ class User extends Model implements AuthenticatableContract,
      */
     protected $hidden = [
         'password',
+        'country_id',
+        'state_id',
+        'city_id'
     ];
-
-    // protected $attributes = array(
-    //     'age' => '',
-    // );
 
     /**
      * @return mixed

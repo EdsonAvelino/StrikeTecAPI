@@ -120,3 +120,4 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 $app->post('/push/test', 'PushController@testPush');
+$app->post('/push/test/apns', 'PushController@testPushAPNs');

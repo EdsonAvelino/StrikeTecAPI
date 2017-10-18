@@ -653,26 +653,22 @@ class UserController extends Controller
      *          {
      *              "id": 5,
      *              "first_name": "Max",
-     *              "last_name": "Zuck",
-     *              "user_following": true
+     *              "last_name": "Zuck"
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
-     *              "last_name": "Jaz",
-     *              "user_following": false
+     *              "last_name": "Jaz"
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
-     *              "last_name": "Lobstor",
-     *              "user_following": true
+     *              "last_name": "Lobstor"
      *          },
      *          {
      *              "id": 9,
      *              "first_name": "Keily",
-     *              "last_name": "Maxi",
-     *              "user_following": true
+     *              "last_name": "Maxi"
      *          }
      *          ]
      *      }
@@ -691,15 +687,7 @@ class UserController extends Controller
         $_followers = [];
 
         foreach($followers as $follower) {
-            $following = UserConnections::where('follow_user_id', $follower->user_id)
-            ->where('user_id', \Auth::user()->id)->exists();
-
-            $_followers[] = [
-                'id' => $follower->user_id,
-                'first_name' => $follower->user->first_name,
-                'last_name' => $follower->user->last_name,
-                'user_following' => (bool) $following
-            ];
+            $_followers[] = ['id' => $follower->user_id, 'first_name' => $follower->user->first_name, 'last_name' => $follower->user->last_name];
         }
 
         return response()->json([
@@ -757,11 +745,7 @@ class UserController extends Controller
         $_following = [];
 
         foreach($following as $follower) {
-            $_following[] = [
-                'id' => $follower->follow_user_id,
-                'first_name' => $follower->followUser->first_name,
-                'last_name' => $follower->followUser->last_name
-            ];
+            $_following[] = ['id' => $follower->follow_user_id, 'first_name' => $follower->followUser->first_name, 'last_name' => $follower->followUser->last_name];
         }
 
         return response()->json([
