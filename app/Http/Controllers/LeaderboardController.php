@@ -88,9 +88,6 @@ class LeaderboardController extends Controller
 	 *				"last_name": "Carrie",
 	 *				"skill_level": null,
 	 *				"weight": 108,
-	 *				"country_id": 30199,
-	 *				"state_id": 2594,
-	 *				"city_id": 155,
 	 *				"age": 24,
 	 *				"user_following": false,
 	 *				"user_follower": false
@@ -263,9 +260,6 @@ class LeaderboardController extends Controller
 	 *				"last_name": "Smith",
 	 *				"skill_level": "Box like a Professional",
 	 *				"weight": 200,
-	 *				"country_id": 30199,
-	 *				"state_id": 2594,
-	 *				"city_id": 155,
 	 *				"age": 24,
 	 *				"user_following": false,
 	 *				"user_follower": false

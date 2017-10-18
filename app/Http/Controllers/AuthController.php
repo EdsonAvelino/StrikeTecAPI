@@ -66,9 +66,6 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://example.com/profile/pic.jpg",
-     *          "city_id": 1,
-     *          "state_id": 1,
-     *          "country_id": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -173,9 +170,6 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": null,
      *          "photo_url": "http://example.com/profile/pic.jpg",
-     *          "city_id": 1,
-     *          "state_id": 1,
-     *          "country_id": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
