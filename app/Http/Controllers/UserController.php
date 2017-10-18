@@ -647,30 +647,34 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *          "followers": [
+     *          "data": [
      *          {
      *              "id": 5,
      *              "first_name": "Max",
      *              "last_name": "Zuck",
-     *              "user_following": true
+     *              "user_following": true,
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
-     *              "user_following": false
+     *              "user_following": false,
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
-     *              "user_following": true
+     *              "user_following": true,
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 9,
      *              "first_name": "Keily",
      *              "last_name": "Maxi",
-     *              "user_following": true
+     *              "user_following": true,
+     *              "photo_url": "http://example.com/image.jpg"
      *          }
      *          ]
      *      }
@@ -699,6 +703,7 @@ class UserController extends Controller
                 'id' => $follower->user_id,
                 'first_name' => $follower->user->first_name,
                 'last_name' => $follower->user->last_name,
+                'photo_url' => $follower->user->photo_url,
                 'user_following' => (bool) $following
             ];
         }
@@ -732,21 +737,24 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *          "following": [
+     *          "data": [
      *          {
      *              "id": 5,
      *              "first_name": "Max",
-     *              "last_name": "Zuck"
+     *              "last_name": "Zuck",
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
-     *              "last_name": "Jaz"
+     *              "last_name": "Jaz",
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
-     *              "last_name": "Lobstor"
+     *              "last_name": "Lobstor",
+     *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          ]
      *      }
@@ -772,6 +780,7 @@ class UserController extends Controller
                 'id' => $follower->follow_user_id,
                 'first_name' => $follower->followUser->first_name,
                 'last_name' => $follower->followUser->last_name
+                'photo_url' => $follower->followUser->photo_url
             ];
         }
 
