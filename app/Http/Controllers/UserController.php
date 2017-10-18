@@ -779,7 +779,7 @@ class UserController extends Controller
             $_following[] = [
                 'id' => $follower->follow_user_id,
                 'first_name' => $follower->followUser->first_name,
-                'last_name' => $follower->followUser->last_name
+                'last_name' => $follower->followUser->last_name,
                 'photo_url' => $follower->followUser->photo_url
             ];
         }
