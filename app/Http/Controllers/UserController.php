@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Validator;
 use App\User;
 use App\UserConnections;
+use App\Leaderboard;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -638,10 +639,11 @@ class UserController extends Controller
      * @apiParamExample {json} Input
      *    {
      *      "start": 20,
-     *      "limit": 50,
+     *      "limit": 50
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains list of followers
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *      {
@@ -653,6 +655,7 @@ class UserController extends Controller
      *              "first_name": "Max",
      *              "last_name": "Zuck",
      *              "user_following": true,
+     *              "points": 125,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
@@ -660,6 +663,7 @@ class UserController extends Controller
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
      *              "user_following": false,
+     *              "points": 130,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
@@ -667,6 +671,7 @@ class UserController extends Controller
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
      *              "user_following": true,
+     *              "points": 150,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
@@ -674,6 +679,7 @@ class UserController extends Controller
      *              "first_name": "Keily",
      *              "last_name": "Maxi",
      *              "user_following": true,
+     *              "points": 120,
      *              "photo_url": "http://example.com/image.jpg"
      *          }
      *          ]
@@ -699,11 +705,14 @@ class UserController extends Controller
             $following = UserConnections::where('follow_user_id', $follower->user_id)
             ->where('user_id', \Auth::user()->id)->exists();
 
+            $points = Leaderboard::where('user_id', $follower->user_id)->first()->punches_count;
+
             $_followers[] = [
                 'id' => $follower->user_id,
                 'first_name' => $follower->user->first_name,
                 'last_name' => $follower->user->last_name,
                 'photo_url' => $follower->user->photo_url,
+                'points' => (int) $points,
                 'user_following' => (bool) $following
             ];
         }
@@ -728,10 +737,11 @@ class UserController extends Controller
      * @apiParamExample {json} Input
      *    {
      *      "start": 20,
-     *      "limit": 50,
+     *      "limit": 50
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains list of followings
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *      {
@@ -742,20 +752,26 @@ class UserController extends Controller
      *              "id": 5,
      *              "first_name": "Max",
      *              "last_name": "Zuck",
+     *              "user_follower": false,
+     *              "points": 125,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
+     *              "user_follower": false,
+     *              "points": 135,
      *              "photo_url": "http://example.com/image.jpg"
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
+     *              "user_follower": true,
+     *              "points": 140,
      *              "photo_url": "http://example.com/image.jpg"
-     *          },
+     *          }
      *          ]
      *      }
      * @apiErrorExample {json} Error Response
@@ -775,12 +791,19 @@ class UserController extends Controller
 
         $_following = [];
 
-        foreach($following as $follower) {
+        foreach ($following as $follower) {
+            $follow = UserConnections::where('user_id', $follower->follow_user_id)
+            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+            $points = Leaderboard::where('user_id', $follower->follow_user_id)->first()->punches_count;
+
             $_following[] = [
                 'id' => $follower->follow_user_id,
                 'first_name' => $follower->followUser->first_name,
                 'last_name' => $follower->followUser->last_name,
-                'photo_url' => $follower->followUser->photo_url
+                'photo_url' => $follower->followUser->photo_url,
+                'points' => (int) $points,
+                'user_follower' => $follow
             ];
         }
 
