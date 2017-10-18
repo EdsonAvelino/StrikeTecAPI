@@ -633,6 +633,13 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50,
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
@@ -675,9 +682,12 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getFollowers()
+    public function getFollowers(Request $request)
     {
-        $followers = UserConnections::where('follow_user_id', \Auth::user()->id)->get();
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $followers = UserConnections::where('follow_user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
 
         $_followers = [];
 
@@ -696,7 +706,7 @@ class UserController extends Controller
         return response()->json([
             'error' => 'false',
             'message' => '',
-            'followers' => $_followers
+            'data' => $_followers
         ]);
     }
 
@@ -708,6 +718,13 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50,
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
@@ -741,9 +758,12 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getFollowing()
+    public function getFollowing(Request $request)
     {
-        $following = UserConnections::where('user_id', \Auth::user()->id)->get();
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $following = UserConnections::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
 
         $_following = [];
 
@@ -758,7 +778,7 @@ class UserController extends Controller
         return response()->json([
             'error' => 'false',
             'message' => '',
-            'following' => $_following
+            'data' => $_following
         ]);
     }
 
