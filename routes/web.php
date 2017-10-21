@@ -119,5 +119,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/user/app_token', 'PushController@storeAppToken');
 });
 
+// Push notification tests for ios/android
 $app->post('/push/test', 'PushController@testPush');
 $app->post('/push/test/apns', 'PushController@testPushAPNs');
+
+// Battle APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of comobos
+    $app->get('/battles/combos', 'BattleController@getCombos');
+});
