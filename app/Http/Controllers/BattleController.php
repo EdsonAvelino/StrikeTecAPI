@@ -8,6 +8,45 @@ use App\BattleCombos;
 class BattleController extends Controller
 {
     /**
+     * @api {post} /battles Send battle invite
+     * @apiGroup Battles
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} to_user_id To which user send invite
+     * @apiParam {String} combo_id Selected combo id
+     * @apiParamExample {json} Input
+     *    {
+     *      "to_user_id": 12,
+     *      "combo_id": 1
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "User invited successfully",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function postInvite(Request $request)
+    {
+        $toUserId = (int) $request->get('to_user_id');
+        $comboId = (int) $request->get('combo_id');
+    }
+
+    /**
      * @api {get} /battles/combos Get list of available combos
      * @apiGroup Battles
      * @apiHeader {String} authorization Authorization value

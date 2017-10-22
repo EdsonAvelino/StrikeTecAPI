@@ -57,11 +57,17 @@ class PushController extends Controller
                 return response()->json(['error' => 'true', 'message' =>  $errors->first('token')]);
         }
 
-        $appToken = UserAppTokens::create([
-            'user_id' => \Auth::user()->id,
-            'os' => strtoupper($request->get('os')),
-            'token' => $request->get('token'),
-        ]);
+        $appTokenExists = UserAppTokens::where('user_id', \Auth::user()->id)
+            ->where('os', strtoupper($request->get('os')))
+            ->where('token', $request->get('token'))->exists();
+
+        if (!$appTokenExists) {
+            $appToken = UserAppTokens::create([
+                'user_id' => \Auth::user()->id,
+                'os' => strtoupper($request->get('os')),
+                'token' => $request->get('token'),
+            ]);
+        }
 
         return response()->json(['error' => 'false', 'message' => 'Token saved successfully']);
     }

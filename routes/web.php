@@ -125,6 +125,9 @@ $app->post('/push/test/apns', 'PushController@testPushAPNs');
 
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Send battle invite to another user    
+    $app->post('/battles', 'BattleController@postInvite');
+    
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
 });
