@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Subscriptions;
 
-class SubscriptionController extends Controller {
+class SubscriptionController extends Controller 
+{
 
     /**
      * @api {get} /subscription Get Subscription data
@@ -59,7 +60,8 @@ class SubscriptionController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSubscriptionList() {
+    public function getSubscriptionList() 
+    {
         $SubscriptionsList = Subscriptions::select('id', 'tutorials', 'tutorial_details', 'tournaments', 'tournament_details', 'battles', 'battle_details', 'name', 'duration', 'price', 'SKU')
                 ->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $SubscriptionsList]);
