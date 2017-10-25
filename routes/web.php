@@ -1,15 +1,15 @@
 <?php
 
 /*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
+  |--------------------------------------------------------------------------
+  | Application Routes
+  |--------------------------------------------------------------------------
+  |
+  | Here is where you can register all of the routes for an application.
+  | It is a breeze. Simply tell Lumen the URIs it should respond to
+  | and give it the Closure to call when that URI is requested.
+  |
+ */
 
 $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
@@ -33,6 +33,12 @@ $app->get('/countries', 'WorldController@getCountries');
 $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
 $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
+//Subscription plans
+$app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+
+//push notifications settings
+$app->post('/update_notification', 'SettingController@updateSettings');
+$app->post('/notification_settings', 'SettingController@getSettings');
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -59,7 +65,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get rounds by Training-Type
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
-    
+
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
 
@@ -80,7 +86,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 // Video APIs
-
 // TEMP: Sync list of videos from storage/videos dir to db
 // $app->get('/videos/sync', 'VideoController@syncVideos');
 
@@ -127,7 +132,7 @@ $app->post('/push/test/apns', 'PushController@testPushAPNs');
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Send battle invite to another user    
     $app->post('/battles', 'BattleController@postInvite');
-    
+
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
 });
