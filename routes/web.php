@@ -133,6 +133,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
     
+    // Get list of comobo-sets
+    $app->get('/battles/combo_sets', 'BattleController@getComboSets');
+    
     //push notifications settings
     $app->post('/notification/settings', 'SettingController@updateSettings');
     $app->get('/notification/settings', 'SettingController@getSettings');
