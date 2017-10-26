@@ -11,7 +11,7 @@ class Subscriptions extends Model {
      *
      * @var array
      */
-//    protected $table = 's';
+
     protected $fillable = [
         'plan_type',
         'SKU',

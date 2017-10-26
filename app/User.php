@@ -9,11 +9,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
-class User extends Model implements AuthenticatableContract,
-    AuthenticatableUserContract,
-    AuthorizableContract
+class User extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
 {
-    use Authenticatable, Authorizable;
+
+    use Authenticatable,
+        Authorizable;
 
     /**
      * The attributes that are mass assignable.
@@ -63,7 +63,7 @@ class User extends Model implements AuthenticatableContract,
     {
         return $this->getKey(); // Eloquent model method
     }
-    
+
     /**
      * @return array
      */
@@ -114,7 +114,7 @@ class User extends Model implements AuthenticatableContract,
         static::creating(function ($model) {
             if ($fbId = $model->facebook_id) {
                 $model->photo_url = "http://graph.facebook.com/$fbId/picture?type=large";
-            }            
+            }
         });
 
         static::created(function ($user) {
@@ -125,18 +125,31 @@ class User extends Model implements AuthenticatableContract,
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
             ]);
+            Settings::create([
+                'user_id' => $user->id,
+                'new_challenges' => true,
+                'battle_update' => true,
+                'tournaments_update' => true,
+                'games_update' => true,
+                'new_message' => true,
+                'friend_invites' => true,
+                'sensor_connectivity' => true,
+                'app_updates' => true,
+                'striketec_promos' => true,
+                'striketec_news' => true
+            ]);
         });
     }
 
     public function getAgeAttribute($birthday)
     {
-         return ($birthday) ? \Carbon\Carbon::parse($birthday)->age : null;
+        return ($birthday) ? \Carbon\Carbon::parse($birthday)->age : null;
     }
 
     public function getUserFollowingAttribute($userId)
     {
         $following = UserConnections::where('follow_user_id', $userId)
-            ->where('user_id', \Auth::user()->id)->exists();
+                        ->where('user_id', \Auth::user()->id)->exists();
 
         return (bool) $following;
     }
@@ -144,8 +157,9 @@ class User extends Model implements AuthenticatableContract,
     public function getUserFollowerAttribute($userId)
     {
         $follower = UserConnections::where('user_id', $userId)
-            ->where('follow_user_id', \Auth::user()->id)->exists();
+                        ->where('follow_user_id', \Auth::user()->id)->exists();
 
         return (bool) $follower;
     }
+
 }
