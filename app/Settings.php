@@ -4,7 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Settings extends Model {
+class Settings extends Model
+{
 
     /**
      * The attributes that are mass assignable.
@@ -13,7 +14,7 @@ class Settings extends Model {
      */
     protected $table = 'notification_settings';
     protected $fillable = [
-      'user_id',
+        'user_id',
     ];
 
 }

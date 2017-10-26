@@ -36,9 +36,6 @@ $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 //Subscription plans
 $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
-//push notifications settings
-$app->post('/update_notification', 'SettingController@updateSettings');
-$app->post('/notification_settings', 'SettingController@getSettings');
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -135,4 +132,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
+    
+    //push notifications settings
+    $app->post('/notification/settings', 'SettingController@updateSettings');
+    $app->get('/notification/settings', 'SettingController@getSettings');
 });
