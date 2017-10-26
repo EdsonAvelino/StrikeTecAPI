@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\BattleCombos;
+use App\BattleComboSets;
 
 class BattleController extends Controller
 {
@@ -43,7 +44,7 @@ class BattleController extends Controller
     public function postInvite(Request $request)
     {
         $toUserId = (int) $request->get('to_user_id');
-        $comboId = (int) $request->get('combo_id');
+        // $comboId = (int) $request->get('combo_id');
     }
 
     /**
@@ -87,22 +88,116 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $_combos = BattleCombos::get();
+        $combos = BattleCombos::select('*', \DB::raw('id as key_set'))->get();
         
-        $combos = [];
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos->toArray()]);
+    }
 
-        foreach ($_combos as $combo) {
-            $keySet = [];
-            foreach ($combo->keySet as $key) {
-                $keySet[] = $key->punch_type_id;
-            }
+    /**
+     * @api {get} /battles/combo_sets Get list of combo-sets
+     * @apiGroup Battles
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of combo-sets
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *         {
+     *          "id": 1,
+     *          "name": "AGGRESSOR",
+     *          "combos": [
+     *            {
+     *              "id": 1,
+     *              "battle_combo_set_id": 1,
+     *              "battle_combo_id": 1,
+     *              "combo": {
+     *              "id": 1,
+     *              "name": "Attack",
+     *              "key_set": "1-2-SR-2-3-2-5-6-3-2"
+     *              }
+     *          },
+     *            {
+     *              "id": 1,
+     *              "battle_combo_set_id": 1,
+     *              "battle_combo_id": 2,
+     *              "combo": {
+     *              "id": 2,
+     *              "name": "Crafty",
+     *              "key_set": ""
+     *          }
+     *          },
+     *            {
+     *               "id": 1,
+     *               "battle_combo_set_id": 1,
+     *               "battle_combo_id": 3,
+     *               "combo": {
+     *               "id": 3,
+     *               "name": "Left overs",
+     *               "key_set": ""
+     *              }
+     *          }
+     *          ],
+     *          },
+     *            {
+     *          "id": 2,
+     *          "name": "DEFENSIVE",
+     *          "combos": [
+     *            {
+     *              "id": 2,
+     *              "battle_combo_set_id": 2,
+     *              "battle_combo_id": 2,
+     *              "combo": {
+     *              "id": 2,
+     *              "name": "Crafty",
+     *              "key_set": ""
+     *          }
+     *          },
+     *            {
+     *              "id": 2,
+     *              "battle_combo_set_id": 2,
+     *              "battle_combo_id": 4,
+     *              "combo": {
+     *              "id": 4,
+     *              "name": "Defensive",
+     *              "key_set": ""
+     *          }
+     *          },
+     *            {
+     *               "id": 2,
+     *               "battle_combo_set_id": 2,
+     *               "battle_combo_id": 5,
+     *               "combo": {
+     *               "id": 5,
+     *               "name": "Movement",
+     *               "key_set": ""
+     *          }
+     *          }
+     *          ],
+     *          }
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getComboSets()
+    {
+        $_comboSets = BattleComboSets::with(['combos.combo' => function($query) {
+            $query->select('*', \DB::raw('id as key_set'));
+        }])->get();
 
-            $_combo = $combo->toArray();
-            $_combo['key_set'] = implode('-', $keySet);
-
-            $combos[] = $_combo;
-        }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $_comboSets->toArray()]);
     }
 }

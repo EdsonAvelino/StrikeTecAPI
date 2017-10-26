@@ -14,7 +14,6 @@ class BattleCombos extends Model
      */
     protected $fillable = [
         'name',
-        'description'
     ];
 
     protected $hidden = [
@@ -22,8 +21,15 @@ class BattleCombos extends Model
         'updated_at'
     ];
 
-    public function keySet()
+    // public function keySet()
+    // {
+    //     return $this->hasMany('App\BattleComboKeys', 'battle_combo_id');
+    // }
+
+    public function getKeySetAttribute($comboId)
     {
-        return $this->hasMany('App\BattleComboKeys', 'battle_combo_id');
+        $keySet = \DB::table('battle_combo_keys')->where('battle_combo_id', $comboId)->pluck('punch_type_id')->toArray();
+
+        return implode('-', $keySet);
     }
 }
