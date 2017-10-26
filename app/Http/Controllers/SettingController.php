@@ -9,7 +9,7 @@ class SettingController extends Controller
 {
 
     /**
-     * @api {post} /notification/settings Notification Settings
+     * @api {post} /notification/settings Update notification Settings
      * @apiGroup Notification Settings
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -20,7 +20,7 @@ class SettingController extends Controller
      * @apiParam {Number} value e.g. 0,1
      * @apiParamExample {json} Input
      *    {
-     *      "action": "new challenges"
+     *      "action": "new_challenges"
      *      "value" : 1
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -111,7 +111,7 @@ class SettingController extends Controller
     }
 
     /**
-     * @api {get} /notification/settings all the settings of user
+     * @api {get} /notification/settings Get notifications settings
      * @apiGroup Notification Settings
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
