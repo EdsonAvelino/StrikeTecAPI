@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Settings;
 
-
-class SettingController extends Controller 
+class SettingController extends Controller
 {
 
     /**
@@ -18,7 +17,7 @@ class SettingController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} action e.g. new_challenges , battle_update, tournaments_update, games_update, new_message, friend_invites, sensor_connectivity, app_updates, striketec_promos, striketec_news
-     * @apiParam {Number} values e.g. 0,1
+     * @apiParam {Number} value e.g. 0,1
      * @apiParamExample {json} Input
      *    {
      *      "action": "new challenges"
@@ -40,19 +39,12 @@ class SettingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function updateSettings(Request $request) 
+    public function updateSettings(Request $request)
     {
-        
+
         $user_id = \Auth::user()->id;
         $action = $request->get('action');
         $value = $request->get('value');
-
-        //check if the settings are exist in settings table
-        $chk_exist_user = Settings::where('user_id', $user_id)->exists();
-
-        if ($chk_exist_user == false) {
-            Settings::create(['user_id' => $user_id]);
-        }
 
         switch ($action) {
 
@@ -158,7 +150,7 @@ class SettingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSettings(Request $request) 
+    public function getSettings(Request $request)
     {
 
         $userId = \Auth::user()->id;
