@@ -14,6 +14,7 @@ use Tymon\JWTAuth\JWTAuth;
 
 class UserController extends Controller
 {
+
     /**
      * @var \Tymon\JWTAuth\JWTAuth
      */
@@ -54,7 +55,7 @@ class UserController extends Controller
      *      "message": "Authentication successful",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *      "user": {
-                "id": 1,
+      "id": 1,
      *          "facebook_id": null,
      *          "first_name": "John",
      *          "last_name": "Smith",
@@ -107,8 +108,8 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|max:64|unique:users',
-            // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+                    'email' => 'required|max:64|unique:users',
+                        // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
         ]);
 
         if ($validator->fails()) {
@@ -119,16 +120,16 @@ class UserController extends Controller
 
         // Creates a new user
         $user = User::create([
-            'first_name' => $request->get('first_name'),
-            'last_name' => $request->get('last_name'),
-            'email' => $request->get('email'),
-            'password' => app('hash')->make($request->get('password')),
-            'show_tip' => 1,
-            'is_spectator' => 0
+                    'first_name' => $request->get('first_name'),
+                    'last_name' => $request->get('last_name'),
+                    'email' => $request->get('email'),
+                    'password' => app('hash')->make($request->get('password')),
+                    'show_tip' => 1,
+                    'is_spectator' => 0
         ]);
-        
+
         try {
-            if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
+            if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
@@ -174,7 +175,7 @@ class UserController extends Controller
      *      "message": "Facebook registration successful",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *      "user": {
-                "id": 1,
+      "id": 1,
      *          "facebook_id": 1234567890,
      *          "first_name": "John",
      *          "last_name": "Smith",
@@ -227,7 +228,7 @@ class UserController extends Controller
     public function registerFacebook(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'facebook_id' => 'required|unique:users,facebook_id',
+                    'facebook_id' => 'required|unique:users,facebook_id',
         ]);
 
         if ($validator->fails()) {
@@ -244,12 +245,11 @@ class UserController extends Controller
                     'password' => app('hash')->make(strrev($request->get('facebook_id'))),
                     'show_tip' => 1,
                     'is_spectator' => 0
-                ]);
+        ]);
 
         try {
-            if (! $token = $this->jwt->attempt(['email' => $user->email,
-                    'password' => strrev($request->get('facebook_id'))]))
-            {
+            if (!$token = $this->jwt->attempt(['email' => $user->email,
+                'password' => strrev($request->get('facebook_id'))])) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
@@ -332,15 +332,15 @@ class UserController extends Controller
             $user->first_name = ($request->get('first_name')) ?? $user->first_name;
             $user->last_name = ($request->get('last_name')) ?? $user->last_name;
             $user->gender = ($request->get('gender')) ?? $user->gender;
-            
+
             $birthday = $request->get('birthday') ?
-                date('Y-m-d', strtotime($request->get('birthday'))) :
-                $user->birthday;
+                    date('Y-m-d', strtotime($request->get('birthday'))) :
+                    $user->birthday;
             $user->birthday = $birthday;
 
             $user->weight = $request->get('weight') ?? $user->weight;
             $user->height = $request->get('height') ?? $user->height;
-            
+
             $user->left_hand_sensor = $request->get('left_hand_sensor') ?? $user->left_hand_sensor;
             $user->right_hand_sensor = $request->get('right_hand_sensor') ?? $user->right_hand_sensor;
             $user->left_kick_sensor = $request->get('left_kick_sensor') ?? $user->left_kick_sensor;
@@ -355,22 +355,21 @@ class UserController extends Controller
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
-            
+
             $user->city_id = $request->get('city_id') ?? $user->city_id;
             $user->state_id = $request->get('state_id') ?? $user->state_id;
             $user->country_id = $request->get('country_id') ?? $user->country_id;
 
             $user->save();
-            
-            return response()->json([
-                'error' => 'false',
-                'message' => 'User details have been updated successfully'
-            ]);
 
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'User details have been updated successfully'
+            ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'true',
-                'message' => $e->getMessage()
+                        'error' => 'true',
+                        'message' => $e->getMessage()
             ]);
         }
     }
@@ -463,9 +462,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'user' => $user
+                    'error' => 'false',
+                    'message' => '',
+                    'user' => $user
         ]);
     }
 
@@ -526,8 +525,8 @@ class UserController extends Controller
         $userPreferences->save();
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'Preferences have been updated successfully',
+                    'error' => 'false',
+                    'message' => 'Preferences have been updated successfully',
         ]);
     }
 
@@ -566,7 +565,7 @@ class UserController extends Controller
             return null;
 
         $connection = UserConnections::where('user_id', \Auth::user()->id)
-            ->where('follow_user_id', $userId)->first();
+                        ->where('follow_user_id', $userId)->first();
 
         if (!$connection) {
             UserConnections::create([
@@ -577,8 +576,8 @@ class UserController extends Controller
             $followUser = User::find($userId);
 
             return response()->json([
-                'error' => 'false',
-                'message' => 'User now following '.$followUser->first_name.' '.$followUser->last_name,
+                        'error' => 'false',
+                        'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
             ]);
         }
     }
@@ -618,11 +617,11 @@ class UserController extends Controller
             return null;
 
         $connection = UserConnections::where('user_id', \Auth::user()->id)
-            ->where('follow_user_id', $userId)->delete();
+                        ->where('follow_user_id', $userId)->delete();
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'Unfollow successfull',
+                    'error' => 'false',
+                    'message' => 'Unfollow successfull',
         ]);
     }
 
@@ -705,12 +704,12 @@ class UserController extends Controller
 
         $_followers = [];
 
-        foreach($followers as $follower) {
+        foreach ($followers as $follower) {
             $following = UserConnections::where('follow_user_id', $follower->user_id)
-            ->where('user_id', \Auth::user()->id)->exists();
-            
+                            ->where('user_id', \Auth::user()->id)->exists();
+
             $follow = UserConnections::where('user_id', $follower->user_id)
-            ->where('follow_user_id', \Auth::user()->id)->exists();
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
 
             $points = Leaderboard::where('user_id', $follower->user_id)->first()->punches_count;
 
@@ -726,9 +725,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'data' => $_followers
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $_followers
         ]);
     }
 
@@ -804,10 +803,10 @@ class UserController extends Controller
 
         foreach ($following as $follower) {
             $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
-            ->where('user_id', \Auth::user()->id)->exists();
+                            ->where('user_id', \Auth::user()->id)->exists();
 
             $follow = UserConnections::where('user_id', $follower->follow_user_id)
-            ->where('follow_user_id', \Auth::user()->id)->exists();
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
 
             $points = Leaderboard::where('user_id', $follower->follow_user_id)->first()->punches_count;
 
@@ -823,9 +822,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'data' => $_following
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $_following
         ]);
     }
 
@@ -873,14 +872,53 @@ class UserController extends Controller
             $user->where('id', $user->id)->update(['password' => app('hash')->make($request->get('password'))]);
 
             return response()->json([
-                'error' => 'false',
-                'message' => 'Password changed successfully'
+                        'error' => 'false',
+                        'message' => 'Password changed successfully'
             ]);
         } else {
             return response()->json([
-                'error' => 'true',
-                'message' => 'Inavlid old password'
+                        'error' => 'true',
+                        'message' => 'Inavlid old password'
             ]);
         }
     }
+
+    /**
+     * @api {get} /helpcenter List of FAQs
+     * @apiGroup Users
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} faq List of question and answers 
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *  {
+     *     "error": "false",
+     *     "message": "",
+     *     "faq": [
+     *         {
+     *             "id": 1,
+     *             "question": "What is Lorem Ipsum?",
+     *             "answer": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+     *         },
+     *         {
+     *             "id": 2,
+     *             "question": "Why do we use it?",
+     *             "answer": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text,"
+     *         }
+     *     ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function helpCenters()
+    {
+        $faq = HelpCenters::select('id', 'question', 'answer')->get();
+        return response()->json(['error' => 'false', 'message' => '', 'faq' => $faq]);
+    }
+
 }

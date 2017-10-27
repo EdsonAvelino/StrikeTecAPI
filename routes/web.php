@@ -36,6 +36,9 @@ $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 //Subscription plans
 $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
+// Get FAQs
+$app->get('/helpcenter', 'UserController@helpCenters');
+
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
