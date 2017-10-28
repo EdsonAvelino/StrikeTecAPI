@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BattleComboSets extends Model
+class ComboSets extends Model
 {
 
     /**
@@ -23,6 +23,6 @@ class BattleComboSets extends Model
 
     public function combos()
     {
-        return $this->hasManyThrough('App\BattleComboSetCombos', 'App\BattleCombos', 'id', 'battle_combo_set_id');
+        return $this->hasManyThrough('App\ComboSetCombos', 'App\Combos', 'id', 'combo_set_id');
     }
 }

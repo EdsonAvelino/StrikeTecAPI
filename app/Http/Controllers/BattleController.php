@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\BattleCombos;
-use App\BattleComboSets;
+use App\Battles;
+use App\Combos;
+use App\ComboSets;
+
+use App\Helpers\Push;
 
 class BattleController extends Controller
 {
@@ -19,7 +22,11 @@ class BattleController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {String} to_user_id To which user send invite
-     * @apiParam {String} combo_id Selected combo id
+     * @apiParam {String} [combo_id] Selected combo id
+     * @apiParam {String} [combo_set_id] Selected combo-set id
+     * @apiParam {String} [workout_id] Scripted wourkout round's id
+     * @apiParam {String} type_id Type could be from { 3 = Combo, 4 = Combo-Set, 5=Workout }
+     * @apiParam {String} description Description what user added while creating battle
      * @apiParamExample {json} Input
      *    {
      *      "to_user_id": 12,
@@ -41,10 +48,21 @@ class BattleController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function postInvite(Request $request)
+    public function postBattleWithInvite(Request $request)
     {
         $toUserId = (int) $request->get('to_user_id');
-        // $comboId = (int) $request->get('combo_id');
+
+        $battle = Battles::create([
+            'from_user_id' => \Auth::user()->id,
+            'to_user_id' => $toUserId,
+            'type_id' => $request->get('type_id'),
+            'combo_id' => $request->get('combo_id') ?? null,
+            'combo_set_id' => $request->get('combo_set_id') ?? null,
+            'workout_id' => $request->get('workout_id') ?? null,
+            'description' => $request->get('description')
+        ]);
+
+        // Push::send();
     }
 
     /**
@@ -88,7 +106,7 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = BattleCombos::select('*', \DB::raw('id as key_set'))->get();
+        $combos = Combos::select('*', \DB::raw('id as key_set'))->get();
         
         return response()->json(['error' => 'false', 'message' => '', 'data' => $combos->toArray()]);
     }
@@ -116,8 +134,8 @@ class BattleController extends Controller
      *          "combos": [
      *            {
      *              "id": 1,
-     *              "battle_combo_set_id": 1,
-     *              "battle_combo_id": 1,
+     *              "combo_set_id": 1,
+     *              "combo_id": 1,
      *              "combo": {
      *              "id": 1,
      *              "name": "Attack",
@@ -126,8 +144,8 @@ class BattleController extends Controller
      *          },
      *            {
      *              "id": 1,
-     *              "battle_combo_set_id": 1,
-     *              "battle_combo_id": 2,
+     *              "combo_set_id": 1,
+     *              "combo_id": 2,
      *              "combo": {
      *              "id": 2,
      *              "name": "Crafty",
@@ -136,8 +154,8 @@ class BattleController extends Controller
      *          },
      *            {
      *               "id": 1,
-     *               "battle_combo_set_id": 1,
-     *               "battle_combo_id": 3,
+     *               "combo_set_id": 1,
+     *               "combo_id": 3,
      *               "combo": {
      *               "id": 3,
      *               "name": "Left overs",
@@ -152,8 +170,8 @@ class BattleController extends Controller
      *          "combos": [
      *            {
      *              "id": 2,
-     *              "battle_combo_set_id": 2,
-     *              "battle_combo_id": 2,
+     *              "combo_set_id": 2,
+     *              "combo_id": 2,
      *              "combo": {
      *              "id": 2,
      *              "name": "Crafty",
@@ -162,8 +180,8 @@ class BattleController extends Controller
      *          },
      *            {
      *              "id": 2,
-     *              "battle_combo_set_id": 2,
-     *              "battle_combo_id": 4,
+     *              "combo_set_id": 2,
+     *              "combo_id": 4,
      *              "combo": {
      *              "id": 4,
      *              "name": "Defensive",
@@ -172,8 +190,8 @@ class BattleController extends Controller
      *          },
      *            {
      *               "id": 2,
-     *               "battle_combo_set_id": 2,
-     *               "battle_combo_id": 5,
+     *               "combo_set_id": 2,
+     *               "combo_id": 5,
      *               "combo": {
      *               "id": 5,
      *               "name": "Movement",
@@ -194,7 +212,7 @@ class BattleController extends Controller
      */
     public function getComboSets()
     {
-        $_comboSets = BattleComboSets::with(['combos.combo' => function($query) {
+        $_comboSets = ComboSets::with(['combos.combo' => function($query) {
             $query->select('*', \DB::raw('id as key_set'));
         }])->get();
 

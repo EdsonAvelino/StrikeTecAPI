@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BattleComboKeys extends Model
+class ComboKeys extends Model
 {
 
     /**

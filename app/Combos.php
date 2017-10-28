@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BattleComboSetCombos extends Model
+class Combos extends Model
 {
 
     /**
@@ -21,8 +21,10 @@ class BattleComboSetCombos extends Model
         'updated_at'
     ];
 
-    public function combo()
+    public function getKeySetAttribute($comboId)
     {
-        return $this->hasOne('App\BattleCombos', 'id', 'battle_combo_id');
+        $keySet = \DB::table('combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
+
+        return implode('-', $keySet);
     }
 }

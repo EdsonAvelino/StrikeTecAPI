@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrainingSessions extends Model
+class Sessions extends Model
 {
 
     /**
@@ -14,7 +14,8 @@ class TrainingSessions extends Model
      */
     protected $fillable = [
         'user_id',
-        'training_type_id',
+        'battle_id',
+        'type_id',
         'start_time',
         'end_time',
         'plan_id',

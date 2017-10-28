@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\TrainingSessions;
-use App\TrainingSessionRounds;
-use App\TrainingSessionRoundsPunches;
+use App\Sessions;
+use App\SessionRounds;
+use App\SessionRoundPunches;
 use App\Leaderboard;
 
 class TrainingController extends Controller
@@ -20,12 +20,12 @@ class TrainingController extends Controller
      *     }
      * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
      * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
-     * @apiParam {Number} [training_type_id] Optional Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
+     * @apiParam {Number} [type_id] Optional Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
      * @apiParamExample {json} Input
      *    {
      *      "start_date": "09/11/2017",
      *      "end_date": "09/15/2017",
-     *      "training_type_id": 1,
+     *      "type_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -38,7 +38,7 @@ class TrainingController extends Controller
      *      "sessions": [{
      *          "id": 1,
      *          "user_id": 1,
-     *          "training_type_id": 1,
+     *          "type_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "plan_id": -1,
@@ -54,7 +54,7 @@ class TrainingController extends Controller
      *      {
      *          "id": 2,
      *          "user_id": 1,
-     *          "training_type_id": 1,
+     *          "type_id": 1,
      *          "start_time": "1504978767000",
      *          "end_time": null,
      *          "plan_id": -1,
@@ -70,7 +70,7 @@ class TrainingController extends Controller
      *      {
      *          "id": 3,
      *          "user_id": 1,
-     *          "training_type_id": 1,
+     *          "type_id": 1,
      *          "start_time": "1505025567000",
      *          "end_time": null,
      *          "plan_id": -1,
@@ -98,19 +98,19 @@ class TrainingController extends Controller
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
-        $trainingTypeId = (int) $request->get('training_type_id');
+        $trainingTypeId = (int) $request->get('type_id');
 
         $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
         $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
 
-        $_sessions = TrainingSessions::where('user_id', $userId);
+        $_sessions = Sessions::where('user_id', $userId);
 
         if (!empty($startDate) && !empty($endDate)) {
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
         }
 
         if ($trainingTypeId) {
-            $_sessions->where('training_type_id', $trainingTypeId);
+            $_sessions->where('type_id', $trainingTypeId);
         }
 
         $sessions = [];
@@ -118,13 +118,12 @@ class TrainingController extends Controller
         foreach ($result = $_sessions->get() as $_session) {
             $temp = $_session->toArray();
 
-            $roundIDs = \DB::select( \DB::raw("SELECT id FROM training_session_rounds WHERE training_session_id = $_session->id") );
+            $roundIDs = \DB::select( \DB::raw("SELECT id FROM session_rounds WHERE session_id = $_session->id") );
 
             $temp['round_ids'] = $roundIDs;
             $sessions[] = $temp;
         }
         
-
         return response()->json([
                 'error' => 'false',
                 'message' => '',
@@ -152,7 +151,7 @@ class TrainingController extends Controller
      *      "session": {
      *          "id": 1,
      *          "user_id": 1,
-     *          "training_type_id": 1,
+     *          "type_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "plan_id": -1,
@@ -166,7 +165,7 @@ class TrainingController extends Controller
      *      }
      *      "rounds": [{
      *          "id": 1,
-     *          "training_session_id": 1,
+     *          "session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "avg_speed": 20.71,
@@ -181,7 +180,7 @@ class TrainingController extends Controller
      *      },
      *      {
      *          "id": 2,
-     *          "training_session_id": 1,
+     *          "session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "avg_speed": 20.71,
@@ -207,8 +206,17 @@ class TrainingController extends Controller
     {
         $userId = \Auth::user()->id;
 
-        $session = TrainingSessions::where('id', $sessionId)->first();
-        $rounds = TrainingSessionRounds::where('training_session_id', $sessionId)->get();
+        $session = Sessions::where('id', $sessionId)->first();
+        $rounds = SessionRounds::where('session_id', $sessionId)->get();
+
+        if (empty($session)) {
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'session' => null,
+                'rounds' => null
+            ]);
+        }
 
         return response()->json([
                 'error' => 'false',
@@ -232,8 +240,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "training_type_id": 1, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
-     *      { "training_type_id": 1, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
+     *      { "type_id": 1, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
+     *      { "type_id": 1, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -265,9 +273,9 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $session) {
-                $_session = TrainingSessions::create([
+                $_session = Sessions::create([
                         'user_id' => \Auth::user()->id,
-                        'training_type_id' => $session['training_type_id'],
+                        'type_id' => $session['type_id'],
                         'start_time' => $session['start_time'],
                         'end_time' => $session['end_time'],
                         'plan_id' => $session['plan_id'],
@@ -279,14 +287,14 @@ class TrainingController extends Controller
                         'best_time' => $session['best_time']
                     ]);
 
-                $sessionRounds = TrainingSessionRounds::where('training_session_id', $_session->start_time)->update(['training_session_id' => $_session->id]);
+                $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
                 $sessions[] = ['start_time' => $_session->start_time];
             }
 
             // User's total sessions count
-            $sessionsCount = TrainingSessions::where('user_id', \Auth::user()->id)->count();
-            $punchesCount = TrainingSessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
+            $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
+            $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
 
             // Create / Update Leaderboard entry for this user
             $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
@@ -328,18 +336,18 @@ class TrainingController extends Controller
             $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
             $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
 
-            $temp = TrainingSessionRounds::select(
+            $temp = SessionRounds::select(
                     \DB::raw('MAX(max_speed) as max_speed'),
                     \DB::raw('MAX(max_force) as max_force')
                 )
-            ->whereRaw('training_session_id IN (SELECT id from training_sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
+            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
 
             $leaderboardStatus->max_speed = $temp->max_speed;
             $leaderboardStatus->max_force = $temp->max_force;
 
             // TODO avg_time
             
-            $totalTimeTrained = TrainingSessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+            $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
 
             $leaderboardStatus->total_time_trained = $totalTimeTrained;
 
@@ -377,7 +385,7 @@ class TrainingController extends Controller
      *      "message": "",
      *      "round": {
      *          "id": 1,
-     *          "training_session_id": 1,
+     *          "session_id": 1,
      *          "start_time": "1504960422890",
      *          "end_time": null,
      *          "avg_speed": 20.71,
@@ -392,7 +400,7 @@ class TrainingController extends Controller
      *      },
      *      "punches": [{
      *          "id": 1,
-     *          "session_round_id": 1,
+     *          "round_id": 1,
      *          "punch_time": "1505089499658",
      *          "punch_duration": "0.60",
      *          "force": 270,
@@ -404,7 +412,7 @@ class TrainingController extends Controller
      *      },
      *      {
      *          "id": 2,
-     *          "session_round_id": 1,
+     *          "round_id": 1,
      *          "punch_time": "1505089500659",
      *          "punch_duration": "0.40",
      *          "force": 217,
@@ -416,7 +424,7 @@ class TrainingController extends Controller
      *      },
      *     {
      *          "id": 3,
-     *          "session_round_id": 1,
+     *          "round_id": 1,
      *          "punch_time": "1505089501660",
      *          "punch_duration": "0.50",
      *          "force": 549,
@@ -437,8 +445,18 @@ class TrainingController extends Controller
      */
     public function getSessionsRound($roundId)
     {
-        $round = TrainingSessionRounds::where('id', $roundId)->first();
-        $punches = TrainingSessionRoundsPunches::where('session_round_id', $roundId)->get();
+        $round = SessionRounds::where('id', $roundId)->first();
+        $punches = SessionRoundPunches::where('round_id', $roundId)->get();
+
+        // If round not found, it will return null
+        if (empty($round)) {
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'round' => null,
+                'punches' => null
+            ]);
+        }
 
         return response()->json([
                 'error' => 'false',
@@ -494,10 +512,10 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $round) {
-                // $sessionId = TrainingSessions::where('start_time', $round['session_start_time'])->first()->id;
+                // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
 
-                $_round = TrainingSessionRounds::create([
-                        'training_session_id' => $round['session_start_time'],
+                $_round = SessionRounds::create([
+                        'session_id' => $round['session_start_time'],
                         'start_time' => $round['start_time'],
                         'end_time' => $round['end_time'],
                         'avg_speed' => $round['avg_speed'],
@@ -574,17 +592,17 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $punch) {
-                $sessionRound = TrainingSessionRounds::where('start_time', $punch['round_start_time'])->first();
+                $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
                 
                 // Store punch
-                $_punch = TrainingSessionRoundsPunches::create([
-                        'session_round_id' => $sessionRound->id,
+                $_punch = SessionRoundPunches::create([
+                        'round_id' => $sessionRound->id,
                         'punch_time' => $punch['punch_time'],
                         'punch_duration' => $punch['punch_duration'],
                         'force' => $punch['force'],
                         'speed' => $punch['speed'],
-                        'punch_type' => $punch['punch_type'],
-                        'hand' => $punch['hand'],
+                        'punch_type' => strtoupper($punch['punch_type']),
+                        'hand' => strtoupper($punch['hand']),
                     ]);
 
                 $punches[] = ['start_time' => $_punch->punch_time];
@@ -611,12 +629,12 @@ class TrainingController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *     }
-     * @apiParam {Number} training_type_id Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
+     * @apiParam {Number} type_id Type ID e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
      * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
      * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
      * @apiParamExample {json} Input
      *    {
-     *      "training_type_id": 1,
+     *      "type_id": 1,
      *      "start_date": "09/11/2017",
      *      "end_date": "09/15/2017",
      *    }
@@ -631,7 +649,7 @@ class TrainingController extends Controller
      *      "rounds": [
      *          {
      *          "id": 4,
-     *          "training_session_id": 11,
+     *          "session_id": 11,
      *          "start_time": "1505243114094",
      *          "end_time": "1505243115773",
      *          "avg_speed": 22,
@@ -646,7 +664,7 @@ class TrainingController extends Controller
      *      },
      *          {
      *          "id": 5,
-     *          "training_session_id": 10,
+     *          "session_id": 10,
      *          "start_time": "1505243114090",
      *          "end_time": "1505243115780",
      *          "avg_speed": 29,
@@ -671,11 +689,11 @@ class TrainingController extends Controller
      */
     public function getSessionsRoundsByTrainingType(Request $request)
     {
-        // $sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId)->get();
+        // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
-        $trainingTypeId = (int) $request->get('training_type_id');
+        $trainingTypeId = (int) $request->get('type_id');
 
         if (!$trainingTypeId) {
             return response()->json([
@@ -687,7 +705,7 @@ class TrainingController extends Controller
         $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
         $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
 
-        $_sessions = \DB::table('training_sessions')->select('id')->where('training_type_id', $trainingTypeId);
+        $_sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId);
 
         if (!empty($startDate) && !empty($endDate)) {
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
@@ -702,7 +720,7 @@ class TrainingController extends Controller
         foreach ($sessions as $session)
             $sessionIds[] = $session->id;
 
-        $rounds = TrainingSessionRounds::whereIn('training_session_id', $sessionIds)->get();
+        $rounds = SessionRounds::whereIn('session_id', $sessionIds)->get();
 
         return response()->json([
                 'error' => 'false',
