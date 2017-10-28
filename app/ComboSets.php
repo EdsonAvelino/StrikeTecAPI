@@ -25,4 +25,11 @@ class ComboSets extends Model
     {
         return $this->hasManyThrough('App\ComboSetCombos', 'App\Combos', 'id', 'combo_set_id');
     }
+
+    public function getKeySetAttribute($comboId)
+    {
+        $keySet = \DB::table('combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
+
+        return implode('-', $keySet);
+    }
 }

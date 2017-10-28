@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Battles extends Model
+class Workouts extends Model
 {
 
     /**
@@ -13,9 +13,13 @@ class Battles extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id',
-        'opponent_user_id',
-        'plan_id',
-        'type_id',
+        'name'
     ];
+
+    public $timestamps = false;
+
+    public function rounds()
+    {
+        return $this->hasMany('App\WorkoutRounds', 'workout_id', 'id');
+    }
 }
