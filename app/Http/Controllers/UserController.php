@@ -439,10 +439,10 @@ class UserController extends Controller
      *                  "id": 6997,
      *                  "state_id": 286,
      *                  "name": "Pettenbach"
-     *              }
-     *          },
-     *          "user_following": true,
-     *          "user_follower": false
+     *              },
+     *              "user_following": true,
+     *              "user_follower": false
+     *          }
      *      }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
