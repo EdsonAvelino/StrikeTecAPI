@@ -49,17 +49,61 @@ class BattleController extends Controller
      */
     public function postBattleWithInvite(Request $request)
     {
+        $opponentUserId = (int) $request->get('opponent_user_id');
+
         $battle = Battles::create([
             'user_id' => \Auth::user()->id,
-            'opponent_user_id' => (int) $request->get('opponent_user_id'),
+            'opponent_user_id' => (int) $opponentUserId,
             'plan_id' => (int) $request->get('plan_id'),
             'type_id' => (int) $request->get('type_id')
         ]);
 
-        // TODO Send Push Notification
-        // Push::send();
+        // Send Push Notification
+        Push::send($opponentUserId);
 
         return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
+    }
+
+    /**
+     * @api {get} /battles/resend/<battle_id> Resend battle invite
+     * @apiGroup Battles
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} battle_id Selected battle's id to resend invite
+     * @apiParamExample {json} Input
+     *    {
+     *      "battle_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "User invited for battle successfully",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function resendBattleInvite($battleId)
+    {
+        $battleId = (int) $battleId;
+
+        if (empty($battleId)) return null;
+
+        $battle = Battles::find($battleId);
+
+        // Send Push Notification
+        Push::send($battle->opponent_user_id);
     }
 
     /**
@@ -100,9 +144,59 @@ class BattleController extends Controller
         $battleId = (int) $request->get('battle_id');
         $accepted = filter_var($request->get('accept'), FILTER_VALIDATE_BOOLEAN);
 
-        Battles::where('id', $battleId)->update(['accepted' => $accepted, 'accepted_at' => date('Y-m-d H:i:s')]);
+        $battle = Battles::find($battleId);
+
+        if ($accepted) {
+            $battle->update(['accepted' => $accepted, 'accepted_at' => date('Y-m-d H:i:s')]);
+        } else {
+            $battle->delete();
+        }
 
         return response()->json(['error' => 'false', 'message' => 'User '. ($accepted ? 'accepted' : 'declined') .' battle']);
+    }
+
+    /**
+     * @api {get} /battles/cancel/<battle_id> Cancel battle
+     * @apiGroup Battles
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} battle_id Selected battle's id to cancel
+     * @apiParamExample {json} Input
+     *    {
+     *      "battle_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Battle cancelled successfully",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function cancelBattle($battleId)
+    {
+        $battleId = (int) $battleId;
+
+        if (empty($battleId)) return null;
+
+        $battle = Battles::find($battleId);
+
+        if ($battle && $battle->user_id == \Auth::user()->id)
+            $battle->delete();
+
+        return response()->json(['error' => 'false', 'message' => 'Battle cancelled successfully']);
     }
 
     /**
@@ -122,18 +216,22 @@ class BattleController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-     *       {
+     *      {
      *          "id": 1,
      *          "name": "Attack",
-     *          "description": null,
-     *          "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *        },
-     *        {
+     *          "key_set": "1-2-SR-2-3-2-5-6-3-2",
+     *          "keys": [
+     *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
+     *          ],
+     *      },
+     *      {
      *          "id": 2,
      *          "name": "Crafty",
-     *          "description": null,
-     *          "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *        }
+     *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
+     *          "keys": [
+     *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
+     *          ],
+     *      }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -146,9 +244,15 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'))->get();
+        $combos = Combos::select('*', \DB::raw('id as key_set'))->get()->toArray();
+
+        foreach ($combos as $i => $combo) {
+            $keySet = $combo['key_set'];
+            
+            $combos[$i]['keys'] = explode('-', $keySet);
+        }
         
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos->toArray()]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
     }
 
     /**
@@ -168,78 +272,20 @@ class BattleController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-     *         {
+     *      {
      *          "id": 1,
      *          "name": "AGGRESSOR",
      *          "combos": [
-     *            {
-     *              "id": 1,
-     *              "combo_set_id": 1,
-     *              "combo_id": 1,
-     *              "combo": {
-     *              "id": 1,
-     *              "name": "Attack",
-     *              "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *              }
-     *          },
-     *            {
-     *              "id": 1,
-     *              "combo_set_id": 1,
-     *              "combo_id": 2,
-     *              "combo": {
-     *              "id": 2,
-     *              "name": "Crafty",
-     *              "key_set": ""
-     *          }
-     *          },
-     *            {
-     *               "id": 1,
-     *               "combo_set_id": 1,
-     *               "combo_id": 3,
-     *               "combo": {
-     *               "id": 3,
-     *               "name": "Left overs",
-     *               "key_set": ""
-     *              }
-     *          }
+     *              "1", "2", "3"
      *          ],
-     *          },
-     *            {
+     *      },
+     *      {
      *          "id": 2,
      *          "name": "DEFENSIVE",
      *          "combos": [
-     *            {
-     *              "id": 2,
-     *              "combo_set_id": 2,
-     *              "combo_id": 2,
-     *              "combo": {
-     *              "id": 2,
-     *              "name": "Crafty",
-     *              "key_set": ""
-     *          }
-     *          },
-     *            {
-     *              "id": 2,
-     *              "combo_set_id": 2,
-     *              "combo_id": 4,
-     *              "combo": {
-     *              "id": 4,
-     *              "name": "Defensive",
-     *              "key_set": ""
-     *          }
-     *          },
-     *            {
-     *               "id": 2,
-     *               "combo_set_id": 2,
-     *               "combo_id": 5,
-     *               "combo": {
-     *               "id": 5,
-     *               "name": "Movement",
-     *               "key_set": ""
-     *          }
-     *          }
+     *              "1", "4", "5"
      *          ],
-     *          }
+     *      }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -252,11 +298,17 @@ class BattleController extends Controller
      */
     public function getComboSets()
     {
-        $_comboSets = ComboSets::with(['combos.combo' => function($query) {
-            $query->select('*', \DB::raw('id as key_set'));
-        }])->get();
+        $comboSets = [];
+        $_comboSets = ComboSets::get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $_comboSets->toArray()]);
+        foreach ($_comboSets as $comboSet) {
+            $_comboSet = $comboSet->toArray();
+            $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
+
+            $comboSets[] = $_comboSet;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $comboSets]);
     }
 
     /**
@@ -272,134 +324,36 @@ class BattleController extends Controller
      * @apiSuccess {Object} data Workouts
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
-     *     {
-     *    "error": "false",
-     *    "message": "",
-     *    "data": [{
-     *        "id": 1,
-     *        "name": "Workout 1",
-     *        "rounds": [{
-     *                "id": 1,
-     *                "workout_id": 1,
-     *                "name": "Round 1",
-     *                "combos": [{
-     *                        "id": 1,
-     *                        "workout_round_id": 1,
-     *                        "combo_id": 1,
-     *                        "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *                    },
-     *                    {
-     *                        "id": 2,
-     *                        "workout_round_id": 1,
-     *                        "combo_id": 2,
-     *                        "key_set": "1-2-5-7-3-2-SR-5-3-1"
-     *                    },
-     *                    {
-     *                        "id": 3,
-     *                        "workout_round_id": 1,
-     *                        "combo_id": 3,
-     *                        "key_set": "1-3-5-5-3-1-5-3-3-1"
-     *                    }
-     *                ],
-     *            },
-     *            {
-     *                "id": 2,
-     *                "workout_id": 1,
-     *                "name": "Round 2",
-     *                "combos": [{
-     *                        "id": 4,
-     *                        "workout_round_id": 2,
-     *                        "combo_id": 1,
-     *                        "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *                    },
-     *                    {
-     *                        "id": 5,
-     *                        "workout_round_id": 2,
-     *                        "combo_id": 4,
-     *                        "key_set": "1-2-6-7-3-2-5-1-3-2"
-     *                    },
-     *                    {
-     *                        "id": 6,
-     *                        "workout_round_id": 2,
-     *                        "combo_id": 5,
-     *                        "key_set": "3-5-4-1-5-2-1-6-3-2"
-     *                    }
-     *                ],
-     *            },
-     *            {
-     *                "id": 3,
-     *                "workout_id": 1,
-     *                "name": "Round 3",
-     *                "combos": [{
-     *                        "id": 7,
-     *                        "workout_round_id": 3,
-     *                        "combo_id": 2,
-     *                        "key_set": "1-2-5-7-3-2-SR-5-3-1"
-     *                    },
-     *                    {
-     *                        "id": 8,
-     *                        "workout_round_id": 3,
-     *                        "combo_id": 3,
-     *                        "key_set": "1-3-5-5-3-1-5-3-3-1"
-     *                    },
-     *                    {
-     *                        "id": 9,
-     *                        "workout_round_id": 3,
-     *                        "combo_id": 1,
-     *                        "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *                    }
-     *                ],
-     *            },
-     *            {
-     *                "id": 4,
-     *                "workout_id": 1,
-     *                "name": "Round 4",
-     *                "combos": [{
-     *                        "id": 10,
-     *                        "workout_round_id": 4,
-     *                        "combo_id": 3,
-     *                        "key_set": "1-3-5-5-3-1-5-3-3-1"
-     *                    },
-     *                    {
-     *                        "id": 11,
-     *                        "workout_round_id": 4,
-     *                        "combo_id": 4,
-     *                        "key_set": "1-2-6-7-3-2-5-1-3-2"
-     *                    },
-     *                    {
-     *                        "id": 12,
-     *                        "workout_round_id": 4,
-     *                        "combo_id": 2,
-     *                        "key_set": "1-2-5-7-3-2-SR-5-3-1"
-     *                    }
-     *                ],
-     *            },
-     *            {
-     *                "id": 5,
-     *                "workout_id": 1,
-     *                "name": "Round 5",
-     *                "combos": [{
-     *                        "id": 13,
-     *                        "workout_round_id": 5,
-     *                        "combo_id": 3,
-     *                        "key_set": "1-3-5-5-3-1-5-3-3-1"
-     *                    },
-     *                    {
-     *                        "id": 14,
-     *                        "workout_round_id": 5,
-     *                        "combo_id": 1,
-     *                        "key_set": "1-2-SR-2-3-2-5-6-3-2"
-     *                    },
-     *                    {
-     *                        "id": 15,
-     *                        "workout_round_id": 5,
-     *                        "combo_id": 5,
-     *                        "key_set": "3-5-4-1-5-2-1-6-3-2"
-     *                    }
-     *                ],
-     *            }
-     *        ]
-     *    }]
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *          {
+     *              "id": 1,
+     *              "name": "Workout 1",
+     *              "combos": [
+     *                  [ 1, 2, 3 ],
+     *                  [ 1, 4, 5 ],
+     *                  [ 2, 3, 1 ],
+     *                  [ 3, 4, 2 ],
+     *                  [ 3, 1, 5 ]
+     *              ]
+     *          },
+     *          {
+     *              "id": 2,
+     *              "name": "Workout 2",
+     *              "combos": [
+     *                  [ 1, 5, 3 ],
+     *                  [ 2, 4, 3 ],
+     *                  [ 5, 3, 4 ],
+     *                  [ 1, 4, 2 ],
+     *                  [ 3, 1, 5 ],
+     *                  [ 2, 1, 5 ],
+     *                  [ 3, 2, 5 ],
+     *                  [ 3, 4, 1 ]
+     *              ]
+     *          }
+     *      ]
      *  }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -413,13 +367,22 @@ class BattleController extends Controller
     {
         \DB::enableQueryLog();
 
-        $_workouts = Workouts::with(['rounds.combos' => function($query) {
-            $query->select('*', \DB::raw('combo_id as key_set'));
-        }])->get();
+        $workouts = [];
+        $_workouts = Workouts::get();
 
-        // print_r(\DB::getQueryLog());
-        // die();
+        foreach ($_workouts as $workout) {
+            $_workout = $workout->toArray();
+            $combos = [];
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $_workouts->toArray()]);
+            foreach ($workout->rounds as $round) {
+                $combos[] = $round->combos->pluck('combo_id')->toArray();
+            }
+            
+            $_workout['combos'] = $combos;
+
+            $workouts[]= $_workout;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $workouts]);
     }
 }

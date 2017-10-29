@@ -132,6 +132,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Accept/Decline battle invite (Opponent user)
     $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
+    
+    // Resent battle invite
+    $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
+
+    // Cancel battle
+    $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
 
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
