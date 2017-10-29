@@ -456,7 +456,19 @@ class UserController extends Controller
             $userId = \Auth::user()->id;
         }
 
+        // user_following = current user is following this user
+        $following = UserConnections::where('follow_user_id', $userId)
+            ->where('user_id', \Auth::user()->id)->exists();
+
+        // user_follower = this user if following current user
+        $follow = UserConnections::where('user_id', $userId)
+        ->where('follow_user_id', \Auth::user()->id)->exists();
+
         $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
+
+        $user = $user->toArray();
+        $user['user_following'] = (bool) $following;
+        $user['user_follower'] = (bool) $follow;
 
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
