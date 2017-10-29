@@ -52,8 +52,8 @@ class BattleController extends Controller
         $battle = Battles::create([
             'user_id' => \Auth::user()->id,
             'opponent_user_id' => (int) $request->get('opponent_user_id'),
-            'type_id' => (int) $request->get('plan_id'),
-            'plan_id' => (int) $request->get('type_id')
+            'plan_id' => (int) $request->get('plan_id'),
+            'type_id' => (int) $request->get('type_id')
         ]);
 
         // TODO Send Push Notification
