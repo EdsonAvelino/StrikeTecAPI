@@ -59,7 +59,7 @@ class BattleController extends Controller
         ]);
 
         // Send Push Notification
-        Push::send($opponentUserId);
+        // Push::send($opponentUserId);
 
         return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
     }
@@ -103,7 +103,7 @@ class BattleController extends Controller
         $battle = Battles::find($battleId);
 
         // Send Push Notification
-        Push::send($battle->opponent_user_id);
+        // Push::send($battle->opponent_user_id);
     }
 
     /**
