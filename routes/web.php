@@ -135,7 +135,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Accept/Decline battle invite (Opponent user)
     $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
-    
+
     // Resent battle invite
     $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
 
@@ -144,15 +144,31 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
-    
+
     // Get list of comobo-sets
     $app->get('/battles/combo_sets', 'BattleController@getComboSets');
 
     // Get list of workouts
     $app->get('/battles/workouts', 'BattleController@getWorkouts');
-    
+
     //push notifications settings
     $app->post('/notification/settings', 'SettingController@updateSettings');
     $app->get('/notification/settings', 'SettingController@getSettings');
 });
-    
+
+
+//Goals APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+
+    // Get list of activities
+    $app->get('/activity', 'ActivityController@getActivityList');
+
+    // Get list of activity type
+    $app->post('/activity/types', 'ActivityController@getActivityTypeList');
+
+    // Get list of activities
+    $app->post('/goal/add', 'goalController@newGoal');
+});
+
+//contact us(write us)
+$app->post('/writeus', 'WriteusController@writeUs');
