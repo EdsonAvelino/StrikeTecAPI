@@ -11,4 +11,14 @@ class UserAppTokens extends Model
         'os',
         'token'
     ];
+
+    public function getOsAttribute($os)
+    {
+    	return strtoupper($os);
+    }
+
+    public function setOsAttribute($os)
+    {
+    	$this->attributes['os'] = strtoupper($os);
+    }
 }

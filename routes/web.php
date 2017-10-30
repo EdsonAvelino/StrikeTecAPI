@@ -131,15 +131,28 @@ $app->post('/push/test/apns', 'PushController@testPushAPNs');
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Send battle invite to another user    
-    $app->post('/battles', 'BattleController@postInvite');
+    $app->post('/battles', 'BattleController@postBattleWithInvite');
+
+    // Accept/Decline battle invite (Opponent user)
+    $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
+    
+    // Resent battle invite
+    $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
+
+    // Cancel battle
+    $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
 
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
     
     // Get list of comobo-sets
     $app->get('/battles/combo_sets', 'BattleController@getComboSets');
+
+    // Get list of workouts
+    $app->get('/battles/workouts', 'BattleController@getWorkouts');
     
     //push notifications settings
     $app->post('/notification/settings', 'SettingController@updateSettings');
     $app->get('/notification/settings', 'SettingController@getSettings');
 });
+    

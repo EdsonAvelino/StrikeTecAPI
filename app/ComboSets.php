@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BattleCombos extends Model
+class ComboSets extends Model
 {
 
     /**
@@ -21,14 +21,14 @@ class BattleCombos extends Model
         'updated_at'
     ];
 
-    // public function keySet()
-    // {
-    //     return $this->hasMany('App\BattleComboKeys', 'battle_combo_id');
-    // }
+    public function combos()
+    {
+        return $this->hasManyThrough('App\ComboSetCombos', 'App\Combos', 'id', 'combo_set_id');
+    }
 
     public function getKeySetAttribute($comboId)
     {
-        $keySet = \DB::table('battle_combo_keys')->where('battle_combo_id', $comboId)->pluck('punch_type_id')->toArray();
+        $keySet = \DB::table('combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
 
         return implode('-', $keySet);
     }

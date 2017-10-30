@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TrainingSessionRounds extends Model
+class SessionRounds extends Model
 {
 
     /**
@@ -13,7 +13,7 @@ class TrainingSessionRounds extends Model
      * @var array
      */
     protected $fillable = [
-        'training_session_id',
+        'session_id',
         'start_time',
         'end_time',
         'avg_speed',

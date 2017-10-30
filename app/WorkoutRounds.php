@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BattleComboKeys extends Model
+class WorkoutRounds extends Model
 {
 
     /**
@@ -13,14 +13,14 @@ class BattleComboKeys extends Model
      * @var array
      */
     protected $fillable = [
-        'combo_id',
-        'punch_type_id'
+        'workout_id',
+        'name'
     ];
 
     public $timestamps = false;
 
-    public function punchType()
+    public function combos()
     {
-        return $this->belongsTo('App\PunchTypes');
+        return $this->hasMany('App\WorkoutRoundCombos', 'workout_round_id', 'id');
     }
 }
