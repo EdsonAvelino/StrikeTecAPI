@@ -6,6 +6,7 @@ use Validator;
 use App\User;
 use App\UserConnections;
 use App\Leaderboard;
+use App\HelpCenters;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -459,11 +460,11 @@ class UserController extends Controller
 
         // user_following = current user is following this user
         $following = UserConnections::where('follow_user_id', $userId)
-            ->where('user_id', \Auth::user()->id)->exists();
+                        ->where('user_id', \Auth::user()->id)->exists();
 
         // user_follower = this user if following current user
         $follow = UserConnections::where('user_id', $userId)
-        ->where('follow_user_id', \Auth::user()->id)->exists();
+                        ->where('follow_user_id', \Auth::user()->id)->exists();
 
         $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
