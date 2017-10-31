@@ -51,7 +51,7 @@ class ActivityController extends Controller
     }
 
     /**
-     * @api {post} /activity/types Get Activity types
+     * @api {get} /activity/types/<activity_id> Get types of particular activity 
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -99,12 +99,10 @@ class ActivityController extends Controller
      */
     public function getActivityTypeList(Request $request)
     {
+        $activityId = (int) $request->get('activity_id');
 
-        $activityId = (int) $request->get('activity_id') ? $request->get('activity_id') : 0;
+        $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', $activityId)->get();
 
-        $activity_types = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', $activityId)->get();
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $activity_types]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $activityTypes]);
     }
-
 }
