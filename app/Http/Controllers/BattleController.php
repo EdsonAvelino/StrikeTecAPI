@@ -65,9 +65,109 @@ class BattleController extends Controller
     }
 
     /**
+     * @api {get} /battles/<battle_id> Get battle details
+     * @apiGroup Battles
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} battle_id Selected battle's id to resend invite
+     * @apiParamExample {json} Input
+     *    {
+     *      "battle_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Data will contain battle details
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {
+     *          "id": 8,
+     *          "user_id": 31,
+     *          "opponent_user_id": 1,
+     *          "plan_id": 3,
+     *          "type_id": 3,
+     *          "accepted": null,
+     *          "accepted_at": null,
+     *          "user_finished": null,
+     *          "opponent_finished": null,
+     *          "user_finished_at": null,
+     *          "opponent_finished_at": null,
+     *          "winner_user_id": null,
+     *          "created_at": "2017-10-30 19:01:53",
+     *          "updated_at": "2017-10-30 19:01:53",
+     *          "data": {
+     *              "id": 3,
+     *              "name": "Left overs",
+     *              "key_set": "1-3-5-5-3-1-5-3-3-1",
+     *              "keys": [
+     *                "1", "3", "5", "5", "3", "1", "5", "3", "3", "1"
+     *              ],
+     *          }
+     *      }
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getBattle($battleId)
+    {
+        $battleId = (int) $battleId;
+
+        $_battle = Battles::find($battleId);
+
+        $battleData = null;
+
+        switch ($_battle->type_id) {
+            case 3:
+                $_combo = Combos::select('*', \DB::raw('id as key_set'))->where('id', $_battle->plan_id)->first()->toArray();
+
+                $_combo['keys'] = explode('-', $_combo['key_set']);
+
+                $battleData = $_combo;
+                break;
+            
+            case 4:
+                $comboSet = ComboSets::find($_battle->plan_id);
+
+                $_comboSet = $comboSet->toArray();
+                $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
+
+                $battleData = $_comboSet;
+                break;
+
+            case 5:
+                $workout = Workouts::find($_battle->plan_id);
+                $_workout = $workout->toArray();
+                $combos = [];
+
+                foreach ($workout->rounds as $round) {
+                    $combos[] = $round->combos->pluck('combo_id')->toArray();
+                }
+                
+                $_workout['combos'] = $combos;
+
+                $battleData = $_workout;
+                break;
+        }
+
+        $battle = $_battle->toArray();
+        $battle['data'] = $battleData;
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
+    }
+
+    /**
      * @api {get} /battles/resend/<battle_id> Resend battle invite
      * @apiGroup Battles
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -158,7 +258,6 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/cancel/<battle_id> Cancel battle
      * @apiGroup Battles
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -380,7 +479,7 @@ class BattleController extends Controller
             
             $_workout['combos'] = $combos;
 
-            $workouts[]= $_workout;
+            $workouts[] = $_workout;
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $workouts]);

@@ -151,6 +151,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of workouts
     $app->get('/battles/workouts', 'BattleController@getWorkouts');
 
+    // Get details of battle(challenge)
+    $app->get('/battles/{battleId}', 'BattleController@getBattle');
+
     //push notifications settings
     $app->post('/notification/settings', 'SettingController@updateSettings');
     $app->get('/notification/settings', 'SettingController@getSettings');
