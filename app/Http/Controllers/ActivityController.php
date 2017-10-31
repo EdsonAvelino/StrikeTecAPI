@@ -65,7 +65,7 @@ class ActivityController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} activity_types List of types of Activity
+     * @apiSuccess {Object} data List of types of activity
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *   {
@@ -100,6 +100,10 @@ class ActivityController extends Controller
     public function getActivityTypeList(Request $request)
     {
         $activityId = (int) $request->get('activity_id');
+
+        if (!$activityId) {
+            return response()->json(['error' => 'false', 'message' => '', 'data' => null]);
+        }
 
         $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', $activityId)->get();
 
