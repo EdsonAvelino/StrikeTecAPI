@@ -12,7 +12,8 @@ class WriteusController extends Controller
 {
 
     /**
-     * @api {post} /writeus write us email
+     * @api {post} /writeus Write Us email
+     * @apiGroup Write Us
      * @apiParam {String} email Email
      * @apiParam {String} subject Subject
      * @apiParam {String} message Message
@@ -24,7 +25,6 @@ class WriteusController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {String} token Access token
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
