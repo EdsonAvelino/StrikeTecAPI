@@ -844,6 +844,93 @@ class UserController extends Controller
     }
 
     /**
+     * @api {get} /user/connections Get user's connections
+     * @apiGroup Social
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains list of connections
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": [
+     *          {
+     *              "id": 5,
+     *              "first_name": "Max",
+     *              "last_name": "Zuck",
+     *              "points": 125,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          },
+     *          {
+     *              "id": 6,
+     *              "first_name": "Elena",
+     *              "last_name": "Jaz",
+     *              "points": 135,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          },
+     *          {
+     *              "id": 8,
+     *              "first_name": "Carl",
+     *              "last_name": "Lobstor",
+     *              "points": 140,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          }
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getConnections(Request $request)
+    {
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
+        
+        $connections = [];
+
+        $_connections = UserConnections::where('follow_user_id', \Auth::user()->id)
+            ->whereRaw("user_id IN ($userFollowing)", [\Auth::user()->id])
+            ->offset($offset)->limit($limit)->get();
+
+        foreach ($_connections as $connection) {
+            $points = Leaderboard::where('user_id', $connection->user_id)->first()->punches_count;
+
+            $connections[] = [
+                'id' => $connection->user_id,
+                'first_name' => $connection->user->first_name,
+                'last_name' => $connection->user->last_name,
+                'photo_url' => $connection->user->photo_url,
+                'points' => (int) $points
+            ];
+        }
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $connections
+        ]);
+    }
+
+    /**
      * @api {post} /users/change_password Change user's password
      * @apiGroup Users
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded

@@ -59,6 +59,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
     $app->get('/user/followers', 'UserController@getFollowers');
     $app->get('/user/following', 'UserController@getFollowing');
+    $app->get('/user/connections', 'UserController@getConnections');
 });
 
 // Training APIs
