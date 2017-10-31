@@ -54,7 +54,6 @@ class Push
             $result = current($respContent->results);
 
             return $result->error;
-
         }
         
         return true;
@@ -68,6 +67,8 @@ class Push
      */
 	private function ios($token = '')
 	{
+        if ( empty($token) ) return false;
+
         // Put your device token here (without spaces):
         $deviceToken = $token;
 
@@ -83,8 +84,12 @@ class Push
         // Open a connection to the APNS server
         $fp = stream_socket_client('ssl://gateway.push.apple.com:2195', $err, $errstr, 60, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
 
-        if (!$fp)
-            exit("Failed to connect: $err $errstr" . PHP_EOL);
+        if (!$fp) {
+            // exit("Failed to connect: $err $errstr" . PHP_EOL);
+            \Log::info("Failed to connect: $err $errstr");
+            
+            return false;
+        }
 
         // echo 'Connected to APNS' . PHP_EOL;
 
