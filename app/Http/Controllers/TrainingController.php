@@ -445,7 +445,7 @@ class TrainingController extends Controller
     public function getSessionsRound($roundId)
     {
         $round = SessionRounds::where('id', $roundId)->first();
-        $punches = SessionRoundPunches::where('round_id', $roundId)->get();
+        $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
         // If round not found, it will return null
         if (empty($round)) {
@@ -595,7 +595,7 @@ class TrainingController extends Controller
                 
                 // Store punch
                 $_punch = SessionRoundPunches::create([
-                        'round_id' => $sessionRound->id,
+                        'session_round_id' => $sessionRound->id,
                         'punch_time' => $punch['punch_time'],
                         'punch_duration' => $punch['punch_duration'],
                         'force' => $punch['force'],

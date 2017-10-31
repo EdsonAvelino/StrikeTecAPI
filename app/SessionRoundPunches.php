@@ -13,7 +13,7 @@ class SessionRoundPunches extends Model
      * @var array
      */
     protected $fillable = [
-        'round_id',
+        'session_round_id',
         'punch_time',
         'punch_duration',
         'force',
