@@ -61,7 +61,7 @@ class ActivityController extends Controller
      * @apiParam {Number} [activity_id] Activity id e.g. 1 = Boxing, 2 = Kickboxing
      * @apiParamExample {json} Input
      *    {
-     *       activity_id:1
+     *       activity_id: 1
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
