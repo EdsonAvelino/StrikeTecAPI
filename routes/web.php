@@ -57,8 +57,13 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // User's social connectivity
     $app->get('/user/follow/{userId}', 'UserController@follow');
     $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
+    
     $app->get('/user/followers', 'UserController@getFollowers');
+    $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
+    
     $app->get('/user/following', 'UserController@getFollowing');
+    $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
+    
     $app->get('/user/connections', 'UserController@getConnections');
 });
 
