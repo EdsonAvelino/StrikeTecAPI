@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class HelpCenters extends Model
+class Faqs extends Model
 {
 
     /**

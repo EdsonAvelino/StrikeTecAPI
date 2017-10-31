@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Validator;
 use App\User;
 use App\UserConnections;
+use App\Faqs;
 use App\Leaderboard;
-use App\HelpCenters;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -56,7 +56,7 @@ class UserController extends Controller
      *      "message": "Authentication successful",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *      "user": {
-      "id": 1,
+     *          "id": 1,
      *          "facebook_id": null,
      *          "first_name": "John",
      *          "last_name": "Smith",
@@ -176,7 +176,7 @@ class UserController extends Controller
      *      "message": "Facebook registration successful",
      *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *      "user": {
-      "id": 1,
+     *          "id": 1,
      *          "facebook_id": 1234567890,
      *          "first_name": "John",
      *          "last_name": "Smith",
@@ -460,11 +460,11 @@ class UserController extends Controller
 
         // user_following = current user is following this user
         $following = UserConnections::where('follow_user_id', $userId)
-                        ->where('user_id', \Auth::user()->id)->exists();
+            ->where('user_id', \Auth::user()->id)->exists();
 
         // user_follower = this user if following current user
         $follow = UserConnections::where('user_id', $userId)
-                        ->where('follow_user_id', \Auth::user()->id)->exists();
+        ->where('follow_user_id', \Auth::user()->id)->exists();
 
         $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
@@ -899,7 +899,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /helpcenter List of FAQs
+     * @api {get} /faqs List of FAQs
      * @apiGroup Users
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -909,7 +909,7 @@ class UserController extends Controller
      *  {
      *     "error": "false",
      *     "message": "",
-     *     "faq": [
+     *     "data": [
      *         {
      *             "id": 1,
      *             "question": "What is Lorem Ipsum?",
@@ -930,10 +930,10 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function helpCenters()
+    public function getFaqs()
     {
-        $faq = HelpCenters::select('id', 'question', 'answer')->get();
-        return response()->json(['error' => 'false', 'message' => '', 'faq' => $faq]);
+        $faq = Faqs::select('id', 'question', 'answer')->get();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $faq]);
     }
 
 }

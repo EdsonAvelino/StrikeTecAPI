@@ -37,7 +37,7 @@ $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 // Get FAQs
-$app->get('/helpcenter', 'UserController@helpCenters');
+$app->get('/faqs', 'UserController@getFaqs');
 
 // Rest of all APIs are secured with access-token
 // User APIs
