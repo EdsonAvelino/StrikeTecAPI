@@ -10,7 +10,7 @@ class ActivityController extends Controller
 {
 
     /**
-     * @api {get}/activity Get list of Activities
+     * @api {get}/activities Get list of Activities
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -25,7 +25,7 @@ class ActivityController extends Controller
      *   {
      *      "error": "false",
      *      "message": "",
-     *      "activities":[
+     *      "data":[
      *                      {
      *                          "id": 1,
      *                          "activity_name": "Boxing"
@@ -47,7 +47,7 @@ class ActivityController extends Controller
     public function getActivityList(Request $request)
     {
         $activityList = Activities::select('id', 'activity_name')->get();
-        return response()->json(['error' => 'false', 'message' => '', 'activities' => $activityList]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $activityList]);
     }
 
     /**
@@ -71,7 +71,7 @@ class ActivityController extends Controller
      *   {
      *      "error": "false",
      *      "message": "",
-     *      "activity_types": [
+     *      "data": [
      *         {
      *             "id": 1,
      *             "activity_id": 1,
@@ -104,7 +104,7 @@ class ActivityController extends Controller
 
         $activity_types = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', $activityId)->get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'activity_types' => $activity_types]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $activity_types]);
     }
 
 }
