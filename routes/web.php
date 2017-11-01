@@ -57,13 +57,13 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // User's social connectivity
     $app->get('/user/follow/{userId}', 'UserController@follow');
     $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
-    
+
     $app->get('/user/followers', 'UserController@getFollowers');
     $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
-    
+
     $app->get('/user/following', 'UserController@getFollowing');
     $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
-    
+
     $app->get('/user/connections', 'UserController@getConnections');
 });
 
@@ -136,6 +136,19 @@ $app->post('/push/test/apns', 'PushController@testPushAPNs');
 
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+
+    // Get battle Request
+    $app->get('/battles/recieved', 'BattleController@getRecievedRequests');
+
+    // Get Requested battles
+    $app->get('/battles/sent', 'BattleController@getSentBattles');
+
+    // Get finished battles
+    $app->get('/battles/finished', 'BattleController@getFinishedBattles');
+
+    // Get Requested battles
+    $app->get('/battles/all', 'BattleController@getAllBattles');
+
     // Send battle invite to another user    
     $app->post('/battles', 'BattleController@postBattleWithInvite');
 
