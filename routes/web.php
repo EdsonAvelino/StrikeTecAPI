@@ -146,7 +146,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get finished battles
     $app->get('/battles/finished', 'BattleController@getFinishedBattles');
 
-    // Get Requested battles
+    // Get all battles
     $app->get('/battles/all', 'BattleController@getAllBattles');
 
     // Send battle invite to another user    
