@@ -8,6 +8,7 @@ use App\Combos;
 use App\ComboSets;
 use App\Workouts;
 use App\Helpers\Push;
+use App\User;
 
 class BattleController extends Controller
 {
