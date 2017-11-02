@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use Illuminate\Http\Request;
 use App\Battles;
 use App\Combos;
@@ -513,12 +514,15 @@ class BattleController extends Controller
      *      "message": "",
      *      "data": [
      *      {
+     *          "battle_id": 12,
      *          "user_id": 12,
      *          "first_name": "Anchal ",
      *          "last_name": "Gupta",
      *          "time": 12877
      *      },
-     *      {
+     *      {     
+     * 
+     *          "battle_id": 12,
      *          "user_id": 1,
      *          "first_name": "Nawaz",
      *          "last_name": "Me",
@@ -539,7 +543,7 @@ class BattleController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $user_id = \Auth::user()->id;
-        $battle_requests = Battles::select('user_id', 'first_name', 'last_name', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
+        $battle_requests = Battles::select('battles.id as battle_id', 'user_id', 'first_name', 'last_name', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)->offset($offset)->limit($limit)->get()->toArray();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle_requests]);
@@ -570,12 +574,14 @@ class BattleController extends Controller
      *      "message": "",
      *      "data": [
      *      {
+     *          "battle_id": 12,
      *          "opponent_user_id": 12,
      *          "first_name": "Anchal",
      *          "last_name": "Gupta",
      *          "time": 12877
      *      },
      *      {
+     *          "battle_id": 1,
      *          "opponent_user_id": 1,
      *          "first_name": "Nawaz",
      *          "last_name": "Me",
@@ -596,7 +602,7 @@ class BattleController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $user_id = \Auth::user()->id;
-        $battle_requested = Battles::select('opponent_user_id', 'first_name', 'last_name', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
+        $battle_requested = Battles::select('battles.id as battle_id', 'opponent_user_id', 'first_name', 'last_name', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
                         ->join('users', 'users.id', '=', 'battles.opponent_user_id')
                         ->where('user_id', $user_id)->offset($offset)->limit($limit)->get()->toArray();
 
@@ -629,6 +635,7 @@ class BattleController extends Controller
      *      "message": "",
      *      "data": [
      *      {
+     *          "battle_id": 4,
      *          "winner": {
      *              "id": 12,
      *              "first_name": "Anchal",
@@ -641,6 +648,7 @@ class BattleController extends Controller
      *          }
      *      },
      *      {
+     *          "battle_id": 6,
      *          "winner": {
      *              "id": 7,
      *              "first_name": "Qiang",
@@ -668,7 +676,7 @@ class BattleController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         $user_id = \Auth::user()->id;
-        $battle_finished = Battles::select('winner_user_id', 'user_id', 'opponent_user_id')
+        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id')
                         ->where(['user_id' => $user_id])
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
@@ -678,6 +686,7 @@ class BattleController extends Controller
         $i = 0;
         foreach ($battle_finished as $data) {
             $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+            $array[$i]['battle_id'] = $data['battle_id'];
             $array[$i]['winner'] = User::select('id', 'first_name', 'last_name')
                             ->where(['id' => $data['winner_user_id']])->first();
             $array[$i]['loser'] = User::select('id', 'first_name', 'last_name')
@@ -708,11 +717,13 @@ class BattleController extends Controller
      *              "count": 2,
      *              "data": [
      *                  {
+     *                      "battle_id": 12,
      *                      "opponent_user_id": 12,
      *                      "first_name": "Anchal ",
      *                      "last_name": "Gupta"
      *                  },
      *                  {
+     *                      "battle_id": 1,
      *                      "opponent_user_id": 1,
      *                      "first_name": "Nawaz",
      *                      "last_name": "Me"
@@ -723,11 +734,13 @@ class BattleController extends Controller
      *              "count": 2,
      *              "data": [
      *                  {
+     *                      "battle_id": 12,
      *                      "user_id": 12,
      *                      "first_name": "Anchal ",
      *                      "last_name": "Gupta"
      *                  },
      *                  {
+     *                      "battle_id": 1,
      *                      "user_id": 1,
      *                      "first_name": "Nawaz",
      *                      "last_name": "Me"
@@ -738,16 +751,19 @@ class BattleController extends Controller
      *              "count": 4,
      *              "data": [
      *                  {
+     *                      "battle_id": 12,
      *                      "opponent_id": 12,
      *                      "first_name": "Anchal ",
      *                      "last_name": "Gupta"
      *                  },
      *                  {
+     *                      "battle_id": 1,
      *                      "opponent_id": 1,
      *                      "first_name": "Nawaz",
      *                      "last_name": "Me"
      *                  },
      *                  {
+     *                      "battle_id": 12,
      *                      "opponent_id": 12,
      *                      "first_name": "Anchal ",
      *                      "last_name": "Gupta"
@@ -769,25 +785,25 @@ class BattleController extends Controller
         $array = array();
         $user_id = \Auth::user()->id;
 
-        $requested = Battles::select('opponent_user_id', 'first_name', 'last_name')
+        $requested = Battles::select('battles.id as battle_id','opponent_user_id', 'first_name', 'last_name')
                         ->join('users', 'users.id', '=', 'battles.opponent_user_id')
                         ->where('user_id', $user_id)->get()->toArray();
         $array['requested']['count'] = count($requested);
         $array['requested']['data'] = $requested;
 
-        $my_battles = Battles::select('user_id', 'first_name', 'last_name')
+        $my_battles = Battles::select('battles.id as battle_id','user_id', 'first_name', 'last_name')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)->get()->toArray();
         $array['my_battles']['count'] = count($my_battles);
         $array['my_battles']['data'] = $my_battles;
 
-        $finished_byme = Battles::select('opponent_user_id as opponent_id', 'first_name', 'last_name')
+        $finished_byme = Battles::select('battles.id as battle_id','opponent_user_id as opponent_id', 'first_name', 'last_name')
                         ->join('users', 'users.id', '=', 'battles.opponent_user_id')
                         ->where(['user_id' => $user_id])
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
                         ->get()->toArray();
-        $finished_byopp = Battles::select('user_id as opponent_id', 'first_name', 'last_name')
+        $finished_byopp = Battles::select('battles.id as battle_id','user_id as opponent_id', 'first_name', 'last_name')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where(['opponent_user_id' => $user_id])
                         ->where(['opponent_finished' => TRUE])
