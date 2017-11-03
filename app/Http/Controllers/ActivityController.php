@@ -58,8 +58,8 @@ class ActivityController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} [activity_id] Activity id e.g. 1 = Boxing, 2 = Kickboxing
-     * @apiParamExample {json} Input
+     * @apiParam {Number} [activity_id] Activity id e.g. 1 = Boxing, 2 = Kickboxing 
+     * @apiParamExample {json} input
      *    {
      *       activity_id: 1
      *    }
@@ -97,16 +97,14 @@ class ActivityController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getActivityTypeList(Request $request)
+    public function getActivityTypeList($activity_id = null)
     {
-        $activityId = (int) $request->get('activity_id');
-
-        if (!$activityId) {
-            return response()->json(['error' => 'false', 'message' => '', 'data' => null]);
+        if ($activity_id == null) {
+            $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->get();
+        } else {
+            $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', (int) $activity_id)->get();
         }
-
-        $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', $activityId)->get();
-
         return response()->json(['error' => 'false', 'message' => '', 'data' => $activityTypes]);
     }
+
 }

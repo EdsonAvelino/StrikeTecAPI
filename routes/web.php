@@ -186,7 +186,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/activities', 'ActivityController@getActivityList');
 
     // Get list of activity type
-    $app->get('/activity/types', 'ActivityController@getActivityTypeList');
+    $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
 
     // Set new goal
     $app->post('/goal/add', 'goalController@newGoal');
@@ -194,3 +194,4 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 //contact us(write us)
 $app->post('/writeus', 'WriteusController@writeUs');
+
