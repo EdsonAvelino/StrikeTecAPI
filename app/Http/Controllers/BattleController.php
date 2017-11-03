@@ -492,7 +492,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} battles/recieved  Get list of recieved battles
+     * @api {get} /battles/recieved  Get list of recieved battles
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
@@ -555,7 +555,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} battles/sent  Get list of sent request battles
+     * @api {get} /battles/sent  Get list of sent request battles
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
@@ -616,7 +616,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} battles/finished  Get list of finished battles 
+     * @api {get} /battles/finished  Get list of finished battles 
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
@@ -702,7 +702,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} battles/all  Get list of all battles 
+     * @api {get} /battles/all  Get list of all battles 
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
