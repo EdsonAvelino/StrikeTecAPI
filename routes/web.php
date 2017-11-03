@@ -178,8 +178,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/notification/settings', 'SettingController@getSettings');
 });
 
-
-//Goals APIs
+// Goals APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get list of activities
@@ -190,6 +189,25 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Set new goal
     $app->post('/goal/add', 'goalController@newGoal');
+});
+
+// Feed APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of feed-posts
+    $app->get('/feed/posts', 'FeedController@getPosts');
+
+    // Add new feed-post
+    $app->post('/feed/posts', 'FeedController@addPost');
+
+    // Like/Unlike feed-post
+    $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
+    $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
+    
+    // Get comments of feed-post
+    // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
+
+    // Post comment on feed-post
+    $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
 });
 
 //contact us(write us)

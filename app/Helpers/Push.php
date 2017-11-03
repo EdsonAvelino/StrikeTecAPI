@@ -6,19 +6,21 @@ use App\UserAppTokens;
 
 class Push
 {
+    private $notValidTokenErrors = ['InvalidRegistration', 'MismatchSenderId'];
+
 	/**
      * Sends push notification to users.
      *
      * @param  int  $user_idd
      * @return void
      */
-	public static function send($userId)
+	public static function send($userId, $message = '')
 	{
 		$tokens = UserAppTokens::where('user_id', $userId)->get();
 
         // Handle Android/iOS related push notifications
         foreach ($tokens as $token)
-            $this->{strtolower($token->os)}($token->token);
+            $this->{strtolower($token->os)}($token->token, $message);
 	}
 
 	/**
@@ -27,7 +29,7 @@ class Push
      * @param  string  $token
      * @return boolean
      */
-	private function android($token = '')
+	private function android($token = '', $message = '')
 	{
         if ( empty($token) ) return false;
 
@@ -35,7 +37,7 @@ class Push
 
         $body = ['to' => $token,
                     'data' => [
-                        'message' => 'Hey there! This is push notification test.'
+                        'message' => $message
                     ]
                 ];
 
@@ -53,7 +55,11 @@ class Push
             
             $result = current($respContent->results);
 
-            return $result->error;
+            // For FCM, invalid response token will be removed
+            if ( in_array($result->error, $this->notValidTokenErrors) )
+                UserAppTokens::where('token', $token)->delete();
+
+            return false;
         }
         
         return true;
@@ -65,17 +71,12 @@ class Push
      * @param  string  $token
      * @return boolean
      */
-	private function ios($token = '')
+	private function ios($token = '', $message = '')
 	{
         if ( empty($token) ) return false;
 
         // Put your device token here (without spaces):
         $deviceToken = $token;
-
-        // Put your alert message here:
-        $message = 'Hey there! This is iOS push notification test.';
-
-        ////////////////////////////////////////////////////////////////////////////////
 
         $ctx = stream_context_create();
         stream_context_set_option($ctx, 'ssl', 'local_cert', storage_path(env('APNS_CERT')));

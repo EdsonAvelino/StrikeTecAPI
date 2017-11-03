@@ -125,6 +125,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
             ]);
+            
             Settings::create([
                 'user_id' => $user->id,
                 'new_challenges' => true,

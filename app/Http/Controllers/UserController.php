@@ -15,7 +15,6 @@ use Tymon\JWTAuth\JWTAuth;
 
 class UserController extends Controller
 {
-
     /**
      * @var \Tymon\JWTAuth\JWTAuth
      */

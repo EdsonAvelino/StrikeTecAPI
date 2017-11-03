@@ -18,7 +18,7 @@ class BattleController extends Controller
      * @api {post} /battles Send battle invite
      * @apiGroup Battles
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Content-Type": "application/x-www-form-urlencoded",
@@ -61,7 +61,7 @@ class BattleController extends Controller
         ]);
 
         // Send Push Notification
-        // Push::send($opponentUserId);
+        Push::send($opponentUserId, 'User has invited you for battle');
 
         return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
     }
@@ -69,7 +69,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/<battle_id> Get battle details
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -170,7 +170,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/resend/<battle_id> Resend battle invite
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -206,14 +206,16 @@ class BattleController extends Controller
         $battle = Battles::find($battleId);
 
         // Send Push Notification
-        // Push::send($battle->opponent_user_id);
+        Push::send($battle->opponent_user_id, 'User has invited you for battle');
+
+        return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
     }
 
     /**
      * @api {post} /battles/accept_decline Accept or Decline battle invite
      * @apiGroup Battles
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Content-Type": "application/x-www-form-urlencoded",
@@ -261,7 +263,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/cancel/<battle_id> Cancel battle
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -305,7 +307,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/combos Get list of available combos
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -361,7 +363,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/combo_sets Get list of combo-sets
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -417,7 +419,7 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/workouts Get list of workouts
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -492,7 +494,7 @@ class BattleController extends Controller
     /**
      * @api {get} battles/recieved  Get list of recieved battles
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -542,17 +544,20 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        
         $user_id = \Auth::user()->id;
+        
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id', 'first_name', 'last_name', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)->offset($offset)->limit($limit)->get()->toArray();
+        
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle_requests]);
     }
 
     /**
      * @api {get} battles/sent  Get list of sent request battles
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -613,7 +618,7 @@ class BattleController extends Controller
     /**
      * @api {get} battles/finished  Get list of finished battles 
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
@@ -699,7 +704,7 @@ class BattleController extends Controller
     /**
      * @api {get} battles/all  Get list of all battles 
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
