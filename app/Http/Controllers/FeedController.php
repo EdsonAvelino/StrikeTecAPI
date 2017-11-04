@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Posts;
+use App\PostLikes;
 use App\PostComments;
 
 class FeedController extends Controller
@@ -46,7 +47,41 @@ class FeedController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         
-        $posts = Posts::offset($offset)->limit($limit)->get();
+        // \DB::enableQueryLog();
+
+        // Feed-Post data
+        $posts = [];
+
+        // Feed-Posts from DB
+        $_posts = Posts::with(['user' => function($q) {
+            $q->select('id','first_name', 'last_name', 'photo_url', 'gender');
+        }])
+        ->whereRaw('user_id IN (SELECT follow_user_id as "user_id" FROM user_connections WHERE user_id = ?)', [\Auth::user()->id])
+        ->orWhere('user_id', \Auth::user()->id)
+        ->withCount('likes')->withCount('comments')
+        ->offset($offset)->limit($limit)->get();
+
+        // dd(\DB::getQueryLog());
+
+        foreach ($_posts as $post) {
+            $_post = $post->toArray();
+
+            $user1FullName = $post->user->first_name.' '.$post->user->last_name;
+            
+            $user2FullName = ($post->post_type_id == 1)
+                ? $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name 
+                : null;
+
+            $userTemplate = (strtolower($post->user->gender) == 'female') ? 'her' : 'his';
+
+            $_post['title'] = str_replace(['_USER1_', '_TEMPLATE_', '_USER2_'],
+                [$user1FullName, $userTemplate, $user2FullName], $post->title);
+
+            $userLikes = PostLikes::where('post_id', $post->id)->where('user_id', \Auth::user()->id)->exists();
+            
+            $_post['user_likes'] = (bool) $userLikes;
+            $posts[] = $_post;
+        }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $posts]);
     }
@@ -60,12 +95,14 @@ class FeedController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} post_type_id Feed Post type
+     * @apiParam {Number} post_type_id Feed-Post type e.g. 1=Battle, 2=Training, 3=Tournament, 4=Game, 5=Following
      * @apiParam {Number} data_id ID of what user is sharing, battle/trounament etc
+     * @apiParam {String} [text] Post text to share with feed-post
      * @apiParamExample {json} Input
      *    {
      *      "post_type_id": 1,
      *      "data_id": 1
+     *      "text": "Post text"
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -73,7 +110,7 @@ class FeedController extends Controller
      *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
-     *      "message": "User invited for battle successfully",
+     *      "message": "Shared on feed",
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -89,10 +126,10 @@ class FeedController extends Controller
             'user_id' => \Auth::user()->id,
             'post_type_id' => (int) $request->get('post_type_id'),
             'data_id' => (int) $request->get('data_id'),
-            'likes' => 0,
+            'text' => $request->get('text')
         ]);
 
-        return response()->json(['error' => 'false', 'message' => 'Successfully shared to feed']);
+        return response()->json(['error' => 'false', 'message' => 'Shared on feed']);
     }
 
     /**
@@ -128,11 +165,14 @@ class FeedController extends Controller
     {
         $postId = (int) $postId;
 
-        if ($postId) {
-            $post = Posts::find($postId);
-            
-            $post->likes = $post->likes + 1;
-            $post->save();
+        if ( $postId &&
+            !(PostLikes::where('post_id', $postId)->where('user_id', \Auth::user()->id)->exists())
+        ) {
+
+            PostLikes::create([
+                'post_id' => $postId,
+                'user_id' => \Auth::user()->id,
+            ]);
 
             return response()->json(['error' => 'false', 'message' => 'Liked']);
         }
@@ -172,11 +212,8 @@ class FeedController extends Controller
     {
         $postId = (int) $postId;
 
-        if ($postId) {
-            $post = Posts::find($postId);
-            
-            $post->likes = ($post->likes > 0) ? ($post->likes - 1) : 0;
-            $post->save();
+        if ( $postId ) {
+            PostLikes::where('post_id', $postId)->where('user_id', \Auth::user()->id)->delete();
 
             return response()->json(['error' => 'false', 'message' => 'Unliked']);
         }

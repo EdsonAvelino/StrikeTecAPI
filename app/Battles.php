@@ -18,4 +18,14 @@ class Battles extends Model
         'plan_id',
         'type_id',
     ];
+
+    public function user()
+    {
+        return $this->hasOne('App\User', 'id', 'user_id');
+    }
+
+    public function opponentUser()
+    {
+        return $this->hasOne('App\User', 'id', 'opponent_user_id');
+    }
 }
