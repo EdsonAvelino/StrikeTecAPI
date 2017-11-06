@@ -20,7 +20,7 @@ class Push
 
         // Handle Android/iOS related push notifications
         foreach ($tokens as $token)
-            $this->{strtolower($token->os)}($token->token, $message);
+            self::{strtolower($token->os)}($token->token, $message);
 	}
 
 	/**
