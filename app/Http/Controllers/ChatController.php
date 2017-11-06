@@ -164,7 +164,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {post} /chat/receive/{chat_id} receive messages
+     * @api {get} /chat/receive/{chat_id} receive messages
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -239,7 +239,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {post} /chat/read/{chat_id} read messages
+     * @api {post} /chat/read read messages
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -279,7 +279,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {post} /chat/history/{chat_id} all the messages of chat 
+     * @api {get} /chat/history/{chat_id} all the messages of chat 
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -358,7 +358,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {post} /chat all the chats 
+     * @api {get} /chat all the chats 
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
