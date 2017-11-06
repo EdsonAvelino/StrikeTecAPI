@@ -138,7 +138,7 @@ $app->post('/push/test/apns', 'PushController@testPushAPNs');
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get battle Request
-    $app->get('/battles/recieved', 'BattleController@getRecievedRequests');
+    $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
     // Get Requested battles
     $app->get('/battles/sent', 'BattleController@getSentBattles');
@@ -213,3 +213,25 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 //contact us(write us)
 $app->post('/writeus', 'WriteusController@writeUs');
 
+
+//Chat APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+
+    // Create chat session
+    $app->post('/chat/create', 'chatController@createChatSession');
+    
+    // Send message
+    $app->post('/chat/send', 'chatController@sendMessage');
+
+    // Receive chat messages
+    $app->get('/chat/receive/{chat_id}', 'chatController@receiveMessage');
+
+    // read message
+    $app->post('/chat/read', 'chatController@ReadMessage');
+    
+    // chat History
+    $app->get('/chat/history/{chat_id}', 'chatController@chatHistory');
+    
+    // all chats
+    $app->get('/chat', 'chatController@chats');
+});
