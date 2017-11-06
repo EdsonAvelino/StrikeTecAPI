@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\UserAppTokens;
+use GuzzleHttp\Client;
 
 class Push
 {
@@ -29,7 +30,7 @@ class Push
      * @param  string  $token
      * @return boolean
      */
-	private function android($token = '', $message = '')
+	private static function android($token = '', $message = '')
 	{
         if ( empty($token) ) return false;
 
@@ -71,7 +72,7 @@ class Push
      * @param  string  $token
      * @return boolean
      */
-	private function ios($token = '', $message = '')
+	private static function ios($token = '', $message = '')
 	{
         if ( empty($token) ) return false;
 
