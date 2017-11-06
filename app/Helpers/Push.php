@@ -7,7 +7,7 @@ use GuzzleHttp\Client;
 
 class Push
 {
-    private $notValidTokenErrors = ['InvalidRegistration', 'MismatchSenderId'];
+    private static $notValidTokenErrors = ['InvalidRegistration', 'MismatchSenderId'];
 
 	/**
      * Sends push notification to users.
