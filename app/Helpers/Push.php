@@ -57,7 +57,7 @@ class Push
             $result = current($respContent->results);
 
             // For FCM, invalid response token will be removed
-            if ( in_array($result->error, $this->notValidTokenErrors) )
+            if ( in_array($result->error, self::$notValidTokenErrors) )
                 UserAppTokens::where('token', $token)->delete();
 
             return false;
