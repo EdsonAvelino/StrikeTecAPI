@@ -725,7 +725,8 @@ class UserController extends Controller
             $follow = UserConnections::where('user_id', $follower->user_id)
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $follower->user_id)->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $follower->user_id)->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
             $_followers[] = [
                 'id' => $follower->user_id,
@@ -826,12 +827,13 @@ class UserController extends Controller
 
         foreach ($followers as $follower) {
             $following = UserConnections::where('follow_user_id', $follower->user_id)
-                            ->where('user_id', $userId)->exists();
+                            ->where('user_id', \Auth::user()->id)->exists();
 
             $follow = UserConnections::where('user_id', $follower->user_id)
-                            ->where('follow_user_id', $userId)->exists();
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $follower->user_id)->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $follower->user_id)->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
             $_followers[] = [
                 'id' => $follower->user_id,
@@ -928,7 +930,8 @@ class UserController extends Controller
             $follow = UserConnections::where('user_id', $follower->follow_user_id)
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $follower->follow_user_id)->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
             $_following[] = [
                 'id' => $follower->follow_user_id,
@@ -1020,12 +1023,13 @@ class UserController extends Controller
 
         foreach ($following as $follower) {
             $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
-                            ->where('user_id', $userId)->exists();
+                            ->where('user_id', \Auth::user()->id)->exists();
 
             $follow = UserConnections::where('user_id', $follower->follow_user_id)
-                            ->where('follow_user_id', $userId)->exists();
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $follower->follow_user_id)->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
             $_following[] = [
                 'id' => $follower->follow_user_id,
