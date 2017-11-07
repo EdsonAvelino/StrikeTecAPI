@@ -63,7 +63,11 @@ class BattleController extends Controller
         // Send Push Notification
         Push::send($opponentUserId, 'User has invited you for battle');
 
-        return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
+        return response()->json([
+            'error' => 'false',
+            'message' => 'User invited for battle successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+        ]);
     }
 
     /**
@@ -208,7 +212,11 @@ class BattleController extends Controller
         // Send Push Notification
         Push::send($battle->opponent_user_id, 'User has invited you for battle');
 
-        return response()->json(['error' => 'false', 'message' => 'User invited for battle successfully']);
+        return response()->json([
+            'error' => 'false',
+            'message' => 'User invited for battle successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+        ]);
     }
 
     /**
@@ -257,7 +265,11 @@ class BattleController extends Controller
             $battle->delete();
         }
 
-        return response()->json(['error' => 'false', 'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle']);
+        return response()->json([
+            'error' => 'false',
+            'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+        ]);
     }
 
     /**
@@ -301,7 +313,11 @@ class BattleController extends Controller
         if ($battle && $battle->user_id == \Auth::user()->id)
             $battle->delete();
 
-        return response()->json(['error' => 'false', 'message' => 'Battle cancelled successfully']);
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Battle cancelled successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+        ]);
     }
 
     /**
