@@ -163,4 +163,10 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return (bool) $follower;
     }
 
+    public function getPointsAttribute($userId)
+    {
+        $leaderboard = Leaderboard::where('user_id', $userId)->first();
+
+        return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
+    }
 }

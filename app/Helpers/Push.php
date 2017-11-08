@@ -91,7 +91,7 @@ class Push
 
         if (!$fp) {
             // exit("Failed to connect: $err $errstr" . PHP_EOL);
-            \Log::info("Failed to connect: $err $errstr");
+            \Log::info("Failed to connect: $err.'-'.$errstr");
             
             return false;
         }

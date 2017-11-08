@@ -130,6 +130,7 @@ class BattleController extends Controller
 
         $_battle = Battles::find($battleId);
 
+        /*
         $battleData = null;
 
         switch ($_battle->type_id) {
@@ -164,10 +165,23 @@ class BattleController extends Controller
                 $battleData = $_workout;
                 break;
         }
+        */
+
+        // Opponent user is opponent of current logged in user
+        $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
+        
+        $opponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points'), \DB::raw('id as user_following'), \DB::raw('id as user_follower')])->where('id', $opponentUserId)->get();
 
         $battle = $_battle->toArray();
-        $battle['data'] = $battleData;
 
+        $battle['opponent_user'] = $opponentUser->toArray();
+        
+        // ID of user who created the battle
+        $battle['sender_user_id'] = $_battle->user_id;
+        
+        // Battle result
+        $battle['battle_result'] = '';
+        
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
     }
 
