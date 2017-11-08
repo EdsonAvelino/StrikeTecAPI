@@ -140,8 +140,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get battle Request
     $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
-    // Get Requested battles
-    $app->get('/battles/sent', 'BattleController@getSentBattles');
+    // Get my battles
+    $app->get('/battles/my_battles', 'BattleController@getMyBattles');
 
     // Get finished battles
     $app->get('/battles/finished', 'BattleController@getFinishedBattles');
@@ -188,7 +188,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
 
     // Set new goal
-    $app->post('/goal/add', 'goalController@newGoal');
+    $app->post('/goal/add', 'GoalController@newGoal');
 });
 
 // Feed APIs
@@ -202,10 +202,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Like/Unlike feed-post
     $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
     $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
-    
+
     // Get comments of feed-post
     // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
-
     // Post comment on feed-post
     $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
 });
@@ -217,21 +216,15 @@ $app->post('/writeus', 'WriteusController@writeUs');
 //Chat APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-    // Create chat session
-    $app->post('/chat/create', 'chatController@createChatSession');
-    
     // Send message
-    $app->post('/chat/send', 'chatController@sendMessage');
-
-    // Receive chat messages
-    $app->get('/chat/receive/{chat_id}', 'chatController@receiveMessage');
+    $app->post('/chat/send', 'ChatController@sendMessage');
 
     // read message
-    $app->post('/chat/read', 'chatController@ReadMessage');
-    
+    $app->post('/chat/read', 'ChatController@ReadMessage');
+
     // chat History
-    $app->get('/chat/history/{chat_id}', 'chatController@chatHistory');
-    
+    $app->get('/chat/history/{connection_id}', 'ChatController@chatHistory');
+
     // all chats
-    $app->get('/chat', 'chatController@chats');
+    $app->get('/chat', 'ChatController@chats');
 });
