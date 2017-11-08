@@ -10,7 +10,7 @@ class GoalController extends Controller
 
     /**
      * @api {get} /goal/add Add goal of user
-     * @apiGroup Training
+     * @apiGroup Goal
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
