@@ -59,7 +59,7 @@ class FeedController extends Controller
         ->whereRaw('user_id IN (SELECT follow_user_id as "user_id" FROM user_connections WHERE user_id = ?)', [\Auth::user()->id])
         ->orWhere('user_id', \Auth::user()->id)
         ->withCount('likes')->withCount('comments')
-        ->offset($offset)->limit($limit)->get();
+        ->offset($offset)->limit($limit)->orderBy('created_at', 'desc')->get();
 
         // dd(\DB::getQueryLog());
 
@@ -68,9 +68,17 @@ class FeedController extends Controller
 
             $user1FullName = $post->user->first_name.' '.$post->user->last_name;
             
-            $user2FullName = ($post->post_type_id == 1)
-                ? $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name 
-                : null;
+            $user2FullName = null;
+
+            switch ($post->post_type_id) {
+                case 1:
+                    $user2FullName = $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name;
+                    break;
+
+                case 5:
+                    $user = \App\User::find($post->data_id);
+                    $user2FullName = $user->first_name.' '.$user->last_name;
+            }
 
             $userTemplate = (strtolower($post->user->gender) == 'female') ? 'her' : 'his';
 
