@@ -9,7 +9,7 @@ use GuzzleHttp\Client;
 class PushController extends Controller
 {
     /**
-     * @api {post} /user/app_token Store app token
+     * @api {post} /user/app_token Store App token
      * @apiGroup Push Notifications
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -51,23 +51,28 @@ class PushController extends Controller
         if ($validator->fails()) {
             $errors = $validator->errors();
 
-            if ($errors->first('email'))
+            if ($errors->first('od'))
                 return response()->json(['error' => 'true', 'message' =>  $errors->first('os')]);
             else
                 return response()->json(['error' => 'true', 'message' =>  $errors->first('token')]);
         }
 
-        $appTokenExists = UserAppTokens::where('user_id', \Auth::user()->id)
-            ->where('os', strtoupper($request->get('os')))
-            ->where('token', $request->get('token'))->exists();
+        $appToken = UserAppTokens::firstOrCreate(['user_id' => \Auth::user()->id]);
+        $appToken->os = $request->get('os');
+        $appToken->token = $request->get('token');
+        $appToken->save();
 
-        if (!$appTokenExists) {
-            $appToken = UserAppTokens::create([
-                'user_id' => \Auth::user()->id,
-                'os' => strtoupper($request->get('os')),
-                'token' => $request->get('token'),
-            ]);
-        }
+        // $appTokenExists = UserAppTokens::where('user_id', \Auth::user()->id)
+        //     ->where('os', strtoupper($request->get('os')))
+        //     ->where('token', $request->get('token'))->exists();
+
+        // if (!$appTokenExists) {
+        //     $appToken = UserAppTokens::create([
+        //         'user_id' => \Auth::user()->id,
+        //         'os' => strtoupper($request->get('os')),
+        //         'token' => $request->get('token'),
+        //     ]);
+        // }
 
         return response()->json(['error' => 'false', 'message' => 'Token saved successfully']);
     }
