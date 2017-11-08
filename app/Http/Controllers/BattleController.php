@@ -10,6 +10,8 @@ use App\ComboSets;
 use App\Workouts;
 use App\Helpers\Push;
 use App\User;
+use App\UserConnections;
+use App\Leaderboard;
 
 class BattleController extends Controller
 {
@@ -533,21 +535,30 @@ class BattleController extends Controller
      *      "data": [
      *      {
      *          "battle_id": 12,
-     *          "opponent_user_id": 12,
-     *          "first_name": "Anchal ",
-     *          "last_name": "Gupta",
-     *          "photo_url": null,
-     *          "time": 12877
-     *      },
-     *      {     
-     * 
-     *          "battle_id": 12,
-     *          "opponent_user_id": 1,
-     *          "first_name": "Nawaz",
-     *          "last_name": "Me",
-     *          "photo_url": null,
-     *          "time": 288767
-     *      }
+     *          "time": 1509530127,
+     *          "opponent_user": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *             }
+     *         },
+     *        {
+     *          "battle_id": 2,
+     *          "time": 1509530127,
+     *          "opponent_user": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *             }
+     *         }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -562,19 +573,43 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        
+
         $user_id = \Auth::user()->id;
 
-        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
-
+        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $user_id)->offset($offset)->limit($limit)->get()->toArray();
-        
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $battle_requests]);
+                        ->where('opponent_user_id', $user_id)
+                        ->orwhere(function ($query) {
+                            $query->where('accepted', 0)->where('accepted', null);
+                        })
+                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+        $data = [];
+        $i = 0;
+        foreach ($battle_requests as $battle_request) {
+            $data[$i]['battle_id'] = $battle_request['battle_id'];
+            $data[$i]['time'] = strtotime($battle_request['time']);
+            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
+                            ->where('user_id', \Auth::user()->id)->exists();
+
+            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $data[$i]['opponent_user'] = [
+                'id' => $battle_request['opponent_user_id'],
+                'first_name' => $battle_request['first_name'],
+                'last_name' => $battle_request['last_name'],
+                'photo_url' => $battle_request['photo_url'],
+                'points' => (int) $points,
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
+            ];
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
-     * @api {get} /battles/sent  Get list of sent request battles
+     * @api {get} /battles/my_battles  Get list of sent request battles
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
@@ -597,22 +632,32 @@ class BattleController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-     *      {
+     *    {
      *          "battle_id": 12,
-     *          "opponent_user_id": 12,
-     *          "first_name": "Anchal",
-     *          "last_name": "Gupta",
-     *          "photo_url": null,
-     *          "time": 12877
-     *      },
-     *      {
-     *          "battle_id": 1,
-     *          "opponent_user_id": 1,
-     *          "first_name": "Nawaz",
-     *          "last_name": "Me",
-     *          "photo_url": null,
-     *          "time": 288767
-     *      }
+     *          "time": 1509530127,
+     *          "opponent_user": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *             }
+     *         },
+     *         {
+     *          "battle_id": 12,
+     *          "time": 1509530127,
+     *          "opponent_user": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *             }
+     *         }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -623,17 +668,59 @@ class BattleController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSentBattles(Request $request)
+    public function getMyBattles(Request $request)
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $user_id = \Auth::user()->id;
-        $battle_requested = Battles::select('battles.id as battle_id', 'opponent_user_id', 'first_name', 'last_name', 'photo_url', DB::raw('TIMESTAMPDIFF(SECOND,battles.created_at,NOW()) as time'))
-                        ->join('users', 'users.id', '=', 'battles.opponent_user_id')
-                        ->where('user_id', $user_id)->offset($offset)->limit($limit)->get()->toArray();
+        $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                        ->where('opponent_user_id', $user_id)
+                        ->where(function ($query) {
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        })
+                        ->where(['accepted' => TRUE])
+                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+        $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                        ->where('user_id', $user_id)
+                        ->where(function ($query) {
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        })
+                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
 
+        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
+        $data = [];
+        $i = 0;
+        foreach ($battle_requested as $battle_request) {
+            $data[$i]['battle_id'] = $battle_request['battle_id'];
+            $data[$i]['time'] = strtotime($battle_request['time']);
+            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
+                            ->where('user_id', \Auth::user()->id)->exists();
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $battle_requested]);
+            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $user = User::select('id', 'first_name', 'last_name', 'photo_url')
+                            ->where(['id' => $battle_request['opponent_user_id']])->first();
+            $data[$i]['opponent_user'] = [
+                'id' => $user['id'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'photo_url' => $user['photo_url'],
+                'points' => (int) $points,
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
+            ];
+            $i++;
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
@@ -663,31 +750,43 @@ class BattleController extends Controller
      *      {
      *          "battle_id": 4,
      *          "winner": {
-     *              "id": 12,
-     *              "first_name": "Anchal",
-     *              "last_name": "Gupta",
-     *              "photo_url": null
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
      *          },
      *          "loser": {
-     *              "id": 7,
-     *              "first_name": "Qiang",
-     *              "last_name": "Hu",
-     *              "photo_url": null
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
      *          }
      *      },
      *      {
      *          "battle_id": 6,
      *          "winner": {
-     *              "id": 7,
-     *              "first_name": "Qiang",
-     *              "last_name": "Hu",
-     *              "photo_url": null
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
      *          },
      *          "loser": {
-     *              "id": 1,
-     *              "first_name": "Nawaz",
-     *              "last_name": "Me",
-     *              "photo_url": null
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
      *          }
      *      }
      *  ]
@@ -708,20 +807,58 @@ class BattleController extends Controller
         $user_id = \Auth::user()->id;
         $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id')
                         ->where(['user_id' => $user_id])
+                        ->orwhere(['opponent_user_id' => $user_id])
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
-                        ->orwhere(['opponent_user_id' => $user_id])
+                        ->whereRaw('winner_user_id  != "" or null')
+                        ->orderBy('battles.id', 'desc')
                         ->offset($offset)->limit($limit)->get()->toArray();
+
         $array = array();
         $i = 0;
         foreach ($battle_finished as $data) {
-            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
-            $array[$i]['battle_id'] = $data['battle_id'];
-            $array[$i]['winner'] = User::select('id', 'first_name', 'last_name', 'photo_url')
-                            ->where(['id' => $data['winner_user_id']])->first();
-            $array[$i]['loser'] = User::select('id', 'first_name', 'last_name', 'photo_url')
-                            ->where(['id' => $looserId])->first();
-            $i++;
+            if ($data['winner_user_id'] != '' and $data['winner_user_id'] != null) {
+                $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+                $array[$i]['battle_id'] = $data['battle_id'];
+                $winner = User::select('id', 'first_name', 'last_name', 'photo_url')
+                                ->where(['id' => $data['winner_user_id']])->first();
+                $following = UserConnections::where('follow_user_id', $data['winner_user_id'])
+                                ->where('user_id', \Auth::user()->id)->exists();
+
+                $follow = UserConnections::where('user_id', $data['winner_user_id'])
+                                ->where('follow_user_id', \Auth::user()->id)->exists();
+
+                $points = Leaderboard::where('user_id', $data['winner_user_id'])->first()->punches_count;
+                $array[$i]['winner'] = [
+                    'id' => $winner['id'],
+                    'first_name' => $winner['first_name'],
+                    'last_name' => $winner['last_name'],
+                    'photo_url' => $winner['photo_url'],
+                    'points' => (int) $points,
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ];
+
+                $loser = User::select('id', 'first_name', 'last_name', 'photo_url')
+                                ->where(['id' => $looserId])->first();
+                $following_loss = UserConnections::where('follow_user_id', $looserId)
+                                ->where('user_id', \Auth::user()->id)->exists();
+
+                $follow_loss = UserConnections::where('user_id', $looserId)
+                                ->where('follow_user_id', \Auth::user()->id)->exists();
+
+                $points_loss = Leaderboard::where('user_id', $looserId)->first()->punches_count;
+                $array[$i]['loser'] = [
+                    'id' => $loser['id'],
+                    'first_name' => $loser['first_name'],
+                    'last_name' => $loser['last_name'],
+                    'photo_url' => $loser['photo_url'],
+                    'points' => (int) $points_loss,
+                    'user_following' => (bool) $following_loss,
+                    'user_follower' => (bool) $follow_loss
+                ];
+                $i++;
+            }
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
     }
@@ -743,71 +880,91 @@ class BattleController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": {
-     *          "requested": {
-     *              "count": 2,
-     *              "data": [
-     *                  {
-     *                      "battle_id": 12,
-     *                      "opponent_user_id": 12,
-     *                      "first_name": "Anchal ",
-     *                      "last_name": "Gupta"
-     *                      "photo_url": null
-     *                  },
-     *                  {
-     *                      "battle_id": 1,
-     *                      "opponent_user_id": 1,
-     *                      "first_name": "Nawaz",
-     *                      "last_name": "Me",
-     *                      "photo_url": null
-     *                  }
-     *              ]
-     *          },
-     *          "my_battles": {
-     *              "count": 2,
-     *              "data": [
-     *                  {
-     *                      "battle_id": 12,
-     *                      "user_id": 12,
-     *                      "first_name": "Anchal ",
-     *                      "last_name": "Gupta",
-     *                      "photo_url": null
-     *                  },
-     *                  {
-     *                      "battle_id": 1,
-     *                      "user_id": 1,
-     *                      "first_name": "Nawaz",
-     *                      "last_name": "Me",
-     *                      "photo_url": null
-     *                  }
-     *              ]
-     *          },
-     *          "finished": {
-     *              "count": 4,
-     *              "data": [
-     *                  {
-     *                      "battle_id": 12,
-     *                      "opponent_id": 12,
-     *                      "first_name": "Anchal ",
-     *                      "last_name": "Gupta",
-     *                      "photo_url": null
-     *                  },
-     *                  {
-     *                      "battle_id": 1,
-     *                      "opponent_id": 1,
-     *                      "first_name": "Nawaz",
-     *                      "last_name": "Me",
-     *                      "photo_url": null
-     *                  },
-     *                  {
-     *                      "battle_id": 12,
-     *                      "opponent_id": 12,
-     *                      "first_name": "Anchal ",
-     *                      "last_name": "Gupta",
-     *                      "photo_url": null
-     *                  },
-     *              ]
-     *          }
-     *      }
+     *          "received": [
+     *                     {
+     *                         "battle_id": 7,
+     *                         "opponent_user": {
+     *                             "id": 1,
+     *                             "first_name": "Nawaz",
+     *                             "last_name": "Me",
+     *                             "photo_url": null,
+     *                             "points": 2768,
+     *                             "user_following": true,
+     *                             "user_follower": false
+     *                         }
+     *                     },
+     *                     {
+     *                         "battle_id": 6,
+     *                         "opponent_user": {
+     *                             "id": 1,
+     *                             "first_name": "Nawaz",
+     *                             "last_name": "Me",
+     *                             "photo_url": null,
+     *                             "points": 2768,
+     *                             "user_following": true,
+     *                             "user_follower": false
+     *                         }
+     *                     }
+     *                 ],
+     *                 "my_battles": [
+     *                     {
+     *                         "battle_id": 32,
+     *                         "opponent_user": {
+     *                             "id": 1,
+     *                             "first_name": "Nawaz",
+     *                             "last_name": "Me",
+     *                             "photo_url": null,
+     *                             "points": 2768,
+     *                             "user_following": true,
+     *                             "user_follower": false
+     *                         }
+     *                     },
+     *                   ],
+     *                 "finished": [
+     *                      {
+     *                  "battle_id": 4,
+     *                   "winner": {
+     *                       "id": 33,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "points": 0,
+     *                       "user_following": false,
+     *                       "user_follower": false
+     *                       },
+     *                  "loser": {
+     *                       "id": 33,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "points": 0,
+     *                       "user_following": false,
+     *                       "user_follower": false
+     *                      }
+     *                 },
+     *           {
+     *          "battle_id": 6,
+     *                  "winner": {
+     *                    "id": 33,
+     *                    "first_name": "Anchal",
+     *                    "last_name": "Gupta",
+     *                    "photo_url": null,
+     *                    "points": 0,
+     *                    "user_following": false,
+     *                    "user_follower": false
+     *                   },
+     *                "loser": {
+     *                     "id": 33,
+     *                     "first_name": "Anchal",
+     *                     "last_name": "Gupta",
+     *                     "photo_url": null,
+     *                     "points": 0,
+     *                    "user_following": false,
+     *                    "user_follower": false
+     *                   }
+     *                   }
+     *                 ]
+     *             }
      *  }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -822,33 +979,142 @@ class BattleController extends Controller
         $array = array();
         $user_id = \Auth::user()->id;
 
-        $requested = Battles::select('battles.id as battle_id', 'opponent_user_id', 'first_name', 'last_name', 'photo_url')
-                        ->join('users', 'users.id', '=', 'battles.opponent_user_id')
-                        ->where('user_id', $user_id)->get()->toArray();
-        $array['requested']['count'] = count($requested);
-        $array['requested']['data'] = $requested;
-
-        $my_battles = Battles::select('battles.id as battle_id', 'user_id', 'first_name', 'last_name', 'photo_url')
+        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $user_id)->get()->toArray();
-        $array['my_battles']['count'] = count($my_battles);
-        $array['my_battles']['data'] = $my_battles;
+                        ->where('opponent_user_id', $user_id)
+                        ->orwhere(function ($query) {
+                            $query->where('accepted', 0)->where('accepted', null);
+                        })
+                        ->orderBy('battles.id', 'desc')->get()->toArray();
+        $data = [];
+        $i = 0;
+        foreach ($battle_requests as $battle_request) {
+            $data[$i]['battle_id'] = $battle_request['battle_id'];
+            $data[$i]['time'] = strtotime($battle_request['time']);
+            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
+                            ->where('user_id', \Auth::user()->id)->exists();
 
-        $finished_byme = Battles::select('battles.id as battle_id', 'opponent_user_id as opponent_id', 'first_name', 'last_name', 'photo_url')
-                        ->join('users', 'users.id', '=', 'battles.opponent_user_id')
+            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $data[$i]['opponent_user'] = [
+                'id' => $battle_request['opponent_user_id'],
+                'first_name' => $battle_request['first_name'],
+                'last_name' => $battle_request['last_name'],
+                'photo_url' => $battle_request['photo_url'],
+                'points' => (int) $points,
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
+            ];
+        }
+        $array['received'] = $data;
+
+        $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                        ->where('opponent_user_id', $user_id)
+                        ->where(function ($query) {
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        })
+                        ->where(['accepted' => TRUE])
+                        ->orderBy('battles.id', 'desc')->get()->toArray();
+        $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                        ->where('user_id', $user_id)
+                        ->where(function ($query) {
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        })
+                        ->orderBy('battles.id', 'desc')->get()->toArray();
+
+        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
+        $my_battle_data = [];
+        $j = 0;
+        foreach ($battle_requested as $battle_request) {
+            $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
+            $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
+            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
+                            ->where('user_id', \Auth::user()->id)->exists();
+
+            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
+                            ->where('follow_user_id', \Auth::user()->id)->exists();
+
+            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $user = User::select('id', 'first_name', 'last_name', 'photo_url')
+                            ->where(['id' => $battle_request['opponent_user_id']])->first();
+            $my_battle_data[$j]['opponent_user'] = [
+                'id' => $user['id'],
+                'first_name' => $user['first_name'],
+                'last_name' => $user['last_name'],
+                'photo_url' => $user['photo_url'],
+                'points' => (int) $points,
+                'user_following' => (bool) $following,
+                'user_follower' => (bool) $follow
+            ];
+            $j++;
+        }
+        $array['my_battles'] = $my_battle_data;
+
+        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id')
                         ->where(['user_id' => $user_id])
+                        ->orwhere(['opponent_user_id' => $user_id])
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
+                        ->whereRaw('winner_user_id  != "" or null')
+                        ->orderBy('battles.id', 'desc')
                         ->get()->toArray();
-        $finished_byopp = Battles::select('battles.id as battle_id', 'user_id as opponent_id', 'first_name', 'last_name', 'photo_url')
-                        ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where(['opponent_user_id' => $user_id])
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->get()->toArray();
-        $finished = array_merge($finished_byopp, $finished_byme);
-        $array['finished']['count'] = count($finished);
-        $array['finished']['data'] = $finished;
+
+        $finished = array();
+        $k = 0;
+        foreach ($battle_finished as $data) {
+            if ($data['winner_user_id'] != '' and $data['winner_user_id'] != null) {
+                $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+                $finished[$k]['battle_id'] = $data['battle_id'];
+                $winner = User::select('id', 'first_name', 'last_name', 'photo_url')
+                                ->where(['id' => $data['winner_user_id']])->first();
+                $following = UserConnections::where('follow_user_id', $data['winner_user_id'])
+                                ->where('user_id', \Auth::user()->id)->exists();
+
+                $follow = UserConnections::where('user_id', $data['winner_user_id'])
+                                ->where('follow_user_id', \Auth::user()->id)->exists();
+
+                $points = Leaderboard::where('user_id', $data['winner_user_id'])->first()->punches_count;
+                $finished[$k]['winner'] = [
+                    'id' => $winner['id'],
+                    'first_name' => $winner['first_name'],
+                    'last_name' => $winner['last_name'],
+                    'photo_url' => $winner['photo_url'],
+                    'points' => (int) $points,
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ];
+
+                $loser = User::select('id', 'first_name', 'last_name', 'photo_url')
+                                ->where(['id' => $looserId])->first();
+                $following_loss = UserConnections::where('follow_user_id', $looserId)
+                                ->where('user_id', \Auth::user()->id)->exists();
+
+                $follow_loss = UserConnections::where('user_id', $looserId)
+                                ->where('follow_user_id', \Auth::user()->id)->exists();
+
+                $points_loss = Leaderboard::where('user_id', $looserId)->first()->punches_count;
+                $finished[$k]['loser'] = [
+                    'id' => $loser['id'],
+                    'first_name' => $loser['first_name'],
+                    'last_name' => $loser['last_name'],
+                    'photo_url' => $loser['photo_url'],
+                    'points' => (int) $points_loss,
+                    'user_following' => (bool) $following_loss,
+                    'user_follower' => (bool) $follow_loss
+                ];
+                $k++;
+            }
+        }
+        $array['finished'] = $finished;
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
     }
