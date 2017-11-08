@@ -176,7 +176,7 @@ class BattleController extends Controller
         // Opponent user is opponent of current logged in user
         $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
         
-        $opponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points'), \DB::raw('id as user_following'), \DB::raw('id as user_follower')])->where('id', $opponentUserId)->get();
+        $opponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points'), \DB::raw('id as user_following'), \DB::raw('id as user_follower')])->where('id', $opponentUserId)->first();
 
         $battle = $_battle->toArray();
 

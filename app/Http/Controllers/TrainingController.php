@@ -701,8 +701,8 @@ class TrainingController extends Controller
             ]);
         }
 
-        $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
-        $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
+        $startDate = ($startDate) ? date('Y-m-d 00:00:00', strtotime($startDate)) : null;
+        $endDate = ($endDate) ? date('Y-m-d 23:59:59', strtotime($endDate)) : null;
 
         $_sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId);
 
