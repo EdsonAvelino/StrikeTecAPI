@@ -1061,7 +1061,9 @@ class BattleController extends Controller
             $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+            
             $user = User::select('id', 'first_name', 'last_name', 'photo_url')
                             ->where(['id' => $battle_request['opponent_user_id']])->first();
             $my_battle_data[$j]['opponent_user'] = [
