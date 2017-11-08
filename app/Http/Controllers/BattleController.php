@@ -611,7 +611,9 @@ class BattleController extends Controller
             $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
             $data[$i]['opponent_user'] = [
                 'id' => $battle_request['opponent_user_id'],
                 'first_name' => $battle_request['first_name'],
@@ -723,7 +725,9 @@ class BattleController extends Controller
             $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
             $user = User::select('id', 'first_name', 'last_name', 'photo_url')
                             ->where(['id' => $battle_request['opponent_user_id']])->first();
             $data[$i]['opponent_user'] = [
@@ -845,7 +849,9 @@ class BattleController extends Controller
                 $follow = UserConnections::where('user_id', $data['winner_user_id'])
                                 ->where('follow_user_id', \Auth::user()->id)->exists();
 
-                $points = Leaderboard::where('user_id', $data['winner_user_id'])->first()->punches_count;
+                $leaderboard = Leaderboard::where('user_id', $data['winner_user_id'])->first();
+                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
                 $array[$i]['winner'] = [
                     'id' => $winner['id'],
                     'first_name' => $winner['first_name'],
@@ -864,7 +870,9 @@ class BattleController extends Controller
                 $follow_loss = UserConnections::where('user_id', $looserId)
                                 ->where('follow_user_id', \Auth::user()->id)->exists();
 
-                $points_loss = Leaderboard::where('user_id', $looserId)->first()->punches_count;
+                $leaderboard = Leaderboard::where('user_id', $looserId)->first();
+                $points_loss = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
                 $array[$i]['loser'] = [
                     'id' => $loser['id'],
                     'first_name' => $loser['first_name'],
@@ -1014,7 +1022,9 @@ class BattleController extends Controller
             $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
+            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
             $data[$i]['opponent_user'] = [
                 'id' => $battle_request['opponent_user_id'],
                 'first_name' => $battle_request['first_name'],
@@ -1101,7 +1111,9 @@ class BattleController extends Controller
                 $follow = UserConnections::where('user_id', $data['winner_user_id'])
                                 ->where('follow_user_id', \Auth::user()->id)->exists();
 
-                $points = Leaderboard::where('user_id', $data['winner_user_id'])->first()->punches_count;
+                $leaderboard = Leaderboard::where('user_id', $data['winner_user_id'])->first();
+                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
                 $finished[$k]['winner'] = [
                     'id' => $winner['id'],
                     'first_name' => $winner['first_name'],
@@ -1120,7 +1132,9 @@ class BattleController extends Controller
                 $follow_loss = UserConnections::where('user_id', $looserId)
                                 ->where('follow_user_id', \Auth::user()->id)->exists();
 
-                $points_loss = Leaderboard::where('user_id', $looserId)->first()->punches_count;
+                $leaderboard = Leaderboard::where('user_id', $looserId)->first();
+                $points_loss = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
                 $finished[$k]['loser'] = [
                     'id' => $loser['id'],
                     'first_name' => $loser['first_name'],
