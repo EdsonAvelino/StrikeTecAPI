@@ -108,7 +108,7 @@ class BattleController extends Controller
      *          "winner_user_id": null,
      *          "created_at": "2017-10-30 19:01:53",
      *          "updated_at": "2017-10-30 19:01:53",
-     *          "opponent_user": [
+     *          "opponent_user": 
      *              {
      *                  "id": 1,
      *                  "first_name": "Nawaz",
@@ -117,8 +117,7 @@ class BattleController extends Controller
      *                  "points": 2768,
      *                  "user_following": true,
      *                  "user_follower": true
-     *              }
-     *          ],
+     *              },
      *          "sender_user_id": 1
      *      }
      *  }
