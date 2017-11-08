@@ -108,14 +108,18 @@ class BattleController extends Controller
      *          "winner_user_id": null,
      *          "created_at": "2017-10-30 19:01:53",
      *          "updated_at": "2017-10-30 19:01:53",
-     *          "data": {
-     *              "id": 3,
-     *              "name": "Left overs",
-     *              "key_set": "1-3-5-5-3-1-5-3-3-1",
-     *              "keys": [
-     *                "1", "3", "5", "5", "3", "1", "5", "3", "3", "1"
-     *              ],
-     *          }
+     *          "opponent_user": [
+     *              {
+     *                  "id": 1,
+     *                  "first_name": "Nawaz",
+     *                  "last_name": "Me",
+     *                  "photo_url": null,
+     *                  "points": 2768,
+     *                  "user_following": true,
+     *                  "user_follower": true
+     *              }
+     *          ],
+     *          "sender_user_id": 1
      *      }
      *  }
      * @apiErrorExample {json} Error response
