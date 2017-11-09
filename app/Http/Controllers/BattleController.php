@@ -278,10 +278,12 @@ class BattleController extends Controller
 
         $battle = Battles::find($battleId);
 
-        if ($accepted) {
-            $battle->update(['accepted' => $accepted, 'accepted_at' => date('Y-m-d H:i:s')]);
-        } else {
+        if ($accepted === false) {
             $battle->delete();
+        } else {
+            $battle->accepted = $accepted;
+            $battle->accepted_at = date('Y-m-d H:i:s');
+            $battle->save();
         }
 
         return response()->json([
@@ -599,7 +601,8 @@ class BattleController extends Controller
                         ->orwhere(function ($query) {
                             $query->where('accepted', 0)->whereNull('accepted');
                         })
-                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+                        ->orderBy('battles.id', 'desc')
+                        ->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
         $i = 0;
         foreach ($battle_requests as $battle_request) {
