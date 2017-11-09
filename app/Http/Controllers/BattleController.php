@@ -597,7 +597,7 @@ class BattleController extends Controller
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)
                         ->orwhere(function ($query) {
-                            $query->where('accepted', 0)->where('accepted', null);
+                            $query->where('accepted', 0)->whereNull('accepted');
                         })
                         ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
