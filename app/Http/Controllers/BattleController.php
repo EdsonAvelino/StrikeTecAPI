@@ -66,9 +66,9 @@ class BattleController extends Controller
         Push::send($opponentUserId, 'User has invited you for battle');
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'User invited for battle successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            'error' => 'false',
+            'message' => 'User invited for battle successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -232,9 +232,9 @@ class BattleController extends Controller
         Push::send($battle->opponent_user_id, 'User has invited you for battle');
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'User invited for battle successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            'error' => 'false',
+            'message' => 'User invited for battle successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -285,9 +285,9 @@ class BattleController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            'error' => 'false',
+            'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -333,9 +333,9 @@ class BattleController extends Controller
             $battle->delete();
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'Battle cancelled successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            'error' => 'false',
+            'message' => 'Battle cancelled successfully',
+            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -596,8 +596,8 @@ class BattleController extends Controller
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('accepted', 0)->orwhere('accepted', null);
+                        ->orwhere(function ($query) {
+                            $query->where('accepted', 0)->where('accepted', null);
                         })
                         ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
@@ -613,7 +613,6 @@ class BattleController extends Controller
 
             $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
             $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
 
             $data[$i]['opponent_user'] = [
                 'id' => $battle_request['opponent_user_id'],
@@ -696,19 +695,24 @@ class BattleController extends Controller
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where('opponent_user_id', $user_id)
                         ->where(function ($query) {
-                            $query->where('opponent_finished', NULL)->orwhere('user_finished', NULL)->orwhere('opponent_finished', 0)->orwhere('user_finished', 0);
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
                         })
                         ->where(['accepted' => TRUE])
                         ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
         $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where('user_id', $user_id)
                         ->where(function ($query) {
-                            $query->where('opponent_finished', NULL)->orwhere('user_finished', NULL)->orwhere('opponent_finished', 0)->orwhere('user_finished', 0);
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
                         })
                         ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
 
-        $battle_requested = array_unique(array_merge($requested_by_opponent, $requested_by_user), SORT_REGULAR);
-        arsort($battle_requested);
+        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
         $data = [];
         $i = 0;
         foreach ($battle_requested as $battle_request) {
@@ -720,7 +724,6 @@ class BattleController extends Controller
 
             $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
                             ->where('follow_user_id', \Auth::user()->id)->exists();
-
 
             $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
             $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
@@ -738,7 +741,6 @@ class BattleController extends Controller
             ];
             $i++;
         }
-
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
@@ -871,7 +873,6 @@ class BattleController extends Controller
                 $leaderboard = Leaderboard::where('user_id', $looserId)->first();
                 $points_loss = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
-
                 $array[$i]['loser'] = [
                     'id' => $loser['id'],
                     'first_name' => $loser['first_name'],
@@ -1002,11 +1003,12 @@ class BattleController extends Controller
     {
         $array = array();
         $user_id = \Auth::user()->id;
+
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('accepted', 0)->orwhere('accepted', null);
+                        ->orwhere(function ($query) {
+                            $query->where('accepted', 0)->where('accepted', null);
                         })
                         ->orderBy('battles.id', 'desc')->get()->toArray();
         $data = [];
@@ -1032,24 +1034,32 @@ class BattleController extends Controller
                 'user_following' => (bool) $following,
                 'user_follower' => (bool) $follow
             ];
+
+            $i++;
         }
         $array['received'] = $data;
+
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where('opponent_user_id', $user_id)
                         ->where(function ($query) {
-                            $query->where('opponent_finished', NULL)->orwhere('user_finished', NULL)->orwhere('opponent_finished', 0)->orwhere('user_finished', 0);
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
                         })
                         ->where(['accepted' => TRUE])
                         ->orderBy('battles.id', 'desc')->get()->toArray();
         $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where('user_id', $user_id)
                         ->where(function ($query) {
-                            $query->where('opponent_finished', NULL)->orwhere('user_finished', NULL)->orwhere('opponent_finished', 0)->orwhere('user_finished', 0);
+                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        })
+                        ->where(function ($query) {
+                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
                         })
                         ->orderBy('battles.id', 'desc')->get()->toArray();
 
-        $battle_requested = array_unique(array_merge($requested_by_opponent, $requested_by_user), SORT_REGULAR);
-        arsort($battle_requested);
+        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
         $my_battle_data = [];
         $j = 0;
         foreach ($battle_requested as $battle_request) {
@@ -1064,7 +1074,7 @@ class BattleController extends Controller
 
             $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
             $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
+            
             $user = User::select('id', 'first_name', 'last_name', 'photo_url')
                             ->where(['id' => $battle_request['opponent_user_id']])->first();
             $my_battle_data[$j]['opponent_user'] = [
@@ -1102,7 +1112,6 @@ class BattleController extends Controller
 
                 $follow = UserConnections::where('user_id', $data['winner_user_id'])
                                 ->where('follow_user_id', \Auth::user()->id)->exists();
-
 
                 $leaderboard = Leaderboard::where('user_id', $data['winner_user_id'])->first();
                 $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
