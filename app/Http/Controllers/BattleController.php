@@ -527,7 +527,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} battles/received  Get list of received battles
+     * @api {get} /battles/received  Get list of received battles
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
      * @apiHeaderExample {json} Header-Example:
@@ -623,6 +623,8 @@ class BattleController extends Controller
                 'user_following' => (bool) $following,
                 'user_follower' => (bool) $follow
             ];
+
+            $i++;
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
