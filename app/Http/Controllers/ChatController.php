@@ -272,7 +272,9 @@ class ChatController extends Controller
             $follow = UserConnections::where('user_id', $opponent_id)
                             ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $points = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
+            $point = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
+
+            $points = (!empty($point['punches_count'])) ? $point['punches_count'] : 0;
             $chat[$i]['opponent_user'] = [
                 'id' => $user_info['id'],
                 'first_name' => $user_info['first_name'],
