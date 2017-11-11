@@ -282,7 +282,7 @@ class BattleController extends Controller
             $battle->delete();
         } else {
             $battle->accepted = $accepted;
-            $battle->accepted_at = date('Y-m-d H:i:s');
+            $battle->accepted_at => date('Y-m-d H:i:s');
             $battle->save();
         }
 
@@ -598,8 +598,8 @@ class BattleController extends Controller
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)
-                        ->orwhere(function ($query) {
-                            $query->where('accepted', 0)->whereNull('accepted');
+                        ->where(function ($query) {
+                            $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
                         ->orderBy('battles.id', 'desc')
                         ->offset($offset)->limit($limit)->get()->toArray();
@@ -1012,8 +1012,8 @@ class BattleController extends Controller
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $user_id)
-                        ->orwhere(function ($query) {
-                            $query->where('accepted', 0)->where('accepted', null);
+                        ->where(function ($query) {
+                            $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
                         ->orderBy('battles.id', 'desc')->get()->toArray();
         $data = [];

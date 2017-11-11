@@ -15,25 +15,25 @@ class WriteUsEmail extends Mailable
         SerializesModels;
 
     /**
-     * Customer instance.
+     * Email.
      *
-     * @var Customer
+     * @var email
      */
     public $email;
 
     /**
-     * Customer instance.
+     * Subject.
      *
-     * @var subject
+     * @var sub
      */
-    public $subject;
+    public $sub;
 
     /**
-     * Customer instance.
+     * Message.
      *
-     * @var message
+     * @var msg
      */
-    public $message;
+    public $msg;
 
     /**
      * Create a new message instance.
@@ -42,10 +42,9 @@ class WriteUsEmail extends Mailable
      */
     public function __construct($email, $subject, $message)
     {
-        //echo $email;die;
         $this->email = $email;
-        $this->subject = $subject;
-        $this->message = $message;
+        $this->sub = $subject;
+        $this->msg = $message;
     }
 
     /**
@@ -55,10 +54,9 @@ class WriteUsEmail extends Mailable
      */
     public function build()
     {
-
         return $this->markdown('emails.write_us')
-                        ->subject('Write us : query')
-                        ->with(['user' => $this->email, 'message' => $this->message, 'subject' => $this->subject]);
+                        ->subject('Write Us: Query')
+                        ->with(['email' => $this->email, 'sub' => $this->sub, 'msg' => $this->msg]);
     }
 
 }

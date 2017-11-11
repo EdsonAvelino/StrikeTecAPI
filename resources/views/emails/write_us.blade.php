@@ -1,15 +1,15 @@
 @component('mail::message')
-# Write us : query
+# Write Us : Query
 
 Hello Admin, 
 
 You have got the email.
 
-From    [  {{ $user }} ]
+From: {{ $email }}
 
-Subject   [  <b>{{ $subject }}</b>]
+Subject: <b>{{ $sub }}</b>
 
-Message     [ {{ $message }} ].
+Message: {{ $msg }}
 
 Thanks,<br/>
 StrikeTec!
