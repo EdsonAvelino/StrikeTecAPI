@@ -11,13 +11,15 @@ class SettingController extends Controller
     /**
      * @api {post} /notification/settings Update notification Settings
      * @apiGroup Notification Settings
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} action e.g. new_challenges , battle_update, tournaments_update, games_update, new_message, friend_invites, sensor_connectivity, app_updates, striketec_promos, striketec_news
-     * @apiParam {Number} value e.g. 0,1
+     * @apiParam {String} action Name of action e.g. new_challenges , battle_update, tournaments_update, games_update, new_message, friend_invites, sensor_connectivity, app_updates, striketec_promos, striketec_news
+     * @apiParam {Number} value true/false e.g. ture=on OR false=off
      * @apiParamExample {json} Input
      *    {
      *      "action": "new_challenges"
@@ -41,13 +43,12 @@ class SettingController extends Controller
      */
     public function updateSettings(Request $request)
     {
-
         $user_id = \Auth::user()->id;
-        $action = $request->get('action');
-        $value = $request->get('value');
+        
+        $action = strtolower($request->get('action'));
+        $value = filter_var($request->get('value'), FILTER_VALIDATE_BOOLEAN);
 
         switch ($action) {
-
             case "new_challenges":
                 Settings::where('user_id', $user_id)->update(
                         ['new_challenges' => $value]
@@ -107,7 +108,8 @@ class SettingController extends Controller
                 );
                 break;
         }
-        return response()->json(['error' => 'false', 'message' => 'Notification settings have been updated Successfully.']);
+
+        return response()->json(['error' => 'false', 'message' => 'Notification settings have been updated successfully.']);
     }
 
     /**
@@ -152,11 +154,11 @@ class SettingController extends Controller
      */
     public function getSettings(Request $request)
     {
-
         $userId = \Auth::user()->id;
-        $SubscriptionsList = Settings::where('user_id', $userId)->select('user_id', 'new_challenges', 'battle_update', 'tournaments_update', 'games_update', 'new_message', 'friend_invites', 'sensor_connectivity', 'app_updates', 'striketec_promos', 'striketec_news')
-                ->get();
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $SubscriptionsList]);
-    }
 
+        $data = Settings::where('user_id', $userId)->select('user_id', 'new_challenges', 'battle_update', 'tournaments_update', 'games_update', 'new_message', 'friend_invites', 'sensor_connectivity', 'app_updates', 'striketec_promos', 'striketec_news')
+                ->get();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+    }
 }

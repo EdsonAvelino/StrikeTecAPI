@@ -17,7 +17,7 @@ class WriteusController extends Controller
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Content-Type": "application/x-www-form-urlencoded"
      *     }
      * @apiParam {String} email Email
      * @apiParam {String} subject Subject

@@ -8,14 +8,15 @@ use App\Battles;
 use App\Combos;
 use App\ComboSets;
 use App\Workouts;
-use App\Helpers\Push;
 use App\User;
 use App\UserConnections;
 use App\Leaderboard;
 
+use App\Helpers\Push;
+use App\PushTypes;
+
 class BattleController extends Controller
 {
-
     /**
      * @api {post} /battles Send battle invite
      * @apiGroup Battles
@@ -62,8 +63,13 @@ class BattleController extends Controller
                     'type_id' => (int) $request->get('type_id')
         ]);
 
+        $opponentUser = $battle->opponentUser;
+
         // Send Push Notification
-        Push::send($opponentUserId, 'User has invited you for battle');
+        $pushMessage = \Auth::user()->first_name.' '.\Auth::user()->last_name.' has invited you for battle';
+        $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
+
+        Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
 
         return response()->json([
             'error' => 'false',
@@ -228,8 +234,13 @@ class BattleController extends Controller
 
         $battle = Battles::find($battleId);
 
+        $opponentUser = $battle->opponentUser;
+
         // Send Push Notification
-        Push::send($battle->opponent_user_id, 'User has invited you for battle');
+        $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has invited you for battle';
+        $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
+
+        Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
 
         return response()->json([
             'error' => 'false',
@@ -282,8 +293,18 @@ class BattleController extends Controller
             $battle->delete();
         } else {
             $battle->accepted = $accepted;
-            $battle->accepted_at => date('Y-m-d H:i:s');
+            $battle->accepted_at = date('Y-m-d H:i:s');
             $battle->save();
+
+            $user = $battle->user;
+            $opponentUser = $battle->opponentUser;
+
+            // Send push notification to sender user (who created battle)
+            $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has '. ($accepted ? 'accepted' : 'declined') .' battle';
+            
+            $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', $battle->opponent_user_id)->first();
+
+            Push::send($battle->user_id, PushTypes::BATTLE_ACCEPT_DECLINE, $pushMessage, $pushOpponentUser);
         }
 
         return response()->json([
@@ -333,6 +354,16 @@ class BattleController extends Controller
 
         if ($battle && $battle->user_id == \Auth::user()->id)
             $battle->delete();
+
+        $user = $battle->user;
+        $opponentUser = $battle->opponentUser;
+
+        // Send Push Notification to opponent-user of battle
+        $pushMessage = $user->first_name.' '.$user->last_name.' has cancelled battle';
+
+        $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
+
+        Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
 
         return response()->json([
             'error' => 'false',
