@@ -164,6 +164,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of comobos
     $app->get('/battles/combos', 'BattleController@getCombos');
 
+    // upload audio
+    $app->post('/combos/audio', 'BattleController@saveAudio');
+    
+    //lis of combos with audios
+    $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
+
     // Get list of comobo-sets
     $app->get('/battles/combo_sets', 'BattleController@getComboSets');
 
@@ -223,7 +229,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/chat/read', 'ChatController@ReadMessage');
 
     // chat History
-    $app->get('/chat/history/{connection_id}', 'ChatController@chatHistory');
+    $app->get('/chat/history', 'ChatController@chatHistory');
 
     // all chats
     $app->get('/chat', 'ChatController@chats');
