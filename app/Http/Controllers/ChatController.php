@@ -37,7 +37,11 @@ class ChatController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": {
-     *           "message": "test message",
+     *           "message_id": 47,
+     *           "sender_id": 7,
+     *           "message": "this is the test message 5",
+     *           "read": false,
+     *           "send_time": 1510569372
      *      }
      *    }
      * @apiErrorExample {json} Error response
@@ -54,13 +58,19 @@ class ChatController extends Controller
         $connection_id = $request->user_id;
         $message = $request->message;
         $chat_id = $this->getChatid($connection_id);
-        ChatMessages::create([
+        $chat_id = ChatMessages::create([
             'user_id' => $sender_id,
             'read_flag' => FALSE,
             'message' => $message,
             'chat_id' => $chat_id
-        ]);
-        return response()->json(['error' => 'false', 'message' => '', 'data' => array('message' => $message)]);
+        ])->id;
+        $chatResponse = ChatMessages::where('id', $chat_id)
+                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                    ->first(); 
+
+        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+        $chatResponse->send_time = strtotime($chatResponse->send_time);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $chatResponse]);
     }
 
     /**
@@ -85,9 +95,9 @@ class ChatController extends Controller
      *    {
      *      "error": "false",
      *      "message": "Read.",
-     *      "data": "{
+     *      "data": {
      *           "message_id": "6"
-     *        }"
+     *        }
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -106,7 +116,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {get} /chat/history/{connection_id} all the messages of chat 
+     * @api {get} /chat/history all the messages of chat 
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -115,13 +125,13 @@ class ChatController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} connection_id Connection ID
-     * @apiParam {Number} start Start offset
+     * @apiParam {Number} user_id Connection user ID
+     * @apiParam {Number} message_id Message ID if -1 list recent else record listed which created less then this time
      * @apiParam {Number} limit Limit number of records
      * @apiParamExample {json} Input
      *    {
-     *      "connection_id": 6,
-     *      "start": 20,
+     *      "user_id": 6,
+     *      "message_id": 20,
      *      "limit": 50
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -163,16 +173,25 @@ class ChatController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function chatHistory($connection_id, Request $request)
+    public function chatHistory(Request $request)
     {
-        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $offset_message_id = (int) ($request->get('message_id') ? $request->get('message_id') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        $chat_id = $this->getChatid($connection_id);
+        $connection_id = (int) $request->get('user_id');
+        $chat_id = $this->getChatid($connection_id); 
         $chat_detail = ChatMessages::select('chat_messages.id as message_id', 'user_id as sender_id', 'read_flag as read', 'chat_id', 'message', 'chat_messages.created_at as send_time')
                         ->join('users', 'users.id', '=', 'chat_messages.user_id')
-                        ->orderBy('chat_messages.created_at', 'desc')
                         ->where('chat_id', $chat_id)
-                        ->offset($offset)->limit($limit)->get();
+                        ->where(function($query) use ($offset_message_id)
+                        {
+                            if( $offset_message_id === -1 ) {
+                                $query->where('chat_messages.id', '>=', $offset_message_id);
+                            }else {
+                                $query->where('chat_messages.id', '<=', $offset_message_id);
+                            }
+                        })
+                        ->orderBy('chat_messages.created_at', 'desc')
+                        ->limit($limit)->get();
         $chat = array();
         foreach ($chat_detail as $chat_details) {
             $chat[] = [
@@ -221,7 +240,7 @@ class ChatController extends Controller
      *                 "user_following": false,
      *                 "user_follower": false
      *             },
-     *             "msg_time": "2017-11-06 17:44:24",
+     *             "msg_time": "1510569372",
      *             "lst_msg": "yeshghgg",
      *             "unread_msg_count": 0
      *         },
@@ -235,7 +254,7 @@ class ChatController extends Controller
      *                 "user_following": false,
      *                 "user_follower": false
      *             },
-     *             "msg_time": "2017-11-06 11:28:22",
+     *             "msg_time": "1510569372",
      *             "lst_msg": "yeshghgg",
      *             "unread_msg_count": 3
      *         }
@@ -259,7 +278,7 @@ class ChatController extends Controller
                         ->orwhere('user_two', $user_id)
                         ->orderBy('created_at', 'desc')
                         ->offset($offset)->limit($limit)->get()->all();
-        $i = 0;
+        $chat_count = 0;
         $chat = array();
         foreach ($chat_list as $data) {
             $opponent_id = ($data['user_one'] != $user_id) ? $data['user_one'] : $data['user_two'];
@@ -275,7 +294,7 @@ class ChatController extends Controller
             $point = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
 
             $points = (!empty($point['punches_count'])) ? $point['punches_count'] : 0;
-            $chat[$i]['opponent_user'] = [
+            $chat[$chat_count]['opponent_user'] = [
                 'id' => $user_info['id'],
                 'first_name' => $user_info['first_name'],
                 'last_name' => $user_info['last_name'],
@@ -288,14 +307,14 @@ class ChatController extends Controller
                             ->where('chat_id', $data['id'])
                             ->orderBy('chat_messages.created_at', 'desc')
                             ->offset(0)->limit(1)->get()->first();
-            $chat[$i]['msg_time'] = strtotime($chat_msg['msg_time']);
-            $chat[$i]['lst_msg'] = $chat_msg['message'];
-            $chat[$i]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
+            $chat[$chat_count]['msg_time'] = strtotime($chat_msg['msg_time']);
+            $chat[$chat_count]['lst_msg'] = $chat_msg['message'];
+            $chat[$chat_count]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
                     ->where('read_flag', 0)
                     ->where('user_id', '!=', $user_id)
                     ->count('message');
 
-            $i++;
+            $chat_count++;
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
@@ -315,23 +334,12 @@ class ChatController extends Controller
                         ->get()->first();
 
         if (!empty($existing_chat_id->id)) {
-            $chat_id = $existing_chat_id->id;
-        } else {
-            Chats::create([
+            return $existing_chat_id->id;
+        } 
+        return Chats::create([
                 'user_one' => $user_id,
                 'user_two' => $connection_id,
-            ]);
-            $chat = Chats::select('id')
-                            ->where(function ($query) use ($user_id, $connection_id) {
-                                $query->where('user_one', $user_id)->where('user_two', $connection_id);
-                            })
-                            ->orwhere(function ($query) use ($user_id, $connection_id) {
-                                $query->where('user_one', $connection_id)->where('user_two', $user_id);
-                            })
-                            ->get()->first();
-            $chat_id = $chat->id;
-        }
-        return $chat_id;
-    }
+            ])->id;
+   }
 
 }
