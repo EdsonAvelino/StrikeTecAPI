@@ -290,22 +290,22 @@ class BattleController extends Controller
 
         $battle = Battles::find($battleId);
 
+        $user = $battle->user;
+        $opponentUser = $battle->opponentUser;
+
+        // Send push notification to sender user (who created battle)
+        $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has '. ($accepted ? 'accepted' : 'declined') .' battle';
+        
+        $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', $battle->opponent_user_id)->first();
+
+        Push::send($battle->user_id, PushTypes::BATTLE_ACCEPT_DECLINE, $pushMessage, $pushOpponentUser);
+            
         if ($accepted === false) {
             $battle->delete();
         } else {
             $battle->accepted = $accepted;
             $battle->accepted_at = date('Y-m-d H:i:s');
             $battle->save();
-
-            $user = $battle->user;
-            $opponentUser = $battle->opponentUser;
-
-            // Send push notification to sender user (who created battle)
-            $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has '. ($accepted ? 'accepted' : 'declined') .' battle';
-            
-            $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', $battle->opponent_user_id)->first();
-
-            Push::send($battle->user_id, PushTypes::BATTLE_ACCEPT_DECLINE, $pushMessage, $pushOpponentUser);
         }
 
         return response()->json([
