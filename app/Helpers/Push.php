@@ -58,9 +58,9 @@ class Push
         $client = new Client(['base_uri' => 'https://fcm.googleapis.com']);
 
         $body = ['to' => $token,
-                    'type' => self::$typeId,
-                    'push_message' => self::$pushMessage,
                     'data' => [
+                        'type' => self::$typeId,
+                        'push_message' => self::$pushMessage,
                         'opponent_user' => self::$opponentUser
                     ]
                 ];
