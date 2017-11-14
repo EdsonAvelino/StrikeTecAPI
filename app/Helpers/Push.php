@@ -15,6 +15,7 @@ class Push
     protected static $typeId;
     protected static $pushMessage;
     protected static $opponentUser;
+    protected static $extra;
 
 	/**
      * Sends push notification to users.
@@ -23,9 +24,10 @@ class Push
      * @param  int  $typeId
      * @param  string  $pushMessage
      * @param  array | App\User  $opponentUser
+     * @param  array $extra
      * @return void
      */
-	public static function send($userId, $typeId, $pushMessage = '', $opponentUser)
+	public static function send($userId, $typeId, $pushMessage = '', $opponentUser, $extra = [])
 	{
         // Get user's notification settings
         $notifSettings = Settings::where('user_id', $userId)->first();
@@ -36,6 +38,7 @@ class Push
         self::$typeId = $typeId;
         self::$pushMessage = $pushMessage;
         self::$opponentUser = $opponentUser;
+        self::$extra = $extra;
 
         // Get user app token
 		$tokens = UserAppTokens::where('user_id', $userId)->get();
@@ -64,6 +67,10 @@ class Push
                         'opponent_user' => self::$opponentUser
                     ]
                 ];
+        // Add extra data if not given
+        if (sizeof(self::$extra)) {
+            $body['data'] = array_merge($body['data'], self::$extra);
+        }
         
         \Log::info("Push: ".json_encode($body));
 

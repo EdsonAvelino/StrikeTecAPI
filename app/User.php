@@ -169,4 +169,19 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
     }
+
+    // return minimum fields of user
+    // first_name, last_name, photo_url, user_following, user_follower and points
+    public static function get($userId)
+    {
+        return self::select([
+            'id',
+            'first_name',
+            'last_name',
+            'photo_url',
+            \DB::raw('id as user_following'),
+            \DB::raw('id as user_follower'),
+            \DB::raw('id as points')
+        ])->where('id', $userId)->first();
+    }
 }

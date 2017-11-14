@@ -9,6 +9,9 @@ use App\User;
 use App\UserConnections;
 use App\Leaderboard;
 
+use App\Helpers\Push;
+use App\PushTypes;
+
 class ChatController extends Controller
 {
 
@@ -55,21 +58,31 @@ class ChatController extends Controller
     public function sendMessage(Request $request)
     {
         $sender_id = \Auth::user()->id;
-        $connection_id = $request->user_id;
+        $user_id = $request->user_id;
         $message = $request->message;
-        $chat_id = $this->getChatid($connection_id);
+        
+        $chat_id = $this->getChatid($user_id);
+        
         $chat_id = ChatMessages::create([
             'user_id' => $sender_id,
             'read_flag' => FALSE,
             'message' => $message,
             'chat_id' => $chat_id
         ])->id;
+
         $chatResponse = ChatMessages::where('id', $chat_id)
                                     ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
                     ->first(); 
 
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
+
+        $pushOpponentUser = User::get($sender_id);
+
+        $pushMessage = 'You received new message from '.$pushOpponentUser->first_name.' '.$pushOpponentUser->last_name;
+
+        Push::send($user_id, PushTypes::CHAT_SEND_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chatResponse]);
     }
 

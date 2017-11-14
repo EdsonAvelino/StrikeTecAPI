@@ -11,6 +11,8 @@ class PushTypes extends Model
     const BATTLE_RESEND = 2;
     const BATTLE_ACCEPT_DECLINE = 3;
     const BATTLE_CANCEL = 4;
+    
+    const CHAT_SEND_MESSAGE = 5;
 
     public $timestamps = false;
 }
