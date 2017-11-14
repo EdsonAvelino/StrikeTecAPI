@@ -310,7 +310,7 @@ class ChatController extends Controller
                     'user_follower' => (bool) $follow
                 ];
 
-                $chat[$chat_count]['msg_time'] = $chat_msg['msg_time'];
+                $chat[$chat_count]['msg_time'] = strtotime($chat_msg['msg_time']);
                 $chat[$chat_count]['lst_msg'] = $chat_msg['message'];
                 $chat[$chat_count]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
                         ->where('read_flag', 0)
