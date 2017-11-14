@@ -86,7 +86,7 @@ class BattleController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} battle_id Selected battle's id to resend invite
+     * @apiParam {Number} battle_id Selected battle's id to get details
      * @apiParamExample {json} Input
      *    {
      *      "battle_id": 1,
@@ -234,10 +234,11 @@ class BattleController extends Controller
 
         $battle = Battles::find($battleId);
 
+        $user = $battle->user;
         $opponentUser = $battle->opponentUser;
 
         // Send Push Notification
-        $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has invited you for battle';
+        $pushMessage = $user->first_name.' '.$user->last_name.' has invited you for battle';
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
 
         Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
