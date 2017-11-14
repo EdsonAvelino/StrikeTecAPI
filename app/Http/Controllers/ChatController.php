@@ -281,40 +281,44 @@ class ChatController extends Controller
         $chat_count = 0;
         $chat = array();
         foreach ($chat_list as $data) {
-            $opponent_id = ($data['user_one'] != $user_id) ? $data['user_one'] : $data['user_two'];
-
-            $user_info = User::select('id', 'first_name', 'last_name', 'photo_url')->where('id', $opponent_id)->get()->first();
-
-            $following = UserConnections::where('follow_user_id', $opponent_id)
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $opponent_id)
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $point = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
-
-            $points = (!empty($point['punches_count'])) ? $point['punches_count'] : 0;
-            $chat[$chat_count]['opponent_user'] = [
-                'id' => $user_info['id'],
-                'first_name' => $user_info['first_name'],
-                'last_name' => $user_info['last_name'],
-                'photo_url' => $user_info['photo_url'],
-                'points' => (int) $points['punches_count'],
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+            
             $chat_msg = ChatMessages::select('message', 'created_at as msg_time')
                             ->where('chat_id', $data['id'])
                             ->orderBy('chat_messages.created_at', 'desc')
                             ->offset(0)->limit(1)->get()->first();
-            $chat[$chat_count]['msg_time'] = strtotime($chat_msg['msg_time']);
-            $chat[$chat_count]['lst_msg'] = $chat_msg['message'];
-            $chat[$chat_count]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
-                    ->where('read_flag', 0)
-                    ->where('user_id', '!=', $user_id)
-                    ->count('message');
+            if($chat_msg){
+                $opponent_id = ($data['user_one'] != $user_id) ? $data['user_one'] : $data['user_two'];
 
-            $chat_count++;
+                $user_info = User::select('id', 'first_name', 'last_name', 'photo_url')->where('id', $opponent_id)->get()->first();
+
+                $following = UserConnections::where('follow_user_id', $opponent_id)
+                                ->where('user_id', \Auth::user()->id)->exists();
+
+                $follow = UserConnections::where('user_id', $opponent_id)
+                                ->where('follow_user_id', \Auth::user()->id)->exists();
+
+                $point = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
+
+                $points = (!empty($point['punches_count'])) ? $point['punches_count'] : 0;
+                $chat[$chat_count]['opponent_user'] = [
+                    'id' => $user_info['id'],
+                    'first_name' => $user_info['first_name'],
+                    'last_name' => $user_info['last_name'],
+                    'photo_url' => $user_info['photo_url'],
+                    'points' => (int) $points['punches_count'],
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ];
+
+                $chat[$chat_count]['msg_time'] = strtotime($chat_msg['msg_time']);
+                $chat[$chat_count]['lst_msg'] = $chat_msg['message'];
+                $chat[$chat_count]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
+                        ->where('read_flag', 0)
+                        ->where('user_id', '!=', $user_id)
+                        ->count('message');
+
+                $chat_count++;
+            }
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
