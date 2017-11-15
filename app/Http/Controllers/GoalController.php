@@ -11,7 +11,7 @@ class GoalController extends Controller
 
     /**
      * @api {get} /goal/add Add goal of user
-     * @apiGroup Goal
+     * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -19,15 +19,15 @@ class GoalController extends Controller
      *     }
      * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
      * @apiParam {Date} end_date   The timestamp of end date since 1970.1.1 (unit is seccond)
-     * @apiParam {Number} [activity_id] Activity id e.g. 1 = Boxing, 2 = Kickboxing
-     * @apiParam {Number} [activity_type_id] Activity Type id  Punches = 1, Workouts = 2 (type doesn’t depends on activity type)
-     * @apiParam {Number} [target] target of activity
+     * @apiParam {Number} activity_id Activity id e.g. 1 = Boxing, 2 = Kickboxing
+     * @apiParam {Number} activity_type_id Activity Type id  Punches = 1, Workouts = 2 (type doesn’t depends on activity type)
+     * @apiParam {Number} target target of activity
      * @apiParamExample {json} Input
      *    {
-     *       activity_id:1
-     *       activity_type_id:2
-     *       target:50
-     *       start_date:1505088000
+     *       activity_id:1,
+     *       activity_type_id:2,
+     *       target:50,
+     *       start_date:1505088000,
      *       end_date:1505088000
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -69,16 +69,16 @@ class GoalController extends Controller
 
     /**
      * @api {delete} /goal/{goal_id} delete goal of user
-     * @apiGroup Goal
+     * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} [goal_id] Goal id 
+     * @apiParam {Number} goal_id Goal id 
      * @apiParamExample {json} Input
      *    {
-     *       goal_id:1
+     *       goal_id:1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -110,7 +110,7 @@ class GoalController extends Controller
 
     /**
      * @api {get} /goal list of goal
-     * @apiGroup Goal
+     * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -162,18 +162,18 @@ class GoalController extends Controller
 
     /**
      * @api {post} /goal/follow follow/unfollow goal by user
-     * @apiGroup Goal
+     * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} [goal_id] Goal id 
-     * @apiParam {boolean} [follow] if follow = true, follow goal and unless,unfollow it
+     * @apiParam {Number} goal_id Goal id 
+     * @apiParam {boolean} follow if follow = true, follow goal and unless,unfollow it
      * @apiParamExample {json} Input
      *    {
      *       "goal_id": 1,
-     *       "follow": true
+     *       "follow": true,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
