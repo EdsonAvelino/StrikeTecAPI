@@ -125,11 +125,11 @@ class ChatController extends Controller
         $message_id = $request->message_id;
         $user_id = \Auth::user()->id;
 
-        $chatMessage = ChatMessages::where('id', $message_id)->where('user_id', '!=', $user_id);
+        $chatMessage = ChatMessages::where('id', $message_id)->where('user_id', '!=', $user_id)->first();
         $chatMessage->update(['read_flag' => 1]);
 
         if ($chatMessage->user_id != \Auth::user()->id) {
-            $pushOpponentUser = User::get($chatMessage->user_id);
+            $pushOpponentUser = User::get($user_id);
 
             $pushMessage = 'Read message';
 
