@@ -166,7 +166,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // upload audio
     $app->post('/combos/audio', 'BattleController@saveAudio');
-    
+
     //lis of combos with audios
     $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
 
@@ -195,6 +195,15 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Set new goal
     $app->post('/goal/add', 'GoalController@newGoal');
+
+    // follow goal
+    $app->post('/goal/follow', 'GoalController@followGoal');
+
+    // delete goal
+    $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
+
+    // GET list of goal
+    $app->get('/goal', 'GoalController@getGoalList');
 });
 
 // Feed APIs
