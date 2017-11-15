@@ -225,12 +225,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Send message
     $app->post('/chat/send', 'ChatController@sendMessage');
 
-    // read message
-    $app->post('/chat/read', 'ChatController@ReadMessage');
+    // Read message
+    $app->post('/chat/read', 'ChatController@readMessage');
 
-    // chat History
+    // Chat History
     $app->get('/chat/history', 'ChatController@chatHistory');
 
-    // all chats
+    // Get all chats
     $app->get('/chat', 'ChatController@chats');
 });

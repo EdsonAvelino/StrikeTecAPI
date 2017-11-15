@@ -16,7 +16,7 @@ class ChatController extends Controller
 {
 
     /**
-     * @api {post} /chat/send send message
+     * @api {post} /chat/send Send new message
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -87,7 +87,7 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {post} /chat/read read messages
+     * @api {post} /chat/read Read messages
      * @apiGroup Chat
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -120,22 +120,31 @@ class ChatController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function ReadMessage(Request $request)
+    public function readMessage(Request $request)
     {
         $message_id = $request->message_id;
         $user_id = \Auth::user()->id;
-        ChatMessages::where('id', $message_id)->where('user_id', '!=', $user_id)->update(['read_flag' => 1]);
+
+        $chatMessage = ChatMessages::where('id', $message_id)->where('user_id', '!=', $user_id);
+        $chatMessage->update(['read_flag' => 1]);
+
+        if ($chatMessage->user_id != \Auth::user()->id) {
+            $pushOpponentUser = User::get($chatMessage->user_id);
+
+            $pushMessage = 'Read message';
+
+            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message_id' => $message_id]);
+        }
+
         return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $message_id]]);
     }
 
     /**
-     * @api {get} /chat/history all the messages of chat 
+     * @api {get} /chat/history Get all the messages of chat
      * @apiGroup Chat
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} user_id Connection user ID
@@ -219,13 +228,11 @@ class ChatController extends Controller
     }
 
     /**
-     * @api {get} /chat all the chats 
+     * @api {get} /chat Get all the chats 
      * @apiGroup Chat
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} start Start offset

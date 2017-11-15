@@ -13,6 +13,7 @@ class PushTypes extends Model
     const BATTLE_CANCEL = 4;
     
     const CHAT_SEND_MESSAGE = 5;
+    const CHAT_READ_MESSAGE = 6;
 
     public $timestamps = false;
 }
