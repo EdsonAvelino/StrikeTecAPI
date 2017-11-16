@@ -343,4 +343,51 @@ class ChatController extends Controller
                 ])->id;
     }
 
+    /**
+     * @api {get} /chat/unread_count all unread message count 
+     * @apiGroup Chat
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":{
+     *       "unread_msg_count": 5
+     *     }
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function unreadMessageCount(Request $request)
+    {
+        $user_id = \Auth::user()->id;
+        $chat_list = Chats::select('user_one', 'user_two', 'id')
+                        ->where('user_one', $user_id)
+                        ->orwhere('user_two', $user_id)
+                        ->orderBy('created_at', 'desc')
+                        ->get()->all();
+        $total_count = 0;
+        foreach ($chat_list as $data) {
+            $chat_count = ChatMessages::where('chat_id', $data['id'])
+                    ->where('read_flag', 0)
+                    ->where('user_id', '!=', $user_id)
+                    ->count();
+
+            $total_count = $total_count + $chat_count;
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => ['unread_msg_count' => $total_count]]);
+    }
+
 }

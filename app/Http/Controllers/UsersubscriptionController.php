@@ -11,7 +11,7 @@ class UsersubscriptionController extends Controller
 
     /**
      * @api {post} /usersubscription register user subscription details
-     * @apiGroup In-app Subscription
+     * @apiGroup User Subscription
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:

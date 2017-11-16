@@ -245,6 +245,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // all chats
     $app->get('/chat', 'ChatController@chats');
+
+    // unread message count
+   $app->get('/chat/unread_count', 'ChatController@unreadMessageCount');
 });
 
 //in app subscription APIS
