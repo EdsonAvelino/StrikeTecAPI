@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\UserAppTokens;
 use App\Settings;
+use App\PushNotifications;
 
 use GuzzleHttp\Client;
 
@@ -63,16 +64,26 @@ class Push
         $body = ['to' => $token,
                     'data' => [
                         'type' => self::$typeId,
-                        'push_message' => self::$pushMessage,
-                        'opponent_user' => self::$opponentUser
+                        'data' => [
+                            'push_message' => self::$pushMessage,
+                            'opponent_user' => self::$opponentUser
+                        ]
                     ]
                 ];
-        // Add extra data if not given
+
+        // Add extra data if given
         if (sizeof(self::$extra)) {
-            $body['data'] = array_merge($body['data'], self::$extra);
+            $body['data'] = array_merge($body['data']['data'], self::$extra);
         }
         
-        \Log::info("Push: ".json_encode($body));
+        // \Log::info("Push: ".json_encode($body));
+        // Save push notification to db
+        PushNotifications::create([
+            'user_id' => self::$userId,
+            'type_id' => self::$typeId,
+            'os' => 'ANDROID',
+            'payload' => json_encode($body)
+        ]);
 
         $response = $client->request('post', '/fcm/send', [
                     'headers' => [
@@ -124,7 +135,7 @@ class Push
 
         if (!$fp) {
             // exit("Failed to connect: $err $errstr" . PHP_EOL);
-            \Log::info("Failed to connect: $err.'-'.$errstr");
+            \Log::info("Failed to connect: $token : $err => $errstr");
             
             return false;
         }
@@ -140,7 +151,14 @@ class Push
                         ]
                     ];
         
-        \Log::info("Push: ".json_encode($bodyData));
+        // \Log::info("Push: ".json_encode($bodyData));
+        // Save push notification to db
+        PushNotifications::create([
+            'user_id' => self::$userId,
+            'type_id' => self::$typeId,
+            'os' => 'IOS',
+            'payload' => json_encode($bodyData)
+        ]);
 
         $body['aps'] = ['alert' => ['body' => $bodyData, 'action-loc-key' => 'StrikeTec App']];
 
