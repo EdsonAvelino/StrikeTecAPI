@@ -196,6 +196,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Set new goal
     $app->post('/goal/add', 'GoalController@newGoal');
 
+    // edit goal
+    $app->post('/goal/edit', 'GoalController@updateGoal');
+
     // follow goal
     $app->post('/goal/follow', 'GoalController@followGoal');
 
