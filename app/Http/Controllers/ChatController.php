@@ -133,13 +133,13 @@ class ChatController extends Controller
 
             $pushMessage = 'Read message';
 
-            $chatResponse = ChatMessages::where('id', $chat_id)
+            $chatResponse = ChatMessages::where('id', $chatMessage->chat_id)
                                     ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first(); 
 
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message_id' => $message_id]);
+            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
         }
 
         return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $message_id]]);
