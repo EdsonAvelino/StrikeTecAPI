@@ -133,7 +133,7 @@ class GoalController extends Controller
         $goal->activity_type_id = ($request->get('activity_type_id')) ? $request->get('activity_type_id') : $goal->activity_type_id;
         $goal->target = ($request->get('target')) ? $request->get('target') : $goal->target;
         if ($goal->done_count > 0) {
-            return response()->json(['error' => 'false', 'message' => 'You can not edit this goal.']);
+            return response()->json(['error' => 'true', 'message' => 'You can not edit this goal.']);
         }
         Goals::where('id', $goal_id)->where('user_id', $user_id)
                 ->update([
@@ -149,11 +149,9 @@ class GoalController extends Controller
     /**
      * @api {delete} /goal/{goal_id} delete goal of user
      * @apiGroup Goals
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} goal_id Goal id 
@@ -184,7 +182,7 @@ class GoalController extends Controller
         try {
             Goals::where('user_id', $user_id)->findOrFail($id)->delete();
         } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => 'false', 'message' => 'This goal does not exist']);
+            return response()->json(['error' => 'true', 'message' => 'This goal does not exist']);
         }
         return response()->json(['error' => 'false', 'message' => 'Your goal has been deleted']);
     }
@@ -192,11 +190,9 @@ class GoalController extends Controller
     /**
      * @api {get} /goal list of goal
      * @apiGroup Goals
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiSuccess {Boolean} error Error flag 
