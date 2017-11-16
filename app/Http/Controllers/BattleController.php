@@ -9,14 +9,12 @@ use App\Combos;
 use App\ComboSets;
 use App\Workouts;
 use App\User;
-use App\UserConnections;
-use App\Leaderboard;
-
 use App\Helpers\Push;
 use App\PushTypes;
 
 class BattleController extends Controller
 {
+
     /**
      * @api {post} /battles Send battle invite
      * @apiGroup Battles
@@ -66,15 +64,15 @@ class BattleController extends Controller
         $opponentUser = $battle->opponentUser;
 
         // Send Push Notification
-        $pushMessage = \Auth::user()->first_name.' '.\Auth::user()->last_name.' has invited you for battle';
+        $pushMessage = \Auth::user()->first_name . ' ' . \Auth::user()->last_name . ' has invited you for battle';
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
 
         Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'User invited for battle successfully',
-            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                    'error' => 'false',
+                    'message' => 'User invited for battle successfully',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -142,57 +140,57 @@ class BattleController extends Controller
         $_battle = Battles::find($battleId);
 
         /*
-        $battleData = null;
+          $battleData = null;
 
-        switch ($_battle->type_id) {
-            case 3:
-                $_combo = Combos::select('*', \DB::raw('id as key_set'))->where('id', $_battle->plan_id)->first()->toArray();
+          switch ($_battle->type_id) {
+          case 3:
+          $_combo = Combos::select('*', \DB::raw('id as key_set'))->where('id', $_battle->plan_id)->first()->toArray();
 
-                $_combo['keys'] = explode('-', $_combo['key_set']);
+          $_combo['keys'] = explode('-', $_combo['key_set']);
 
-                $battleData = $_combo;
-                break;
+          $battleData = $_combo;
+          break;
 
-            case 4:
-                $comboSet = ComboSets::find($_battle->plan_id);
+          case 4:
+          $comboSet = ComboSets::find($_battle->plan_id);
 
-                $_comboSet = $comboSet->toArray();
-                $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
+          $_comboSet = $comboSet->toArray();
+          $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
 
-                $battleData = $_comboSet;
-                break;
+          $battleData = $_comboSet;
+          break;
 
-            case 5:
-                $workout = Workouts::find($_battle->plan_id);
-                $_workout = $workout->toArray();
-                $combos = [];
+          case 5:
+          $workout = Workouts::find($_battle->plan_id);
+          $_workout = $workout->toArray();
+          $combos = [];
 
-                foreach ($workout->rounds as $round) {
-                    $combos[] = $round->combos->pluck('combo_id')->toArray();
-                }
+          foreach ($workout->rounds as $round) {
+          $combos[] = $round->combos->pluck('combo_id')->toArray();
+          }
 
-                $_workout['combos'] = $combos;
+          $_workout['combos'] = $combos;
 
-                $battleData = $_workout;
-                break;
-        }
-        */
+          $battleData = $_workout;
+          break;
+          }
+         */
 
         // Opponent user is opponent of current logged in user
         $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
-        
+
         $opponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points'), \DB::raw('id as user_following'), \DB::raw('id as user_follower')])->where('id', $opponentUserId)->first();
 
         $battle = $_battle->toArray();
 
         $battle['opponent_user'] = $opponentUser->toArray();
-        
+
         // ID of user who created the battle
         $battle['sender_user_id'] = $_battle->user_id;
-        
+
         // Battle result
         $battle['battle_result'] = '';
-        
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
     }
 
@@ -238,15 +236,15 @@ class BattleController extends Controller
         $opponentUser = $battle->opponentUser;
 
         // Send Push Notification
-        $pushMessage = $user->first_name.' '.$user->last_name.' has invited you for battle';
+        $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
 
         Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'User invited for battle successfully',
-            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                    'error' => 'false',
+                    'message' => 'User invited for battle successfully',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -294,12 +292,12 @@ class BattleController extends Controller
         $opponentUser = $battle->opponentUser;
 
         // Send push notification to sender user (who created battle)
-        $pushMessage = $opponentUser->first_name.' '.$opponentUser->last_name.' has '. ($accepted ? 'accepted' : 'declined') .' battle';
-        
+        $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
+
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', $battle->opponent_user_id)->first();
 
         Push::send($battle->user_id, PushTypes::BATTLE_ACCEPT_DECLINE, $pushMessage, $pushOpponentUser);
-            
+
         if ($accepted === false) {
             $battle->delete();
         } else {
@@ -309,9 +307,9 @@ class BattleController extends Controller
         }
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
-            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                    'error' => 'false',
+                    'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -360,16 +358,16 @@ class BattleController extends Controller
         $opponentUser = $battle->opponentUser;
 
         // Send Push Notification to opponent-user of battle
-        $pushMessage = $user->first_name.' '.$user->last_name.' has cancelled battle';
+        $pushMessage = $user->first_name . ' ' . $user->last_name . ' has cancelled battle';
 
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', \Auth::user()->id)->first();
 
         Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
 
         return response()->json([
-            'error' => 'false',
-            'message' => 'Battle cancelled successfully',
-            'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                    'error' => 'false',
+                    'message' => 'Battle cancelled successfully',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
         ]);
     }
 
@@ -640,25 +638,7 @@ class BattleController extends Controller
         foreach ($battle_requests as $battle_request) {
             $data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
-            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-            $data[$i]['opponent_user'] = [
-                'id' => $battle_request['opponent_user_id'],
-                'first_name' => $battle_request['first_name'],
-                'last_name' => $battle_request['last_name'],
-                'photo_url' => $battle_request['photo_url'],
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
-
+            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
@@ -756,26 +736,7 @@ class BattleController extends Controller
             $data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
             $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
-            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-            $user = User::select('id', 'first_name', 'last_name', 'photo_url')
-                            ->where(['id' => $battle_request['opponent_user_id']])->first();
-            $data[$i]['opponent_user'] = [
-                'id' => $user['id'],
-                'first_name' => $user['first_name'],
-                'last_name' => $user['last_name'],
-                'photo_url' => $user['photo_url'],
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
@@ -878,47 +839,8 @@ class BattleController extends Controller
             if ($data['winner_user_id'] != '' and $data['winner_user_id'] != null) {
                 $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
                 $array[$i]['battle_id'] = $data['battle_id'];
-                $winner = User::select('id', 'first_name', 'last_name', 'photo_url')
-                                ->where(['id' => $data['winner_user_id']])->first();
-                $following = UserConnections::where('follow_user_id', $data['winner_user_id'])
-                                ->where('user_id', \Auth::user()->id)->exists();
-
-                $follow = UserConnections::where('user_id', $data['winner_user_id'])
-                                ->where('follow_user_id', \Auth::user()->id)->exists();
-
-                $leaderboard = Leaderboard::where('user_id', $data['winner_user_id'])->first();
-                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-                $array[$i]['winner'] = [
-                    'id' => $winner['id'],
-                    'first_name' => $winner['first_name'],
-                    'last_name' => $winner['last_name'],
-                    'photo_url' => $winner['photo_url'],
-                    'points' => (int) $points,
-                    'user_following' => (bool) $following,
-                    'user_follower' => (bool) $follow
-                ];
-
-                $loser = User::select('id', 'first_name', 'last_name', 'photo_url')
-                                ->where(['id' => $looserId])->first();
-                $following_loss = UserConnections::where('follow_user_id', $looserId)
-                                ->where('user_id', \Auth::user()->id)->exists();
-
-                $follow_loss = UserConnections::where('user_id', $looserId)
-                                ->where('follow_user_id', \Auth::user()->id)->exists();
-
-                $leaderboard = Leaderboard::where('user_id', $looserId)->first();
-                $points_loss = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-                $array[$i]['loser'] = [
-                    'id' => $loser['id'],
-                    'first_name' => $loser['first_name'],
-                    'last_name' => $loser['last_name'],
-                    'photo_url' => $loser['photo_url'],
-                    'points' => (int) $points_loss,
-                    'user_following' => (bool) $following_loss,
-                    'user_follower' => (bool) $follow_loss
-                ];
+                $array[$i]['winner'] = User::get($data['winner_user_id']);
+                $array[$i]['loser'] = User::get($looserId);
                 $i++;
             }
         }
@@ -1053,25 +975,7 @@ class BattleController extends Controller
         foreach ($battle_requests as $battle_request) {
             $data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
-            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-            $data[$i]['opponent_user'] = [
-                'id' => $battle_request['opponent_user_id'],
-                'first_name' => $battle_request['first_name'],
-                'last_name' => $battle_request['last_name'],
-                'photo_url' => $battle_request['photo_url'],
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
-
+            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
         }
         $array['received'] = $data;
@@ -1103,26 +1007,7 @@ class BattleController extends Controller
             $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
             $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
             $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
-            $following = UserConnections::where('follow_user_id', $battle_request['opponent_user_id'])
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $battle_request['opponent_user_id'])
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $leaderboard = Leaderboard::where('user_id', $battle_request['opponent_user_id'])->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-            
-            $user = User::select('id', 'first_name', 'last_name', 'photo_url')
-                            ->where(['id' => $battle_request['opponent_user_id']])->first();
-            $my_battle_data[$j]['opponent_user'] = [
-                'id' => $user['id'],
-                'first_name' => $user['first_name'],
-                'last_name' => $user['last_name'],
-                'photo_url' => $user['photo_url'],
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+            $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $j++;
         }
         $array['my_battles'] = $my_battle_data;
@@ -1142,47 +1027,8 @@ class BattleController extends Controller
             if ($data['winner_user_id'] != '' and $data['winner_user_id'] != null) {
                 $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
                 $finished[$k]['battle_id'] = $data['battle_id'];
-                $winner = User::select('id', 'first_name', 'last_name', 'photo_url')
-                                ->where(['id' => $data['winner_user_id']])->first();
-                $following = UserConnections::where('follow_user_id', $data['winner_user_id'])
-                                ->where('user_id', \Auth::user()->id)->exists();
-
-                $follow = UserConnections::where('user_id', $data['winner_user_id'])
-                                ->where('follow_user_id', \Auth::user()->id)->exists();
-
-                $leaderboard = Leaderboard::where('user_id', $data['winner_user_id'])->first();
-                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-                $finished[$k]['winner'] = [
-                    'id' => $winner['id'],
-                    'first_name' => $winner['first_name'],
-                    'last_name' => $winner['last_name'],
-                    'photo_url' => $winner['photo_url'],
-                    'points' => (int) $points,
-                    'user_following' => (bool) $following,
-                    'user_follower' => (bool) $follow
-                ];
-
-                $loser = User::select('id', 'first_name', 'last_name', 'photo_url')
-                                ->where(['id' => $looserId])->first();
-                $following_loss = UserConnections::where('follow_user_id', $looserId)
-                                ->where('user_id', \Auth::user()->id)->exists();
-
-                $follow_loss = UserConnections::where('user_id', $looserId)
-                                ->where('follow_user_id', \Auth::user()->id)->exists();
-
-                $leaderboard = Leaderboard::where('user_id', $looserId)->first();
-                $points_loss = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
-
-                $finished[$k]['loser'] = [
-                    'id' => $loser['id'],
-                    'first_name' => $loser['first_name'],
-                    'last_name' => $loser['last_name'],
-                    'photo_url' => $loser['photo_url'],
-                    'points' => (int) $points_loss,
-                    'user_following' => (bool) $following_loss,
-                    'user_follower' => (bool) $follow_loss
-                ];
+                $finished[$k]['winner'] = User::get($data['winner_user_id']);
+                $finished[$k]['loser'] = User::get($looserId);
                 $k++;
             }
         }

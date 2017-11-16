@@ -237,12 +237,24 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Send message
     $app->post('/chat/send', 'ChatController@sendMessage');
 
-    // Read message
-    $app->post('/chat/read', 'ChatController@readMessage');
+    // read message
+    $app->post('/chat/read', 'ChatController@ReadMessage');
 
-    // Chat History
+    // chat History
     $app->get('/chat/history', 'ChatController@chatHistory');
 
-    // Get all chats
+    // all chats
     $app->get('/chat', 'ChatController@chats');
+});
+
+//in app subscription APIS
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // add user subscription
+    $app->post('/usersubscription', 'UsersubscriptionController@userSubscribe');
+
+    //get user subscrioption information
+    $app->get('/getusersubscriptionstatus', 'UsersubscriptionController@getUserSubscriptionStatus');
+
+    //cancel user subscription
+    $app->post('/cancelsubscriptionapi', 'UsersubscriptionController@cancelSubscriptionAPI');
 });

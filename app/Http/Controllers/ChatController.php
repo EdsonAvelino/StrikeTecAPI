@@ -8,7 +8,6 @@ use App\ChatMessages;
 use App\User;
 use App\UserConnections;
 use App\Leaderboard;
-
 use App\Helpers\Push;
 use App\PushTypes;
 
@@ -60,26 +59,26 @@ class ChatController extends Controller
         $sender_id = \Auth::user()->id;
         $user_id = $request->user_id;
         $message = $request->message;
-        
+
         $chat_id = $this->getChatid($user_id);
-        
+
         $chat_id = ChatMessages::create([
-            'user_id' => $sender_id,
-            'read_flag' => FALSE,
-            'message' => $message,
-            'chat_id' => $chat_id
-        ])->id;
+                    'user_id' => $sender_id,
+                    'read_flag' => FALSE,
+                    'message' => $message,
+                    'chat_id' => $chat_id
+                ])->id;
 
         $chatResponse = ChatMessages::where('id', $chat_id)
-                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
-                    ->first(); 
+                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                ->first();
 
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
 
         $pushOpponentUser = User::get($sender_id);
 
-        $pushMessage = 'You received new message from '.$pushOpponentUser->first_name.' '.$pushOpponentUser->last_name;
+        $pushMessage = 'You received new message from ' . $pushOpponentUser->first_name . ' ' . $pushOpponentUser->last_name;
 
         Push::send($user_id, PushTypes::CHAT_SEND_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
 
@@ -200,15 +199,14 @@ class ChatController extends Controller
         $offset_message_id = (int) ($request->get('message_id') ? $request->get('message_id') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $connection_id = (int) $request->get('user_id');
-        $chat_id = $this->getChatid($connection_id); 
+        $chat_id = $this->getChatid($connection_id);
         $chat_detail = ChatMessages::select('chat_messages.id as message_id', 'user_id as sender_id', 'read_flag as read', 'chat_id', 'message', 'chat_messages.created_at as send_time')
                         ->join('users', 'users.id', '=', 'chat_messages.user_id')
                         ->where('chat_id', $chat_id)
-                        ->where(function($query) use ($offset_message_id)
-                        {
-                            if( $offset_message_id === -1 ) {
+                        ->where(function($query) use ($offset_message_id) {
+                            if ($offset_message_id === -1) {
                                 $query->where('chat_messages.id', '>=', $offset_message_id);
-                            }else {
+                            } else {
                                 $query->where('chat_messages.id', '<=', $offset_message_id);
                             }
                         })
@@ -301,35 +299,14 @@ class ChatController extends Controller
         $chat_count = 0;
         $chat = array();
         foreach ($chat_list as $data) {
-            
+
             $chat_msg = ChatMessages::select('message', 'created_at as msg_time')
                             ->where('chat_id', $data['id'])
                             ->orderBy('chat_messages.created_at', 'desc')
                             ->offset(0)->limit(1)->get()->first();
-            if($chat_msg){
+            if ($chat_msg) {
                 $opponent_id = ($data['user_one'] != $user_id) ? $data['user_one'] : $data['user_two'];
-
-                $user_info = User::select('id', 'first_name', 'last_name', 'photo_url')->where('id', $opponent_id)->get()->first();
-
-                $following = UserConnections::where('follow_user_id', $opponent_id)
-                                ->where('user_id', \Auth::user()->id)->exists();
-
-                $follow = UserConnections::where('user_id', $opponent_id)
-                                ->where('follow_user_id', \Auth::user()->id)->exists();
-
-                $point = Leaderboard::select('punches_count')->where('user_id', $opponent_id)->get()->first();
-
-                $points = (!empty($point['punches_count'])) ? $point['punches_count'] : 0;
-                $chat[$chat_count]['opponent_user'] = [
-                    'id' => $user_info['id'],
-                    'first_name' => $user_info['first_name'],
-                    'last_name' => $user_info['last_name'],
-                    'photo_url' => $user_info['photo_url'],
-                    'points' => (int) $points['punches_count'],
-                    'user_following' => (bool) $following,
-                    'user_follower' => (bool) $follow
-                ];
-
+                $chat[$chat_count]['opponent_user'] = User::get($opponent_id);
                 $chat[$chat_count]['msg_time'] = strtotime($chat_msg['msg_time']);
                 $chat[$chat_count]['lst_msg'] = $chat_msg['message'];
                 $chat[$chat_count]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
@@ -359,11 +336,11 @@ class ChatController extends Controller
 
         if (!empty($existing_chat_id->id)) {
             return $existing_chat_id->id;
-        } 
+        }
         return Chats::create([
-                'user_one' => $user_id,
-                'user_two' => $connection_id,
-            ])->id;
-   }
+                    'user_one' => $user_id,
+                    'user_two' => $connection_id,
+                ])->id;
+    }
 
 }
