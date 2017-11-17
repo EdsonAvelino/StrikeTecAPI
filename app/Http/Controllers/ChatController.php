@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Chats;
+use App\Chat;
 use App\ChatMessages;
 use App\User;
 use App\UserConnections;
@@ -297,7 +297,7 @@ class ChatController extends Controller
         $user_id = \Auth::user()->id;
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        $chat_list = Chats::select('user_one', 'user_two', 'id')
+        $chat_list = Chat::select('user_one', 'user_two', 'id')
                         ->where('user_one', $user_id)
                         ->orwhere('user_two', $user_id)
                         ->orderBy('created_at', 'desc')
@@ -331,7 +331,7 @@ class ChatController extends Controller
     {
         $user_id = \Auth::user()->id;
         $chat_detail = array();
-        $existing_chat_id = Chats::select('id')
+        $existing_chat_id = Chat::select('id')
                         ->where(function ($query) use ($user_id, $connection_id) {
                             $query->where('user_one', $user_id)->where('user_two', $connection_id);
                         })
@@ -343,7 +343,7 @@ class ChatController extends Controller
         if (!empty($existing_chat_id->id)) {
             return $existing_chat_id->id;
         }
-        return Chats::create([
+        return Chat::create([
                     'user_one' => $user_id,
                     'user_two' => $connection_id,
                 ])->id;
@@ -378,22 +378,14 @@ class ChatController extends Controller
      */
     public function unreadMessageCount(Request $request)
     {
-        $user_id = \Auth::user()->id;
-        $chat_list = Chats::select('user_one', 'user_two', 'id')
-                        ->where('user_one', $user_id)
-                        ->orwhere('user_two', $user_id)
-                        ->orderBy('created_at', 'desc')
-                        ->get()->all();
-        $total_count = 0;
-        foreach ($chat_list as $data) {
-            $chat_count = ChatMessages::where('chat_id', $data['id'])
-                    ->where('read_flag', 0)
-                    ->where('user_id', '!=', $user_id)
-                    ->count();
-
-            $total_count = $total_count + $chat_count;
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => ['unread_msg_count' => $total_count]]);
+        $userId = \Auth::user()->id;
+        $unreadChatCount = ChatMessages::where('read_flag', 0)
+                    ->where('user_id', '!=', $userId)->with(['chat' => function ($query) use($userId)  {
+                    $query->where('user_one', $userId)
+                     ->orwhere('user_two', $userId);
+                }])->count();
+        
+        return response()->json(['error' => 'false', 'message' => '', 'data' => ['unread_msg_count' => $unreadChatCount]]);
     }
 
 }

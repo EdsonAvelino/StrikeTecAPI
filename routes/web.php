@@ -255,11 +255,11 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 //in app subscription APIS
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // add user subscription
-    $app->post('/usersubscription', 'UsersubscriptionController@userSubscribe');
+     $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
 
     //get user subscrioption information
-    $app->get('/getusersubscriptionstatus', 'UsersubscriptionController@getUserSubscriptionStatus');
+    $app->get('/user/subscription', 'UsersubscriptionController@getUserSubscriptionStatus');
 
     //cancel user subscription
-    $app->post('/cancelsubscriptionapi', 'UsersubscriptionController@cancelSubscriptionAPI');
+    $app->post('/cancel/subscription', 'UsersubscriptionController@cancelSubscription');
 });

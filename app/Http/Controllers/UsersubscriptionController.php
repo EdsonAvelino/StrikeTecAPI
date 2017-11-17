@@ -10,7 +10,7 @@ class UsersubscriptionController extends Controller
 {
 
     /**
-     * @api {post} /usersubscription register user subscription details
+     * @api {post} /user/subscribe register user subscription details
      * @apiGroup User Subscription
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -77,84 +77,84 @@ class UsersubscriptionController extends Controller
      */
     public function userSubscribe(Request $request)
     {
-        $user_id = $request->user_id;
-        $subscription_id = $request->subscription_id;
-        $order_id = $request->order_id;
-        $purchase_token = $request->purchase_token;
-        $purchase_time = $request->purchase_time;
-        $is_auto_renewing = $request->is_auto_renewing;
+        $userID = \Auth::user()->id;
+        $subscriptionID = $request->subscription_id;
+        $orderID = $request->order_id;
+        $purchaseToken = $request->purchase_token;
+        $purchaseTime = $request->purchase_time;
+        $isAutoRenewing = $request->is_auto_renewing;
 
 
         //find the left battles,tournaments,tutorials of user
         try {
-            $current_subscription = Subscriptions::where('id', $subscription_id)
-                    ->first();
+            $currentSubscription = Subscriptions::where('id', $subscriptionID)
+                                            ->first();
 
-            if ($current_subscription->duration == 'until exhausted') {
-                $battels_expiry_date = ' Battels remaining';
-                $tutorials_expiry_date = ' Tutorials remaining';
-                $tournament_expiry_date = ' Tournaments remaining';
-                $expiry_date = $current_subscription->duration;
+            if ($currentSubscription->duration == 'until exhausted') {
+                $battelsExpiryDate = ' Battels remaining';
+                $tutorialsExpiryDate = ' Tutorials remaining';
+                $tournamentExpiryDate = ' Tournaments remaining';
+                $expiryDate = $currentSubscription->duration;
             } else {
-                $expiry_date = date('Y-m-d', strtotime("+30 days"));
-                $battels_expiry_date = ' Battles remaining untill ' . date('M jS,Y', strtotime($expiry_date));
-                $tutorials_expiry_date = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($expiry_date));
-                $tournament_expiry_date = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($expiry_date));
+                $expiryDate = date('Y-m-d', strtotime("+30 days"));
+                $battelsExpiryDate = ' Battles remaining untill ' . date('M jS,Y', strtotime($expiryDate));
+                $tutorialsExpiryDate = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($expiryDate));
+                $tournamentExpiryDate = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($expiryDate));
             }
 
-            $exist_user_data = UserSubscriptions::where('is_cancelled', '=', 0)
-                    ->where('user_id', '=', $user_id)
+            $existUserData = UserSubscriptions::where('is_cancelled', '=', 0)
+                    ->where('user_id', '=', $userID)
                     ->select('id', 'subscription_id', 'user_id', 'id', 'battle_left', 'tutorial_left', 'tournament_left', 'expiry_date')
                     ->first();
 
             /* If user data already exist */
-            if (isset($exist_user_data)) {
-                $old_subs_id = $exist_user_data->id;
-                $package_id = $exist_user_data->subscription_id;
-                $battle_left = $current_subscription->battles + $exist_user_data->battle_left;
-                $tutorial_left = $current_subscription->tutorials + $exist_user_data->tutorial_left;
-                $tournament_left = $current_subscription->tournaments + $exist_user_data->tournament_left;
+            if (isset($existUserData)) {
+                $oldSubsId = $existUserData->id;
+                $packageID = $existUserData->subscription_id;
+                $battleLeft = $currentSubscription->battles + $existUserData->battle_left;
+                $tutorialLeft = $currentSubscription->tutorials + $existUserData->tutorial_left;
+                $tournamentLeft = $currentSubscription->tournaments + $existUserData->tournament_left;
 
-                UserSubscriptions::where('id', $old_subs_id)->update(
+                UserSubscriptions::where('id', $oldSubsId)->update(
                         ['is_cancelled' => 1]
                 );
             } else {
-                $battle_left = $current_subscription->battles;
-                $tutorial_left = $current_subscription->tutorials;
-                $tournament_left = $current_subscription->tournaments;
+                $battleLeft = $currentSubscription->battles;
+                $tutorialLeft = $currentSubscription->tutorials;
+                $tournamentLeft = $currentSubscription->tournaments;
             }
 
-            $user_subscription_id = UserSubscriptions::create([
-                        'user_id' => $user_id,
-                        'order_id' => $order_id,
-                        'purchase_token' => $purchase_token,
-                        'purchase_time' => $purchase_time,
-                        'is_auto_renewing' => $is_auto_renewing,
-                        'subscription_id' => $subscription_id,
-                        'battle_left' => $battle_left,
-                        'tutorial_left' => $tutorial_left,
-                        'tournament_left' => $tournament_left,
-                        'expiry_date' => $expiry_date,
+            $userSubscriptionID = UserSubscriptions::create([
+                        'user_id' => $userID,
+                        'order_id' => $orderID,
+                        'purchase_token' => $purchaseToken,
+                        'purchase_time' => $purchaseTime,
+                        'is_auto_renewing' => $isAutoRenewing,
+                        'subscription_id' => $subscriptionID,
+                        'battle_left' => $battleLeft,
+                        'tutorial_left' => $tutorialLeft,
+                        'tournament_left' => $tournamentLeft,
+                        'expiry_date' => $expiryDate,
                         'is_cancelled' => 0,
             ]);
 
-            $exist_user_data = UserSubscriptions::where('id', $user_subscription_id->id)
+            $existUserData = UserSubscriptions::where('id', $userSubscriptionID->id)
                     ->select('id', 'subscription_id', 'user_id', 'id', 'battle_left', 'tutorial_left', 'tournament_left', 'expiry_date')
                     ->first();
 
-            $user_subscriptions = [
-                'user_subscription_id' => $user_subscription_id->id,
-                'battles' => 'You have ' . $battle_left . $battels_expiry_date,
-                'tutorials' => 'You have ' . $tutorial_left . $tutorials_expiry_date,
-                'tournaments' => 'You have ' . $tournament_left . $tournament_expiry_date,
-                'purchase_token' => $purchase_token,
-                'expiry_date' => $expiry_date,
+            $userSubscriptions = [
+                'user_subscription_id' => $userSubscriptionID->id,
+                'battles' => 'You have ' . $battleLeft . $battelsExpiryDate,
+                'tutorials' => 'You have ' . $tutorialLeft . $tutorialsExpiryDate,
+                'tournaments' => 'You have ' . $tournamentLeft . $tournamentExpiryDate,
+                'purchase_token' => $purchaseToken,
+                'expiry_date' => $expiryDate,
                 'is_cancelled' => false,
             ];
 
             $data = [
-                'subscription' => $current_subscription,
-                'user_subscription' => $user_subscriptions
+                'subscription' => $currentSubscription,
+                'user_subscription' => $userSubscriptions
             ];
             return response()->json([
                         'code' => '200',
@@ -170,7 +170,7 @@ class UsersubscriptionController extends Controller
     }
 
     /**
-     * @api {get} /getusersubscriptionstatus user subscription list
+     * @api {get} /user/subscription user subscription status
      * @apiGroup User Subscription
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -178,11 +178,6 @@ class UsersubscriptionController extends Controller
      *     {
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} user_subscription_id subscription id of user
-     * @apiParamExample {json} Input
-     *    {
-     *      "user_subscription_id": 1,
      *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -228,39 +223,40 @@ class UsersubscriptionController extends Controller
      */
     public function getUserSubscriptionStatus(Request $request)
     {
-        $user_subscription_id = $request->user_subscription_id;
+        $userID = \Auth::user()->id;
         try {
-            $user_subscription = UserSubscriptions::where('id', $user_subscription_id)
-                    ->where('is_cancelled', 0)
-                    ->first();
-            $current_subscription = Subscriptions::where('id', $user_subscription->subscription_id)
-                    ->first();
+            $userSubscription = UserSubscriptions::where('user_id', $userID)
+                                                ->where('is_cancelled', 0)
+                                                ->first();
+            
             // if does not have get any value then null array will be return
-            if (!$user_subscription) {
-                $user_subscription = [];
-                $current_subscription = [];
+            if (!$userSubscription) {
+                $userSubscriptions = null;
+                $currentSubscription = null;
             } else {
-                if ($user_subscription->expiry_date == 'until exhausted') {
-                    $battels_expiry_date = ' Battels remaining';
-                    $tutorials_expiry_date = ' Tutorials remaining';
-                    $tournament_expiry_date = ' Tournaments remaining';
+                $currentSubscription = Subscriptions::where('id', $userSubscription->subscription_id)
+                                                     ->first();
+                if ($userSubscription->expiry_date == 'until exhausted') {
+                    $battelsExpiryDate = ' Battels remaining';
+                    $tutorialsExpiryDate = ' Tutorials remaining';
+                    $tournamentExpiryDate = ' Tournaments remaining';
                 } else {
-                    $battels_expiry_date = ' Battles remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
-                    $tutorials_expiry_date = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
-                    $tournament_expiry_date = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
+                    $battelsExpiryDate = ' Battles remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
+                    $tutorialsExpiryDate = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
+                    $tournamentExpiryDate = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
                 }
-                $user_subscriptions = [
-                    'battles' => 'You have ' . $user_subscription->battle_left . $battels_expiry_date,
-                    'tutorials' => 'You have ' . $user_subscription->tutorial_left . $tutorials_expiry_date,
-                    'tournaments' => 'You have ' . $user_subscription->tournament_left . $tournament_expiry_date,
-                    'purchase_token' => $user_subscription->purchase_token,
-                    'expiry_date' => $user_subscription->expiry_date,
-                    'is_cancelled' => (bool) $user_subscription->is_cancelled,
+                $userSubscriptions = [
+                    'battles' => 'You have ' . $userSubscription->battle_left . $battelsExpiryDate,
+                    'tutorials' => 'You have ' . $userSubscription->tutorial_left . $tutorialsExpiryDate,
+                    'tournaments' => 'You have ' . $userSubscription->tournament_left . $tournamentExpiryDate,
+                    'purchase_token' => $userSubscription->purchase_token,
+                    'expiry_date' => $userSubscription->expiry_date,
+                    'is_cancelled' => (bool) $userSubscription->is_cancelled,
                 ];
             }
             $data = [
-                'subscription' => $current_subscription,
-                'user_subscription' => $user_subscriptions
+                'subscription' => $currentSubscription,
+                'user_subscription' => $userSubscriptions
             ];
             return response()->json([
                         'code' => '200',
@@ -276,7 +272,7 @@ class UsersubscriptionController extends Controller
     }
 
     /**
-     * @api {post} cancelsubscriptionapi cancel subscription for user
+     * @api {post} /cancel/subscription cancel subscription for user
      * @apiGroup User Subscription
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -285,10 +281,6 @@ class UsersubscriptionController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParamExample {json} Input
-     *    {
-     *      "user_subscription_id": "1",
-     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data List of Subscription
@@ -314,12 +306,12 @@ class UsersubscriptionController extends Controller
      *          "modified_at": "0000-00-00 00:00:00"
      *          },
      *      "user_subscription": {
-     *          "battles": "You have 2 Battles remaining untill Dec 16th,2017",
-     *          "tutorials": "You have 5 Tutorials remaining untill Dec 16th,2017",
-     *          "tournaments": "You have 2 Tournaments remaining untill Dec 16th,2017",
+     *          "battles": "You had 2 Battles remaining untill Dec 16th,2017",
+     *          "tutorials": "You had 5 Tutorials remaining untill Dec 16th,2017",
+     *          "tournaments": "You had 2 Tournaments remaining untill Dec 16th,2017",
      *          "purchase_token": "token_1234",
      *          "expiry_date": "2017-12-16",
-     *          "is_cancelled": false
+     *          "is_cancelled": true
      *           }
      *        }
      *   }
@@ -331,52 +323,52 @@ class UsersubscriptionController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function cancelSubscriptionAPI(Request $request)
+    public function cancelSubscription(Request $request)
     {
-        $user_subscription_id = $request->user_subscription_id;
+        $userID = \Auth::user()->id;
         try {
-            $user_subscription = UserSubscriptions::where('id', $user_subscription_id)
-                    ->where('is_cancelled', 0)
-                    ->first();
+            $userSubscription = UserSubscriptions::where('user_id', $userID)
+                                                ->where('is_cancelled', 0)
+                                                ->first();
 
             // if does not have get any value then null array will be return
-            if (!$user_subscription) {
-                $user_subscription = [];
+            if (!$userSubscription) {
+                $userSubscription = null;
 
                 //if user does not have data so subcription id also we cant get so this array is null
-                $current_subscription = [];
+                $currentSubscription = null;
             } else {
 
                 /* update is cancelled column in user subscription */
-                UserSubscriptions::where('id', $user_subscription_id)
+                UserSubscriptions::where('user_id', $userID)
                         ->where('is_cancelled', 0)
                         ->update(['is_cancelled' => 1]);
 
-                $current_subscription = Subscriptions::where('id', $user_subscription->subscription_id)
+                $currentSubscription = Subscriptions::where('id', $userSubscription->subscription_id)
                         ->first();
 
-                if ($user_subscription->expiry_date == 'until exhausted') {
-                    $battels_expiry_date = ' Battels remaining';
-                    $tutorials_expiry_date = ' Tutorials remaining';
-                    $tournament_expiry_date = ' Tournaments remaining';
+                if ($userSubscription->expiry_date == 'until exhausted') {
+                    $battelsExpiryDate = ' Battels remaining';
+                    $tutorialsExpiryDate = ' Tutorials remaining';
+                    $tournamentExpiryDate = ' Tournaments remaining';
                 } else {
-                    $battels_expiry_date = ' Battles remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
-                    $tutorials_expiry_date = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
-                    $tournament_expiry_date = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($user_subscription->expiry_date));
+                    $battelsExpiryDate = ' Battles remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
+                    $tutorialsExpiryDate = ' Tutorials remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
+                    $tournamentExpiryDate = ' Tournaments remaining untill ' . date('M jS,Y', strtotime($userSubscription->expiry_date));
                 }
 
-                $user_subscription = [
-                    'battles' => 'You had ' . $user_subscription->battle_left . $battels_expiry_date,
-                    'tutorials' => 'You had ' . $user_subscription->tutorial_left . $tutorials_expiry_date,
-                    'tournaments' => 'You had ' . $user_subscription->tournament_left . $tournament_expiry_date,
-                    'purchase_token' => $user_subscription->purchase_token,
-                    'expiry_date' => $user_subscription->expiry_date,
+                $userSubscription = [
+                    'battles' => 'You had ' . $userSubscription->battle_left . $battelsExpiryDate,
+                    'tutorials' => 'You had ' . $userSubscription->tutorial_left . $tutorialsExpiryDate,
+                    'tournaments' => 'You had ' . $userSubscription->tournament_left . $tournamentExpiryDate,
+                    'purchase_token' => $userSubscription->purchase_token,
+                    'expiry_date' => $userSubscription->expiry_date,
                     'is_cancelled' => (bool) 1,
                 ];
             }
             $data = [
-                'subscription' => $current_subscription,
-                'user_subscription' => $user_subscription
+                'subscription' => $currentSubscription,
+                'user_subscription' => $userSubscription
             ];
             return response()->json([
                         'code' => '200',
