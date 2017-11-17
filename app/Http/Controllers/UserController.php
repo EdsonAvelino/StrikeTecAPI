@@ -1226,7 +1226,41 @@ class UserController extends Controller
     public function getFaqs()
     {
         $faq = Faqs::select('id', 'question', 'answer')->get();
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $faq]);
     }
 
+    /**
+     * @api {get} /user/unread_counts Get unread counts of notif and chats
+     * @apiGroup Users
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} Data List of count of unread notifications & chats
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *  {
+     *     "error": "false",
+     *     "message": "",
+     *     "data": [
+     *         {
+     *              "notif_count" : 2,
+     *              "chat_count" : 5,
+     *         }
+     *     ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUnreadCounts()
+    {
+        // TODO
+        $unreadCounts = [];
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
+    }
 }

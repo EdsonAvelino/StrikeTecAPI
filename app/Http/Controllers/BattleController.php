@@ -10,7 +10,7 @@ use App\ComboSets;
 use App\Workouts;
 use App\User;
 use App\Helpers\Push;
-use App\PushTypes;
+use App\Helpers\PushTypes;
 
 class BattleController extends Controller
 {
@@ -296,8 +296,10 @@ class BattleController extends Controller
 
         $pushOpponentUser = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')])->where('id', $battle->opponent_user_id)->first();
 
-        Push::send($battle->user_id, PushTypes::BATTLE_ACCEPT_DECLINE, $pushMessage, $pushOpponentUser);
+        $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
 
+        Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
+            
         if ($accepted === false) {
             $battle->delete();
         } else {

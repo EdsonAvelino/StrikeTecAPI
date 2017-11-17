@@ -9,7 +9,7 @@ use App\User;
 use App\UserConnections;
 use App\Leaderboard;
 use App\Helpers\Push;
-use App\PushTypes;
+use App\Helpers\PushTypes;
 
 class ChatController extends Controller
 {
@@ -132,7 +132,13 @@ class ChatController extends Controller
 
             $pushMessage = 'Read message';
 
-            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message_id' => $message_id]);
+            $chatResponse = ChatMessages::where('id', $message_id)
+                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first(); 
+
+            $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+            $chatResponse->send_time = strtotime($chatResponse->send_time);
+
+            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
         }
 
         return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $message_id]]);
