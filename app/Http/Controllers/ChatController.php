@@ -133,7 +133,7 @@ class ChatController extends Controller
 
             $pushMessage = 'Read message';
 
-            $chatResponse = ChatMessages::where('id', $chatMessage->chat_id)
+            $chatResponse = ChatMessages::where('id', $message_id)
                                     ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first(); 
 
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
