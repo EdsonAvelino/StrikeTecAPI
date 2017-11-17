@@ -64,7 +64,7 @@ class Push
         $body = ['to' => $token,
                     'data' => [
                         'type' => self::$typeId,
-                        'data' => [
+                        'body' => [
                             'push_message' => self::$pushMessage,
                             'opponent_user' => self::$opponentUser
                         ]
@@ -73,7 +73,7 @@ class Push
 
         // Add extra data if given
         if (sizeof(self::$extra)) {
-            $body['data'] = array_merge($body['data']['data'], self::$extra);
+            $body['data']['body'] = array_merge($body['data']['body'], self::$extra);
         }
         
         // \Log::info("Push: ".json_encode($body));
