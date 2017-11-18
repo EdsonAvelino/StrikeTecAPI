@@ -3,7 +3,7 @@
 Route::group([
     'prefix'     => '',
     'as'         => 'videos.',
-    'namespace'  => 'videos',
+    'namespace'  => 'Videos',
 ], function () {
     
     /* Start video route */
