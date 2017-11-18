@@ -23,17 +23,17 @@ class VideosCategoryController extends Controller
     }
     /* create view for new category */
     public function create(){
-        return view('backend.videos.category.create');
+        return view('backend.Videos.Category.create');
     }
     /* Listing of all the categories for videos */
     public function listing(){
         $video_cat  = $this->video_cat->listing();
-        return view('backend.videos.Category.listing',['category' => $video_cat]);
+        return view('backend.Videos.Category.listing',['category' => $video_cat]);
     }
     /* edit view for category edit */
     public function edit($id){
         $video_cat = $this->video_cat->edit($id);
-        return view('backend.videos.category.create',['cat_id' => $id , 'cat_name' => $video_cat]);
+        return view('backend.Videos.Category.create',['cat_id' => $id , 'cat_name' => $video_cat]);
     }
     /* deleting a category */
     public function delete(Request $request,$id){
