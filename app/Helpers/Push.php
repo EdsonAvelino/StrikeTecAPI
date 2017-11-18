@@ -142,28 +142,26 @@ class Push
 
         // echo 'Connected to APNS' . PHP_EOL;
 
-        // Create the payload body
-        $bodyData = ['to' => $token,
-                        'type' => self::$typeId,
-                        'push_message' => self::$pushMessage,
-                        'data' => [
-                            'opponent_user' => self::$opponentUser
-                        ]
-                    ];
-        
-        // \Log::info("Push: ".json_encode($bodyData));
+        $body['aps'] = ['alert' => ['body' => self::$pushMessage]];
+    
+        $body['type'] = self::$typeId;
+        $body['data'] = ['opponent_user' => self::$opponentUser];
+
+        // Add extra data if given
+        if (sizeof(self::$extra)) {
+            $body['data'] = array_merge($body['data'], self::$extra);
+        }
+
+        // Encode the payload as JSON
+        $payload = json_encode($body);
+
         // Save push notification to db
         PushNotifications::create([
             'user_id' => self::$userId,
             'type_id' => self::$typeId,
             'os' => 'IOS',
-            'payload' => json_encode($bodyData)
+            'payload' => $payload
         ]);
-
-        $body['aps'] = ['alert' => ['body' => $bodyData, 'action-loc-key' => 'StrikeTec App']];
-
-        // Encode the payload as JSON
-        $payload = json_encode($body);
 
         // Build the binary notification
         $msg = chr(0) . pack('n', 32) . pack('H*', $deviceToken) . pack('n', strlen($payload)) . $payload;
