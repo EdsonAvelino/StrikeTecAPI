@@ -30,10 +30,10 @@ class SubcriptionController extends Controller
     {
         if (isset($id)) {   
             $subscriptionDetail = $this->subscriptionRepo->getDetails($id);
-            return view('backend.subscription.editsubs', ['subscriptionDetail' => $subscriptionDetail]);
+            return view('backend.Subscription.editsubs', ['subscriptionDetail' => $subscriptionDetail]);
         } else {
             $subscriptionDetail = $this->subscriptionRepo->getNewObject();
-            return view('backend.subscription.addsubs', ['subscriptionDetail' => $subscriptionDetail]);
+            return view('backend.Subscription.addsubs', ['subscriptionDetail' => $subscriptionDetail]);
         }
     }
 
@@ -47,10 +47,10 @@ class SubcriptionController extends Controller
     {
         if(isset($id)) {
             $subscriptionLists = $this->subscriptionRepo->getDetailsBehalfCategory($id);
-            return view('backend.subscription.listsubscriptions', ['subscriptionLists' => $subscriptionLists]);
+            return view('backend.Subscription.listsubscriptions', ['subscriptionLists' => $subscriptionLists]);
         }
         $subscriptionLists = $this->subscriptionRepo->listing();
-        return view('backend.subscription.listsubscriptions', ['subscriptionLists' => $subscriptionLists]);
+        return view('backend.Subscription.listsubscriptions', ['subscriptionLists' => $subscriptionLists]);
     }
 
     /**
@@ -58,7 +58,7 @@ class SubcriptionController extends Controller
      * 
      * @param object $request data of subscription details
      * @return NULL
-     */
+    */
     public function registerSubcription(SubscriptionRequest $request)
     {
 

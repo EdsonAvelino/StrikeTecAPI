@@ -15,7 +15,7 @@ class Session extends Model
      *
      * @var string
      */
-    protected $table = 'session';
+    protected $table = 'admin_session';
 
     /**
      * @var array

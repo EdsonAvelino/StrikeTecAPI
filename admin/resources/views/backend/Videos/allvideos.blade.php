@@ -60,7 +60,7 @@
                                 {{$video->author_name}}
                             </td>
                             <td>
-                                <a href="{{ url('admin/video/edit/'.$video->id) }}">
+                                <a href="{{ url('admin/video/'.$video->id) }}">
                                     <i class="fa fa-pencil" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"></i>
                                 </a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                 <a href="#" class='btn btn-xs btn-danger' onclick="delvideoConfirm({{$video->id}})">
@@ -118,7 +118,7 @@
             },
             function(isConfirm){
                 if (isConfirm) {   
-                    window.location.href = "{{url('admin/video/delete')}}/"+id;
+                    window.location.href = "{{url('admin/delete')}}/"+id;
                 } else {
                     swal("Cancelled", "Your video details is safe :)", "error");
                 }

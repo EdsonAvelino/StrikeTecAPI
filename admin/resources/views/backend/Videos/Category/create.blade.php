@@ -14,9 +14,9 @@
 
 @section('content')
     @if(isset($cat_id))
-        {{ Form::open(['url' => 'admin/videos/category/update/'.$cat_id, 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
+        {{ Form::open(['url' => 'admin/category/update/'.$cat_id, 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
      @else
-        {{ Form::open(['url' => 'admin/videos/category/save/', 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
+        {{ Form::open(['url' => 'admin/category/save/', 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
     @endif
    
         <div class="box box-success">

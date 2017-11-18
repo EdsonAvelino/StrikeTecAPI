@@ -43,7 +43,7 @@
                                 {{$cat->name}}
                             </td>
                             <td>
-                                <a href="{{ url('admin/videos/category/edit/'.$cat->id) }}">
+                                <a href="{{ url('admin/category/edit/'.$cat->id) }}">
                                     <i class="fa fa-pencil" data-toggle="tooltip" data-placement="top" title="" data-original-title="Edit"></i>
                                 </a>&nbsp;&nbsp;&nbsp;&nbsp;
                                 <a href="#" class='btn btn-xs btn-danger' onclick="delcatConfirm({{$cat->id}})">
@@ -93,7 +93,7 @@
             },
             function(isConfirm){
                 if (isConfirm) {   
-                   window.location.href="{{url('admin/videos/category/delete')}}/"+id;
+                   window.location.href="{{url('admin/category/delete')}}/"+id;
                 } else {
                     swal("Cancelled", "Your subscription details is safe :)", "error");
                 }

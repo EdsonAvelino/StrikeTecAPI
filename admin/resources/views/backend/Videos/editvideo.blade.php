@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-              {{ Form::open(['url' => 'admin/video/update/'.$video->id, 'files'=>true ,'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
+              {{ Form::open(['url' => 'admin/update/'.$video->id, 'files'=>true ,'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
                 
         <div class="box box-success">
             <div class="box-header with-border">

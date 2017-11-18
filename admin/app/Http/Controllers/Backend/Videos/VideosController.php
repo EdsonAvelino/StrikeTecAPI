@@ -25,16 +25,21 @@ class VideosController extends Controller
     
     
    /* Uploading a new video UI */
-    public function upload(){
+    public function upload($id = null){  
+        if($id) {
+            $video = $this->video->edit($id);
+            $video_cat  = $this->video->catlisting();
+            return view('backend.Videos.editvideo',['video' => $video['video'],'category' => $video_cat, 'selected_cat' => $video['video_cat']]);
+        }   
         $video_cat  = $this->video->catlisting();
         return view('backend.Videos.uploadvideo',['category' => $video_cat]);    
     }
     
     
     /* Listing of all the uploaded videos */
-    public function listing(){ 
+    public function listing(){  
        $videos = $this->video->listing();
-       return view('backend.Videos.allvideos',['videos' => $videos]);
+       return view('backend.Videos.allvideos', ['videos' => $videos]);
     }
     
     /**
@@ -47,21 +52,21 @@ class VideosController extends Controller
         $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
         $this->video->save($request, $video_duration);
         $request->session()->flash('Status','Saved successfully!');
-        return redirect('admin/videos/listing');
+        return redirect()->route('admin.videos.list'); 
      }
      
     /* edit view for video */
-    public function edit($id){
+    /*public function edit($id){
         $video = $this->video->edit($id);
         $video_cat  = $this->video->catlisting();
         return view('backend.Videos.editvideo',['video' => $video['video'],'category' => $video_cat, 'selected_cat' => $video['video_cat']]);
-    }
+    }*/
     
     /* deleting a category */
     public function delete(Request $request,$id){
         if($this->video->delete($id)){
             $request->session()->flash('Status','Video deleted successfully!');
-            return redirect('admin/videos/listing');
+            return redirect()->route('admin.videos.list'); 
         }
     }
     
@@ -76,7 +81,7 @@ class VideosController extends Controller
         $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
         if($this->video->update($request, $id, $video_duration)){
             $request->session()->flash('Status','Video updated successfully!');
-            return redirect('admin/videos/listing');
+            return redirect()->route('admin.videos.list'); 
         }
     }
     
