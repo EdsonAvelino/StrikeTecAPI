@@ -7,6 +7,11 @@ use App\Sessions;
 use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\Leaderboard;
+use App\Battles;
+use App\User;
+
+use App\Helpers\Push;
+use App\Helpers\PushTypes;
 
 class TrainingController extends Controller
 {
@@ -268,8 +273,7 @@ class TrainingController extends Controller
     public function storeSessions(Request $request)
     {
         $data = $request->get('data');
-        $sessions = []; // will use for response
-        $_sessions = []; // will use for calculations
+        $sessions = []; // Will be use for response
 
         try {
             foreach ($data as $session) {
@@ -291,6 +295,33 @@ class TrainingController extends Controller
                 $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
                 $sessions[] = ['start_time' => $_session->start_time];
+
+                // Update battle details, if any
+                if ($_session->battle_id) {
+                    $battle = Battles::where('id', $_session->battle_id)->first();
+
+                    if (\Auth::user()->id == $battle->user_id) {
+                        $battle->user_finished = 1;
+                        $battle->user_finished_at = date('Y-m-d H:i:s');
+                        
+                        $pushToUserId = $battle->opponent_user_id;
+                        $pushOpponentUserId = $battle->user_id;
+                    } else if (\Auth::user()->id == $battle->opponent_user_id) {
+                        $battle->opponent_finished = 1;
+                        $battle->opponent_finished_at = date('Y-m-d H:i:s');
+                        
+                        $pushToUserId = $battle->user_id;
+                        $pushOpponentUserId = $battle->opponent_user_id;
+                    }
+                    
+                    // TODO Push to opponent, about battle is finished by current user
+                    $pushMessage = 'User has finished battle';
+                    $pushOpponentUser = User::get($pushOpponentUserId);
+
+                    Push::send($pushToUserId, PushTypes::BATTLE_FINISHED, $pushMessage, $pushOpponentUser);
+
+                    $battle->update();
+                }
             }
 
             // User's total sessions count

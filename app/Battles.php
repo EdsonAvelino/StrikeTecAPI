@@ -28,4 +28,15 @@ class Battles extends Model
     {
         return $this->hasOne('App\User', 'id', 'opponent_user_id');
     }
+
+    public static function getResult($battleId)
+    {
+        $battle = self::find($battleId);
+
+        if (!$battle) return null;
+
+        // TODO get battle-results
+
+        return true;
+    }
 }

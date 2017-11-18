@@ -13,4 +13,6 @@ class PushTypes
     
     const CHAT_SEND_MESSAGE = 6;
     const CHAT_READ_MESSAGE = 7;
+
+    const BATTLE_FINISHED = 8;
 }
