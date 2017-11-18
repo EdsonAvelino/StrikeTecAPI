@@ -38,15 +38,16 @@ Route::group(['namespace' => 'Backend', 'prefix' => 'admin', 'as' => 'admin.', '
     includeRouteFiles(__DIR__.'/Backend/');
 });
 
-Route::get('admin/video/edit/{id?}', ['uses' => 'Backend\Videos\VideosController@edit']);
-Route::get('admin/video/delete/{id}', ['uses' => 'Backend\Videos\VideosController@delete']);
-Route::post('admin/video/update/{id}', ['uses' => 'Backend\Videos\VideosController@update']);
+//Route::get('admin/video/edit/{id?}', ['uses' => 'Backend\Videos\VideosController@edit']);
+//Route::get('admin/video/delete/{id}', ['uses' => 'Backend\Videos\VideosController@delete']);
+//Route::post('admin/video/update/{id}', ['uses' => 'Backend\Videos\VideosController@update']);
 
 
 /* Start Subscription route */
 Route::post('registersubscription', 'Backend\Subscriptionplan\SubcriptionController@registerSubcription')->name('register.subs');
 Route::post('editsubscription', 'Backend\Subscriptionplan\SubcriptionController@editSubcription')->name('edit.subs');
 Route::get('subscription/{id?}', 'Backend\Subscriptionplan\SubcriptionController@deleteSubcription')->name('delete.subs');
+
 
 Route::get('/home', 'HomeController@index')->name('home');
 

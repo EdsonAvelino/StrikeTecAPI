@@ -7,7 +7,7 @@
 @endsection
 
 @section('content')
-      {!! Form::open(array('url' => 'admin/videos/save','files'=>true)) !!}
+      {!! Form::open(array('url' => 'admin/save','files'=>true)) !!}
                 
         <div class="box box-success">
             <div class="box-header with-border">
@@ -64,7 +64,7 @@
         <div class="box box-info">
             <div class="box-body">
                 <div class="pull-left">
-                    <a class="btn btn-danger btn-xs" href="{{{ URL::route('admin.videos.category.create') }}}">{{trans('buttons.general.cancel')}}</a>
+                    <a class="btn btn-danger btn-xs" href="{{{ route('admin.videos.list') }}}">{{trans('buttons.general.cancel')}}</a>
              
                 </div><!--pull-left-->
 

@@ -7,12 +7,12 @@
  */
 
 Route::group([
-    'prefix'     => 'subscriptionplan',
+    'prefix'     => '',
     'as'         => 'subscriptionplan.',
     'namespace'  => 'Subscriptionplan',
 ], function(){
     
     Route::get('addsubscription/{id?}', 'SubcriptionController@addSubcriptionUI')->name('add');
-    Route::get('listsubscriptions', 'SubcriptionController@listSubcriptionUI')->name('list.subs');
+    Route::get('subscriptions', 'SubcriptionController@listSubcriptionUI')->name('list.subs');
 });
 
