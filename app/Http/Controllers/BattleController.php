@@ -299,7 +299,7 @@ class BattleController extends Controller
         $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
 
         Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
-            
+
         if ($accepted === false) {
             $battle->delete();
         } else {
@@ -1037,6 +1037,108 @@ class BattleController extends Controller
         $array['finished'] = $finished;
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
+    }
+
+    /**
+     * @api {post} /combos/audio Set audio in combos
+     * @apiGroup Battles
+     * @apiHeader {String} Authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *         "Content-Type": "multipart/form-data"
+     *         "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} combo_id Combo id
+     * @apiParam {file} audio_file recorded audio file need to be saved
+     * @apiParamExample {json} Input
+     *    {
+     *      "combo_id": 1,
+     *      "audio_file": abc.mp3
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *  {
+     *     "error": "false",
+     *     "message": "Audio uploaded successfully!",
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function saveAudio(Request $request)
+    {
+        $userId = \Auth::user()->id;
+        $comboId = $request->combo_id;
+        $combo = Combos::findOrFail($comboId);
+        $image = $combo->audio;
+        $file = $request->file('audio_file');
+        if ($image != "") {
+            $url = url() . '/storage';
+            $pathToFile = str_replace($url, storage_path(), $image);
+            if (file_exists($pathToFile)) {
+                unlink($pathToFile); //delete earlier audio
+            }
+        }
+        $dest = 'storage/comboAudio';
+        if ($request->hasFile('audio_file')) {
+            $imgOrgName = $file->getClientOriginalName();
+            $nameWithoutExt = pathinfo($imgOrgName, PATHINFO_FILENAME);
+            $ext = pathinfo($imgOrgName, PATHINFO_EXTENSION);
+            $imgOrgName = $nameWithoutExt . '-' . time() . '.' . $ext;  //make audio name unique
+            $file->move($dest, $imgOrgName);
+            $gif_path = url() . '/' . $dest . '/' . $imgOrgName; // path to be inserted in table
+            $combo->where('id', $comboId)->update(['audio' => $gif_path, 'user_id' => $userId]);
+        }
+        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!']);
+    }
+
+    /**
+     * @api {get} /battles/combos/audio Get list of available combos with audio
+     * @apiGroup Battles
+     * @apiHeader {String} Authorization Authorization Token
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of combos
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *      {
+     *          "id": 1,
+     *          "name": "Attack",
+     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
+     *      },
+     *      {
+     *          "id": 2,
+     *          "name": "Crafty",
+     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
+     *      }
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getCombosAudio()
+    {
+        $combos = Combos::select('id', 'name', 'audio')->get()->toArray();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
     }
 
 }
