@@ -109,7 +109,7 @@
                         </a>
                     </li>
                     <li class="{{ active_class(Active::checkUriPattern('admin/videos/category/listing')) }}">
-                        <a href="{{ url('admin/category') }}">
+                        <a href="{{ url('admin/categories') }}">
                             <i class="fa fa-circle-o"></i>
                             <span>{{ trans('menus.backend.videos.cat_management') }}</span>
                         </a>
