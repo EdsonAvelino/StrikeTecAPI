@@ -15,4 +15,11 @@ class PushTypes
     const CHAT_READ_MESSAGE = 7;
 
     const BATTLE_FINISHED = 8;
+
+    public static function getSilentPushListForIOS()
+    {
+    	return [
+    		self::CHAT_READ_MESSAGE
+    	];
+    }
 }

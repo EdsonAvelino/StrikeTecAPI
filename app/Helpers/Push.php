@@ -146,7 +146,11 @@ class Push
         // echo 'Connected to APNS' . PHP_EOL;
 
         $body['aps'] = ['alert' => ['body' => self::$pushMessage]];
-    
+        
+        if (in_array(self::$typeId, \App\Helpers\PushTypes::getSilentPushListForIOS())) {
+            $body['aps']['content-available'] = 1;
+        }
+
         $body['type'] = self::$typeId;
         $body['data'] = ['opponent_user' => self::$opponentUser];
 
