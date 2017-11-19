@@ -56,14 +56,14 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request)
     {
-        $sender_id = \Auth::user()->id;
+        $senderId = \Auth::user()->id;
         $user_id = $request->user_id;
         $message = $request->message;
 
         $chat_id = $this->getChatid($user_id);
 
         $chat_id = ChatMessages::create([
-                    'user_id' => $sender_id,
+                    'user_id' => $senderId,
                     'read_flag' => FALSE,
                     'message' => $message,
                     'chat_id' => $chat_id
@@ -76,11 +76,11 @@ class ChatController extends Controller
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-        $pushOpponentUser = User::get($sender_id);
+        $senderUser = User::get($senderId);
 
-        $pushMessage = 'You received new message from ' . $pushOpponentUser->first_name . ' ' . $pushOpponentUser->last_name;
+        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
 
-        Push::send($user_id, PushTypes::CHAT_SEND_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
+        Push::send(PushTypes::CHAT_SEND_MESSAGE, $user_id, $senderId, $pushMessage, ['message' => $chatResponse]);
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chatResponse]);
     }
@@ -128,7 +128,7 @@ class ChatController extends Controller
         $chatMessage->update(['read_flag' => 1]);
 
         if ($chatMessage->user_id != \Auth::user()->id) {
-            $pushOpponentUser = User::get($user_id);
+            // $pushOpponentUser = User::get($user_id);
 
             $pushMessage = 'Read message';
 
@@ -138,7 +138,7 @@ class ChatController extends Controller
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-            Push::send($chatMessage->user_id, PushTypes::CHAT_READ_MESSAGE, $pushMessage, $pushOpponentUser, ['message' => $chatResponse]);
+            Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $user_id, $pushMessage, ['message' => $chatResponse]);
         }
 
         return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $message_id]]);

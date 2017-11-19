@@ -12,37 +12,40 @@ class Push
 {
     private static $notValidTokenErrors = ['InvalidRegistration', 'MismatchSenderId'];
 
-    protected static $userId;
     protected static $typeId;
-    protected static $pushMessage;
+    protected static $toUserId;
     protected static $opponentUser;
-    protected static $extra;
+    protected static $pushMessage;
+    protected static $data;
 
 	/**
      * Sends push notification to users.
      *
-     * @param  int  $userId
+     * @param  int  $toUserId
      * @param  int  $typeId
      * @param  string  $pushMessage
      * @param  array | App\User  $opponentUser
-     * @param  array $extra
+     * @param  array $data
      * @return void
      */
-	public static function send($userId, $typeId, $pushMessage = '', $opponentUser, $extra = [])
+	public static function send($typeId, $toUserId, $opponentUserId, $pushMessage = '',  $data = [])
 	{
         // Get user's notification settings
-        $notifSettings = Settings::where('user_id', $userId)->first();
+        $notifSettings = Settings::where('user_id', $toUserId)->first();
 
         // TODO Check for settings
 
-        self::$userId = $userId;
         self::$typeId = $typeId;
-        self::$pushMessage = $pushMessage;
+        self::$toUserId = $toUserId;
+        
+        $opponentUser = \App\User::get($opponentUserId);
         self::$opponentUser = $opponentUser;
-        self::$extra = $extra;
+
+        self::$pushMessage = $pushMessage;
+        self::$data = $data;
 
         // Get user app token
-		$tokens = UserAppTokens::where('user_id', $userId)->get();
+		$tokens = UserAppTokens::where('user_id', $toUserId)->get();
 
         // Handle Android/iOS related push notifications
         foreach ($tokens as $token)
@@ -72,14 +75,14 @@ class Push
                 ];
 
         // Add extra data if given
-        if (sizeof(self::$extra)) {
-            $body['data']['body'] = array_merge($body['data']['body'], self::$extra);
+        if (sizeof(self::$data)) {
+            $body['data']['body'] = array_merge($body['data']['body'], self::$data);
         }
         
         // \Log::info("Push: ".json_encode($body));
         // Save push notification to db
         PushNotifications::create([
-            'user_id' => self::$userId,
+            'user_id' => self::$toUserId,
             'type_id' => self::$typeId,
             'os' => 'ANDROID',
             'payload' => json_encode($body)
@@ -148,8 +151,8 @@ class Push
         $body['data'] = ['opponent_user' => self::$opponentUser];
 
         // Add extra data if given
-        if (sizeof(self::$extra)) {
-            $body['data'] = array_merge($body['data'], self::$extra);
+        if (sizeof(self::$data)) {
+            $body['data'] = array_merge($body['data'], self::$data);
         }
 
         // Encode the payload as JSON
@@ -157,7 +160,7 @@ class Push
 
         // Save push notification to db
         PushNotifications::create([
-            'user_id' => self::$userId,
+            'user_id' => self::$toUserId,
             'type_id' => self::$typeId,
             'os' => 'IOS',
             'payload' => $payload

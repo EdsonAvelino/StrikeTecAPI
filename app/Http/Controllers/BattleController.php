@@ -66,9 +66,9 @@ class BattleController extends Controller
 
         // Send Push Notification
         $pushMessage = \Auth::user()->first_name . ' ' . \Auth::user()->last_name . ' has invited you for battle';
-        $pushOpponentUser = User::get(\Auth::user()->id);
 
-        Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
+        // Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
+        Push::send(PushTypes::BATTLE_INVITE, $opponentUserId, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
         return response()->json([
                     'error' => 'false',
@@ -239,9 +239,11 @@ class BattleController extends Controller
 
         // Send Push Notification
         $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
-        $pushOpponentUser = User::get(\Auth::user()->id);
+        // $pushOpponentUser = User::get();
 
-        Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
+        // Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
+        
+        Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id , $pushMessage, ['battle_id' => $battle->id]);
 
         return response()->json([
                     'error' => 'false',
@@ -296,11 +298,12 @@ class BattleController extends Controller
         // Send push notification to sender user (who created battle)
         $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
 
-        $pushOpponentUser = User::get($battle->opponent_user_id);
+        // $pushOpponentUser = User::get($battle->opponent_user_id);
 
         $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
 
-        Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
+        // Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
+        Push::send($pushType, $battle->user_id, $battle->opponent_user_id, $pushMessage, ['battle_id' => $battle->id]);
 
         if ($accepted === false) {
             $battle->delete();
@@ -364,9 +367,11 @@ class BattleController extends Controller
         // Send Push Notification to opponent-user of battle
         $pushMessage = $user->first_name . ' ' . $user->last_name . ' has cancelled battle';
 
-        $pushOpponentUser = User::get(\Auth::user()->id);
+        // $pushOpponentUser = User::get(\Auth::user()->id);
 
-        Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
+        // Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
+        
+        Push::send(PushTypes::BATTLE_CANCEL, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
         return response()->json([
                     'error' => 'false',

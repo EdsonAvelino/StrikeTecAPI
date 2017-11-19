@@ -314,11 +314,10 @@ class TrainingController extends Controller
                         $pushOpponentUserId = $battle->opponent_user_id;
                     }
                     
-                    // TODO Push to opponent, about battle is finished by current user
+                    // Push to opponent, about battle is finished by current user
                     $pushMessage = 'User has finished battle';
-                    $pushOpponentUser = User::get($pushOpponentUserId);
 
-                    Push::send($pushToUserId, PushTypes::BATTLE_FINISHED, $pushMessage, $pushOpponentUser);
+                    Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
 
                     $battle->update();
                 }
