@@ -48,7 +48,7 @@
                         <tr>
                             <td>{{$video->title}}</td>
                             <td>
-                               <a href="#" class="video_modal" data-toggle="modal" data-target="#video" id="{{$video->file}}" onclick="data_video('{{$video->file}}')">{{str_replace('http://striketec.dev/uploads/videos/', '', $video->file)}}</a><br>{{$video->duration}}
+                               <a href="#" class="video_modal" data-toggle="modal" data-target="#video" id="{{$video->file}}" onclick="data_video('{{$video->file}}')">{{str_replace('http://54.233.233.189/admin/public/uploads/videos/', '', $video->file)}}</a><br>{{$video->duration}}
                             </td>
                             <td>
                                {{$video->name}}
