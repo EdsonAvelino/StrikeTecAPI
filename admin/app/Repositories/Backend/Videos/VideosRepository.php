@@ -12,6 +12,7 @@ use App\Repositories\BaseRepository;
  */
 class VideosRepository extends BaseRepository
 {
+    protected $apiStoragePath = '../../storage';
     /**
      * Listing of videos
     */
@@ -36,14 +37,14 @@ class VideosRepository extends BaseRepository
         $created_time=date('Y-m-d h:i:s');
         $video_name = 'video_'.time().'.'.$request->video_file->getClientOriginalExtension();
         $video_thumb_name = 'video_thumb_'.time().'.'.$request->video_thumbnail->getClientOriginalExtension();
-        $request->video_file->move(public_path('uploads/videos'), $video_name);
-        $request->video_thumbnail->move(public_path('uploads/thumbnail'), $video_thumb_name);
+        $request->video_file->move($this->apiStoragePath . '/videos/', $video_name);
+        $request->video_thumbnail->move($this->apiStoragePath . '/videos/thumbnails/', $video_thumb_name);
         $video= new Video;
         $video->insert(['category_id' => $request->cat,
                     'title' => $request->title,
-                    'file' => config('striketec.application_url').'/uploads/videos/'.$video_name,
+                    'file' => $video_name,
                     'duration' => $video_duration,
-                    'thumbnail' => config('striketec.application_url').'/uploads/thumbnail/'.$video_thumb_name,
+                    'thumbnail' => $video_thumb_name,
                     'author_name' => $request->author_name,
                     'created_at' => $created_time,
                     'updated_at' => $created_time
@@ -86,9 +87,9 @@ class VideosRepository extends BaseRepository
         if(isset($request->video_file)){
             $this->unlinkFile('video', $id);
             $video_name = 'video_'.time().'.'.$request->video_file->getClientOriginalExtension();
-            $request->video_file->move(public_path('uploads/videos'), $video_name);
+            $request->video_file->move($this->apiStoragePath.'/videos/', $video_name);
             $video->where('id', $id)->update([
-                    'file' => config('striketec.application_url').'/uploads/videos/'.$video_name,
+                    'file' => $video_name,
                     'updated_at' => $updated_time,
                     'duration' => $video_duration
                 ]);
@@ -96,9 +97,9 @@ class VideosRepository extends BaseRepository
         if(isset($request->video_thumbnail)){
             $this->unlinkFile('thumb', $id);
             $video_thumb_name = 'video_thumb_'.time().'.'.$request->video_thumbnail->getClientOriginalExtension();
-            $request->video_thumbnail->move(public_path('uploads/thumbnail'), $video_thumb_name);
+            $request->video_thumbnail->move($this->apiStoragePath.'/videos/thumbnails/', $video_thumb_name);
             $video->where('id', $id)->update([
-                    'thumbnail' => config('striketec.application_url').'/uploads/thumbnail/'.$video_thumb_name,
+                    'thumbnail' => $video_thumb_name,
                     'updated_at' => $updated_time
                 ]);
         }
@@ -114,15 +115,15 @@ class VideosRepository extends BaseRepository
      */
     function unlinkFile($identity, $id) {
         $video_information = Video::where('id', $id)->first();
-        $video_file = str_replace(config('striketec.application_url').'/', '', $video_information->file );
-        $thumbnail_file = str_replace(config('striketec.application_url').'/', '', $video_information->thumbnail );
-        if(($identity == 'video' || $identity == 'both') && file_exists( public_path($video_file))){
+        $video_file = $this->apiStoragePath.'/videos'.$video_information->file ;
+        $thumbnail_file = $this->apiStoragePath.'/videos/thumbnails/'.$video_information->thumbnail;
+        if(($identity == 'video' || $identity == 'both') && file_exists( $video_file)){
             
             /* Start unlink old video from path */
                 unlink(public_path($video_file));
             /* End unlink old video form path */
         }
-        if(($identity == 'thumb' || $identity == 'both') && file_exists( public_path($thumbnail_file))){
+        if(($identity == 'thumb' || $identity == 'both') && file_exists( $thumbnail_file)){
             /* Start unlink old thumnail image from path */
                 unlink(public_path($thumbnail_file));
             /* End unlink old thumnail image form path */
