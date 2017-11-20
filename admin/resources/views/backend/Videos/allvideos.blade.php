@@ -48,13 +48,13 @@
                         <tr>
                             <td>{{$video->title}}</td>
                             <td>
-                               <a href="#" class="video_modal" data-toggle="modal" data-target="#video" id="{{$video->file}}" onclick="data_video('{{$video->file}}')">{{str_replace('http://54.233.233.189/admin/public/uploads/videos/', '', $video->file)}}</a><br>{{$video->duration}}
+                               <a href="#" class="video_modal" data-toggle="modal" data-target="#video" id="{{$video->file}}" onclick="data_video('{{$video->file}}')">{{$video->file}}</a><br>{{$video->duration}}
                             </td>
                             <td>
                                {{$video->name}}
                             </td>
                             <td>
-                                <img src='{{$video->thumbnail}}' style="width: 50px; height: 50px;">
+                                <img src='{{env('API_URL_STORAGE').'/videos/thumbnails/'.$video->thumbnail}}' style="width: 50px; height: 50px;">
                             </td>
                             <td>
                                 {{$video->author_name}}
@@ -86,9 +86,6 @@
             </div>
             <div class="modal-body" id="video_tag">
                
-                <!--<video width="540" height="310" controls>
-                    <source type="video/mp4" src="http://striketec.dev/uploads/videos/video_1509980909.mp4" >
-                </video>-->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -102,7 +99,7 @@
     {{ Html::script("https://cdn.datatables.net/v/bs/dt-1.10.15/datatables.min.js") }}
     {{ Html::script("js/backend/plugin/datatables/dataTables-extend.js") }}
     
-    <script>
+    <script>   
         /* Function for call delete API */
         function delvideoConfirm(id) { 
             swal({
@@ -134,7 +131,7 @@
         /* Function for add video in modal */
         function data_video(id) {
             var video = '';
-            var  video = '<video width="540" height="310" controls><source type="video/mp4" src="'+id+'"></video>';
+            var  video = '<video width="540" height="310" controls><source type="video/mp4" src="{{ env('API_URL_STORAGE') }}/videos/'+id+'"></video>';
                 $('#video_tag').html(video);
         }
         
