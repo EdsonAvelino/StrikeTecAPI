@@ -82,7 +82,7 @@
         function delcatConfirm(id) {
             swal({
                 title: "Are you sure?",
-                text: "You want to delete subscription.!",
+                text: "You want to delete category.!",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
@@ -95,7 +95,7 @@
                 if (isConfirm) {   
                    window.location.href="{{url('admin/category/delete')}}/"+id;
                 } else {
-                    swal("Cancelled", "Your subscription details is safe :)", "error");
+                    swal("Cancelled", "Your category details is safe :)", "error");
                 }
             });
         }
