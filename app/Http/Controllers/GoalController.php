@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Goals;
 
+use App\Sessions;
+
 class GoalController extends Controller
 {
 
