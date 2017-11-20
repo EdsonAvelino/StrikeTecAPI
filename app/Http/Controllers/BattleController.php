@@ -9,7 +9,6 @@ use App\Combos;
 use App\ComboSets;
 use App\Workouts;
 use App\User;
-
 use App\Helpers\Push;
 use App\Helpers\PushTypes;
 
@@ -240,10 +239,9 @@ class BattleController extends Controller
         // Send Push Notification
         $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
         // $pushOpponentUser = User::get();
-
         // Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
-        
-        Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id , $pushMessage, ['battle_id' => $battle->id]);
+
+        Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
         return response()->json([
                     'error' => 'false',
@@ -368,9 +366,8 @@ class BattleController extends Controller
         $pushMessage = $user->first_name . ' ' . $user->last_name . ' has cancelled battle';
 
         // $pushOpponentUser = User::get(\Auth::user()->id);
-
         // Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
-        
+
         Push::send(PushTypes::BATTLE_CANCEL, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
         return response()->json([
@@ -719,29 +716,20 @@ class BattleController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $user_id = \Auth::user()->id;
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where('opponent_user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        ->where(function ($query) use($user_id) {
+                            $query->where('opponent_user_id', $user_id)->where('accepted', TRUE)->where(function ($query1) use($user_id) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
                         })
-                        ->where(function ($query) {
-                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        ->orWhere(function ($query) use($user_id) {
+                            $query->where('user_id', $user_id)->where(function ($query1) use($user_id) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
                         })
-                        ->where(['accepted' => TRUE])
-                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
-        $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where('user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('user_finished', 0)->orwhere('user_finished', null);
-                        })
-                        ->where(function ($query) {
-                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
-                        })
-                        ->orderBy('battles.id', 'desc')->offset($offset)->limit($limit)->get()->toArray();
-
-        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
+                        ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
         $i = 0;
-        foreach ($battle_requested as $battle_request) {
+        foreach ($requested_by_opponent as $battle_request) {
             $data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
             $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
@@ -990,29 +978,20 @@ class BattleController extends Controller
         $array['received'] = $data;
 
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where('opponent_user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('user_finished', 0)->orwhere('user_finished', null);
+                        ->where(function ($query) use($user_id) {
+                            $query->where('opponent_user_id', $user_id)->where('accepted', TRUE)->where(function ($query1) use($user_id) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
                         })
-                        ->where(function ($query) {
-                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
+                        ->orWhere(function ($query) use($user_id) {
+                            $query->where('user_id', $user_id)->where(function ($query1) use($user_id) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
                         })
-                        ->where(['accepted' => TRUE])
-                        ->orderBy('battles.id', 'desc')->get()->toArray();
-        $requested_by_user = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where('user_id', $user_id)
-                        ->where(function ($query) {
-                            $query->where('user_finished', 0)->orwhere('user_finished', null);
-                        })
-                        ->where(function ($query) {
-                            $query->where('opponent_finished', 0)->orwhere('opponent_finished', null);
-                        })
-                        ->orderBy('battles.id', 'desc')->get()->toArray();
-
-        $battle_requested = array_merge($requested_by_opponent, $requested_by_user);
+                        ->orderBy('created_at', 'desc')->get()->toArray();
         $my_battle_data = [];
         $j = 0;
-        foreach ($battle_requested as $battle_request) {
+        foreach ($requested_by_opponent as $battle_request) {
             $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
             $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
             $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];

@@ -65,7 +65,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
     $app->get('/user/connections', 'UserController@getConnections');
-    
+
     $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
 });
 
@@ -209,6 +209,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // GET list of goal
     $app->get('/goal', 'GoalController@getGoalList');
+
+    // Calculate goal data
+    $app->get('/goal/calculate', 'GoalController@calculateGoal');
 });
 
 // Feed APIs
@@ -249,13 +252,13 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/chat', 'ChatController@chats');
 
     // unread message count
-   $app->get('/chat/unread_count', 'ChatController@unreadMessageCount');
+    $app->get('/chat/unread_count', 'ChatController@unreadMessageCount');
 });
 
 //in app subscription APIS
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // add user subscription
-     $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
+    $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
 
     //get user subscrioption information
     $app->get('/user/subscription', 'UsersubscriptionController@getUserSubscriptionStatus');
