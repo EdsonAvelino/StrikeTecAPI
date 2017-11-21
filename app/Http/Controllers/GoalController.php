@@ -267,6 +267,9 @@ class GoalController extends Controller
      *    {
      *       "error": "false",
      *       "message": "Your goal has been followed."
+     *      "data":{ 
+     *          "goal_id":5
+     *          }
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -283,15 +286,15 @@ class GoalController extends Controller
         $user_id = \Auth::user()->id;
         Goals::where('id', $goal_id)
                 ->where('user_id', $user_id)
-                ->update(['followed' => $follow, 'followed_time' => date("Y-m-d H:i:s", time())]);
+                ->update(['followed' => $follow, 'followed_time' => date("Y-m-d H:i:s")]);
         if ($follow == TRUE) {
             Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->update([ 'followed' => 0, 'avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.']);
+            return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goal_id]]);
         } else {
             Goals::where('id', $goal_id)
                     ->where('user_id', $user_id)
                     ->update(['avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.']);
+            return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goal_id]]);
         }
     }
 
@@ -303,25 +306,29 @@ class GoalController extends Controller
         if ($goalList) {
             $followedTime = strtotime($goalList->followed_time);
             $start_time = ($followedTime >= $goalList->start_date) ? $followedTime : $goalList->start_date;
+            $start_time = $start_time * 1000;
+            $end_time = $goalList->end_date * 1000;
             $sessions = Sessions::where('user_id', \Auth::user()->id)->where('battle_id', 0)->orWhereNull('battle_id')->where('start_time', '>=', $start_time)
-                            ->where('end_time', '<=', $goalList->end_date)->get();
+                            ->where('end_time', '<=', $end_time)->get();
             $division = 0;
-            foreach ($sessions as $session) {
-                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-                $division += $session['punches_count'];
+            if (count($sessions)) {
+                foreach ($sessions as $session) {
+                    $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                    $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+                    $division += $session['punches_count'];
+                }
+                $totalTime = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
+                                ->groupBy('user_id')->where('user_id', \Auth::user()->id)
+                                ->where('battle_id', 0)->orWhereNull('battle_id')
+                                ->where('start_time', '>=', $start_time)->where('end_time', '<=', $goalList->end_date)->pluck('duration_in_sec')->first();
+                $avgSpeed = array_sum($avgSpeedData) / $division;
+                $avgForce = array_sum($avgForceData) / $division;
+                $goalList->avg_speed = (int) $avgSpeed;
+                $goalList->avg_power = (int) $avgForce;
+                $goalList->done_count = (int) $division;
+                $goalList->avg_time = $totalTime;
+                $goalList->save();
             }
-            $totalTime = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
-                            ->groupBy('user_id')->where('user_id', \Auth::user()->id)
-                            ->where('battle_id', 0)->orWhereNull('battle_id')
-                            ->where('start_time', '>=', $start_time)->where('end_time', '<=', $goalList->end_date)->pluck('duration_in_sec')->first();
-            $avgSpeed = array_sum($avgSpeedData) / $division;
-            $avgForce = array_sum($avgForceData) / $division;
-            $goalList->avg_speed = (int) $avgSpeed;
-            $goalList->avg_power = (int) $avgForce;
-            $goalList->done_count = (int) $division;
-            $goalList->avg_time = $totalTime;
-            $goalList->save();
             return $goalList->id;
         }
     }
