@@ -220,7 +220,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/goals', 'GoalController@getGoalList');
 
     // Calculate goal data
-    $app->get('/goal', 'GoalController@goalInfo');
+    $app->get('/goal/info', 'GoalController@goalInfo');
+    
+    // Calculate goal data
+    $app->get('/goal', 'GoalController@goal');
 });
 
 // Feed APIs
