@@ -213,6 +213,7 @@ class GoalController extends Controller
      *             "start_date": "1505088000",
      *             "end_date": "1505088000"
      *             "followed": 1,
+     *             "done_count": 10,
      *         },
      *          {
      *             "id": 11,
@@ -222,6 +223,7 @@ class GoalController extends Controller
      *             "start_date": "1505088000",
      *             "end_date": "1505088000",
      *             "followed": 0,
+     *             "done_count": 0,
      *         }
      *       }
      *     }
