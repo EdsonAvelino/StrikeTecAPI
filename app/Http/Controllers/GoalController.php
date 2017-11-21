@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Goals;
-
 use App\Sessions;
 
 class GoalController extends Controller
@@ -24,7 +23,7 @@ class GoalController extends Controller
      * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
      * @apiParam {Date} end_date   The timestamp of end date since 1970.1.1 (unit is seccond)
      * @apiParam {Number} activity_id Activity id e.g. 1 = Boxing, 2 = Kickboxing
-     * @apiParam {Number} activity_type_id Activity Type id  Punches = 1, Workouts = 2 (type doesn’t depends on activity type)
+     * @apiParam {Number} activity_type_id Activity Type id  Punches = 1, Workouts = 2 (type doesnï¿½t depends on activity type)
      * @apiParam {Number} target target of activity
      * @apiParamExample {json} Input
      *    {
@@ -83,7 +82,7 @@ class GoalController extends Controller
      *     }
      * @apiParam {Number} goal_id goal id to be edited
      * @apiParam {Number} [activity_id] Activity id e.g. 1 = Boxing, 2 = Kickboxing
-     * @apiParam {Number} [activity_type_id] Activity Type id  Punches = 1, Workouts = 2 (type doesn’t depends on activity type)
+     * @apiParam {Number} [activity_type_id] Activity Type id  Punches = 1, Workouts = 2 (type doesnï¿½t depends on activity type)
      * @apiParam {Number} [target] target of activity
      * @apiParam {Date} [start_date] The timestamp of start date since 1970.1.1(unit is seccond)
      * @apiParam {Date} [end_date]  The timestamp of end date since 1970.1.1 (unit is seccond)
@@ -237,7 +236,7 @@ class GoalController extends Controller
     public function getGoalList(Request $request)
     {
         $user_id = \Auth::user()->id;
-        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', 'start_date', 'end_date', 'followed')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
+        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', 'start_date', 'end_date', 'followed', 'done_count')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
 
@@ -318,8 +317,7 @@ class GoalController extends Controller
      *                "avg_speed": 21.730769230769,
      *                "avg_power": 409,
      *                "done_count": 52,
-     *                "avg_time": "-1509066868",
-     *                "updated_at": "2017-11-20 09:11:59"  
+     *                "avg_time": "1509066868",
      *               }
      *     }
      * @apiErrorExample {json} Error Response
@@ -350,9 +348,9 @@ class GoalController extends Controller
                         ->where('start_time', '>=', $start_time)->where('end_time', '<=', $goalList->end_date)->pluck('duration_in_sec')->first();
         $avgSpeed = array_sum($avgSpeedData) / $division;
         $avgForce = array_sum($avgForceData) / $division;
-        $goalList->avg_speed = $avgSpeed;
-        $goalList->avg_power = $avgForce;
-        $goalList->done_count = $division;
+        $goalList->avg_speed = (int) $avgSpeed;
+        $goalList->avg_power = (int) $avgForce;
+        $goalList->done_count = (int) $division;
         $goalList->avg_time = $totalTime;
         $goalList->save();
         return response()->json(['error' => 'false', 'message' => 'Data has been saved to goals.', 'data' => $goalList]);

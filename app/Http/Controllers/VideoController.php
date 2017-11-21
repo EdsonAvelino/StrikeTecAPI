@@ -5,25 +5,28 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Videos;
 use App\UserFavVideos;
+use App\Tags;
+use App\VideoCategory;
 
 class VideoController extends Controller
 {
+
     /**
      * Sync Videos
      */
     public function syncVideos()
     {
         $dirVideos = new \DirectoryIterator(storage_path('videos'));
-        
+
         $videos = [];
 
         foreach ($dirVideos as $videoFile) {
             if (!$videoFile->isDot()) {
                 $getID3 = new \getID3;
-                $videoInfo = $getID3->analyze(storage_path('videos/'.$videoFile));
+                $videoInfo = $getID3->analyze(storage_path('videos/' . $videoFile));
 
                 $video = Videos::firstOrCreate(['file' => $videoFile]);
-                
+
                 $video->duration = $this->formatDuration($videoInfo['playtime_string']);
                 $video->view_counts = 0;
                 $video->save();
@@ -39,19 +42,19 @@ class VideoController extends Controller
     private function formatDuration($duration)
     {
         // The base case is A:BB
-        if ( strlen($duration) == 4 ) {
+        if (strlen($duration) == 4) {
             return "00:0" . $duration;
         }
         // If AA:BB
-        else if ( strlen($duration) == 5 ) {
+        else if (strlen($duration) == 5) {
             return "00:" . $duration;
         }
         // If A:BB:CC
-        else if ( strlen($duration) == 7 ) {
+        else if (strlen($duration) == 7) {
             return "0" . $duration;
         }
     }
-    
+
     /**
      * @api {get} /videos Get videos by category
      * @apiGroup Videos
@@ -203,8 +206,8 @@ class VideoController extends Controller
 
         $queryBreaks = preg_split('/\s+/', $query);
         array_walk($queryBreaks, [$this, 'alterParam']);
-        
-        $videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->where('title', 'like', (str_replace('+', '%', $request->get('q'))) );
+
+        $videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->where('title', 'like', (str_replace('+', '%', $request->get('q'))));
 
         foreach ($queryBreaks as $queryBreak) {
             $videos->orWhere('title', 'like', $queryBreak);
@@ -297,7 +300,7 @@ class VideoController extends Controller
         $videoId = (int) $videoId;
 
         if ($videoId) {
-            UserFavVideos::where('user_id', \Auth::user()->id)->where('video_id',  $videoId)->delete();
+            UserFavVideos::where('user_id', \Auth::user()->id)->where('video_id', $videoId)->delete();
 
             return response()->json(['error' => 'false', 'message' => 'Successfully removed from favourite list']);
         }
@@ -333,7 +336,7 @@ class VideoController extends Controller
 
         if ($videoId) {
             $video = Videos::find($videoId);
-            
+
             $video->view_counts = $video->view_counts + 1;
             $video->save();
 
@@ -415,4 +418,162 @@ class VideoController extends Controller
 
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
+
+    /**
+     * @api {get}/videos/tags list of video's tags
+     * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of video's tags
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":[
+     *                      {
+     *                          "id": 1,
+     *                          "type": 1,
+     *                          "name": "Boxing Videos"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "type": 2,
+     *                          "activity_name": "Kickboxing Videos"
+     *                      }
+     *                  ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getVideoTags(Request $request)
+    {
+        $tagList = Tags::all()->where('type', 1);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
+    }
+
+    /**
+     * @api {get}/videos/tagged Get list of tagged Videos
+     * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} tag_id Tag Id
+     * @apiParamExample {json} Input
+     *    {
+     *      "tag_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} activities List of Activities
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *        {
+     *            "tag_id": 1,
+     *            "tag_name": "Boxing Videos",
+     *            "id": 1,
+     *            "category_id": 1,
+     *            "title": "Lorem ipsum dolor sit amet",
+     *            "file": "http://striketec.dev/storage/videos/SampleVideo_1280x720_20mb.mp4",
+     *            "thumbnail":  "http://striketec.dev/storage/videos/thumbnails/thumb_SampleVideo_1280x720_20mb.png",
+     *            "view_counts": 183,
+     *            "duration": "00:01:57",
+     *            "author_name": "John Carry"
+     *        },
+     *        {
+     *            "tag_id": 1,
+     *            "tag_name": "Boxing Videos",
+     *            "id": 2,
+     *            "category_id": 1,
+     *            "title": "Consectetur adipiscing elit",
+     *            "file": ""http://striketec.dev/storage/videos/SampleVideo_1280x720_1mb.mp4",
+     *            "thumbnail":  "http://striketec.dev/storage/videos/thumbnails/thumb_SampleVideo_1280x720_1mb.png",
+     *            "view_counts": 94,
+     *            "duration": "00:00:05",
+     *            "author_name": "Maria Smith"
+     *        }
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getVideoList(Request $request)
+    {
+        $tagId = (int) $request->get('tag_id');
+        $taggedVideoList = Videos::select('tags.id as tag_id', 'tags.name as tag_name', 'videos.*')
+                        ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
+                        ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
+                        ->where('tagged_videos.tag_id', $tagId)->get()->toArray();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $taggedVideoList]);
+    }
+
+    /**
+     * @api {get}/videos/category Get list of videos categories
+     * @apiGroup Videos
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of videos categories
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":[
+     *                      {
+     *                          "id": 1,
+     *                          "name": "Workout Routines"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "name": "Tutorials"
+     *                      }
+     *                      {
+     *                          "id": 3,
+     *                          "name": "Drills"
+     *                      }
+     *                      {
+     *                          "id": 4,
+     *                          "name": "Essentials"
+     *                      }
+     *                  ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getVideoCat(Request $request)
+    {
+        $catList = VideoCategory::all();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $catList]);
+    }
+
 }
