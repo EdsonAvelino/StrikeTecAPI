@@ -189,7 +189,7 @@ class GoalController extends Controller
     }
 
     /**
-     * @api {get} /goal list of goal
+     * @api {get} /goals list of goals
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -238,6 +238,7 @@ class GoalController extends Controller
     public function getGoalList(Request $request)
     {
         $user_id = \Auth::user()->id;
+        $this->calculateGoal(); //calculate data of folloewd 
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', 'start_date', 'end_date', 'followed', 'done_count')->where('user_id', $user_id)->orderBy('created_at', 'desc')->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
@@ -294,33 +295,73 @@ class GoalController extends Controller
         }
     }
 
+//calculate followed goal data
+    public function calculateGoal()
+    {
+        $userId = \Auth::user()->id;
+        $goalList = Goals::select('id', 'start_date', 'end_date', 'followed', 'followed_time')->where('user_id', $userId)->where('followed', 1)->first();
+        if ($goalList) {
+            $followedTime = strtotime($goalList->followed_time);
+            $start_time = ($followedTime >= $goalList->start_date) ? $followedTime : $goalList->start_date;
+            $sessions = Sessions::where('user_id', \Auth::user()->id)->where('battle_id', 0)->orWhereNull('battle_id')->where('start_time', '>=', $start_time)
+                            ->where('end_time', '<=', $goalList->end_date)->get();
+            $division = 0;
+            foreach ($sessions as $session) {
+                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+                $division += $session['punches_count'];
+            }
+            $totalTime = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
+                            ->groupBy('user_id')->where('user_id', \Auth::user()->id)
+                            ->where('battle_id', 0)->orWhereNull('battle_id')
+                            ->where('start_time', '>=', $start_time)->where('end_time', '<=', $goalList->end_date)->pluck('duration_in_sec')->first();
+            $avgSpeed = array_sum($avgSpeedData) / $division;
+            $avgForce = array_sum($avgForceData) / $division;
+            $goalList->avg_speed = (int) $avgSpeed;
+            $goalList->avg_power = (int) $avgForce;
+            $goalList->done_count = (int) $division;
+            $goalList->avg_time = $totalTime;
+            $goalList->save();
+        }
+    }
+
     /**
-     * @api {get} /goal/calculate calculate progress of user
+     * @api {get} /goal get goal information
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} goal_id Tag Id
+     * @apiParamExample {json} Input
+     *    {
+     *      "goal_id": 16
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Calculated data of goal
+     * @apiSuccess {Object} data goal information
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
      *       "error": "false",
-     *       "message": "Your goal has been followed."
+     *       "message": ""
      *       "data": {
-     *                "id": 15,
-     *                "start_date": "1505088000",
-     *                "end_date": "1505088000",
-     *                "followed": 1,
-     *                "followed_time": "2017-11-20 09:11:56",
-     *                "avg_speed": 21.730769230769,
-     *                "avg_power": 409,
-     *                "done_count": 52,
-     *                "avg_time": "1509066868",
-     *               }
+     *              "id": 16,
+     *              "user_id": 7,
+     *              "activity_id": 1,
+     *              "activity_type_id": 2,
+     *              "target": "50",
+     *              "start_date": "1505088000",
+     *              "end_date": "1505088000",
+     *              "followed": 0,
+     *              "followed_time": "2017-11-20 09:06:27",
+     *              "done_count": 0,
+     *              "avg_time": 0,
+     *              "avg_speed": 0,
+     *              "avg_power": 0,
+     *              "achieve_type": 0
+     *            }
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -330,32 +371,11 @@ class GoalController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function calculateGoal(Request $request)
+    public function goalInfo(Request $request)
     {
-        $userId = \Auth::user()->id;
-        $goalList = Goals::select('id', 'start_date', 'end_date', 'followed', 'followed_time')->where('user_id', $userId)->where('followed', 1)->first();
-        $followedTime = strtotime($goalList->followed_time);
-        $start_time = ($followedTime >= $goalList->start_date) ? $followedTime : $goalList->start_date;
-        $sessions = Sessions::where('user_id', \Auth::user()->id)->where('battle_id', 0)->orWhereNull('battle_id')->where('start_time', '>=', $start_time)
-                        ->where('end_time', '<=', $goalList->end_date)->get();
-        $division = 0;
-        foreach ($sessions as $session) {
-            $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-            $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-            $division += $session['punches_count'];
-        }
-        $totalTime = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
-                        ->groupBy('user_id')->where('user_id', \Auth::user()->id)
-                        ->where('battle_id', 0)->orWhereNull('battle_id')
-                        ->where('start_time', '>=', $start_time)->where('end_time', '<=', $goalList->end_date)->pluck('duration_in_sec')->first();
-        $avgSpeed = array_sum($avgSpeedData) / $division;
-        $avgForce = array_sum($avgForceData) / $division;
-        $goalList->avg_speed = (int) $avgSpeed;
-        $goalList->avg_power = (int) $avgForce;
-        $goalList->done_count = (int) $division;
-        $goalList->avg_time = $totalTime;
-        $goalList->save();
-        return response()->json(['error' => 'false', 'message' => 'Data has been saved to goals.', 'data' => $goalList]);
+        $goalId = (int) $request->get('goal_id');
+        $goalList = Goals::where('id', $goalId)->first();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
 
 }

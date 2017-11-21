@@ -637,7 +637,7 @@ class BattleController extends Controller
                         ->where(function ($query) {
                             $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
-                        ->orderBy('battles.id', 'desc')
+                        ->orderBy('battles.updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
         $i = 0;
@@ -726,7 +726,7 @@ class BattleController extends Controller
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
-                        ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+                        ->orderBy('battles.updated_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
         $data = [];
         $i = 0;
         foreach ($requested_by_opponent as $battle_request) {
@@ -827,7 +827,7 @@ class BattleController extends Controller
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.id', 'desc')
+                        ->orderBy('battles.updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get()->toArray();
         $array = array();
         $i = 0;
@@ -966,7 +966,7 @@ class BattleController extends Controller
                         ->where(function ($query) {
                             $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
-                        ->orderBy('battles.id', 'desc')->get()->toArray();
+                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();
         $data = [];
         $i = 0;
         foreach ($battle_requests as $battle_request) {
@@ -988,7 +988,7 @@ class BattleController extends Controller
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
-                        ->orderBy('created_at', 'desc')->get()->toArray();
+                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();
         $my_battle_data = [];
         $j = 0;
         foreach ($requested_by_opponent as $battle_request) {
@@ -1006,7 +1006,7 @@ class BattleController extends Controller
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.id', 'desc')
+                        ->orderBy('battles.updated_at', 'desc')
                         ->get()->toArray();
         $finished = array();
         $k = 0;
@@ -1043,12 +1043,19 @@ class BattleController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} Data list of combos with audio
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *  {
      *     "error": "false",
      *     "message": "Audio uploaded successfully!",
-     *  }
+     *      "data": {
+     *          "id": 2,
+     *          "name": "Crafty",
+     *          "user_id": 7,
+     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
+     *      }
+     *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
      *      {
@@ -1081,7 +1088,7 @@ class BattleController extends Controller
             $gif_path = url() . '/' . $dest . '/' . $imgOrgName; // path to be inserted in table
             $combo->where('id', $comboId)->update(['audio' => $gif_path, 'user_id' => $userId]);
         }
-        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!']);
+        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!', 'data' =>$combo]);
     }
 
     /**
