@@ -115,6 +115,15 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
+    
+    // Get tagged videos
+    $app->get('/videos/tagged', 'VideoController@getVideoList');
+    
+    // Get tags
+    $app->get('/videos/tags', 'VideoController@getVideoTags');
+    
+    // Get tags
+    $app->get('/videos/category', 'VideoController@getVideoCat');
 });
 
 // Leaderboard APIs

@@ -15,7 +15,7 @@ class Videos extends Model
     protected $fillable = [
         'title',
         'file',
-        'thumbnail',    
+        'thumbnail',
         'view_counts',
         'duration',
         'author_name'
@@ -30,13 +30,13 @@ class Videos extends Model
     {
         if (strpos($value, 'youtube') > 0 || strpos($value, 'youtu.be') > 0) {
             $youtubeUrl = $value;
-            
+
             preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $youtubeUrl, $match);
-    
+
             $videoId = $match[1];
 
             $videoFormat = 'video/mp4'; // The MIME type of the video. e.g. video/mp4, video/webm, etc.
-    
+
             parse_str(file_get_contents("http://youtube.com/get_video_info?video_id=".$videoId), $info);
 
             $streams = $info['url_encoded_fmt_stream_map'];
