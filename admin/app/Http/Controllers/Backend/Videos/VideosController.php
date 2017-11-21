@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Repositories\Backend\Videos\VideosRepository;
 use App\Http\Requests\Backend\Videos\VideoRequest;
+use Validator;
+use Session;
 
 class VideosController extends Controller
 {
@@ -37,7 +39,7 @@ class VideosController extends Controller
     
     
     /* Listing of all the uploaded videos */
-    public function listing(){  
+    public function listing(){
        $videos = $this->video->listing();
        return view('backend.Videos.allvideos', ['videos' => $videos]);
     }
@@ -78,7 +80,29 @@ class VideosController extends Controller
      * @return NULL
      */
     public function update(Request $request, $id){
-        $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
+        $video_duration = '';
+        if($_FILES['video_file']['tmp_name']) { 
+           // $data = $request->input();
+            $rules = array(
+                'video_file' => 'required|mimes:mp4|max:50000',
+            );
+            $validate = Validator::make($request->all(), $rules);
+            if($validate->fails()) {
+                Session::flash('error_message', 'Video format or size are not valid' );
+                return redirect()->back();
+            }
+            $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
+        } 
+        if( $_FILES['video_thumbnail']['tmp_name'] ) {  
+            $rules = array(
+                'video_thumbnail'=> 'required|mimes:jpeg,jpg,png,ico',
+            );
+            $validate = Validator::make($request->all(), $rules);
+            if($validate->fails()) {
+                Session::flash('error_message', 'Thumbnail file or format are not valid' );
+                return redirect()->back();
+            }
+        } 
         if($this->video->update($request, $id, $video_duration)){
             $request->session()->flash('Status','Video updated successfully!');
             return redirect()->route('admin.videos.list'); 

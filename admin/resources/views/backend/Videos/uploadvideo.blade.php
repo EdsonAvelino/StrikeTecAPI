@@ -46,13 +46,13 @@
                         </div>
                     </div>
                     <div class="box-body">
-                        {{ Form::label('name', 'Upload Video', ['class' => 'col-lg-2 control-label']) }}
+                        {{ Form::label('name', 'Upload Video (MP4/50MB)', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                             {!! Form::file('video_file', array('required','class' => 'form-control')) !!}
                         </div>
                     </div>
                      <div class="box-body">
-                        {{ Form::label('name', 'Video Thumbnail ', ['class' => 'col-lg-2 control-label']) }}
+                        {{ Form::label('name', 'Video Thumbnail (JPEG/JPG/PNG)', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                             {!! Form::file('video_thumbnail', array('class' => 'form-control')) !!}
                         </div>
