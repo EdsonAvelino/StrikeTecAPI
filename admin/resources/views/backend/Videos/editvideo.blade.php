@@ -8,7 +8,9 @@
 
 @section('content')
               {{ Form::open(['url' => 'admin/update/'.$video->id, 'files'=>true ,'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
-                
+            @if(Session('error_message'))
+                <p class="alert alert-danger">{{ Session('error_message') }}</p>
+            @endif    
         <div class="box box-success">
             <div class="box-header with-border">
                   
@@ -43,20 +45,20 @@
                     <div class="box-body">
                         {{ Form::label('name', 'Author Name', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
-                        {{ Form::text('author_name',$video->author_name, ['class' => 'form-control','autofocus' => 'autofocus','placeholder' => 'Enter Author Name']) }}         
+                        {{ Form::text('author_name', $video->author_name, ['class' => 'form-control','autofocus' => 'autofocus','placeholder' => 'Enter Author Name']) }}         
                         </div>
                     </div>
                     <div class="box-body">
-                        {{ Form::label('name', 'Upload Video', ['class' => 'col-lg-2 control-label']) }}
+                        {{ Form::label('name', 'Upload Video (MP4/50MB)', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                             {!! Form::file('video_file', array('class' => 'form-control')) !!}
                         </div>
                     </div>
                      <div class="box-body">
-                        {{ Form::label('name', 'Video Thumbnail ', ['class' => 'col-lg-2 control-label']) }}
+                        {{ Form::label('name', 'Video Thumbnail (JPEG/JPG/PNG)', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                             {!! Form::file('video_thumbnail', array('class' => 'form-control')) !!}
-                        </div>
+                         </div>
                     </div>
                  </div><!--form control-->
             </div><!-- /.box-body -->
