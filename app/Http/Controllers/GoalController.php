@@ -283,7 +283,7 @@ class GoalController extends Controller
         $user_id = \Auth::user()->id;
         Goals::where('id', $goal_id)
                 ->where('user_id', $user_id)
-                ->update(['followed' => $follow, 'followed_time' => date("Y-m-d", time())]);
+                ->update(['followed' => $follow, 'followed_time' => date("Y-m-d H:i:s", time())]);
         if ($follow == TRUE) {
             Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->update([ 'followed' => 0, 'avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
             return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.']);
@@ -322,18 +322,19 @@ class GoalController extends Controller
             $goalList->done_count = (int) $division;
             $goalList->avg_time = $totalTime;
             $goalList->save();
+            return $goalList->id;
         }
     }
 
     /**
-     * @api {get} /goal get goal information
+     * @api {get} /goal/info get goal information
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} goal_id Tag Id
+     * @apiParam {Number} goal_id Goal Id
      * @apiParamExample {json} Input
      *    {
      *      "goal_id": 16
@@ -376,6 +377,59 @@ class GoalController extends Controller
         $goalId = (int) $request->get('goal_id');
         $goalList = Goals::where('id', $goalId)->first();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
+    }
+
+    /**
+     * @api {get} /goal get current followed goal
+     * @apiGroup Goals
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data goal information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *       "error": "false",
+     *       "message": ""
+     *       "data": {
+     *              "id": 16,
+     *              "user_id": 7,
+     *              "activity_id": 1,
+     *              "activity_type_id": 2,
+     *              "target": "50",
+     *              "start_date": "1505088000",
+     *              "end_date": "1505088000",
+     *              "followed": 0,
+     *              "followed_time": "2017-11-20 09:06:27",
+     *              "done_count": 0,
+     *              "avg_time": 0,
+     *              "avg_speed": 0,
+     *              "avg_power": 0,
+     *              "achieve_type": 0
+     *            }
+     *     }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function goal(Request $request)
+    {
+        $goalId = $this->calculateGoal(); //calculate data of followed 
+        $goal = array();
+        $message = 'No Goal is followed.';
+        if ($goalId) {
+            $goal = Goals::where('id', $goalId)->first();
+            $message = '';
+        }
+        return response()->json(['error' => 'false', 'message' => $message, 'data' => $goal]);
     }
 
 }
