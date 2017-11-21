@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Goals extends Model
+class TaggedVideos extends Model
 {
 
     /**
@@ -12,14 +12,9 @@ class Goals extends Model
      *
      * @var array
      */
-    protected $table = 'user_goals';
     protected $fillable = [
-        'user_id',
-        'activity_id',
-        'activity_type_id',
-        'target',
-        'start_date',
-        'end_date'
+        'tag_id',
+        'video_id'
     ];
     protected $hidden = [
         'created_at',

@@ -115,6 +115,15 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
+    
+    // Get tagged videos
+    $app->get('/videos/tagged', 'VideoController@getVideoList');
+    
+    // Get tags
+    $app->get('/videos/tags', 'VideoController@getVideoTags');
+    
+    // Get tags
+    $app->get('/videos/category', 'VideoController@getVideoCat');
 });
 
 // Leaderboard APIs
@@ -208,10 +217,13 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
 
     // GET list of goal
-    $app->get('/goal', 'GoalController@getGoalList');
+    $app->get('/goals', 'GoalController@getGoalList');
 
     // Calculate goal data
-    $app->get('/goal/calculate', 'GoalController@calculateGoal');
+    $app->get('/goal/info', 'GoalController@goalInfo');
+    
+    // Calculate goal data
+    $app->get('/goal', 'GoalController@goal');
 });
 
 // Feed APIs
