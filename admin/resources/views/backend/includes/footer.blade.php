@@ -11,8 +11,8 @@
     
     <!-- To the right -->
     <div class="pull-right hidden-xs">
-        <a href='{{ url('/') }}' target="_blank">StrikeTec-TKCS</a>
+        <a href='{{ url('/') }}' target="_blank">StrikeTec</a>
     </div>
     <!-- Default to the left -->
-    <strong>Copyright &copy; {{ date('Y') }} <a href="#">StrikeTec-TKCS</a>.</strong> {{ trans('strings.backend.general.all_rights_reserved') }}
+    <strong>Copyright &copy; {{ date('Y') }} <a href="#">StrikeTec</a>.</strong> {{ trans('strings.backend.general.all_rights_reserved') }}
 </footer>

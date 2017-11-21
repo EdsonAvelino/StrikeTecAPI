@@ -70,7 +70,7 @@ class WriteusController extends Controller
         ]);
 
         // Admin Email
-        $adminEmail = 'team@striketec.com';
+        $adminEmail = env('WRITE_US_EMAIL');
 
         Mail::to($adminEmail)->send(new WriteUsEmail($email, $subject, $message));
 

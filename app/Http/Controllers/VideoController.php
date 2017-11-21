@@ -473,7 +473,7 @@ class VideoController extends Controller
      * @apiParam {Number} tag_id Tag Id
      * @apiParamExample {json} Input
      *    {
-     *      "tag_id": 1,
+     *      "tag_id": 1
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message

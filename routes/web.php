@@ -217,10 +217,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
 
     // GET list of goal
-    $app->get('/goal', 'GoalController@getGoalList');
+    $app->get('/goals', 'GoalController@getGoalList');
 
     // Calculate goal data
-    $app->get('/goal/calculate', 'GoalController@calculateGoal');
+    $app->get('/goal', 'GoalController@goalInfo');
 });
 
 // Feed APIs
