@@ -1118,7 +1118,8 @@ class UserController extends Controller
             ->offset($offset)->limit($limit)->get();
 
         foreach ($_connections as $connection) {
-            $points = Leaderboard::where('user_id', $connection->user_id)->first()->punches_count;
+            $leaderboard = Leaderboard::where('user_id', $connection->user_id)->first();
+            $points = ($leaderboard) ? $leaderboard->punches_count : 0;
 
             $connections[] = [
                 'id' => $connection->user_id,
