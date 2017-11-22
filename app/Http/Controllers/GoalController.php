@@ -249,7 +249,7 @@ class GoalController extends Controller
         $user_id = \Auth::user()->id;
         $this->calculateGoal(); //calculate data of folloewd 
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', 'start_date', 'end_date', 'followed', 'done_count')
-                        ->where('user_id', $user_id)->orderBy('created_at', 'desc')
+                        ->where('user_id', $user_id)->orderBy('updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
@@ -299,7 +299,7 @@ class GoalController extends Controller
                 ->where('user_id', $user_id)
                 ->update(['followed' => $follow, 'followed_time' => date("Y-m-d H:i:s")]);
         if ($follow == TRUE) {
-            Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->update([ 'followed' => 0, 'avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
+            Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->where('followed', 1)->update([ 'followed' => 0, 'avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
             return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goal_id]]);
         } else {
             Goals::where('id', $goal_id)
