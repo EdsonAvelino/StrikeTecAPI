@@ -470,10 +470,16 @@ class VideoController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} tag_id Tag Id
+     * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials 
+     * @apiParam {String} [tag_id] Tag Ids separated by comma for eg:1,2,3 or 1
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
-     *      "tag_id": 1
+     *      "tag_id": 1,
+     *      "category_id": 1,
+     *      "start": 0,
+     *      "limit": 10
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -519,11 +525,26 @@ class VideoController extends Controller
      */
     public function getVideoList(Request $request)
     {
-        $tagId = (int) $request->get('tag_id');
-        $taggedVideoList = Videos::select('tags.id as tag_id', 'tags.name as tag_name', 'videos.*')
-                        ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
-                        ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
-                        ->where('tagged_videos.tag_id', $tagId)->get()->toArray();
+        $tagId = $request->get('tag_id');
+        $catId = $request->get('category_id');
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
+        $tags = explode(',', $tagId);
+        $taggedVideoList = array();
+        if (count($tags)) {
+            $taggedVideoList = Videos::select('tags.id as tag_id', 'tags.name as tag_name', 'videos.*')
+                            ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
+                            ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
+                            ->whereIn('tagged_videos.tag_id', $tags)
+                            ->where('videos.category_id', $catId)->groupBy('videos.id')
+                            ->offset($offset)->limit($limit)->get()->toArray();
+        } else {
+            $taggedVideoList = Videos::select('tags.id as tag_id', 'tags.name as tag_name', 'videos.*')
+                            ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
+                            ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
+                            ->where('videos.category_id', $catId)->groupBy('videos.id')
+                            ->offset($offset)->limit($limit)->get()->toArray();
+        }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $taggedVideoList]);
     }
 
