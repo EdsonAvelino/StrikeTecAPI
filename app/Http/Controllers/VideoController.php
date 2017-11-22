@@ -121,12 +121,10 @@ class VideoController extends Controller
     {
         $categoryId = (int) $request->get('category_id') ? $request->get('category_id') : 0;
         $tagId = $request->get('tag_id');
-        $tags = explode(',', $tagId);
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
-
-
-        if (count($tags)) {
+        if ($tagId) {
+            $tags = explode(',', $tagId);
             $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
                             ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
                             ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
