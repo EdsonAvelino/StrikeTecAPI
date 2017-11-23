@@ -241,7 +241,7 @@ class TrainingController extends Controller
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-      "Content-Type": "application/json"
+     *       "Content-Type": "application/json"
      *     }
      * @apiParam {json} data Json formatted sessions data
      * @apiParamExample {json} Input
@@ -276,7 +276,6 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $sessions = []; // Will be use for response
-        $data = json_decode($data, true);
         try {
             foreach ($data as $session) {
                 $_session = Sessions::create([
