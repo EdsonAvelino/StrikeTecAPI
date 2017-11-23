@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Goals;
 use App\Sessions;
+use App\GoalSession;
 
 class GoalController extends Controller
 {
@@ -299,12 +300,9 @@ class GoalController extends Controller
                 ->where('user_id', $user_id)
                 ->update(['followed' => $follow, 'followed_time' => date("Y-m-d H:i:s")]);
         if ($follow == TRUE) {
-            Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->where('followed', 1)->update([ 'followed' => 0, 'avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
+            Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->where('followed', 1)->update([ 'followed' => 0]);
             return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goal_id]]);
         } else {
-            Goals::where('id', $goal_id)
-                    ->where('user_id', $user_id)
-                    ->update(['avg_time' => 0, 'avg_speed' => 0, 'avg_power' => 0, 'achieve_type' => 0, 'done_count' => 0]);
             return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goal_id]]);
         }
     }
@@ -313,29 +311,41 @@ class GoalController extends Controller
     public function calculateGoal()
     {
         $userId = \Auth::user()->id;
-        $goalList = Goals::select('id', 'start_date', 'end_date', 'followed', 'followed_time')->where('user_id', $userId)->where('followed', 1)->first();
+        $goalList = Goals::select('id', 'avg_speed', 'avg_power', 'avg_time', 'done_count', 'activity_type_id')->where('user_id', $userId)->where('followed', 1)->first();
+
         if ($goalList) {
-            $followedTime = strtotime($goalList->followed_time);
-            $start_time = ($followedTime >= $goalList->start_date) ? $followedTime : $goalList->start_date;
-            $start_time = $start_time * 1000;
-            $end_time = $goalList->end_date * 1000;
-            $sessions = Sessions::where('user_id', \Auth::user()->id)->where('battle_id', 0)->orWhereNull('battle_id')->where('start_time', '>=', $start_time)
-                            ->where('end_time', '<=', $end_time)->get();
+            $goalSession = Goals::with('goalSessions')->where('id', $goalList->id)->first()->toArray();
+            $sessionId = [];
+            foreach ($goalSession['goal_sessions'] as $value) {
+                $sessionId[] = $value['session_id'];
+            }
+            $sessions = Sessions::where('user_id', \Auth::user()->id)
+                            ->whereIn('id', $sessionId)
+                            ->get()->toArray();
             $division = 0;
+            $doneCount = 0;
             if (count($sessions)) {
                 foreach ($sessions as $session) {
                     $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
                     $avgTimeData[] = $session['best_time'] * $session['punches_count'];
                     $avgForceData[] = $session['avg_force'] * $session['punches_count'];
                     $division += $session['punches_count'];
+                    $doneCount++;
                 }
                 $avgSpeed = array_sum($avgSpeedData) / $division;
                 $avgForce = array_sum($avgForceData) / $division;
                 $avgTime = array_sum($avgTimeData) / $division;
                 $goalList->avg_speed = (int) $avgSpeed;
                 $goalList->avg_power = (int) $avgForce;
-                $goalList->done_count = (int) $division;
-                $goalList->avg_time = $avgTime;
+                $goalList->avg_time = round($avgTime, 2);
+                if ($goalList->activity_type_id == 2) {
+                    if ($session['type_id'] == 5) {
+                        $goalList->done_count = $doneCount;
+                    }
+                } else {
+                    $goalList->done_count = $division;
+                }
+
                 $goalList->save();
             }
             return $goalList->id;

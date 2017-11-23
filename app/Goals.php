@@ -12,7 +12,6 @@ class Goals extends Model
      *
      * @var array
      */
-    protected $table = 'user_goals';
     protected $fillable = [
         'user_id',
         'activity_id',
@@ -25,5 +24,10 @@ class Goals extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function goalSessions()
+    {
+        return $this->hasMany('App\GoalSession','goal_id');
+    }
 
 }
