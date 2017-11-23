@@ -139,8 +139,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 // Push notification tests for ios/android
-$app->post('/push/test', 'PushController@testPush');
-$app->post('/push/test/apns', 'PushController@testPushAPNs');
+// $app->post('/push/test', 'PushController@testPush');
+// $app->post('/push/test/apns', 'PushController@testPushAPNs');
 
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -186,8 +186,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get details of battle(challenge)
     $app->get('/battles/{battleId}', 'BattleController@getBattle');
+});
 
-    //push notifications settings
+// Push notifications settings
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/notification/settings', 'SettingController@updateSettings');
     $app->get('/notification/settings', 'SettingController@getSettings');
 });
@@ -237,41 +239,39 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get comments of feed-post
     // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
+
     // Post comment on feed-post
     $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
 });
 
-//contact us(write us)
+// This api does not need auth
+// Contact Us(write us)
 $app->post('/writeus', 'WriteusController@writeUs');
 
-
-//Chat APIs
+// Chat APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Send message
     $app->post('/chat/send', 'ChatController@sendMessage');
 
-    // read message
+    // Read message
     $app->post('/chat/read', 'ChatController@ReadMessage');
 
-    // chat History
+    // Chat History (get all messages of particular chat )
     $app->get('/chat/history', 'ChatController@chatHistory');
 
-    // all chats
+    // Get all chats
     $app->get('/chat', 'ChatController@chats');
-
-    // unread message count
-    $app->get('/chat/unread_count', 'ChatController@unreadMessageCount');
 });
 
-//in app subscription APIS
+// in app subscription APIS
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // add user subscription
     $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
 
-    //get user subscrioption information
+    // get user subscrioption information
     $app->get('/user/subscription', 'UsersubscriptionController@getUserSubscriptionStatus');
 
-    //cancel user subscription
+    // cancel user subscription
     $app->post('/cancel/subscription', 'UsersubscriptionController@cancelSubscription');
 });
