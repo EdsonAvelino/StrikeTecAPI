@@ -1260,7 +1260,7 @@ class UserController extends Controller
     public function getUnreadCounts()
     {
         $userId = \Auth::user()->id;
-        $chatCount = ChatMessages::where('read_flag', 0)
+        $chatCount = \App\ChatMessages::where('read_flag', 0)
                     ->where('user_id', '!=', $userId)
                     ->with(['chat' => function ($query) use($userId)  {
                         $query->where('user_one', $userId)->orwhere('user_two', $userId);
