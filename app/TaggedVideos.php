@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class TaggedVideos extends Model
 {
 
+    public $timestamp = false;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -15,10 +17,6 @@ class TaggedVideos extends Model
     protected $fillable = [
         'tag_id',
         'video_id'
-    ];
-    protected $hidden = [
-        'created_at',
-        'updated_at'
     ];
 
 }
