@@ -32,7 +32,116 @@ class FeedController extends Controller
      *    {
      *      "error": "false",
      *      "message": "",
-     *      "data": ""
+     *      "data": [
+     *        {
+     *            "id": 7,
+     *            "post_type_id": 5,
+     *            "data_id": 7,
+     *            "title": "Rakesh Kumar is now following Qiang Hu",
+     *            "text": null,
+     *            "created_at": "2017-11-07 20:14:26",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 25,
+     *                "first_name": "Rakesh",
+     *                "last_name": "Kumar",
+     *                "photo_url": null,
+     *                "gender": "male"
+     *            },
+     *            "user_likes": false
+     *        },
+     *        {
+     *            "id": 6,
+     *            "post_type_id": 1,
+     *            "data_id": 117,
+     *            "title": "da cheng shared his battle history with Qiang Hu",
+     *            "text": null,
+     *            "created_at": "2017-11-07 20:01:25",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 20,
+     *                "first_name": "da",
+     *                "last_name": "cheng",
+     *                "photo_url": null,
+     *                "gender": "male"
+     *            },
+     *            "user_likes": false
+     *        },
+     *        {
+     *            "id": 5,
+     *            "post_type_id": 5,
+     *            "data_id": 20,
+     *            "title": "DA CHANGE is now following da cheng",
+     *            "text": null,
+     *            "created_at": "2017-11-07 19:43:15",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 19,
+     *                "first_name": "DA",
+     *                "last_name": "CHANGE",
+     *                "photo_url": null,
+     *                "gender": "male"
+     *            },
+     *            "user_likes": false
+     *        },
+     *        {
+     *            "id": 4,
+     *            "post_type_id": 5,
+     *            "data_id": 30,
+     *            "title": "Edd Ggg is now following Rakesh Ruhil",
+     *            "text": null,
+     *            "created_at": "2017-11-07 18:21:51",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 17,
+     *                "first_name": "Edd",
+     *                "last_name": "Ggg",
+     *                "photo_url": null,
+     *                "gender": null
+     *            },
+     *            "user_likes": false
+     *        },
+     *        {
+     *            "id": 3,
+     *            "post_type_id": 2,
+     *            "data_id": 1,
+     *            "title": "John Smith shared a training session",
+     *            "text": null,
+     *            "created_at": "2017-11-07 18:03:27",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 16,
+     *                "first_name": "John",
+     *                "last_name": "Smith",
+     *                "photo_url": null,
+     *                "gender": null
+     *            },
+     *            "user_likes": false
+     *        },
+     *        {
+     *            "id": 2,
+     *            "post_type_id": 2,
+     *            "data_id": 1,
+     *            "title": "Qiang Hu shared a training session",
+     *            "text": "Beat me if you can!",
+     *            "created_at": "2017-11-07 17:33:29",
+     *            "likes_count": 0,
+     *            "comments_count": 0,
+     *            "user": {
+     *                "id": 7,
+     *                "first_name": "Qiang",
+     *                "last_name": "Hu",
+     *                "photo_url": null,
+     *                "gender": "male"
+     *            },
+     *            "user_likes": false
+     *        }
+     *    ]
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK

@@ -1259,8 +1259,15 @@ class UserController extends Controller
      */
     public function getUnreadCounts()
     {
-        // TODO
-        $unreadCounts = [];
+        $userId = \Auth::user()->id;
+        $chatCount = ChatMessages::where('read_flag', 0)
+                    ->where('user_id', '!=', $userId)
+                    ->with(['chat' => function ($query) use($userId)  {
+                        $query->where('user_one', $userId)->orwhere('user_two', $userId);
+                    }])->count();
+        
+        // TODO get unread notification counts
+        $unreadCounts = ['chat_count' => $chatCount, 'notif_count' => 0];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }

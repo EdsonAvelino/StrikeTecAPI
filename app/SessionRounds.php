@@ -32,6 +32,11 @@ class SessionRounds extends Model
         return $this->belongsTo('App\TrainingSessions');
     }
 
+    public function punches()
+    {
+        return $this->hasMany('App\SessionRoundPunches', 'session_round_id');
+    }
+
     public static function boot()
     {
         parent::boot();

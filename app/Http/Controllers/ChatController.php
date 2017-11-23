@@ -348,44 +348,4 @@ class ChatController extends Controller
                     'user_two' => $connection_id,
                 ])->id;
     }
-
-    /**
-     * @api {get} /chat/unread_count all unread message count 
-     * @apiGroup Chat
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":{
-     *       "unread_msg_count": 5
-     *     }
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function unreadMessageCount(Request $request)
-    {
-        $userId = \Auth::user()->id;
-        $unreadChatCount = ChatMessages::where('read_flag', 0)
-                    ->where('user_id', '!=', $userId)->with(['chat' => function ($query) use($userId)  {
-                    $query->where('user_one', $userId)
-                     ->orwhere('user_two', $userId);
-                }])->count();
-        
-        return response()->json(['error' => 'false', 'message' => '', 'data' => ['unread_msg_count' => $unreadChatCount]]);
-    }
-
 }

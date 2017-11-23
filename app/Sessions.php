@@ -31,12 +31,7 @@ class Sessions extends Model
 
     public function rounds()
     {
-        return $this->hasMany('App\TrainingSessionRounds', 'training_session_id');
-    }
-
-    public function roundsPunches()
-    {
-        return $this->hasMany('App\TrainingSessionRoundsPunches', 'session_round_id', 'id');
+        return $this->hasMany('App\SessionRounds', 'session_id');
     }
 
     public static function boot()
