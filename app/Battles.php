@@ -55,7 +55,7 @@ class Battles extends Model
         switch ($battle->type_id) {
             case 3: // Combo
                 $winnerUserId = self::compareBattleCombos($battle);
-                $looserUserId = ($winnerUserId == $battle->user_id) ? $battle->opponent_user_id : $battle->user_id;
+                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id : ($winnerUserId) ? $battle->user_id : null;
             break;
 
             case 4: // Combo-Sets
@@ -94,6 +94,7 @@ class Battles extends Model
         }
 
         $userMarks = $opponentMarks = 0;
+        $userAvgSpeedOfCorrectPunches = $opponentAvgSpeedOfCorrectPunches = 0;
 
         // Check for punches corrections
         foreach ($comboPunches as $key => $punch) {
