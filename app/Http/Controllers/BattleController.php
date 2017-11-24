@@ -14,7 +14,6 @@ use App\Helpers\PushTypes;
 
 class BattleController extends Controller
 {
-
     /**
      * @api {post} /battles Send battle invite
      * @apiGroup Battles

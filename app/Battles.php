@@ -31,71 +31,104 @@ class Battles extends Model
 
     public static function getResult($battleId)
     {
-        /*
-        * the man who has more correct punches will be winner
-        * if correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
-        * if avg speed is also same, then will determine with power of all correct punches
-        * if both user don't have any correct punches, then will calculate with Speed of all punches
+        /* 
+        * SCENARIO
+        * The man who has more correct punches will be winner
+        * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+        * If avg speed is also same, then will determine with power of all correct punches
+        * If both user don't have any correct punches, then will calculate with Speed of all punches
         */
 
         $battle = self::find($battleId);
 
-        if (!$battle) return null;
+        // When battle not found
+        if (!$battle)
+            return null;
+
+        // Check battle is finished from both side
+        if (!$battle->user_finished && !$battle->opponent_finished)
+            return null;
+
+        $winnerUserId = null;
+        $looserUserId = null;
 
         switch ($battle->type_id) {
-            case 3:
+            case 3: // Combo
                 $winnerUserId = self::compareBattleCombos($battle);
+                $looserUserId = ($winnerUserId == $battle->user_id) ? $battle->opponent_user_id : $battle->user_id;
+            break;
+
+            case 4: // Combo-Sets
+            case 5: // Workouts
+                // TODO compare for combo-sets and workouts
             break;
         }
 
-        return true;
+        return ['winner' => \App\User::get($winnerUserId), 'looser' => \App\User::get($looserUserId)];
     }
 
     // Compare combos type #3
     private static function compareBattleCombos($battle)
     {
         $comboPunches = self::getComboPunches($battle->plan_id);
-        $punches = [];
+        $roundPunches = [];
+        $puchnes = []; // Full details of punches
         $speed = [];
-        $force = [];
+        $speedOfCorrectPunches = [];
+        $forceOfCorrectPunches = [];
 
         $sessions = \App\Sessions::with('rounds')->where('battle_id', $battle->id)->get();
 
         foreach($sessions as $session) {
+            // Battle type combo will always have one round
             $round = $session->rounds{0};
 
             foreach ($round->punches as $punch) {
-                $punches[$session->user_id][] = $punch->hand.$punch->punch_type;
+                $roundPunches[$session->user_id][] = $punch->hand.$punch->punch_type;
+                
                 $speed[$session->user_id][] = $punch->speed;
-                $force[$session->user_id][] = $punch->force;
+
+                // Full punch info, use to get speed/force of correct punches
+                $puchnes[$session->user_id][] = $punch->toArray();
             }
         }
 
         $userMarks = $opponentMarks = 0;
-        $userAvg = $opponentUser = 0;
 
         // Check for punches corrections
         foreach ($comboPunches as $key => $punch) {
-            $userMarks += @(strpos($punch, $punches[$battle->user_id][$key]) !== false) ? 1 : 0;
-            $opponentMarks += @(strpos($punch, $punches[$battle->opponent_user_id][$key]) !== false) ? 1 : 0;
+            if ( @strpos($punch, $roundPunches[$battle->user_id][$key]) !== false ) {
+                $speedOfCorrectPunches[$battle->user_id][] = $puchnes[$battle->user_id][$key]['speed'];
+                $forceOfCorrectPunches[$battle->user_id][] = $puchnes[$battle->user_id][$key]['force'];
+                $userMarks += 1;    
+            }
+            
+            if ( @strpos($punch, $roundPunches[$battle->opponent_user_id][$key]) !== false ) {
+                $speedOfCorrectPunches[$battle->opponent_user_id][] = $puchnes[$battle->opponent_user_id][$key]['speed'];
+                $forceOfCorrectPunches[$battle->opponent_user_id][] = $puchnes[$battle->opponent_user_id][$key]['force'];
+                $opponentMarks += 1;
+            }
         }
 
-        // if correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+        // If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
         if ($userMarks > 0 && $opponentMarks > 0 && $userMarks == $opponentMarks) {
-            $userAvg = array_sum($speed[$battle->user_id]) / count($speed[$battle->user_id]);
-            $opponentAvg = array_sum($speed[$battle->opponent_user_id]) / count($speed[$battle->opponent_user_id]);
+            $userAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->user_id]) / (float) count($speedOfCorrectPunches[$battle->user_id]);
 
-            if ($userAvg > $opponentAvg) {
+            $opponentAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->opponent_user_id]) / (float) $speedOfCorrectPunches[$battle->opponent_user_id];
+
+            if ($userAvgSpeedOfCorrectPunches > $opponentAvgSpeedOfCorrectPunches) {
                 return $battle->user_id;
-            } else if ($opponentAvg > $userAvg) {
+            } else if ($opponentAvgSpeedOfCorrectPunches > $userAvgSpeedOfCorrectPunches) {
                 return $battle->opponent_user_id;
             }
         }
 
-        // if avg speed is also same, then will determine with power of all correct punches, higher power will be winner
-        if ($userAvg > 0 && $opponentAvg > 0 && $userAvg == $opponentAvg) {
-            $userMaxForce = max($force[$battle->user_id]);
-            $opponentMaxForce = max($force[$battle->opponent_user_id]);
+        // If avg speed is also same, then will determine with power of all correct punches, higher power will be winner
+        if ($userAvgSpeedOfCorrectPunches > 0 && $opponentAvgSpeedOfCorrectPunches > 0
+            && $userAvgSpeedOfCorrectPunches == $opponentAvgSpeedOfCorrectPunches)
+        {
+            $userMaxForce = max($forceOfCorrectPunches[$battle->user_id]);
+            $opponentMaxForce = max($forceOfCorrectPunches[$battle->opponent_user_id]);
 
             if ($userMaxForce > $opponentMaxForce) {
                 return $battle->user_id;
@@ -104,8 +137,17 @@ class Battles extends Model
             }
         }
 
-        // if both user don't have any correct punches, then will calculate with Speed of all punches
-        // TODO
+        // If both users don't have any correct punches, then will calculate with Speed of all punches, fastet(lowest) will be winner
+        if (!$userMarks && !$opponentMarks) {
+            $userSpeed = min($speed[$battle->user_id]);
+            $opponentSpeed = min($speed[$battle->opponent_user_id]);
+
+            if ($userSpeed < $opponentSpeed) {
+                return $battle->user_id;
+            } else if ($opponentSpeed < $userAvg) {
+                return $battle->opponent_user_id;
+            }
+        }
     }
 
     private static function getComboPunches($comboId)
