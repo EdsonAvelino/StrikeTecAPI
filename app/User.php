@@ -139,6 +139,16 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'striketec_promos' => true,
                 'striketec_news' => true
             ]);
+
+            Leaderboard::create([
+                'user_id' => $user->id,
+                'sessions_count' => 0,
+                'punches_count' => 0
+            ]);
+        });
+
+        static::deleting(function($user) {
+            // TODO Cleanup when user deleted, delete all their data & settings 
         });
     }
 

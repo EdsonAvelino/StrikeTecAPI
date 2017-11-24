@@ -276,149 +276,139 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $sessions = []; // Will be use for response
-        try {
-            foreach ($data as $session) {
-                $_session = Sessions::create([
-                'user_id' => \Auth::user()->id,
-                'battle_id' => ($session['battle_id']) ?? null,
-                'type_id' => $session['type_id'],
-                'start_time' => $session['start_time'],
-                'end_time' => $session['end_time'],
-                'plan_id' => $session['plan_id'],
-                'avg_speed' => $session['avg_speed'],
-                'avg_force' => $session['avg_force'],
-                'punches_count' => $session['punches_count'],
-                'max_force' => $session['max_force'],
-                'max_speed' => $session['max_speed'],
-                'best_time' => $session['best_time']
-                ]);
 
-                $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
+        foreach ($data as $session) {
+            $_session = Sessions::create([
+            'user_id' => \Auth::user()->id,
+            'battle_id' => ($session['battle_id']) ?? null,
+            'type_id' => $session['type_id'],
+            'start_time' => $session['start_time'],
+            'end_time' => $session['end_time'],
+            'plan_id' => $session['plan_id'],
+            'avg_speed' => $session['avg_speed'],
+            'avg_force' => $session['avg_force'],
+            'punches_count' => $session['punches_count'],
+            'max_force' => $session['max_force'],
+            'max_speed' => $session['max_speed'],
+            'best_time' => $session['best_time']
+            ]);
 
-                $sessions[] = ['start_time' => $_session->start_time];
+            $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-// Update battle details, if any
-                if ($_session->battle_id) {
-                    $battle = Battles::where('id', $_session->battle_id)->first();
+            $sessions[] = ['start_time' => $_session->start_time];
 
-                    if (\Auth::user()->id == $battle->user_id) {
-                        $battle->user_finished = 1;
-                        $battle->user_finished_at = date('Y-m-d H:i:s');
+            // Update battle details, if any
+            if ($_session->battle_id) {
+                $battle = Battles::where('id', $_session->battle_id)->first();
 
-                        $pushToUserId = $battle->opponent_user_id;
-                        $pushOpponentUserId = $battle->user_id;
-                    } else if (\Auth::user()->id == $battle->opponent_user_id) {
-                        $battle->opponent_finished = 1;
-                        $battle->opponent_finished_at = date('Y-m-d H:i:s');
+                if (\Auth::user()->id == $battle->user_id) {
+                    $battle->user_finished = 1;
+                    $battle->user_finished_at = date('Y-m-d H:i:s');
 
-                        $pushToUserId = $battle->user_id;
-                        $pushOpponentUserId = $battle->opponent_user_id;
-                    }
+                    $pushToUserId = $battle->opponent_user_id;
+                    $pushOpponentUserId = $battle->user_id;
+                } else if (\Auth::user()->id == $battle->opponent_user_id) {
+                    $battle->opponent_finished = 1;
+                    $battle->opponent_finished_at = date('Y-m-d H:i:s');
 
-// Push to opponent, about battle is finished by current user
-                    $pushMessage = 'User has finished battle';
+                    $pushToUserId = $battle->user_id;
+                    $pushOpponentUserId = $battle->opponent_user_id;
+                }
 
-                    Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
+                // Push to opponent, about battle is finished by current user
+                $pushMessage = 'User has finished battle';
 
-                    $battle->update();
-                } else {
-                    //update goal progress
-                    $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
-                            ->where('start_at', '<=', date('Y-m-d H:i:s'))
-                            ->where('end_at', '>=', date('Y-m-d H:i:s'))
-                            ->first();
+                Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
 
-                    if ($goal) {
-                        if ($goal->activity_type_id == 2) {
-                            if ($_session->type_id == 5) {
-                                GoalSession::create([
-                                    'session_id' => $_session->id,
-                                    'goal_id' => $goal->id
-                                ]);
-                                $goal->done_count = $goal->done_count + 1;
-                                $goal->save();
-                            }
-                        } else {
+                $battle->update();
+            } else {
+                // Update goal progress
+                $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
+                        ->where('start_at', '<=', date('Y-m-d H:i:s'))
+                        ->where('end_at', '>=', date('Y-m-d H:i:s'))
+                        ->first();
+
+                if ($goal) {
+                    if ($goal->activity_type_id == 2) {
+                        if ($_session->type_id == 5) {
                             GoalSession::create([
                                 'session_id' => $_session->id,
                                 'goal_id' => $goal->id
                             ]);
-                            $goal->done_count = $_session->punches_count + $goal->done_count;
+                            $goal->done_count = $goal->done_count + 1;
                             $goal->save();
                         }
+                    } else {
+                        GoalSession::create([
+                            'session_id' => $_session->id,
+                            'goal_id' => $goal->id
+                        ]);
+                        $goal->done_count = $_session->punches_count + $goal->done_count;
+                        $goal->save();
                     }
                 }
             }
-
-// User's total sessions count
-            $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
-            $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
-
-// Create / Update Leaderboard entry for this user
-            $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
-
-// Set all old averate data to 0
-            $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
-
-            if (!$leaderboardStatus) {
-                $leaderboardStatus = Leaderboard::create([
-                            'user_id' => \Auth::user()->id,
-                            'sessions_count' => $sessionsCount,
-                            'punches_count' => $punchesCount
-                ]);
-            } else {
-                $oldAvgSpeed = $leaderboardStatus->avg_speed;
-                $oldAvgForce = $leaderboardStatus->avg_force;
-                $oldPunchesCount = $leaderboardStatus->punches_count;
-
-                $leaderboardStatus->sessions_count = $sessionsCount;
-                $leaderboardStatus->punches_count = $punchesCount;
-                $leaderboardStatus->save();
-            }
-
-// Formula
-// (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
-
-            $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
-            $avgForceData[] = $oldAvgForce * $oldPunchesCount;
-
-            $division = $oldPunchesCount;
-
-            foreach ($data as $session) {
-                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-
-                $division += $session['punches_count'];
-            }
-
-            $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
-            $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
-
-            $temp = SessionRounds::select(
-                                    \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
-                            )
-                            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
-
-            $leaderboardStatus->max_speed = $temp->max_speed;
-            $leaderboardStatus->max_force = $temp->max_force;
-
-            $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
-
-            $leaderboardStatus->total_time_trained = $totalTimeTrained;
-
-            $leaderboardStatus->save();
-
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Training sessions saved successfully',
-                        'data' => $sessions
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
         }
+
+        // User's total sessions count
+        $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
+        $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
+
+        // Create / Update Leaderboard entry for this user
+        $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
+
+        // Set all old averate data to 0
+        $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
+
+        if (!$leaderboardStatus) {
+            // TODO check for all users' leaderboard entry exists
+        } else {
+            $oldAvgSpeed = $leaderboardStatus->avg_speed;
+            $oldAvgForce = $leaderboardStatus->avg_force;
+            $oldPunchesCount = $leaderboardStatus->punches_count;
+
+            $leaderboardStatus->sessions_count = $sessionsCount;
+            $leaderboardStatus->punches_count = $punchesCount;
+            $leaderboardStatus->save();
+        }
+
+        // Formula
+        // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+
+        $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
+        $avgForceData[] = $oldAvgForce * $oldPunchesCount;
+
+        $division = $oldPunchesCount;
+
+        foreach ($data as $session) {
+            $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+            $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+
+            $division += $session['punches_count'];
+        }
+
+        $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
+        $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
+
+        $temp = SessionRounds::select(
+                                \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
+                        )
+                        ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
+
+        $leaderboardStatus->max_speed = $temp->max_speed;
+        $leaderboardStatus->max_force = $temp->max_force;
+
+        $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+
+        $leaderboardStatus->total_time_trained = $totalTimeTrained;
+
+        $leaderboardStatus->save();
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => 'Training sessions saved successfully',
+                    'data' => $sessions
+        ]);
     }
 
     /**

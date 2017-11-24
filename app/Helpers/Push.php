@@ -6,6 +6,8 @@ use App\UserAppTokens;
 use App\Settings;
 use App\PushNotifications;
 
+use App\Helpers\PushTypes;
+
 use GuzzleHttp\Client;
 
 class Push
@@ -33,7 +35,23 @@ class Push
         // Get user's notification settings
         $notifSettings = Settings::where('user_id', $toUserId)->first();
 
-        // TODO Check for settings
+        switch ($typeId) {
+            case PushTypes::BATTLE_INVITE:
+            case PushTypes::BATTLE_RESEND:
+                if (!$notifSettings->new_challenges) return;
+                break;
+            
+            case PushTypes::BATTLE_ACCEPT:
+            case PushTypes::BATTLE_DECLINE:
+            case PushTypes::BATTLE_CANCEL:
+            case PushTypes::BATTLE_FINISHED:
+                if (!$notifSettings->battle_update) return;
+                break;
+
+            case PushTypes::CHAT_SEND_MESSAGE:
+                if (!$notifSettings->new_message) return;
+                break;
+        }
 
         self::$typeId = $typeId;
         self::$toUserId = $toUserId;
@@ -147,7 +165,7 @@ class Push
 
         $body['aps'] = ['alert' => ['body' => self::$pushMessage]];
         
-        if (in_array(self::$typeId, \App\Helpers\PushTypes::getSilentPushListForIOS())) {
+        if (in_array(self::$typeId, PushTypes::getSilentPushListForIOS())) {
             $body['aps']['content-available'] = 1;
         }
 
