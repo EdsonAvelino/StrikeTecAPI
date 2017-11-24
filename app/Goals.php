@@ -17,8 +17,8 @@ class Goals extends Model
         'activity_id',
         'activity_type_id',
         'target',
-        'start_date',
-        'end_date'
+        'start_at',
+        'end_at'
     ];
     protected $hidden = [
         'created_at',

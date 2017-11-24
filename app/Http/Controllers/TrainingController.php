@@ -323,7 +323,11 @@ class TrainingController extends Controller
                     $battle->update();
                 } else {
                     //update goal progress
-                    $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)->first();
+                    $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
+                            ->where('start_at', '<=', date('Y-m-d H:i:s'))
+                            ->where('end_at', '>=', date('Y-m-d H:i:s'))
+                            ->first();
+
                     if ($goal) {
                         if ($goal->activity_type_id == 2) {
                             if ($_session->type_id == 5) {
