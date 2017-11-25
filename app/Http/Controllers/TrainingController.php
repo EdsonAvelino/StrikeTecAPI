@@ -740,7 +740,7 @@ class TrainingController extends Controller
      */
     public function getSessionsRoundsByTrainingType(Request $request)
     {
-// $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
+        // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
@@ -757,6 +757,10 @@ class TrainingController extends Controller
         $endDate = ($endDate) ? date('Y-m-d 23:59:59', strtotime($endDate)) : null;
 
         $_sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId);
+
+        $_sessions->where(function($query) {
+            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+        });
 
         if (!empty($startDate) && !empty($endDate)) {
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
