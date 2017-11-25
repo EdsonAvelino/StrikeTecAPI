@@ -27,13 +27,13 @@ class TrainingController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
-     * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
+     * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
+     * @apiParam {Date} end_date The timestamp of end date since 1970.1.1 (unit is seccond)
      * @apiParam {Number} [type_id] Optional Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
      * @apiParamExample {json} Input
      *    {
-     *      "start_date": "09/11/2017",
-     *      "end_date": "09/15/2017",
+     *      "start_date": "1505088000",
+     *      "end_date": "1505088000",
      *      "type_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -109,8 +109,8 @@ class TrainingController extends Controller
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('type_id');
 
-        $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
-        $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
+        $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
+        $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
 
         $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'created_at', 'updated_at'])->where('user_id', $userId);
         
@@ -681,13 +681,13 @@ class TrainingController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *     }
      * @apiParam {Number} type_id Type ID e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
-     * @apiParam {Date} start_date Start Date in MM-DD-YYYY e.g. 09/11/2017
-     * @apiParam {Date} end_date End Date in MM-DD-YYYY e.g. 09/15/2017
+     * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
+     * @apiParam {Date} end_date The timestamp of end date since 1970.1.1 (unit is seccond)
      * @apiParamExample {json} Input
      *    {
      *      "type_id": 1,
-     *      "start_date": "09/11/2017",
-     *      "end_date": "09/15/2017",
+     *      "start_date": "1505088000",
+     *      "end_date": "1505088000",
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -753,8 +753,8 @@ class TrainingController extends Controller
             ]);
         }
 
-        $startDate = ($startDate) ? date('Y-m-d 00:00:00', strtotime($startDate)) : null;
-        $endDate = ($endDate) ? date('Y-m-d 23:59:59', strtotime($endDate)) : null;
+        $startDate = ($startDate) ? date('Y-m-d 00:00:00', $startDate) : null;
+        $endDate = ($endDate) ? date('Y-m-d 23:59:59', $endDate) : null;
 
         $_sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId);
 

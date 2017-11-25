@@ -23,7 +23,7 @@ class GoalController extends Controller
      * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
      * @apiParam {Date} end_date   The timestamp of end date since 1970.1.1 (unit is seccond)
      * @apiParam {Number} activity_id Activity id e.g. 1 = Boxing, 2 = Kickboxing
-     * @apiParam {Number} activity_type_id Activity Type id  Punches = 1, Workouts = 2 (type doesn�t depends on activity type)
+     * @apiParam {Number} activity_type_id Activity Type id  Punches = 1, Workouts = 2 (type doesn't depends on activity type)
      * @apiParam {Number} target target of activity
      * @apiParamExample {json} Input
      *    {
