@@ -153,6 +153,18 @@ class Battles extends Model
         }
     }
 
+    // Compare combo-sets #4
+    private static function compareComboSets($battle)
+    {
+
+    }
+
+    // Compare workouts #5
+    private static function compareComboSets($battle)
+    {
+
+    }
+
     private static function getComboPunches($comboId)
     {
         $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();

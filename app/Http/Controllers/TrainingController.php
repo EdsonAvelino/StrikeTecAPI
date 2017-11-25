@@ -20,6 +20,8 @@ class TrainingController extends Controller
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiGroup Training
+     * @apiDescription Used to get list of sessions of user, when any session is tied with
+     * battle, that session will not be in response.
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -110,7 +112,11 @@ class TrainingController extends Controller
         $startDate = ($startDate) ? date('Y-m-d', strtotime($startDate)) . ' 00:00:00' : null;
         $endDate = ($endDate) ? date('Y-m-d', strtotime($endDate)) . ' 23:59:59' : null;
 
-        $_sessions = Sessions::where('user_id', $userId);
+        $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'created_at', 'updated_at'])->where('user_id', $userId);
+        
+        $_sessions->where(function($query) {
+            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+        });
 
         if (!empty($startDate) && !empty($endDate)) {
             $_sessions->whereBetween('created_at', [$startDate, $endDate]);
