@@ -21,10 +21,11 @@ class VideoRequest extends Request {
      *
      * @return array
      */
-    public function rules() {
+    public function rules() {   
         return [
             'video_file' => 'required|mimes:mp4',
             'video_thumbnail'=> 'required|mimes:jpeg,jpg,png,ico',
+            'price' => 'numeric',
         ];
     }
 

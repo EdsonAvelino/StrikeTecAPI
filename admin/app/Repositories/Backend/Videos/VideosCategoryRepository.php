@@ -2,7 +2,9 @@
 
 namespace App\Repositories\Backend\Videos;
 
+use App\Repositories\Backend\Videos\VideosRepository;
 use App\Models\Admin\Video\VideoCategory;
+use App\Models\Admin\Video\Video;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\BaseRepository;
 
@@ -28,8 +30,22 @@ class VideosCategoryRepository extends BaseRepository
     }
     /* deleting a category */
     public function delete($id){
-        $video_cat = new VideoCategory;
-        $video_cat->where('id', $id)->delete();
+        $objVideoCategory = new VideoCategory;
+        $objVideoCategory->where('id', $id)->delete();
+        //delete all video
+        $objVideo = new Video;
+        $videoDetails = $objVideo->where('category_id', $id)->get();
+        
+        foreach($videoDetails as $val) {
+            
+            $objVideoRepo = new VideosRepository();
+            $objVideoRepo->unlinkFile('both', $val->id);
+            $video->where('id', $val->id)->delete();
+            
+            //delete all tagged reletaed to this video
+            $objTagVideo = new TaggedVideo;
+            $objTagVideo->where('video_id', $val->id)->delete();
+        }
         return true;
     }
     /* saving a new created category */

@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Repositories\Backend\Videos;
+
 use App\Models\Admin\Video\Video;
 use App\Models\Admin\Video\VideoCategory;
+use App\Models\Admin\Video\TaggedVideo;
 use App\Repositories\BaseRepository;
 /**
  * Class VideosRepository.
@@ -24,8 +26,9 @@ class VideosRepository extends BaseRepository
         return $result;
     }
     
+    
     /* saving categories listed for category */
-     public function catlisting()
+    public function catlisting()
     {
         $video_cat = new VideoCategory;
         $cats = $video_cat::all();
@@ -39,17 +42,18 @@ class VideosRepository extends BaseRepository
         $video_thumb_name = 'video_thumb_'.time().'.'.$request->video_thumbnail->getClientOriginalExtension();
         $request->video_file->move($this->apiStoragePath . '/videos/', $video_name);
         $request->video_thumbnail->move($this->apiStoragePath . '/videos/thumbnails/', $video_thumb_name);
-        $video= new Video;
-        $video->insert(['category_id' => $request->cat,
+        $video = new Video;
+        $video_id = $video->create(['category_id' => $request->cat,
                     'title' => $request->title,
                     'file' => $video_name,
+                    'price' => $request->price,
                     'duration' => $video_duration,
                     'thumbnail' => $video_thumb_name,
                     'author_name' => $request->author_name,
                     'created_at' => $created_time,
                     'updated_at' => $created_time
-                 ]);
-        return true;
+                ]);
+        return $video_id->id;
     }
     
     /* editing video */
@@ -57,8 +61,10 @@ class VideosRepository extends BaseRepository
         $video = new Video;
         $video = $video->where('id',$id)->first();
         $video['video'] = $video->where('id',$id)->first();
-        $video_cat= new VideoCategory;
-        $video['video_cat'] = $video_cat->where('id',$video->category_id)->first()->name;
+        $video_cat = new VideoCategory;
+        $video['video_cat'] = $video_cat->where('id', $video->category_id)->first()->name;
+        $ObjTaggedVideo = new TaggedVideo;
+        $video['tagged_video'] = $ObjTaggedVideo->where('video_id', $id)->select('tag_id')->get();
         return $video;
     }
     
@@ -82,6 +88,7 @@ class VideosRepository extends BaseRepository
         $video->where('id', $id)->update(['category_id' => $request->cat,
                     'title' => $request->title,
                     'author_name' => $request->author_name,
+                    'price' => $request->price,
                     'updated_at' => $updated_time
                 ]);
         if(isset($request->video_file)){
@@ -115,7 +122,7 @@ class VideosRepository extends BaseRepository
      */
     function unlinkFile($identity, $id) {
         $video_information = Video::where('id', $id)->first();
-        $video_file = $this->apiStoragePath.'/videos'.$video_information->file ;
+        $video_file = $this->apiStoragePath.'/videos/'.$video_information->file ;
         $thumbnail_file = $this->apiStoragePath.'/videos/thumbnails/'.$video_information->thumbnail;
         if(($identity == 'video' || $identity == 'both') && file_exists( $video_file)){
             

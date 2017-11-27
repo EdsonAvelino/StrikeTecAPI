@@ -2,7 +2,7 @@
 @section ('title', 'Upload Video')
 @section('page-header')
     <h1>
-       Upload Video
+       Add Video
     </h1>
 @endsection
 
@@ -10,9 +10,6 @@
       {!! Form::open(array('url' => 'admin/save','files'=>true)) !!}
                 
         <div class="box box-success">
-            <div class="box-header with-border">
-                 Upload Video
-            </div><!-- /.box-header -->
             <div class="box-body">
                 @if(session('Status'))
                             <div class="alert alert-success alert-dismissable">
@@ -34,6 +31,16 @@
                         </div>
                     </div>
                     <div class="box-body">
+                        {{ Form::label('name', 'Tag', ['class' => 'col-lg-2 control-label']) }}
+                        <div class="col-lg-10">
+                            @if(isset($videoTagList))
+                                @foreach($videoTagList as $val)
+                                  {{ Form::checkbox('video_tag[]', $val->id)}} {{$val->name}}
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                    <div class="box-body">
                         {{ Form::label('name', 'Video Title', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                         {{ Form::text('title',null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus','placeholder' => 'Enter Video Title']) }}         
@@ -44,6 +51,12 @@
                         <div class="col-lg-10">
                         {{ Form::text('author_name',null, ['class' => 'form-control','autofocus' => 'autofocus','placeholder' => 'Enter Author Name']) }}         
                         </div>
+                    </div>
+                    <div class="box-body">
+                        {{ Form::label('price', 'price', ['class' => 'col-lg-2 control-label']) }}
+                        <div class="col-lg-10">
+                        {{ Form::text('price', null, ['class' => 'form-control', 'maxlength' => '191', 'autofocus' => 'autofocus','placeholder' => 'Enter video price']) }}         
+                        </div><!--col-lg-10-->
                     </div>
                     <div class="box-body">
                         {{ Form::label('name', 'Upload Video (MP4/50MB)', ['class' => 'col-lg-2 control-label']) }}

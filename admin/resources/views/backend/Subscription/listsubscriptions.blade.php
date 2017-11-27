@@ -9,7 +9,7 @@
 
 @section('page-header')
 <h1>
-   Manage Subscription
+   Manage Subscriptions
 </h1>
 @endsection
 @section('content')
@@ -21,7 +21,7 @@
             
         </div><!--box-tools pull-right-->
         <div class="pull-left">
-                <a href="{{route('admin.subscriptionplan.add')}}" class="btn btn-primary">Add Subscription</a>
+                <a href="{{route('admin.subscriptionplan.add')}}" class="btn btn-primary" >Add Subscription</a>
         </div>
     </div><!-- /.box-header -->
     <div class="box-body">
@@ -101,8 +101,8 @@
             type: "warning",
             showCancelButton: true,
             confirmButtonColor: "#DD6B55",
-            confirmButtonText: "Yes, delete it!",
-            cancelButtonText: "No, cancel please!",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
             closeOnConfirm: false,
             closeOnCancel: false
         },
