@@ -466,7 +466,7 @@ class GoalController extends Controller
             $goal->followed_at = strtotime($goal->followed_at);
             $message = '';
         }
-        return response()->json(['error' => 'false', 'message' => $message, 'data' => $goal]);
+        return response()->json(['error' => 'false', 'message' => $message, 'data' => (object) $goal]);
     }
 
 }
