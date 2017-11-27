@@ -44,15 +44,15 @@
         <div class="box box-info">
             <div class="box-body">
                 <div class="pull-left">
-                    <a class="btn btn-danger btn-xs" href="{{{ route('admin.videos.category.list') }}}">{{trans('buttons.general.cancel')}}</a>
+                    <a class="btn btn-danger" href="{{{ route('admin.videos.category.list') }}}">{{trans('buttons.general.cancel')}}</a>
              
                 </div><!--pull-left-->
 
                 <div class="pull-right">
                     @if(isset($cat_id))
-                        {{ Form::submit('Update', ['class' => 'btn btn-success btn-xs']) }}
+                        {{ Form::submit('Update', ['class' => 'btn btn-success']) }}
                     @else
-                        {{ Form::submit(trans('buttons.general.crud.create'), ['class' => 'btn btn-success btn-xs']) }}
+                        {{ Form::submit(trans('buttons.general.crud.create'), ['class' => 'btn btn-success']) }}
                     @endif
                 </div><!--pull-right-->
 

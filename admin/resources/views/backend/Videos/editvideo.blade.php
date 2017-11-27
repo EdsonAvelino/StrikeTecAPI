@@ -85,13 +85,12 @@
                     </div>
                 </div><!--form control-->
             </div><!-- /.box-body -->
-        </div><!--box-->
+            <!--box-->
 
         <div class="box box-info">
             <div class="box-body">
                 <div class="pull-left">
-                    <a class="btn btn-danger btn-xs" href="{{ route('admin.videos.list') }}">{{trans('buttons.general.cancel')}}</a>
-             
+                    <a class="btn btn-danger" href="{{ route('admin.videos.list') }}">{{trans('buttons.general.cancel')}}</a>
                 </div><!--pull-left-->
 
                 <div class="pull-right">
