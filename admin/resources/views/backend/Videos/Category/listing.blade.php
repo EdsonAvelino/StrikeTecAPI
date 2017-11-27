@@ -82,12 +82,12 @@
         function delcatConfirm(id) {
             swal({
                 title: "Are you sure?",
-                text: "You want to delete category.!",
+                text: "You want to delete category. All the videos related to this category will be deleted.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "No, cancel please!",
+                confirmButtonText: "Yes",
+                cancelButtonText: "No",
                 closeOnConfirm: false,
                 closeOnCancel: false
             },

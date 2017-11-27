@@ -5,9 +5,9 @@
     <h1>
        
        @if(isset($cat_id))
-           Update Video Categories
+           Update Video Category
         @else
-            {{trans('labels.backend.video_category.create.page_title')}}
+            Create Video Category
         @endif
     </h1>
 @endsection
@@ -24,7 +24,7 @@
                 @if(isset($cat_id))
                     <h3 class="box-title"> Update </h3>
                 @else
-                    <h3 class="box-title">{{trans('labels.backend.video_category.create.box_title')}}</h3>
+                   <!-- <h3 class="box-title">{{trans('labels.backend.video_category.create.box_title')}}</h3>-->
                 @endif
             </div><!-- /.box-header -->
             <div class="box-body">

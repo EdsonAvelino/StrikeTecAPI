@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\Backend\Videos;
+
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Repositories\Backend\Videos\VideosRepository;
 use App\Http\Requests\Backend\Videos\VideoRequest;
+use App\Repositories\Backend\Videos\TagsRepository;
+use App\Repositories\Backend\Videos\VideoTagsRepository;
 use Validator;
 use Session;
 
@@ -30,11 +33,15 @@ class VideosController extends Controller
     public function upload($id = null){  
         if($id) {
             $video = $this->video->edit($id);
-            $video_cat  = $this->video->catlisting();
-            return view('backend.Videos.editvideo',['video' => $video['video'],'category' => $video_cat, 'selected_cat' => $video['video_cat']]);
+            $video_cat  = $this->video->catlisting();//return $video->tagged_video;
+            $objTagRepository = new TagsRepository();
+            $videoTagList = $objTagRepository->listing();
+            return view('backend.Videos.editvideo', ['video' => $video['video'], 'tagged_video' => $video['tagged_video'], 'category' => $video_cat, 'selected_cat' => $video['video_cat'], 'videoTagList' => $videoTagList]);
         }   
+        $objTagRepository = new TagsRepository();
+        $videoTagList = $objTagRepository->listing();
         $video_cat  = $this->video->catlisting();
-        return view('backend.Videos.uploadvideo',['category' => $video_cat]);    
+        return view('backend.Videos.uploadvideo', ['category' => $video_cat , 'videoTagList' => $videoTagList]);    
     }
     
     
@@ -52,8 +59,14 @@ class VideosController extends Controller
      */
     public function save(VideoRequest $request){   
         $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
-        $this->video->save($request, $video_duration);
-        $request->session()->flash('Status','Saved successfully!');
+        $videoID = $this->video->save($request, $video_duration);
+        if(isset($request->video_tag)){
+            $videoTagStorage = array ('video_id' => $videoID);
+            $request->merge($videoTagStorage);
+            $objVideoTagRepo = new VideoTagsRepository();
+            $objVideoTagRepo->save($request);
+        }
+       $request->session()->flash('Status','Video saved successfully!');
         return redirect()->route('admin.videos.list'); 
      }
      
@@ -104,6 +117,12 @@ class VideosController extends Controller
             }
         } 
         if($this->video->update($request, $id, $video_duration)){
+            if(isset($request->video_tag)){
+                $videoTagStorage = array ('video_id' => $id);
+                $request->merge($videoTagStorage);
+                $objVideoTagRepo = new VideoTagsRepository();
+                $objVideoTagRepo->delete($request);
+            }
             $request->session()->flash('Status','Video updated successfully!');
             return redirect()->route('admin.videos.list'); 
         }

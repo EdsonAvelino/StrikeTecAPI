@@ -40,6 +40,7 @@
                         <th>Category</th>
                         <th>Thumbnail</th>
                         <th>Author</th>
+                        <th>Price</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -58,6 +59,9 @@
                             </td>
                             <td>
                                 {{$video->author_name}}
+                            </td>
+                            <td>
+                               {{$video->price}}
                             </td>
                             <td>
                                 <a href="{{ url('admin/video/'.$video->id) }}">

@@ -37,6 +37,17 @@
                         </div>
                     </div>
                     <div class="box-body">
+                        {{ Form::label('name', 'Tag', ['class' => 'col-lg-2 control-label']) }}
+                        <div class="col-lg-10">
+                            @if(isset($videoTagList))
+                                @foreach($videoTagList as $val)
+                                <input type="checkbox" name="video_tag[]" value="{{$val->id}}" @foreach($tagged_video as $list) @if($list->tag_id == $val->id) checked @endif @endforeach >{{$val->name}}
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                    </div>
+                    <div class="box-body">
                         {{ Form::label('name', 'Video Title', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
                         {{ Form::text('title',$video->title, ['class' => 'form-control', 'maxlength' => '191', 'autofocus' => 'autofocus','placeholder' => 'Enter Video Title']) }}         
@@ -49,18 +60,30 @@
                         </div>
                     </div>
                     <div class="box-body">
-                        {{ Form::label('name', 'Upload Video (MP4/50MB)', ['class' => 'col-lg-2 control-label']) }}
+                        {{ Form::label('price', 'price', ['class' => 'col-lg-2 control-label']) }}
                         <div class="col-lg-10">
+                        {{ Form::text('price', $video->price, ['class' => 'form-control', 'maxlength' => '191', 'autofocus' => 'autofocus','placeholder' => 'Enter video price']) }}         
+                        </div><!--col-lg-10-->
+                    </div>
+                    <div class="box-body">
+                        {{ Form::label('name', 'Upload Video (MP4/50MB)', ['class' => 'col-lg-2 control-label']) }}
+                        <div class="col-lg-5">
                             {!! Form::file('video_file', array('class' => 'form-control')) !!}
                         </div>
+                        <div class="col-lg-5"><i class="fa fa-eye" aria-hidden="true"></i>&nbsp;&nbsp;
+                            <a href="#" class="video_modal" data-toggle="modal"  data-original-title="Delete" data-target="#video">Preview</a><br>
+                        </div>
                     </div>
-                     <div class="box-body">
+                    <div class="box-body">
                         {{ Form::label('name', 'Video Thumbnail (JPEG/JPG/PNG)', ['class' => 'col-lg-2 control-label']) }}
-                        <div class="col-lg-10">
+                        <div class="col-lg-5">
                             {!! Form::file('video_thumbnail', array('class' => 'form-control')) !!}
-                         </div>
+                        </div>
+                        <div class="col-lg-5">  <i class="fa fa-eye" aria-hidden="true"></i>&nbsp;&nbsp;
+                            <a href="#" class="video_modal" data-toggle="modal" data-target="#thumbnail">Preview</a><br>
+                        </div>
                     </div>
-                 </div><!--form control-->
+                </div><!--form control-->
             </div><!-- /.box-body -->
         </div><!--box-->
 
@@ -79,6 +102,46 @@
                 <div class="clearfix"></div>
             </div><!-- /.box-body -->
         </div><!--box-->
+        <div id="video" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Video</h4>
+                    </div>
+                    <div class="modal-body" id="video_tag">
+                        <?php if(!empty($video->file)){ ?>
+                          <video style="width: 100%; height: 100%;" controls><source type="video/mp4" src="{{ env('API_URL_STORAGE') }}/videos/{{$video->file}}"></video>    
+                        <?php } else { ?>
+                            <img src="{{env('API_URL_STORAGE').'/videos/no_preview_video.jpg'}}" style="width: 100%; height: 100%;">
+                        <?php } ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="thumbnail" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Thumbnail</h4>
+                    </div>
+                    <div class="modal-body" id="video_tag">
+                        <?php if(!empty($video->thumbnail)){ ?>
+                            <img src="{{env('API_URL_STORAGE').'/videos/thumbnails/'.$video->thumbnail}}" style="width: 100%; height: 100%;">
+                        <?php } else { ?>
+                            <img src="{{env('API_URL_STORAGE').'/videos/thumbnails/no_preview_image.jpg'}}" style="width: 100%; height: 50%;">
+                        <?php } ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     {!! Form::close() !!}
 @endsection
 

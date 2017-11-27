@@ -37,6 +37,7 @@ class VideosCategoryController extends Controller
     }
     /* deleting a category */
     public function delete(Request $request,$id){
+         $this->video_cat->delete($id);
         if($this->video_cat->delete($id)){
             $request->session()->flash('Status','Category deleted successfully!');
             return redirect('admin/categories');
