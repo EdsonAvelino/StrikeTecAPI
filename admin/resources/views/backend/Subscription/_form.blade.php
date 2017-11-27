@@ -101,7 +101,7 @@
 <div class="box box-info">
     <div class="box-body">
         <div class="pull-left">
-            <a class="btn btn-danger btn-xs" href="{{{ route('admin.subscriptionplan.list.subs') }}}">{{trans('buttons.general.cancel')}}</a>
+            <a class="btn btn-danger" href="{{{ route('admin.subscriptionplan.list.subs') }}}">{{trans('buttons.general.cancel')}}</a>
         </div><!--pull-left-->
         <div class="pull-right">
             <button type="submit" class="btn btn-success">Submit</button>
