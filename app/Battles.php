@@ -160,7 +160,7 @@ class Battles extends Model
     }
 
     // Compare workouts #5
-    private static function compareComboSets($battle)
+    private static function compareWorkouts($battle)
     {
 
     }
