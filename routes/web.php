@@ -91,6 +91,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Save Training sessoins' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
+    
+    //Tips
+    $app->get('/tips', 'TrainingController@tips');
 });
 
 // Video APIs
