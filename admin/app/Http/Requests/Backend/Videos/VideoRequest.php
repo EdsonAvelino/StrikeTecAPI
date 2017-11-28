@@ -23,9 +23,10 @@ class VideoRequest extends Request {
      */
     public function rules() {   
         return [
+            'title' => 'required',
+            'author_name' => 'required',
             'video_file' => 'required|mimes:mp4',
             'video_thumbnail'=> 'required|mimes:jpeg,jpg,png,ico',
-            'price' => 'numeric',
         ];
     }
 

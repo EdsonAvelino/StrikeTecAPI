@@ -11,6 +11,9 @@
                 
         <div class="box box-success">
             <div class="box-body">
+                @if(Session('error_message'))
+                    <p class="alert alert-danger">{{ Session('error_message') }}</p>
+                @endif    
                 @if(session('Status'))
                             <div class="alert alert-success alert-dismissable">
                             <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
