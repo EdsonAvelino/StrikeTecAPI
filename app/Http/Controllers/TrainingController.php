@@ -113,7 +113,7 @@ class TrainingController extends Controller
         $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
 
         $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'created_at', 'updated_at'])->where('user_id', $userId);
-        
+
         $_sessions->where(function($query) {
             $query->whereNull('battle_id')->orWhere('battle_id', '0');
         });
@@ -785,12 +785,110 @@ class TrainingController extends Controller
         ]);
     }
 
+    //store sessions for goal
     public function storeGoalSession($goalId, $sessionId)
     {
         GoalSession::create([
             'session_id' => $sessionId,
             'goal_id' => $goalId
         ]);
+    }
+
+    /**
+     * @api {get} /tips Get tips data
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *     }
+     * @apiParam {Number} [session_id] Session ID (one of these two parameter is required)
+     * @apiParam {Number} [round_id] Round ID (one of these two parameter is required)
+     * @apiParamExample {json} Input
+     *    {
+     *      "session_id": 75,
+     *      "round_id": 69
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data data of tips
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {
+     *          "current_speed": 20,
+     *          "highest_speed": 25,
+     *          "lowest_speed": 6,
+     *          "current_force": 741,
+     *          "highest_force": 804,
+     *          "lowest_force": 1,
+     *          "current_damage": 5689,
+     *          "highest_damage": 464062,
+     *          "lowest_damage": 217
+     *      }
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function tips(Request $request)
+    {
+        $sessionId = (int) $request->get('session_id');
+        $roundId = (int) $request->get('round_id');
+        if ($roundId) {
+            $sessionId = SessionRounds::where('id', $roundId)->get()->first()->session_id;
+        }
+        $data = $this->getTipsData($sessionId);
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => (object) $data
+        ]);
+    }
+    
+//get calculated data for tips
+    public function getTipsData($sessionId)
+    {
+        $session = Sessions::select('plan_id', 'type_id', 'avg_speed', 'avg_force')->where('id', $sessionId)->first();
+        $sessionType = $session->type_id;
+        $sessionPlan = $session->plan_id;
+        $currDamage = $sessionIds = $data = $force = [];
+        $sessionIds = Sessions::select('id')->where(function ($query) use($sessionType, $sessionPlan) {
+                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                })->get()->toArray();
+        $sessionData = SessionRounds::select(\DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force'))
+                        ->whereIn('session_id', $sessionIds)->get()->first();
+        $data['current_speed'] = $session->avg_speed;
+        $data['highest_speed'] = $sessionData->highest_speed;
+        $data['lowest_speed'] = $sessionData->lowest_speed;
+        $data['current_force'] = $session->avg_force;
+        $data['highest_force'] = $sessionData->highest_force;
+        $data['lowest_force'] = $sessionData->lowest_force;
+        $sessionRound = SessionRounds::with('punches')->select('id')->whereIn('id', $sessionIds)->get()->toArray();
+        $forceCount = $currDamage = 0;
+        foreach ($sessionRound as $sessionRoundPunches) {
+            $punches = $sessionRoundPunches['punches'];
+            if ($punches) {
+                foreach ($punches as $forces) {
+                    $force[$forceCount][] = $forces['force'];
+                    if ($sessionId == $sessionRoundPunches['id']) {
+                        $currDamage = $currDamage + $forces['force'];
+                    }
+                }
+                $forces_sum[] = array_sum($force[$forceCount]);
+            }
+            $forceCount++;
+        }
+        $data['current_damage'] = $currDamage;
+        $data['highest_damage'] = max($forces_sum);
+        $data['lowest_damage'] = min($forces_sum);
+        return $data;
     }
 
 }
