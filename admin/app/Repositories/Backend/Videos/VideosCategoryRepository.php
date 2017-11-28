@@ -5,6 +5,7 @@ namespace App\Repositories\Backend\Videos;
 use App\Repositories\Backend\Videos\VideosRepository;
 use App\Models\Admin\Video\VideoCategory;
 use App\Models\Admin\Video\Video;
+use App\Models\Admin\Video\TaggedVideo;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\BaseRepository;
 
@@ -40,7 +41,7 @@ class VideosCategoryRepository extends BaseRepository
             
             $objVideoRepo = new VideosRepository();
             $objVideoRepo->unlinkFile('both', $val->id);
-            $video->where('id', $val->id)->delete();
+            $objVideo->where('id', $val->id)->delete();
             
             //delete all tagged reletaed to this video
             $objTagVideo = new TaggedVideo;
