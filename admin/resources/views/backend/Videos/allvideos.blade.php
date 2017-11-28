@@ -56,7 +56,8 @@
                                {{$video->name}}
                             </td>
                             <td>
-                                <img src='{{env('API_URL_STORAGE').'/videos/thumbnails/'.$video->thumbnail}}' style="width: 50px; height: 50px;">
+                                
+                                <a href="#" class="video_modal" data-toggle="modal" data-target="#thumbnail" id="{{$video->file}}" onclick="data_thumbnail('{{$video->thumbnail}}')"><img src='{{env('API_URL_STORAGE').'/videos/thumbnails/'.$video->thumbnail}}' style="width: 50px; height: 50px;"></a>
                             </td>
                             <td>
                                 {{$video->author_name}}
@@ -81,7 +82,7 @@
                              </td>
                         </tr>
                     @endforeach
-                @else
+                    @else
                     <tr><td colspan="2">No data to display</td></tr>
                 @endif  
             </table>
@@ -105,6 +106,23 @@
         </div>
     </div>
 </div>
+    
+<div id="thumbnail" class="modal fade" role="dialog" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Video</h4>
+            </div>
+            <div class="modal-body" id="thumbnail_tag">
+               
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>    
 @endsection
 
 @section('after-scripts')
@@ -134,17 +152,17 @@
             });
         }
          
-        /*function delvideoConfirm(id) {
-                var flag=confirm("Do you really want to delete this video?");
-                if (flag==true)
-                    window.location.href="{{url('admin/video/delete')}}/"+id;
-        }*/
        
-        /* Function for add video in modal */
+        /* Function for add video in modal for preview */
         function data_video(id) {
-            var video = '';
             var  video = '<video width="540" height="310" controls><source type="video/mp4" src="{{ env('API_URL_STORAGE') }}/videos/'+id+'"></video>';
                 $('#video_tag').html(video);
+        }
+        
+        /* Function for add thumbnail in modal for preview */
+        function data_thumbnail(id) {
+            var  thumbnail = '<img src="{{ env('API_URL_STORAGE') }}/videos/thumbnails/'+id+'" width="540" height="310" >';
+                $('#thumbnail_tag').html(thumbnail);
         }
         
         /* video modal closed closed button */
