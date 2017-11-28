@@ -851,6 +851,7 @@ class TrainingController extends Controller
                     'data' => (object) $data
         ]);
     }
+    
 //get calculated data for tips
     public function getTipsData($sessionId)
     {

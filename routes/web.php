@@ -92,7 +92,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save Training sessoins' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
     
-    //Tips
+    //get Tips data
     $app->get('/tips', 'TrainingController@tips');
 });
 
