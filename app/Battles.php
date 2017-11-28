@@ -55,7 +55,8 @@ class Battles extends Model
         switch ($battle->type_id) {
             case 3: // Combo
                 $winnerUserId = self::compareBattleCombos($battle);
-                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id : ($winnerUserId) ? $battle->user_id : null;
+                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
             break;
 
             case 4: // Combo-Sets
@@ -64,6 +65,7 @@ class Battles extends Model
             break;
         }
 
+        // include battle speed, count, and force(power)
         return ['winner' => \App\User::get($winnerUserId), 'looser' => \App\User::get($looserUserId)];
     }
 
