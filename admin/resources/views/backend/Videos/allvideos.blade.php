@@ -41,6 +41,7 @@
                         <th>Thumbnail</th>
                         <th>Author</th>
                         <th>Price</th>
+                        <th>Tag</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -61,7 +62,14 @@
                                 {{$video->author_name}}
                             </td>
                             <td>
-                               {{$video->price}}
+                               @if($video->price){{$video->price}} @else Free @endif
+                            </td>
+                            <td> 
+                                @foreach($videosCategory as $val)
+                                    @if($val->video_id == $video->id) 
+                                        {{$val->name}}</br>   
+                                    @endif
+                                @endforeach
                             </td>
                             <td>
                                 <a href="{{ url('admin/video/'.$video->id) }}">

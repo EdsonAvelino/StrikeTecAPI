@@ -33,7 +33,7 @@ class VideosController extends Controller
     public function upload($id = null){  
         if($id) {
             $video = $this->video->edit($id);
-            $video_cat  = $this->video->catlisting();//return $video->tagged_video;
+            $video_cat  = $this->video->catlisting();
             $objTagRepository = new TagsRepository();
             $videoTagList = $objTagRepository->listing();
             return view('backend.Videos.editvideo', ['video' => $video['video'], 'tagged_video' => $video['tagged_video'], 'category' => $video_cat, 'selected_cat' => $video['video_cat'], 'videoTagList' => $videoTagList]);
@@ -48,7 +48,8 @@ class VideosController extends Controller
     /* Listing of all the uploaded videos */
     public function listing(){
        $videos = $this->video->listing();
-       return view('backend.Videos.allvideos', ['videos' => $videos]);
+       $videosCategory = $this->video->categoryListing();
+       return view('backend.Videos.allvideos', ['videos' => $videos, 'videosCategory' => $videosCategory]);
     }
     
     /**
@@ -58,6 +59,16 @@ class VideosController extends Controller
      * @return type
      */
     public function save(VideoRequest $request){   
+        if( $request->price ) {  
+            $rules = array(
+                'price' => 'required|numeric',
+            );
+            $validate = Validator::make($request->all(), $rules);
+            if($validate->fails()) {
+                Session::flash('error_message', 'Price must be numeric' );
+                return redirect()->back();
+            }
+        }
         $video_duration = $this->getVideoDuration($_FILES['video_file']['tmp_name']);
         $videoID = $this->video->save($request, $video_duration);
         if(isset($request->video_tag)){
@@ -115,7 +126,18 @@ class VideosController extends Controller
                 Session::flash('error_message', 'Thumbnail file or format are not valid' );
                 return redirect()->back();
             }
-        } 
+        }
+        if( $request->price ) {  
+            $rules = array(
+                'price' => 'required|numeric',
+            );
+            
+            $validate = Validator::make($request->all(), $rules);
+            if($validate->fails()) {
+                Session::flash('error_message', 'Price must be numeric' );
+                return redirect()->back();
+            }
+        }
         if($this->video->update($request, $id, $video_duration)){
             if(isset($request->video_tag)){
                 $videoTagStorage = array ('video_id' => $id);

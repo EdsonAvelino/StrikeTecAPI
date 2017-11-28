@@ -15,10 +15,10 @@ use App\Repositories\BaseRepository;
 class VideosRepository extends BaseRepository
 {
     protected $apiStoragePath = '../../storage';
+    
     /**
      * Listing of videos
     */
-     
     public function listing()
     {
         $video_cat= new VideoCategory;
@@ -26,12 +26,20 @@ class VideosRepository extends BaseRepository
         return $result;
     }
     
+    public function categoryListing()
+    {
+        $video_cat= new TaggedVideo;
+        $result = $video_cat->leftJoin('videos', 'tagged_videos.video_id', '=', 'videos.id')
+                            ->leftJoin('tags', 'tagged_videos.tag_id', '=', 'tags.id')
+                            ->select('videos.id as video_id','tags.name')->get();
+        return $result;
+    }
     
     /* saving categories listed for category */
     public function catlisting()
     {
         $video_cat = new VideoCategory;
-        $cats = $video_cat::all();
+        $cats = $video_cat::orderBy('name', 'ASC')->get();
         return $cats;
     }
     
@@ -46,7 +54,7 @@ class VideosRepository extends BaseRepository
         $video_id = $video->create(['category_id' => $request->cat,
                     'title' => $request->title,
                     'file' => $video_name,
-                    'price' => $request->price,
+                    'price' => isset($request->price) ? $request->price : 0,
                     'duration' => $video_duration,
                     'thumbnail' => $video_thumb_name,
                     'author_name' => $request->author_name,
@@ -88,7 +96,7 @@ class VideosRepository extends BaseRepository
         $video->where('id', $id)->update(['category_id' => $request->cat,
                     'title' => $request->title,
                     'author_name' => $request->author_name,
-                    'price' => $request->price,
+                    'price' => isset($request->price) ? $request->price : 0,
                     'updated_at' => $updated_time
                 ]);
         if(isset($request->video_file)){

@@ -25,7 +25,7 @@ class SubscriptionRequest extends Request {
      */
     public function rules() {
         return [
-            'SKU' => 'required',
+            'SKU' => 'required|max:20',
             'tutorials' => 'required|numeric',
             'tournaments' => 'required|numeric',
             'battles' => 'numeric',
