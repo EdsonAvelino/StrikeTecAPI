@@ -330,6 +330,7 @@ class LeaderboardController extends Controller
 	 *				"user_follower": false
 	 *				"photo_url": null,
 	 *				"gender": "female",
+	 *				"number_of_challenges": 9,
 	 *				"country": {
 	 *					"id": 155,
 	 *					"name": "Netherlands The"
@@ -370,6 +371,7 @@ class LeaderboardController extends Controller
 	 *				"user_follower": false
 	 *				"photo_url": null,
 	 *				"gender": "female",
+	 *				"number_of_challenges": 5,
 	 *				"country": {
 	 *					"id": 155,
 	 *					"name": "Netherlands The"
