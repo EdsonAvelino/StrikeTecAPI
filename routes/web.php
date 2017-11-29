@@ -91,7 +91,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Save Training sessoins' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
-    
+
     //get Tips data
     $app->get('/tips', 'TrainingController@tips');
 });
@@ -118,10 +118,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
-      
+
     // Get tags
     $app->get('/videos/tags', 'VideoController@getVideoTags');
-    
+
     // Get tags
     $app->get('/videos/category', 'VideoController@getVideoCat');
 });
@@ -144,7 +144,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 // Push notification tests for ios/android
 // $app->post('/push/test', 'PushController@testPush');
 // $app->post('/push/test/apns', 'PushController@testPushAPNs');
-
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
@@ -223,7 +222,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Calculate goal data
     $app->get('/goal/info', 'GoalController@goalInfo');
-    
+
     // Calculate goal data
     $app->get('/goal', 'GoalController@goal');
 });
@@ -242,7 +241,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get comments of feed-post
     // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
-
     // Post comment on feed-post
     $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
 });
@@ -277,4 +275,22 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // cancel user subscription
     $app->post('/cancel/subscription', 'UsersubscriptionController@cancelSubscription');
+
+    //add event for fan API
+    $app->post('/event', 'EventController@addEvent');
+
+    //get event list for fan API
+    $app->get('/events', 'EventController@getEventList');
+
+    //get location list for fan API
+    $app->get('/locations', 'LocationController@getLocationList');
+
+    //get user list for fan APP
+    $app->get('/users/list', 'UserController@getUsersList');
+
+    //add user to event for fan APP
+    $app->post('/user/event/register', 'EventUserController@eventUserRegister');
+    
+    // add user subscription
+    $app->post('/event/add_user', 'EventUserController@addUserToDb');
 });
