@@ -180,6 +180,16 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
     }
 
+    public function getNumberOfChallengesAttribute($userId)
+    {
+        return Battles::where(function ($query) use($userId) {
+            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+        })
+        ->where(['opponent_finished' => TRUE])
+        ->where(['user_finished' => TRUE])
+        ->count();
+    }
+
     // return minimum fields of user
     // first_name, last_name, photo_url, user_following, user_follower and points
     public static function get($userId)

@@ -418,7 +418,7 @@ class LeaderboardController extends Controller
 		\DB::statement(\DB::raw('SET @rank = 0'));
 
 		$leadersList = Leaderboard::with(['user' => function ($query) {
-            $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
+            $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', \DB::raw('id as number_of_challenges'))
             	->with(['country', 'state', 'city']);
         }])
     	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
@@ -455,9 +455,10 @@ class LeaderboardController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
 
+    // Get current user's rank in leaderboard
     private function getCurrentUserRank($list)
 	{
-	   foreach($list as $row) {
+	   foreach ($list as $row) {
 	      if ( $row['user_id'] === \Auth::user()->id )
 	         return $row['rank'];
 	   }
