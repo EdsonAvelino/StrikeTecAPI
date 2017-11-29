@@ -41,8 +41,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'photo_url',
         'city_id',
         'state_id',
-        'country_id',
-        'company_id'
+        'country_id'
     ];
 
     /**
@@ -126,7 +125,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
             ]);
-
+            
             Settings::create([
                 'user_id' => $user->id,
                 'new_challenges' => true,
@@ -181,29 +180,18 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
     }
 
-    public function getNumberOfChallengesAttribute($userId)
-    {
-        return Battles::where(function ($query) use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->count();
-    }
-
     // return minimum fields of user
     // first_name, last_name, photo_url, user_following, user_follower and points
     public static function get($userId)
     {
         return self::select([
-                    'id',
-                    'first_name',
-                    'last_name',
-                    'photo_url',
-                    \DB::raw('id as user_following'),
-                    \DB::raw('id as user_follower'),
-                    \DB::raw('id as points')
-                ])->where('id', $userId)->first();
+            'id',
+            'first_name',
+            'last_name',
+            'photo_url',
+            \DB::raw('id as user_following'),
+            \DB::raw('id as user_follower'),
+            \DB::raw('id as points')
+        ])->where('id', $userId)->first();
     }
-
 }
