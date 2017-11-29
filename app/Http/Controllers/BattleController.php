@@ -121,7 +121,33 @@ class BattleController extends Controller
      *                  "user_following": true,
      *                  "user_follower": true
      *              },
-     *          "sender_user_id": 1
+     *          "sender_user_id": 1,
+     *          "battle_result": {
+     *              "winner": {
+     *                  "id": 31,
+     *                  "first_name": "Test",
+     *                  "last_name": "Test",
+     *                  "photo_url": null,
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 984,
+     *                  "avg_speed": 24,
+     *                  "avg_force": 431,
+     *                  "punches_count": 9
+     *              },
+     *              "looser": {
+     *                  "id": 7,
+     *                  "first_name": "Qiang",
+     *                  "last_name": "Hu",
+     *                  "photo_url": null,
+     *                  "user_following": true,
+     *                  "user_follower": true,
+     *                  "points": 2308,
+     *                  "avg_speed": 21,
+     *                  "avg_force": 354,
+     *                  "punches_count": 9
+     *              }
+     *          }
      *      }
      *  }
      * @apiErrorExample {json} Error response
