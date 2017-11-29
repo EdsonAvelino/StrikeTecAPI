@@ -60,19 +60,90 @@ class Battles extends Model
             break;
 
             case 4: // Combo-Sets
+                $winnerUserId = self::compareComboSets($battle);
+                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
+            break;
+
             case 5: // Workouts
                 // TODO compare for combo-sets and workouts
             break;
         }
 
         // include battle speed, count, and force(power)
-        return ['winner' => \App\User::get($winnerUserId), 'looser' => \App\User::get($looserUserId)];
+        if ($winnerUserId && $looserUserId) {
+            // Winner
+            $winner = \App\User::get($winnerUserId)->toArray();
+
+            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
+            $winner['avg_speed'] = $_session->avg_speed;
+            $winner['avg_force'] = $_session->avg_force;
+            $winner['punches_count'] = $_session->punches_count;
+
+            // Looser
+            $looser = \App\User::get($looserUserId)->toArray();
+
+            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $looserUserId)->first();
+            $looser['avg_speed'] = $_session->avg_speed;
+            $looser['avg_force'] = $_session->avg_force;
+            $looser['punches_count'] = $_session->punches_count;
+        }
+        
+        return ['winner' => $winner, 'looser' => $looser];
     }
 
     // Compare combos type #3
     private static function compareBattleCombos($battle)
     {
         $comboPunches = self::getComboPunches($battle->plan_id);
+        
+        return self::doComparison($comboPunches, $battle);
+    }
+
+    // Compare combo-sets #4
+    private static function compareComboSets($battle)
+    {
+        $comboSet = \App\ComboSets::find($battle->plan_id);
+        $comboPunches = [];
+        
+        foreach ($comboSet->combos as $combo) {
+            $comboPunches = array_merge($comboPunches, self::getComboPunches($combo->combo_id));
+        }
+
+        return self::doComparison($comboPunches, $battle);
+    }
+
+    // Compare workouts #5
+    private static function compareWorkouts($battle)
+    {
+
+    }
+
+    private static function getComboPunches($comboId)
+    {
+        $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
+        
+        foreach ($comboPunches as $i => $punch) {
+            switch ($punch) {
+                case 1: $comboPunches[$i] = 'LJ|RJ'; break; // LEFT JAB / RIGHT JAB
+                case 2: $comboPunches[$i] = 'LS|RS'; break; // LEFT STRAIGHT / RIGHT STRAIGHT
+                case 3: $comboPunches[$i] = 'LH'; break; // LEFT HOOK
+                case 4: $comboPunches[$i] = 'RH'; break; // RIGHT HOOK
+                case 5: $comboPunches[$i] = 'LU'; break; // LEFT UPPERCUT
+                case 6: $comboPunches[$i] = 'RU'; break; // RIGHT UPPERCUT
+                case 7: $comboPunches[$i] = 'LSH|RSH'; break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
+                
+                // to keep format same hand + punch-type
+                case 'DL': $comboPunches[$i] = 'LD'; break; // DUCK LEFT
+                case 'DR': $comboPunches[$i] = 'RD'; break; // DUCK RIGHT
+            }
+        }
+
+        return $comboPunches;
+    }
+
+    private static function doComparison($comboPunches, $battle)
+    {
         $roundPunches = [];
         $puchnes = []; // Full details of punches
         $speed = [];
@@ -153,40 +224,5 @@ class Battles extends Model
         } else if ($userMarks > $opponentMarks) {
             return $battle->user_id;
         }
-    }
-
-    // Compare combo-sets #4
-    private static function compareComboSets($battle)
-    {
-
-    }
-
-    // Compare workouts #5
-    private static function compareWorkouts($battle)
-    {
-
-    }
-
-    private static function getComboPunches($comboId)
-    {
-        $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
-        
-        foreach ($comboPunches as $i => $punch) {
-            switch ($punch) {
-                case 1: $comboPunches[$i] = 'LJ|RJ'; break; // LEFT JAB / RIGHT JAB
-                case 2: $comboPunches[$i] = 'LS|RS'; break; // LEFT STRAIGHT / RIGHT STRAIGHT
-                case 3: $comboPunches[$i] = 'LH'; break; // LEFT HOOK
-                case 4: $comboPunches[$i] = 'RH'; break; // RIGHT HOOK
-                case 5: $comboPunches[$i] = 'LU'; break; // LEFT UPPERCUT
-                case 6: $comboPunches[$i] = 'RU'; break; // RIGHT UPPERCUT
-                case 7: $comboPunches[$i] = 'LSH|RSH'; break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
-                
-                // to keep format same hand + punch-type
-                case 'DL': $comboPunches[$i] = 'LD'; break; // DUCK LEFT
-                case 'DR': $comboPunches[$i] = 'RD'; break; // DUCK RIGHT
-            }
-        }
-
-        return $comboPunches;
     }
 }
