@@ -15,6 +15,7 @@ use Tymon\JWTAuth\JWTAuth;
 
 class UserController extends Controller
 {
+
     /**
      * @var \Tymon\JWTAuth\JWTAuth
      */
@@ -459,17 +460,18 @@ class UserController extends Controller
 
         // user_following = current user is following this user
         $following = UserConnections::where('follow_user_id', $userId)
-            ->where('user_id', \Auth::user()->id)->exists();
+                        ->where('user_id', \Auth::user()->id)->exists();
 
         // user_follower = this user if following current user
         $follow = UserConnections::where('user_id', $userId)
-        ->where('follow_user_id', \Auth::user()->id)->exists();
+                        ->where('follow_user_id', \Auth::user()->id)->exists();
 
         $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         $user = $user->toArray();
         $user['user_following'] = (bool) $following;
         $user['user_follower'] = (bool) $follow;
+        $user['total_time_trained'] = Leaderboard::where('user_id', $userId)->first()->total_time_trained;
 
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
@@ -1110,12 +1112,12 @@ class UserController extends Controller
         $limit = (int) ($request->get('limit') ?? 20);
 
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
-        
+
         $connections = [];
 
         $_connections = UserConnections::where('follow_user_id', \Auth::user()->id)
-            ->whereRaw("user_id IN ($userFollowing)", [\Auth::user()->id])
-            ->offset($offset)->limit($limit)->get();
+                        ->whereRaw("user_id IN ($userFollowing)", [\Auth::user()->id])
+                        ->offset($offset)->limit($limit)->get();
 
         foreach ($_connections as $connection) {
             $leaderboard = Leaderboard::where('user_id', $connection->user_id)->first();
@@ -1261,14 +1263,15 @@ class UserController extends Controller
     {
         $userId = \Auth::user()->id;
         $chatCount = \App\ChatMessages::where('read_flag', 0)
-                    ->where('user_id', '!=', $userId)
-                    ->with(['chat' => function ($query) use($userId)  {
-                        $query->where('user_one', $userId)->orwhere('user_two', $userId);
-                    }])->count();
-        
+                        ->where('user_id', '!=', $userId)
+                        ->with(['chat' => function ($query) use($userId) {
+                                $query->where('user_one', $userId)->orwhere('user_two', $userId);
+                            }])->count();
+
         // TODO get unread notification counts
         $unreadCounts = ['chat_count' => $chatCount, 'notif_count' => 0];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
+
 }

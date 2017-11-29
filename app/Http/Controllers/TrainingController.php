@@ -325,7 +325,7 @@ class TrainingController extends Controller
                 $pushMessage = 'User has finished battle';
 
                 // TODO update battle result
-                
+
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
 
                 $battle->update();
@@ -843,54 +843,69 @@ class TrainingController extends Controller
     {
         $sessionId = (int) $request->get('session_id');
         $roundId = (int) $request->get('round_id');
+
         if ($roundId) {
             $sessionId = SessionRounds::where('id', $roundId)->get()->first()->session_id;
         }
         $data = $this->getTipsData($sessionId);
+        if ($data === false) {
+            return response()->json([
+                        'error' => 'true',
+                        'message' => 'Session or round not found.'
+            ]);
+        }
         return response()->json([
                     'error' => 'false',
                     'message' => '',
                     'data' => (object) $data
         ]);
     }
-    
+
 //get calculated data for tips
     public function getTipsData($sessionId)
     {
-        $session = Sessions::select('plan_id', 'type_id', 'avg_speed', 'avg_force')->where('id', $sessionId)->first();
-        $sessionType = $session->type_id;
-        $sessionPlan = $session->plan_id;
-        $currDamage = $sessionIds = $data = $force = [];
-        $sessionIds = Sessions::select('id')->where(function ($query) use($sessionType, $sessionPlan) {
-                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                })->get()->toArray();
-        $sessionData = SessionRounds::select(\DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force'))
-                        ->whereIn('session_id', $sessionIds)->get()->first();
-        $data['current_speed'] = $session->avg_speed;
-        $data['highest_speed'] = $sessionData->highest_speed;
-        $data['lowest_speed'] = $sessionData->lowest_speed;
-        $data['current_force'] = $session->avg_force;
-        $data['highest_force'] = $sessionData->highest_force;
-        $data['lowest_force'] = $sessionData->lowest_force;
-        $sessionRound = SessionRounds::with('punches')->select('id')->whereIn('id', $sessionIds)->get()->toArray();
-        $forceCount = $currDamage = 0;
-        foreach ($sessionRound as $sessionRoundPunches) {
-            $punches = $sessionRoundPunches['punches'];
-            if ($punches) {
-                foreach ($punches as $forces) {
-                    $force[$forceCount][] = $forces['force'];
-                    if ($sessionId == $sessionRoundPunches['id']) {
-                        $currDamage = $currDamage + $forces['force'];
+        $userId = \Auth::user()->id;
+        $session = Sessions::select('plan_id', 'type_id', 'avg_speed', 'avg_force')
+                        ->where(function ($query) use($sessionId, $userId) {
+                            $query->where('id', $sessionId)->where('user_id', $userId);
+                        })->first();
+        if ($session) {
+            $sessionType = $session->type_id;
+            $sessionPlan = $session->plan_id;
+            $currDamage = $sessionIds = $data = $force = [];
+            $sessionIds = Sessions::select('id')->where(function ($query) use($sessionType, $sessionPlan) {
+                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id);
+                    })->get()->toArray();
+            $sessionData = SessionRounds::select(\DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force'))
+                            ->whereIn('session_id', $sessionIds)->get()->first();
+            $data['current_speed'] = $session->avg_speed;
+            $data['highest_speed'] = $sessionData->highest_speed;
+            $data['lowest_speed'] = $sessionData->lowest_speed;
+            $data['current_force'] = $session->avg_force;
+            $data['highest_force'] = $sessionData->highest_force;
+            $data['lowest_force'] = $sessionData->lowest_force;
+            $sessionRound = SessionRounds::with('punches')->select('id')->whereIn('id', $sessionIds)->get()->toArray();
+            $forceCount = $currDamage = 0;
+            foreach ($sessionRound as $sessionRoundPunches) {
+                $punches = $sessionRoundPunches['punches'];
+                if ($punches) {
+                    foreach ($punches as $forces) {
+                        $force[$forceCount][] = $forces['force'];
+                        if ($sessionId == $sessionRoundPunches['id']) {
+                            $currDamage = $currDamage + $forces['force'];
+                        }
                     }
+                    $forces_sum[] = array_sum($force[$forceCount]);
                 }
-                $forces_sum[] = array_sum($force[$forceCount]);
+                $forceCount++;
             }
-            $forceCount++;
+            $data['current_damage'] = $currDamage;
+            $data['highest_damage'] = max($forces_sum);
+            $data['lowest_damage'] = min($forces_sum);
+            return $data;
+        } else {
+            return false;
         }
-        $data['current_damage'] = $currDamage;
-        $data['highest_damage'] = max($forces_sum);
-        $data['lowest_damage'] = min($forces_sum);
-        return $data;
     }
 
 }
