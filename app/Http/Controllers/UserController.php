@@ -442,6 +442,7 @@ class UserController extends Controller
      *              },
      *              "user_following": true,
      *              "user_follower": false
+     *              "total_time_trained": 5235
      *          }
      *      }
      * @apiErrorExample {json} Error Response
