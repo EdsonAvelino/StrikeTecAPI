@@ -16,9 +16,15 @@ class LeaderboardController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} [country_id] Filter by country, no country_id will return data across all countries
+     * @apiParam {Number} [state_id] Filter by state
+     * @apiParam {Number} [age] Age range e.g. 25-40
+     * @apiParam {Number} [weight] Weight range e.g. 90-120
+     * @apiParam {String="male","female"} [gender] Gender
      * @apiParamExample {json} Input
      *    {
      *      "country_id": 1,
+     *      "state_id": 25,
+     *      "age": 21-30
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -124,6 +130,17 @@ class LeaderboardController extends Controller
     	// \DB::enableQueryLog();
 
     	$countryId = (int) $request->get('country_id');
+    	$stateId = (int) $request->get('state_id');
+    	
+    	$gender = $request->get('gender');
+    	$gender = (in_array($gender, ['male', 'female'])) ? $gender : null;
+
+    	$age = $request->get('age');
+    	$weight = $request->get('weight');
+
+    	$ageRange = ($age) ? explode('-', $age) : [];
+    	$weightRange = ($weight) ? explode('-', $weight) : [];
+
         $limit = 100;
 
 		\DB::statement(\DB::raw('SET @rank = 0'));
@@ -148,10 +165,26 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
-        	->whereHas('user', function($query) use ($countryId) {
+        	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
-        			$query->where('country_id', $countryId);
-        		}
+	    			$query->where('country_id', $countryId);
+
+	    			// State (can be null when no country selected)
+	    			if ($stateId)
+	    				$query->where('state_id', $stateId);
+	    		}
+
+	    		if (sizeof($ageRange)) {
+	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+	            }
+
+	            if (sizeof($weightRange)) {
+	            	$query->whereBetween('weight', $weightRange);
+	            }
+
+	            if ($gender) {
+	            	$query->where('gender', $gender);
+	            }
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -161,8 +194,8 @@ class LeaderboardController extends Controller
         	->orderBy('punches_count', 'desc')
         	->limit(100)->get()->toArray();
 		} 
-		// Else, will break down current result set to get current user's rank in list
-		// So, if current user's rank is 500, then return 1 to 50 and 475 to 525
+		// Else, will break down current result set to get current user's rank is in list
+		// e.g., if current user's rank is 500, then return 1 to 50 and 475 to 525
 		else {
 			// First set of result, showing top 50
 			\DB::statement(\DB::raw('SET @rank = 0'));
@@ -170,10 +203,26 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
                 	->with(['country', 'state', 'city']);
             }])
-        	->whereHas('user', function($query) use ($countryId) {
+        	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
-        			$query->where('country_id', $countryId);
-        		}
+	    			$query->where('country_id', $countryId);
+
+	    			// State (can be null when no country selected)
+	    			if ($stateId)
+	    				$query->where('state_id', $stateId);
+	    		}
+
+	    		if (sizeof($ageRange)) {
+	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+	            }
+
+	            if (sizeof($weightRange)) {
+	            	$query->whereBetween('weight', $weightRange);
+	            }
+
+	            if ($gender) {
+	            	$query->where('gender', $gender);
+	            }
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -189,10 +238,26 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
-        	->whereHas('user', function($query) use ($countryId) {
+        	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
-        			$query->where('country_id', $countryId);
-        		}
+	    			$query->where('country_id', $countryId);
+
+	    			// State (can be null when no country selected)
+	    			if ($stateId)
+	    				$query->where('state_id', $stateId);
+	    		}
+
+	    		if (sizeof($ageRange)) {
+	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+	            }
+
+	            if (sizeof($weightRange)) {
+	            	$query->whereBetween('weight', $weightRange);
+	            }
+
+	            if ($gender) {
+	            	$query->where('gender', $gender);
+	            }
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -230,7 +295,7 @@ class LeaderboardController extends Controller
      *    {
      *      "country_id": 1,
      *      "state_id": 25,
-     *      "age": 21-30,
+     *      "age": 21-30
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
