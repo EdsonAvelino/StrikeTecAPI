@@ -7,6 +7,7 @@ use App\User;
 use App\UserConnections;
 use App\Faqs;
 use App\Leaderboard;
+use App\Battles;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -472,8 +473,16 @@ class UserController extends Controller
         $user = $user->toArray();
         $user['user_following'] = (bool) $following;
         $user['user_follower'] = (bool) $follow;
-        $user['total_time_trained'] = Leaderboard::where('user_id', $userId)->first()->total_time_trained;
-
+        $leaderboard = Leaderboard::where('user_id', $userId)->first();
+        $user['total_time_trained'] = $leaderboard->total_time_trained;
+        $user['total_day_trained'] = floor($leaderboard->total_time_trained / 3600 / 24);
+        $user['avg_speed'] = round($leaderboard->avg_speed, 2);
+        $user['avg_force'] = round($leaderboard->avg_force, 2);
+        $user['punches_count'] = $leaderboard->punches_count;
+        $battles = $this->getFinishedBattles($userId);
+        $user['loose'] = $battles['loose'];
+        $user['win'] = $battles['win'];
+        $user['finished_battles'] = $battles['finished'];
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
@@ -1360,10 +1369,10 @@ class UserController extends Controller
     {
 
         try {
-            $user_id = \Auth::user()->id;
+            $userId = \Auth::user()->id;
             $offset = (int) ($request->get('start') ? $request->get('start') : 0);
             $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
-            $users = User::where('id', '!=', $user_id)->offset($offset)->limit($limit)->get();
+            $users = User::where('id', '!=', $userId)->offset($offset)->limit($limit)->get();
             return response()->json([
                         'error' => 'false',
                         'message' => 'Users list information',
@@ -1376,4 +1385,38 @@ class UserController extends Controller
             ]);
         }
     }
+
+//finished battles
+    public function getFinishedBattles($userId)
+    {
+        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                        })
+                        ->where(['opponent_finished' => TRUE])
+                        ->where(['user_finished' => TRUE])
+                        ->orderBy('battles.updated_at', 'desc')
+                        ->get()->toArray();
+        $array = array();
+        $countArr = $looserCount = $winnerCount = 0;
+        foreach ($battle_finished as $data) {
+            if (empty($data['winner_user_id'])) {
+                $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
+            }
+            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+            $array[$countArr]['battle_id'] = $data['battle_id'];
+            $array[$countArr]['winner'] = User::get($data['winner_user_id']);
+            $array[$countArr]['loser'] = User::get($looserId);
+            if ($data['winner_user_id'] == $userId) {
+                $winnerCount = $winnerCount + 1;
+            }
+            if ($looserId == $userId) {
+                $looserCount = $looserCount + 1;
+            }
+            $countArr++;
+        }
+        $data = ['loose' => $looserCount, 'win' => $winnerCount, 'finished' => $array];
+        return $data;
+    }
+
 }

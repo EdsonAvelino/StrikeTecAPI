@@ -14,6 +14,7 @@ use App\Helpers\PushTypes;
 
 class BattleController extends Controller
 {
+
     /**
      * @api {post} /battles Send battle invite
      * @apiGroup Battles
@@ -654,11 +655,11 @@ class BattleController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
-        $user_id = \Auth::user()->id;
+        $userId = \Auth::user()->id;
 
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $user_id)
+                        ->where('opponent_user_id', $userId)
                         ->where(function ($query) {
                             $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
@@ -739,15 +740,15 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        $user_id = \Auth::user()->id;
+        $userId = \Auth::user()->id;
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where(function ($query) use($user_id) {
-                            $query->where('opponent_user_id', $user_id)->where('accepted', TRUE)->where(function ($query1) use($user_id) {
+                        ->where(function ($query) use($userId) {
+                            $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
-                        ->orWhere(function ($query) use($user_id) {
-                            $query->where('user_id', $user_id)->where(function ($query1) use($user_id) {
+                        ->orWhere(function ($query) use($userId) {
+                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
@@ -757,7 +758,7 @@ class BattleController extends Controller
         foreach ($requested_by_opponent as $battle_request) {
             $data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
-            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
             $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
         }
@@ -845,10 +846,10 @@ class BattleController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
-        $user_id = \Auth::user()->id;
+        $userId = \Auth::user()->id;
         $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($user_id) {
-                            $query->where(['user_id' => $user_id])->orWhere(['opponent_user_id' => $user_id]);
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
@@ -983,11 +984,11 @@ class BattleController extends Controller
     public function getAllBattles(Request $request)
     {
         $array = array();
-        $user_id = \Auth::user()->id;
+        $userId = \Auth::user()->id;
 
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $user_id)
+                        ->where('opponent_user_id', $userId)
                         ->where(function ($query) {
                             $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
@@ -1003,13 +1004,13 @@ class BattleController extends Controller
         $array['received'] = $data;
 
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where(function ($query) use($user_id) {
-                            $query->where('opponent_user_id', $user_id)->where('accepted', TRUE)->where(function ($query1) use($user_id) {
+                        ->where(function ($query) use($userId) {
+                            $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
-                        ->orWhere(function ($query) use($user_id) {
-                            $query->where('user_id', $user_id)->where(function ($query1) use($user_id) {
+                        ->orWhere(function ($query) use($userId) {
+                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
@@ -1019,15 +1020,15 @@ class BattleController extends Controller
         foreach ($requested_by_opponent as $battle_request) {
             $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
             $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
-            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $user_id) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
             $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $j++;
         }
         $array['my_battles'] = $my_battle_data;
 
         $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($user_id) {
-                            $query->where(['user_id' => $user_id])->orWhere(['opponent_user_id' => $user_id]);
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
@@ -1111,9 +1112,11 @@ class BattleController extends Controller
             $imgOrgName = $nameWithoutExt . '-' . time() . '.' . $ext;  //make audio name unique
             $file->move($dest, $imgOrgName);
             $gif_path = url() . '/' . $dest . '/' . $imgOrgName; // path to be inserted in table
-            $combo->where('id', $comboId)->update(['audio' => $gif_path, 'user_id' => $userId]);
+            $combo->audio = $gif_path;
+            $combo->user_id = $userId;
+            $combo->save();
         }
-        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!', 'data' =>$combo]);
+        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!', 'data' => $combo]);
     }
 
     /**
@@ -1157,6 +1160,113 @@ class BattleController extends Controller
     {
         $combos = Combos::select('id', 'name', 'audio')->get()->toArray();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
+    }
+
+    /**
+     * @api {get} /battles/user/finished  Get list of finished battles by user
+     * @apiGroup Battles
+     * @apiHeader {String} Authorization Authorization Token
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} user_id User id 
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 20,
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data list of finished battles 
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *      {
+     *          "battle_id": 4,
+     *          "winner": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *          },
+     *          "loser": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *          }
+     *      },
+     *      {
+     *          "battle_id": 6,
+     *          "winner": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *          },
+     *          "loser": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false
+     *          }
+     *      }
+     *  ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUsersFinishedBattles(Request $request)
+    {
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+
+        $userId = $request->get('user_id');
+        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                        })
+                        ->where(['opponent_finished' => TRUE])
+                        ->where(['user_finished' => TRUE])
+                        ->orderBy('battles.updated_at', 'desc')
+                        ->offset($offset)->limit($limit)->get()->toArray();
+        $array = array();
+        $i = 0;
+        foreach ($battle_finished as $data) {
+            if (empty($data['winner_user_id'])) {
+                $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
+            }
+            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+            $array[$i]['battle_id'] = $data['battle_id'];
+            $array[$i]['winner'] = User::get($data['winner_user_id']);
+            $array[$i]['loser'] = User::get($looserId);
+            $i++;
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
     }
 
 }
