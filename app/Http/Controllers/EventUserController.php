@@ -145,7 +145,18 @@ Class EventUserController extends Controller
             if ($user) { // Creates a new user
                 $userId = $user->id;
             } else {
-                $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob);
+                 /* user profile pic */
+                if ($request->hasFile('profile_image')) {
+                    $userProfileInput = $request->file('profile_image');
+                    $imagePath = 'storage/fanuser/profilepic';
+                    $userProfileInformation = $userProfileInput->getClientOriginalName();
+                    $profilePicName = pathinfo($userProfileInformation, PATHINFO_FILENAME);
+                    $profilePicEXT = pathinfo($userProfileInformation, PATHINFO_EXTENSION);
+                    $userProfileInformation = $profilePicName . '-' . time() . '.' . $profilePicEXT; 
+                    $userProfileInput->move($imagePath, $userProfileInformation);
+                    $userProfile = url() . '/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
+                }
+                $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob, $userProfile);
             }
             $checkUser = EventUser::where(function ($query) use ($userId, $eventId) {
                         $query->where('user_id', $userId)->Where('event_id', $eventId);
@@ -193,7 +204,7 @@ Class EventUserController extends Controller
     }
 
 //create user if not exist
-    public function createUser($name, $email, $gender, $weight, $height, $dob)
+    public function createUser($name, $email, $gender, $weight, $height, $dob, $userProfile)
     {
         $pass = $this->generateStrongPassword();
         $userId = User::create([
@@ -203,7 +214,8 @@ Class EventUserController extends Controller
                     'gender' => $gender,
                     'weight' => $weight,
                     'height' => $height,
-                    'birthday' => date('Y-m-d', strtotime($dob))
+                    'birthday' => date('Y-m-d', strtotime($dob)),
+                    'photo_url' => !empty($userProfile) ? $userProfile : NULL
                 ])->id;
         $subject = 'StrikeTec: User password';
         Mail::to($email)->send(new PasswordGenerateCodeEmail($subject, $pass, $name));
