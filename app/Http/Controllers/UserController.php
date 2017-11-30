@@ -1263,12 +1263,12 @@ class UserController extends Controller
     public function getUnreadCounts()
     {
         $userId = \Auth::user()->id;
-        
+
         $chats = \App\Chat::withCount(['messages' => function ($query) use ($userId) {
-            $query->where('read_flag', 0)->where('user_id', '!=', $userId);
-        }])->where(function ($q) use ($userId) {
-            $q->where('user_one', $userId)->orwhere('user_two', $userId);
-        })->first();
+                        $query->where('read_flag', 0)->where('user_id', '!=', $userId);
+                    }])->where(function ($q) use ($userId) {
+                    $q->where('user_one', $userId)->orwhere('user_two', $userId);
+                })->first();
 
         // TODO get unread notification counts
         $unreadCounts = ['chat_count' => (int) @$chats->messages_count, 'notif_count' => 0];
@@ -1276,4 +1276,104 @@ class UserController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
 
+    /**
+     * @api {get} /users/list Get list of APP user
+     * @apiGroup FAN APP Users
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} [start] Start offset
+     * @apiParam {Number} [limit] Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": {
+     *             {
+     *              "id": 1,
+     *              "facebook_id": 1234567890,
+     *              "first_name": "John",
+     *              "last_name": "Smith",
+     *              "email": "john@smith.com",
+     *              "gender": null,
+     *              "birthday": "1975-05-09",
+     *              "weight": null,
+     *              "height": null,
+     *              "left_hand_sensor": null,
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 0,
+     *              "stance": null,
+     *              "show_tip": 1,
+     *              "skill_level": null,
+     *              "photo_url": "http://example.com/profile/pic.jpg",
+     *              "updated_at": "2016-02-10 15:46:51",
+     *              "created_at": "2016-02-10 15:46:51",
+     *          },
+     *             {
+     *              "id": 12,
+     *              "facebook_id": 1234567890,
+     *              "first_name": "Anchal",
+     *              "last_name": "gupta",
+     *              "email": "anchal@gupta.com",
+     *              "gender": null,
+     *              "birthday": "1975-05-09",
+     *              "weight": null,
+     *              "height": null,
+     *              "left_hand_sensor": null,
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 0,
+     *              "stance": null,
+     *              "show_tip": 1,
+     *              "skill_level": null,
+     *              "photo_url": "http://example.com/profile/pic.jpg",
+     *              "updated_at": "2016-02-10 15:46:51",
+     *              "created_at": "2016-02-10 15:46:51",
+     *          }
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUsersList(Request $request)
+    {
+
+        try {
+            $user_id = \Auth::user()->id;
+            $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+            $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
+            $users = User::where('id', '!=', $user_id)->offset($offset)->limit($limit)->get();
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'Users list information',
+                        'data' => $users,
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                        'error' => 'true',
+                        'message' => 'Invalid request',
+            ]);
+        }
+    }
 }
