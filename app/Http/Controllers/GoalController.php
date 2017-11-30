@@ -61,7 +61,7 @@ class GoalController extends Controller
         $startDate = date('Y-m-d H:i:s', (int) $startAt);
         $endAt = ($request->end_date) ? $request->end_date : null;
         $endDate = date('Y-m-d H:i:s', (int) $endAt);
-        $goal_id = Goals::create([
+        $goalId = Goals::create([
                     'user_id' => $user_id,
                     'activity_id' => $request->get('activity_id'),
                     'activity_type_id' => $request->get('activity_type_id'),
@@ -69,7 +69,7 @@ class GoalController extends Controller
                     'start_at' => $startDate,
                     'end_at' => $endDate
                 ])->id;
-        return response()->json(['error' => 'false', 'message' => 'Your goal has been added.', 'data' => ['id' => $goal_id]]);
+        return response()->json(['error' => 'false', 'message' => 'Your goal has been added.', 'data' => ['id' => $goalId]]);
     }
 
     /**
@@ -128,8 +128,8 @@ class GoalController extends Controller
     public function updateGoal(Request $request)
     {
         $user_id = \Auth::user()->id;
-        $goal_id = $request->goal_id;
-        $goal = Goals::find($goal_id);
+        $goalId = $request->goal_id;
+        $goal = Goals::find($goalId);
         $startAt = ($request->start_date) ? $request->start_date : $goal->start_at;
         $startDate = date('Y-m-d H:i:s', (int) $startAt);
         $endAt = ($request->end_date) ? $request->end_date : $goal->end_at;
@@ -142,7 +142,7 @@ class GoalController extends Controller
         if ($goal->done_count > 0) {
             return response()->json(['error' => 'true', 'message' => 'You can not edit this goal.']);
         }
-        Goals::where('id', $goal_id)->where('user_id', $user_id)
+        Goals::where('id', $goalId)->where('user_id', $user_id)
                 ->update([
                     'activity_id' => $goal->activity_id,
                     'activity_type_id' => $goal->activity_type_id,
@@ -150,7 +150,7 @@ class GoalController extends Controller
                     'start_at' => $goal->start_at,
                     'end_at' => $goal->end_at]);
         $goals_data = Goals::select('id', 'activity_id', 'activity_type_id', 'target', 'start_at as start_date', 'end_at as end_date', 'followed', 'done_count')
-                        ->where('id', $goal_id)->where('user_id', $user_id)->first();
+                        ->where('id', $goalId)->where('user_id', $user_id)->first();
         $goals_data->start_date = strtotime($goals_data->start_date);
         $goals_data->end_date = strtotime($goals_data->end_date);
         return response()->json(['error' => 'false', 'message' => 'Your goal has been updated.', 'data' => $goals_data]);
@@ -256,7 +256,7 @@ class GoalController extends Controller
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
         $user_id = \Auth::user()->id;
-        $this->calculateGoal(); //calculate data of folloewd 
+        $this->calculateGoal(); //calculate data of followed 
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count')
                         ->where('user_id', $user_id)->orderBy('updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
@@ -301,17 +301,23 @@ class GoalController extends Controller
      */
     public function followGoal(Request $request)
     {
-        $goal_id = $request->goal_id;
+        $goalId = $request->goal_id;
         $follow = filter_var($request->get('follow'), FILTER_VALIDATE_BOOLEAN);
         $user_id = \Auth::user()->id;
-        Goals::where('id', $goal_id)
+        $goal = Goals::where('id', $goalId)->where('user_id', $user_id)->get()->first();
+        $endDate = $goal->end_at;
+        $today = date("Y-m-d");
+        Goals::where('id', $goalId)
                 ->where('user_id', $user_id)
                 ->update(['followed' => $follow, 'followed_at' => date("Y-m-d H:i:s")]);
         if ($follow == TRUE) {
-            Goals::where('user_id', $user_id)->where('id', '!=', $goal_id)->where('followed', 1)->update([ 'followed' => 0]);
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goal_id]]);
+            if ($today >= $endDate) {
+                return response()->json(['error' => 'true', 'message' => 'You can not follow this goal,it has been expired.']);
+            }
+            Goals::where('user_id', $user_id)->where('id', '!=', $goalId)->where('followed', 1)->update([ 'followed' => 0]);
+            return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goalId]]);
         } else {
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goal_id]]);
+            return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goalId]]);
         }
     }
 
@@ -319,9 +325,15 @@ class GoalController extends Controller
     public function calculateGoal()
     {
         $userId = \Auth::user()->id;
-        $goalList = Goals::select('id', 'avg_speed', 'avg_power', 'avg_time', 'done_count', 'activity_type_id')->where('user_id', $userId)->where('followed', 1)->first();
-
+        $goalList = Goals::select('id', 'avg_speed', 'avg_power', 'avg_time', 'done_count', 'activity_type_id', 'end_at')->where('user_id', $userId)->where('followed', 1)->first();
         if ($goalList) {
+            $endDate = $goalList->end_at;
+            $today = date("Y-m-d");
+            if ($today >= $endDate) {
+                $goalList->followed = 0;
+                $goalList->followed_at = date("Y-m-d H:i:s");
+                $goalList->save();
+            }
             $goalSession = Goals::with('goalSessions')->where('id', $goalList->id)->first()->toArray();
             $sessionId = [];
             foreach ($goalSession['goal_sessions'] as $value) {
@@ -463,7 +475,6 @@ class GoalController extends Controller
         if ($goalId) {
             $goal = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type')
                             ->where('id', $goalId)->first();
-            $goal->followed_at = strtotime($goal->followed_at);
             $message = '';
         }
         return response()->json(['error' => 'false', 'message' => $message, 'data' => (object) $goal]);

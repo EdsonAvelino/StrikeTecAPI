@@ -188,6 +188,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get details of battle(challenge)
     $app->get('/battles/{battleId}', 'BattleController@getBattle');
+    
+    // Get battles of user 
+    $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
 });
 
 // Push notifications settings
