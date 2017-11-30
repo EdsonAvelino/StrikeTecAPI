@@ -261,7 +261,7 @@ class EventController extends Controller
         try {
             $eventStorage = array();
             $eventInfo = array();
-            $company_id = \Auth::user()->compnay_id;
+            $company_id = \Auth::user()->company_id;
             $ObjEvent = new Event();
             $eventList = $ObjEvent->usersList($company_id);
             foreach ($eventList as $val) {
