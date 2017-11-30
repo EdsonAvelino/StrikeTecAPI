@@ -291,6 +291,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     //get location list for fan API
     $app->get('/locations', 'LocationController@getLocationList');
+    
+    $app->get('/fan/users/event/list', 'EventController@userEventList');
 
     //get user list for fan APP
     $app->get('/fan/users/list', 'UserController@getUsersList');
