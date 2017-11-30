@@ -286,7 +286,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/locations', 'LocationController@getLocationList');
 
     //get user list for fan APP
-    $app->get('/users/list', 'UserController@getUsersList');
+    $app->get('/fan/users/list', 'UserController@getUsersList');
 
     //add user to event for fan APP
     $app->post('/user/event/register', 'EventUserController@eventUserRegister');
