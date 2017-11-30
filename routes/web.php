@@ -40,6 +40,9 @@ $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 // Get FAQs
 $app->get('/faqs', 'UserController@getFaqs');
 
+//Companies list
+$app->get('/companies', 'CompanyController@getCompanyList');
+
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
