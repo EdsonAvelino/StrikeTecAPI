@@ -41,8 +41,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'photo_url',
         'city_id',
         'state_id',
-        'country_id',
-        'company_id'
+        'country_id'
     ];
 
     /**
@@ -54,7 +53,8 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'password',
         'country_id',
         'state_id',
-        'city_id'
+        'city_id',
+        'company_id'
     ];
 
     /**
@@ -106,6 +106,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
     public function city()
     {
         return $this->hasOne('App\Cities', 'id', 'city_id');
+    }
+
+    public function company()
+    {
+        return $this->hasOne('App\Companies', 'id', 'company_id');
     }
 
     public static function boot()

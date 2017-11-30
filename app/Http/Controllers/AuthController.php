@@ -123,7 +123,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+        $user = User::with(['preferences', 'country', 'state', 'city','company'])->find(\Auth::id());
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
