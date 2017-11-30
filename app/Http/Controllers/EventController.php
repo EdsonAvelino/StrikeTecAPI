@@ -194,4 +194,91 @@ class EventController extends Controller
        }
     }
     
+    /**
+     * @api {get} /fan/users/event/list get users details information
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event list information
+     * @apiSuccessExample {json} Success
+     * {
+     *       "error": "false",
+     *       "message": "Users list information",
+     *       "data": [
+     *           {
+     *               "id": 1,
+     *               "photo_url": null,
+     *               "birthday": "1970-01-01",
+     *               "gender": null,
+     *               "height": null,
+     *               "weight": null,
+     *               "email": "ntestinfo@gmail.com",
+     *               "state_name": null,
+     *               "country_name": null,
+     *               "city_name": null,
+     *               "full_name": "Nawaz Me",
+     *               "events": [
+     *                   1
+     *               ]
+     *           },
+     *           {
+     *               "id": 7,
+     *               "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *               "birthday": "1990-06-10",
+     *               "gender": "male",
+     *               "height": 57,
+     *               "weight": 200,
+     *               "email": "toniorasma@yahoo.com",
+     *               "state_name": "Texas",
+     *               "country_name": "United States",
+     *               "city_name": null,
+     *               "full_name": "Qiang Hu",
+     *               "events": [
+     *                   2,
+     *                   1
+     *               ]
+     *           },
+     *           
+     *       ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    function userEventList()
+    {
+        try {
+            $eventStorage = array();
+            $eventInfo = array();
+            $company_id = \Auth::user()->compnay_id;
+            $ObjEvent = new Event();
+            $eventList = $ObjEvent->usersList($company_id);
+            foreach ($eventList as $val) {
+                $ObjEventUser = new EventUser();
+                $eventInfo = $ObjEventUser->getUsersList($val->user_id);
+                $eventInfo->full_name = $eventInfo->first_name . ' ' . $eventInfo->last_name;
+                unset($eventInfo->first_name, $eventInfo->last_name);
+                $eventInfo->events = array_map('intval', explode(',', $val->events));
+                $eventStorage[] = $eventInfo;
+            }
+            return response()->json(['error' => 'false', 'message' => 'Users list information', 'data' => $eventStorage]);
+        } catch (Exception $e) {
+            return response()->json([
+                        'error' => 'true',
+                        'message' => 'Invalid request',
+            ]);
+        }
+    }
+    
 }

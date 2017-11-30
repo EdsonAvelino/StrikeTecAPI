@@ -42,4 +42,14 @@ class Event extends Model
         }
         })->get();
     }
+    
+    public function usersList($company_id)
+    {
+        $table = 'events';
+        return DB::table($table)
+                        ->Join('event_users', $table.'.id',  '=', 'event_users.event_id')
+                        ->select( DB::raw('group_concat(event_users.event_id) as events'), 'event_users.user_id')
+                        ->groupBy('event_users.user_id')
+                        ->where($table.'.company_id', $company_id)->get();               
+    }
 }
