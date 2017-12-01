@@ -61,15 +61,22 @@ class GoalController extends Controller
         $startDate = date('Y-m-d H:i:s', (int) $startAt);
         $endAt = ($request->end_date) ? $request->end_date : null;
         $endDate = date('Y-m-d H:i:s', (int) $endAt);
-        $goalId = Goals::create([
-                    'user_id' => $user_id,
-                    'activity_id' => $request->get('activity_id'),
-                    'activity_type_id' => $request->get('activity_type_id'),
-                    'target' => $request->get('target'),
-                    'start_at' => $startDate,
-                    'end_at' => $endDate
-                ])->id;
-        return response()->json(['error' => 'false', 'message' => 'Your goal has been added.', 'data' => ['id' => $goalId]]);
+        if ($startDate >= date('Y-m-d H:i:s') && $endDate >= date('Y-m-d H:i:s')) {
+            if ($endDate < $startDate) {
+                return response()->json(['error' => 'true', 'message' => 'Please choose end date greater than start date.']);
+            }
+            $goalId = Goals::create([
+                        'user_id' => $user_id,
+                        'activity_id' => $request->get('activity_id'),
+                        'activity_type_id' => $request->get('activity_type_id'),
+                        'target' => $request->get('target'),
+                        'start_at' => $startDate,
+                        'end_at' => $endDate
+                    ])->id;
+            return response()->json(['error' => 'false', 'message' => 'Your goal has been added.', 'data' => ['id' => $goalId]]);
+        } else {
+            return response()->json(['error' => 'true', 'message' => 'Your can not add a goal from past date.']);
+        }
     }
 
     /**
