@@ -156,10 +156,10 @@ class Battles extends Model
         $sessions = \App\Sessions::with('rounds')->where('battle_id', $battle->id)->get();
 
         foreach($sessions as $session) {
-            // Battle type combo will always have one round
-            $round = $session->rounds{0};
-
-            foreach ($round->punches as $punch) {
+            // Battle type combo and combo-set will always have one round
+            $round = $session->rounds()->first();
+            
+            foreach ($_punches = $round->punches as $punch) {
                 $roundPunches[$session->user_id][] = $punch->hand.$punch->punch_type;
                 
                 $speed[$session->user_id][] = $punch->speed;

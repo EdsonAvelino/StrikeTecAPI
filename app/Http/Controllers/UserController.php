@@ -1314,11 +1314,13 @@ class UserController extends Controller
         $chats = \App\Chat::withCount(['messages' => function ($query) use ($userId) {
                         $query->where('read_flag', 0)->where('user_id', '!=', $userId);
                     }])->where(function ($q) use ($userId) {
-                    $q->where('user_one', $userId)->orwhere('user_two', $userId);
-                })->first();
+                        $q->where('user_one', $userId)->orwhere('user_two', $userId);
+                    })->get();
+
+        $messagesCount = (int) @$chats->sum('messages_count');
 
         // TODO get unread notification counts
-        $unreadCounts = ['chat_count' => (int) @$chats->messages_count, 'notif_count' => 0];
+        $unreadCounts = ['chat_count' => $messagesCount, 'notif_count' => 0];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
