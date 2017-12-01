@@ -10,51 +10,6 @@ use App\VideoCategory;
 
 class VideoController extends Controller
 {
-
-    /**
-     * Sync Videos
-     */
-    public function syncVideos()
-    {
-        $dirVideos = new \DirectoryIterator(storage_path('videos'));
-
-        $videos = [];
-
-        foreach ($dirVideos as $videoFile) {
-            if (!$videoFile->isDot()) {
-                $getID3 = new \getID3;
-                $videoInfo = $getID3->analyze(storage_path('videos/' . $videoFile));
-
-                $video = Videos::firstOrCreate(['file' => $videoFile]);
-
-                $video->duration = $this->formatDuration($videoInfo['playtime_string']);
-                $video->view_counts = 0;
-                $video->save();
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Format to AA::BB:CC
-     */
-    private function formatDuration($duration)
-    {
-        // The base case is A:BB
-        if (strlen($duration) == 4) {
-            return "00:0" . $duration;
-        }
-        // If AA:BB
-        else if (strlen($duration) == 5) {
-            return "00:" . $duration;
-        }
-        // If A:BB:CC
-        else if (strlen($duration) == 7) {
-            return "0" . $duration;
-        }
-    }
-
     /**
      * @api {get} /videos Get videos by category
      * @apiGroup Videos

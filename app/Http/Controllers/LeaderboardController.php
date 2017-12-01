@@ -291,6 +291,7 @@ class LeaderboardController extends Controller
      * @apiParam {Number} [age] Age range e.g. 25-40
      * @apiParam {Number} [weight] Weight range e.g. 90-120
      * @apiParam {String="male","female"} [gender] Gender
+     * @apiParam {String} [search] Query string e.g. john, result will be of all users having name "john"
      * @apiParamExample {json} Input
      *    {
      *      "country_id": 1,
@@ -414,6 +415,9 @@ class LeaderboardController extends Controller
     	$ageRange = ($age) ? explode('-', $age) : [];
     	$weightRange = ($weight) ? explode('-', $weight) : [];
 
+    	// Query to search user by name
+    	$searchQuery = $request->get('search') ?? null;
+
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
@@ -423,7 +427,7 @@ class LeaderboardController extends Controller
             $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', \DB::raw('id as number_of_challenges'))
             	->with(['country', 'state', 'city']);
         }])
-    	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
+    	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender, $searchQuery) {
     		if ($countryId) {
     			$query->where('country_id', $countryId);
 
@@ -431,7 +435,7 @@ class LeaderboardController extends Controller
     			if ($stateId)
     				$query->where('state_id', $stateId);
     		}
-
+    		
     		if (sizeof($ageRange)) {
             	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
             }
@@ -442,6 +446,19 @@ class LeaderboardController extends Controller
 
             if ($gender) {
             	$query->where('gender', $gender);
+            }
+
+            if ($searchQuery) {
+            	$query->where(function ($q) use ($searchQuery) {
+            		$name = explode(' ', str_replace('+', ' ', $searchQuery));
+            		
+            		if (count($name) > 1){
+            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
+            		} else {
+            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
+            		}
+            		
+            	});
             }
     	})
     	->whereHas('user.preferences', function($q) {

@@ -101,9 +101,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 // Video APIs
-// TEMP: Sync list of videos from storage/videos dir to db
-// $app->get('/videos/sync', 'VideoController@syncVideos');
-
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get list of videos available on server
     $app->get('/videos', 'VideoController@getVideos');
@@ -145,9 +142,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/user/app_token', 'PushController@storeAppToken');
 });
 
-// Push notification tests for ios/android
-// $app->post('/push/test', 'PushController@testPush');
-// $app->post('/push/test/apns', 'PushController@testPushAPNs');
+// Push notifications settings APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    $app->post('/notification/settings', 'SettingController@updateSettings');
+    $app->get('/notification/settings', 'SettingController@getSettings');
+});
+
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
@@ -197,12 +197,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
 });
 
-// Push notifications settings
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    $app->post('/notification/settings', 'SettingController@updateSettings');
-    $app->get('/notification/settings', 'SettingController@getSettings');
-});
-
 // Goals APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
@@ -248,11 +242,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get comments of feed-post
     // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
+
     // Post comment on feed-post
     $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
 });
 
-// This api does not need auth
+// This API does not need auth
 // Contact Us(write us)
 $app->post('/writeus', 'WriteusController@writeUs');
 
@@ -272,7 +267,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/chat', 'ChatController@chats');
 });
 
-// in app subscription APIS
+// In-App subscription APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // add user subscription
     $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
