@@ -182,6 +182,15 @@ class FeedController extends Controller
             switch ($post->post_type_id) {
                 case 1:
                     $user2FullName = $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name;
+                    // extra_data contains feed type related data battle, training etc
+                    $_post['extra_data'] = \App\Battles::getResult($post->data_id);
+                    break;
+
+                case 2:
+                    // avg punch count, avg speed, avg power.
+                    $extraData['avg_speed'] = $post->data->avg_speed;
+                    $extraData['avg_force'] = $post->data->avg_force;
+                    $_post['extra_data'] = $extraData;
                     break;
 
                 case 5:
@@ -197,6 +206,7 @@ class FeedController extends Controller
             $userLikes = PostLikes::where('post_id', $post->id)->where('user_id', \Auth::user()->id)->exists();
             
             $_post['user_likes'] = (bool) $userLikes;
+
             $posts[] = $_post;
         }
 

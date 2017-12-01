@@ -29,6 +29,11 @@ class Sessions extends Model
 
     protected $dateFormat = 'Y-m-d\TH:i:s.u';
 
+    public function user()
+    {
+        return $this->hasOne('App\User', 'id', 'user_id');
+    }
+    
     public function rounds()
     {
         return $this->hasMany('App\SessionRounds', 'session_id');

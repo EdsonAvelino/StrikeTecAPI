@@ -55,6 +55,10 @@ class Posts extends Model
             case 1:
                 return $this->hasOne('App\Battles', 'id', 'data_id');
                 break;
+
+            case 2:
+                return $this->hasOne('App\Sessions', 'id', 'data_id');
+                break;
             
             default:
                 # code...
@@ -70,5 +74,10 @@ class Posts extends Model
     public function comments()
     {
         return $this->hasMany('App\PostComments', 'post_id', 'id');
+    }
+
+    public function getCreatedAtAttribute($createdAt)
+    {
+        return strtotime($createdAt);
     }
 }

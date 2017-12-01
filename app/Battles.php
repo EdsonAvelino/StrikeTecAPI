@@ -86,6 +86,9 @@ class Battles extends Model
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $looserUserId)->first();
             $looser['avg_speed'] = $_session->avg_speed;
             $looser['avg_force'] = $_session->avg_force;
+            $looser['max_speed'] = $_session->max_speed;
+            $looser['max_force'] = $_session->max_force;
+            $looser['best_time'] = $_session->best_time;
             $looser['punches_count'] = $_session->punches_count;
         }
         
