@@ -8,6 +8,9 @@ use App\UserConnections;
 use App\Faqs;
 use App\Leaderboard;
 use App\Battles;
+use App\Sessions;
+use App\SessionRounds;
+use App\SessionRoundPunches;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -475,11 +478,13 @@ class UserController extends Controller
         $user['user_follower'] = (bool) $follow;
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $user['total_time_trained'] = $leaderboard->total_time_trained;
-        $user['total_day_trained'] = floor($leaderboard->total_time_trained / 3600 / 24);
-        $user['avg_speed'] = round($leaderboard->avg_speed, 2);
-        $user['avg_force'] = round($leaderboard->avg_force, 2);
+        $user['total_day_trained'] = round($leaderboard->total_time_trained / 3600 / 24, 2);
+        $data = $this->avgSpeedAndForce();
+        $user['avg_speed'] = floor($data['avg_speed']);
+        $user['avg_force'] = floor($data['avg_force']);
         $user['punches_count'] = $leaderboard->punches_count;
         $battles = $this->getFinishedBattles($userId);
+        $user['avg_count'] = floor($data['avg_punch']);
         $user['loose'] = $battles['loose'];
         $user['win'] = $battles['win'];
         $user['finished_battles'] = $battles['finished'];
@@ -492,6 +497,39 @@ class UserController extends Controller
                     'message' => '',
                     'user' => $user
         ]);
+    }
+
+//avg speed,punches and force
+    public function avgSpeedAndForce()
+    {
+        $sessionIds = Sessions::select('id')
+                        ->where('user_id', \Auth::user()->id)
+                        ->where(function($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->get()->toArray();
+        $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
+        $forceCount = $currDamage = 0;
+        $punches = [];
+        foreach ($sessionRounds as $sessionRound) {
+            $punches = $sessionRound['punches'];
+
+            if ($punches) {
+                foreach ($punches as $forces) {
+                    $force[$forceCount][] = $forces['force'];
+                    $speed[$forceCount][] = $forces['speed'];
+                }
+                $forces_sum[] = array_sum($force[$forceCount]);
+                $speed_sum[] = array_sum($speed[$forceCount]);
+            }
+
+            $forceCount++;
+            $punch[] = count($sessionRound['punches']);
+        }
+        $avg = array_sum($punch) / count($punch);
+        $data['avg_punch'] = floor(array_sum($punch) / count($punch));
+        $data['avg_speed'] = floor(array_sum($speed_sum) / count($speed_sum));
+        $data['avg_force'] = floor(array_sum($forces_sum) / count($forces_sum));
+        return $data;
     }
 
     /**
@@ -1396,7 +1434,7 @@ class UserController extends Controller
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
                         ->orderBy('battles.updated_at', 'desc')
-                        ->get()->toArray();
+                        ->offset(0)->limit(20)->get()->toArray();
         $array = array();
         $countArr = $looserCount = $winnerCount = 0;
         foreach ($battle_finished as $data) {
