@@ -22,7 +22,6 @@ $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 // User Signup
 $app->post('/user/register', 'UserController@register');
 $app->post('/user/register/facebook', 'UserController@registerFacebook');
-$app->post('/user/register/fan', 'UserController@registerFan');
 
 // Password Reset
 $app->post('/password', 'PasswordController@postEmail');
@@ -39,9 +38,6 @@ $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 // Get FAQs
 $app->get('/faqs', 'UserController@getFaqs');
-
-//Companies list
-$app->get('/companies', 'CompanyController@getCompanyList');
 
 // Rest of all APIs are secured with access-token
 // User APIs
@@ -267,11 +263,19 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/chat', 'ChatController@chats');
 });
 
-// In-App subscription APIs
+// Fan App APIs routes
+
+// This API does not need auth  
+//Fan app sighn up
+$app->post('/user/register/fan', 'UserController@registerFan');
+
+//Companies list
+$app->get('/companies', 'CompanyController@getCompanyList');
+
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // add user subscription
     $app->post('/user/subscribe', 'UsersubscriptionController@userSubscribe');
-
+    
     // get user subscrioption information
     $app->get('/user/subscription', 'UsersubscriptionController@getUserSubscriptionStatus');
 
