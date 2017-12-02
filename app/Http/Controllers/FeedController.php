@@ -188,6 +188,7 @@ class FeedController extends Controller
 
                 case 2:
                     // avg punch count, avg speed, avg power.
+                    $extraData['punches_count'] = $post->data->punches_count;
                     $extraData['avg_speed'] = $post->data->avg_speed;
                     $extraData['avg_force'] = $post->data->avg_force;
                     $_post['extra_data'] = $extraData;
