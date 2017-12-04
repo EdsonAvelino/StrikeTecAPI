@@ -1268,7 +1268,7 @@ class UserController extends Controller
             $suggestedUsersIds[] = $user->user_id;
         }
 
-        $users = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points')])->whereIn('id', $suggestedUsersIds)->get();
+        $users = User::get($suggestedUsersIds);
 
         return response()->json([
                     'error' => 'false',

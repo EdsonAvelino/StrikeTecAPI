@@ -198,9 +198,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
     // return minimum fields of user
     // first_name, last_name, photo_url, user_following, user_follower and points
-    public static function get($userId)
+    public static function get($users)
     {
-        return self::select([
+        $statement = self::select([
                     'id',
                     'first_name',
                     'last_name',
@@ -208,7 +208,14 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                     \DB::raw('id as user_following'),
                     \DB::raw('id as user_follower'),
                     \DB::raw('id as points')
-                ])->where('id', $userId)->first();
-    }
+                ]);
 
+        if (is_array($users)) {
+            return $statement->whereIn('id', $users)->get();
+        } elseif (is_numeric($users)) {
+            return $statement->where('id', $users)->first();
+        }
+
+        return null;
+    }
 }
