@@ -277,7 +277,7 @@ class LeaderboardController extends Controller
     }
 
     /**
-     * @api {get} /explore Get Explore data
+     * @api {get} /trending Get Trending data
      * @apiGroup Leaderboard
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -399,10 +399,11 @@ class LeaderboardController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getExploreList(Request $request)
+    public function getTrendingList(Request $request)
     {
     	// \DB::enableQueryLog();
-
+    	// TODO sort list of users according to likes-count of feed items for a week
+    	
     	$countryId = (int) $request->get('country_id');
     	$stateId = (int) $request->get('state_id');
     	
