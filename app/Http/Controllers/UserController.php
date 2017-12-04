@@ -562,11 +562,77 @@ class UserController extends Controller
      *                  "state_id": 286,
      *                  "name": "Pettenbach"
      *              },
-     *              "user_following": true,
-     *              "user_follower": false
-     *              "total_time_trained": 5235
-     *          }
-     *      }
+     *             "user_following": true,
+     *             "user_follower": false
+     *             "total_time_trained": 5235
+     *             "total_time_trained": -1508874943,
+     *             "total_day_trained": -17464,
+     *             "avg_speed": 438,
+     *             "avg_force": 7992,
+     *             "punches_count": 5854,
+     *             "avg_count": 6,
+     *             "loose_counts": 1,
+     *             "win_counts": 2,
+     *             "finished_battles": [
+     *                 {
+     *                     "battle_id": 119,
+     *                     "winner": {
+     *                         "id": 20,
+     *                         "first_name": "da",
+     *                         "last_name": "cheng",
+     *                         "photo_url": null,
+     *                         "user_following": true,
+     *                         "user_follower": true,
+     *                         "points": 323
+     *                     },
+     *                     "loser": {
+     *                         "id": 7,
+     *                         "first_name": "Qiang",
+     *                         "last_name": "Hu",
+     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "user_following": false,
+     *                         "user_follower": false,
+     *                         "points": 5854
+     *                     }
+     *                 },
+     *                 {
+     *                     "battle_id": 120,
+     *                     "winner": {
+     *                         "id": 7,
+     *                         "first_name": "Qiang",
+     *                         "last_name": "Hu",
+     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "user_following": false,
+     *                         "user_follower": false,
+     *                         "points": 5854
+     *                     },
+     *                     "loser": null
+     *                 },
+     *                 {
+     *                     "battle_id": 32,
+     *                     "winner": {
+     *                         "id": 7,
+     *                         "first_name": "Qiang",
+     *                         "last_name": "Hu",
+     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "user_following": false,
+     *                         "user_follower": false,
+     *                         "points": 5854
+     *                     },
+     *                     "loser": {
+     *                         "id": 1,
+     *                         "first_name": "Nawaz",
+     *                         "last_name": "Me",
+     *                         "photo_url": null,
+     *                         "user_following": true,
+     *                         "user_follower": true,
+     *                         "points": 2768
+     *                     }
+     *                 }
+     *             ],
+     *             "user_connection": 4
+     *         }
+     *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
