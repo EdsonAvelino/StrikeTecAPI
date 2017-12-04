@@ -594,22 +594,22 @@ class UserController extends Controller
         $user = $user->toArray();
         $user['user_following'] = (bool) $following;
         $user['user_follower'] = (bool) $follow;
-        
+
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $user['total_time_trained'] = $leaderboard->total_time_trained;
-        $user['total_day_trained'] = round($leaderboard->total_time_trained / 3600 / 24, 2);
-        
-        $data = $this->getAvgSpeedAndForce();
+        $user['total_day_trained'] = floor($leaderboard->total_time_trained / 3600 / 24);
+
+        $data = $this->getAvgSpeedAndForce($userId);
         $user['avg_speed'] = floor($data['avg_speed']);
         $user['avg_force'] = floor($data['avg_force']);
         $user['punches_count'] = $leaderboard->punches_count;
         $user['avg_count'] = floor($data['avg_punch']);
 
         $battles = $this->getFinishedBattles($userId);
-        $user['lost'] = $battles['lost'];
-        $user['won'] = $battles['won'];
+        $user['loose_counts'] = $battles['lost'];
+        $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
-        
+
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
@@ -1469,8 +1469,8 @@ class UserController extends Controller
         $chats = \App\Chat::withCount(['messages' => function ($query) use ($userId) {
                         $query->where('read_flag', 0)->where('user_id', '!=', $userId);
                     }])->where(function ($q) use ($userId) {
-                        $q->where('user_one', $userId)->orwhere('user_two', $userId);
-                    })->get();
+                    $q->where('user_one', $userId)->orwhere('user_two', $userId);
+                })->get();
 
         $messagesCount = (int) @$chats->sum('messages_count');
 
@@ -1568,7 +1568,7 @@ class UserController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
         $users = User::where('id', '!=', $userId)->offset($offset)->limit($limit)->get();
-        
+
         return response()->json([
                     'error' => 'false',
                     'message' => 'Users list information',
@@ -1577,19 +1577,18 @@ class UserController extends Controller
     }
 
     // get avg speed, punches & force
-    private function getAvgSpeedAndForce()
+    private function getAvgSpeedAndForce($userId)
     {
         $sessionIds = Sessions::select('id')
-                        ->where('user_id', \Auth::user()->id)
-                        ->where(function($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        ->where(function($query) use($userId) {
+                            $query->where('user_id', $userId)->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
 
         $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
 
         $forceCount = $currDamage = 0;
-        $punches = [];
-        
+        $punches = $speed_sum = $forces_sum = [];
+
         foreach ($sessionRounds as $sessionRound) {
             $punches = $sessionRound['punches'];
 
@@ -1625,10 +1624,10 @@ class UserController extends Controller
                         ->where(['user_finished' => TRUE])
                         ->orderBy('battles.updated_at', 'desc')
                         ->offset(0)->limit(20)->get()->toArray();
-        
+
         $array = array();
         $countArr = $lost = $won = 0;
-        
+
         foreach ($battle_finished as $data) {
             if (empty($data['winner_user_id'])) {
                 $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
@@ -1639,7 +1638,7 @@ class UserController extends Controller
             $array[$countArr]['battle_id'] = $data['battle_id'];
             $array[$countArr]['winner'] = User::get($data['winner_user_id']);
             $array[$countArr]['loser'] = User::get($loserId);
-            
+
             if ($data['winner_user_id'] == $userId) {
                 $won = $won + 1;
             }
@@ -1650,7 +1649,8 @@ class UserController extends Controller
 
             $countArr++;
         }
-        
-        return  ['lost' => $lost, 'won' => $won, 'finished' => $array];
+
+        return ['lost' => $lost, 'won' => $won, 'finished' => $array];
     }
+
 }

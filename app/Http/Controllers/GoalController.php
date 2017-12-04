@@ -236,7 +236,8 @@ class GoalController extends Controller
      *             "start_date": "1505088000",
      *             "end_date": "1505088000"
      *             "followed": 1,
-     *             "done_count": 10,
+     *             "done_count": 10,     
+     *             "shared": 0
      *         },
      *          {
      *             "id": 11,
@@ -247,6 +248,7 @@ class GoalController extends Controller
      *             "end_date": "1505088000",
      *             "followed": 0,
      *             "done_count": 0,
+     *             "shared": 0
      *         }
      *       }
      *     }
@@ -264,7 +266,7 @@ class GoalController extends Controller
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
         $user_id = \Auth::user()->id;
         $this->calculateGoal(); //calculate data of followed 
-        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count')
+        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count','shared')
                         ->where('user_id', $user_id)->orderBy('updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
@@ -415,6 +417,7 @@ class GoalController extends Controller
      *              "avg_speed": 0,
      *              "avg_power": 0,
      *              "achieve_type": 0
+     *              "shared": 0
      *            }
      *     }
      * @apiErrorExample {json} Error Response
@@ -428,7 +431,7 @@ class GoalController extends Controller
     public function goalInfo(Request $request)
     {
         $goalId = (int) $request->get('goal_id');
-        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type')
+        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type','shared')
                         ->where('id', $goalId)->first();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
@@ -463,7 +466,8 @@ class GoalController extends Controller
      *              "avg_time": 0,
      *              "avg_speed": 0,
      *              "avg_power": 0,
-     *              "achieve_type": 0
+     *              "achieve_type": 0,
+     *              "shared": 0
      *            }
      *     }
      * @apiErrorExample {json} Error Response
@@ -480,7 +484,7 @@ class GoalController extends Controller
         $goal = array();
         $message = 'No Goal is followed.';
         if ($goalId) {
-            $goal = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type')
+            $goal = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type','shared')
                             ->where('id', $goalId)->first();
             $message = '';
         }
