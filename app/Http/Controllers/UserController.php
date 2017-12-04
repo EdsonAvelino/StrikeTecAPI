@@ -609,7 +609,11 @@ class UserController extends Controller
         $user['loose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
-
+        $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
+        $connections = UserConnections::where('follow_user_id', $userId)
+                ->whereRaw("user_id IN ($userFollowing)", [$userId])
+                ->count();
+        $user['user_connection'] = $connections;
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
