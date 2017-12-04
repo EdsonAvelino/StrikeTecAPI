@@ -39,7 +39,7 @@ class FeedController extends Controller
      *            "data_id": 117,
      *            "title": "da cheng shared his battle history with Qiang Hu",
      *            "text": null,
-     *            "created_at": "1511546127",
+     *            "created_at": 1511546127,
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
@@ -86,7 +86,7 @@ class FeedController extends Controller
      *            "data_id": 1,
      *            "title": "John Smith shared a training session",
      *            "text": null,
-     *            "created_at": "1511299855",
+     *            "created_at": 1511299855,
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
@@ -109,7 +109,7 @@ class FeedController extends Controller
      *            "data_id": 1,
      *            "title": "Qiang Hu shared a training session",
      *            "text": "Beat me if you can!",
-     *            "created_at": "1510078911",
+     *            "created_at": 1510078911,
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
