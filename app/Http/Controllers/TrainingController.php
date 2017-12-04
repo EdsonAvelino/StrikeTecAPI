@@ -886,7 +886,7 @@ class TrainingController extends Controller
             $sessionData = Sessions::select(
                             \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
                     )->where(function ($query) use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id);
+                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)->whereNull('battle_id')->orWhere('battle_id', '0');
                     })->first();
             $data['current_speed'] = $session->avg_speed;
             $data['highest_speed'] = $sessionData->highest_speed;
