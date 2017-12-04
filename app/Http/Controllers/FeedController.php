@@ -34,24 +34,6 @@ class FeedController extends Controller
      *      "message": "",
      *      "data": [
      *        {
-     *            "id": 7,
-     *            "post_type_id": 5,
-     *            "data_id": 7,
-     *            "title": "Rakesh Kumar is now following Qiang Hu",
-     *            "text": null,
-     *            "created_at": "1511546127",
-     *            "likes_count": 0,
-     *            "comments_count": 0,
-     *            "user": {
-     *                "id": 25,
-     *                "first_name": "Rakesh",
-     *                "last_name": "Kumar",
-     *                "photo_url": null,
-     *                "gender": "male"
-     *            },
-     *            "user_likes": false
-     *        },
-     *        {
      *            "id": 6,
      *            "post_type_id": 1,
      *            "data_id": 117,
@@ -81,7 +63,7 @@ class FeedController extends Controller
      *                      "avg_force": 583,
      *                      "punches_count": 10
      *                  },
-     *                  "looser": {
+     *                  "loser": {
      *                      "id": 7,
      *                      "first_name": "Qiang",
      *                      "last_name": "Hu",
@@ -97,44 +79,6 @@ class FeedController extends Controller
      *                      "punches_count": 10
      *                  }
      *             }
-     *        },
-     *        {
-     *            "id": 5,
-     *            "post_type_id": 5,
-     *            "data_id": 20,
-     *            "title": "DA CHANGE is now following da cheng",
-     *            "text": null,
-     *            "created_at": "2017-11-07 19:43:15",
-     *            "likes_count": 0,
-     *            "comments_count": 0,
-     *            "user": {
-     *                "id": 19,
-     *                "first_name": "DA",
-     *                "last_name": "CHANGE",
-     *                "photo_url": null,
-     *                "gender": "male"
-     *            },
-     *            "user_likes": false
-     *            "extra_data": []
-     *        },
-     *        {
-     *            "id": 4,
-     *            "post_type_id": 5,
-     *            "data_id": 30,
-     *            "title": "Edd Ggg is now following Rakesh Ruhil",
-     *            "text": null,
-     *            "created_at": "2017-11-07 18:21:51",
-     *            "likes_count": 0,
-     *            "comments_count": 0,
-     *            "user": {
-     *                "id": 17,
-     *                "first_name": "Edd",
-     *                "last_name": "Ggg",
-     *                "photo_url": null,
-     *                "gender": null
-     *            },
-     *            "user_likes": false
-     *            "extra_data": []
      *        },
      *        {
      *            "id": 3,

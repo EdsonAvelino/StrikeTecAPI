@@ -50,18 +50,18 @@ class Battles extends Model
             return null;
 
         $winnerUserId = null;
-        $looserUserId = null;
+        $loserUserId = null;
 
         switch ($battle->type_id) {
             case 3: // Combo
                 $winnerUserId = self::compareBattleCombos($battle);
-                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
             break;
 
             case 4: // Combo-Sets
                 $winnerUserId = self::compareComboSets($battle);
-                $looserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
             break;
 
@@ -70,8 +70,9 @@ class Battles extends Model
             break;
         }
 
-        // include battle speed, count, and force(power)
-        if ($winnerUserId && $looserUserId) {
+        $winner = $loser = null;
+        
+        if ($winnerUserId && $loserUserId) {
             // Winner
             $winner = \App\User::get($winnerUserId)->toArray();
 
@@ -80,19 +81,19 @@ class Battles extends Model
             $winner['avg_force'] = $_session->avg_force;
             $winner['punches_count'] = $_session->punches_count;
 
-            // Looser
-            $looser = \App\User::get($looserUserId)->toArray();
+            // loser
+            $loser = \App\User::get($loserUserId)->toArray();
 
-            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $looserUserId)->first();
-            $looser['avg_speed'] = $_session->avg_speed;
-            $looser['avg_force'] = $_session->avg_force;
-            $looser['max_speed'] = $_session->max_speed;
-            $looser['max_force'] = $_session->max_force;
-            $looser['best_time'] = $_session->best_time;
-            $looser['punches_count'] = $_session->punches_count;
+            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $loserUserId)->first();
+            $loser['avg_speed'] = $_session->avg_speed;
+            $loser['avg_force'] = $_session->avg_force;
+            $loser['max_speed'] = $_session->max_speed;
+            $loser['max_force'] = $_session->max_force;
+            $loser['best_time'] = $_session->best_time;
+            $loser['punches_count'] = $_session->punches_count;
         }
         
-        return ['winner' => $winner, 'looser' => $looser];
+        return ['winner' => $winner, 'loser' => $loser];
     }
 
     // Compare combos type #3
