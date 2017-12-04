@@ -271,6 +271,124 @@ class UserController extends Controller
     }
 
     /**
+     * @api {post} /user/register/fan Register a new FAN App user
+     * @apiGroup Users
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *     }
+     * @apiParam {String} company_id Company ID of user
+     * @apiParam {String} email Email
+     * @apiParam {String} password Password
+     * @apiParamExample {json} Input
+     *    {
+     *      "company_id": "1",
+     *      "email": "john@smith.com",
+     *      "password": "Something123"
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {String} token Access token
+     * @apiSuccess {Object} user User object contains user's all information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Authentication successful",
+     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *      "user": {
+     *          "id": 1,
+     *          "facebook_id": null,
+     *          "first_name": "John",
+     *          "last_name": "Smith",
+     *          "email": "john@smith.com",
+     *          "gender": null,
+     *          "birthday": "1975-05-09",
+     *          "weight": null,
+     *          "height": null,
+     *          "left_hand_sensor": null,
+     *          "right_hand_sensor": null,
+     *          "left_kick_sensor": null,
+     *          "right_kick_sensor": null,
+     *          "is_spectator": 0,
+     *          "company_id": 1, 
+     *          "stance": null,
+     *          "show_tip": 1,
+     *          "skill_level": "PRO",
+     *          "photo_url": "http://example.com/profile/pic.jpg",
+     *          "updated_at": "2016-02-10 15:46:51",
+     *          "created_at": "2016-02-10 15:46:51",
+     *          "preferences": {
+     *              "public_profile": 0,
+     *              "show_achivements": 1,
+     *              "show_training_stats": 1,
+     *              "show_challenges_history": 1
+     *          },
+     *          "country": {
+     *              "id": 14,
+     *              "name": "Austria"
+     *          },
+     *          "state": {
+     *              "id": 286,
+     *              "country_id": 14,
+     *              "name": "Oberosterreich"
+     *          },
+     *          "city": {
+     *              "id": 6997,
+     *              "state_id": 286,
+     *              "name": "Pettenbach"
+     *          }
+     *      }
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function registerFan(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+                    'email' => 'required|max:64|unique:users',
+                        // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
+        }
+
+        // Creates a new user
+        $user = User::create([
+                    'company_id' => $request->get('company_id'),
+                    'email' => $request->get('email'),
+                    'password' => app('hash')->make($request->get('password')),
+                    'show_tip' => 1,
+                    'is_spectator' => 0
+        ]);
+
+        try {
+            if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
+                return response()->json(['error' => 'true', 'message' => 'Invalid request']);
+            }
+        } catch (TokenExpiredException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
+        } catch (TokenInvalidException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
+        }
+
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+
+        return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
+    }
+
+    /**
      * @api {post} /users Update a user
      * @apiGroup Users
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -476,18 +594,22 @@ class UserController extends Controller
         $user = $user->toArray();
         $user['user_following'] = (bool) $following;
         $user['user_follower'] = (bool) $follow;
+        
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $user['total_time_trained'] = $leaderboard->total_time_trained;
         $user['total_day_trained'] = round($leaderboard->total_time_trained / 3600 / 24, 2);
-        $data = $this->avgSpeedAndForce();
+        
+        $data = $this->getAvgSpeedAndForce();
         $user['avg_speed'] = floor($data['avg_speed']);
         $user['avg_force'] = floor($data['avg_force']);
         $user['punches_count'] = $leaderboard->punches_count;
-        $battles = $this->getFinishedBattles($userId);
         $user['avg_count'] = floor($data['avg_punch']);
-        $user['loose'] = $battles['loose'];
-        $user['win'] = $battles['win'];
+
+        $battles = $this->getFinishedBattles($userId);
+        $user['lost'] = $battles['lost'];
+        $user['won'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
+        
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
@@ -497,39 +619,6 @@ class UserController extends Controller
                     'message' => '',
                     'user' => $user
         ]);
-    }
-
-//avg speed,punches and force
-    public function avgSpeedAndForce()
-    {
-        $sessionIds = Sessions::select('id')
-                        ->where('user_id', \Auth::user()->id)
-                        ->where(function($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->get()->toArray();
-        $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
-        $forceCount = $currDamage = 0;
-        $punches = [];
-        foreach ($sessionRounds as $sessionRound) {
-            $punches = $sessionRound['punches'];
-
-            if ($punches) {
-                foreach ($punches as $forces) {
-                    $force[$forceCount][] = $forces['force'];
-                    $speed[$forceCount][] = $forces['speed'];
-                }
-                $forces_sum[] = array_sum($force[$forceCount]);
-                $speed_sum[] = array_sum($speed[$forceCount]);
-            }
-
-            $forceCount++;
-            $punch[] = count($sessionRound['punches']);
-        }
-        $avg = array_sum($punch) / count($punch);
-        $data['avg_punch'] = floor(array_sum($punch) / count($punch));
-        $data['avg_speed'] = floor(array_sum($speed_sum) / count($speed_sum));
-        $data['avg_force'] = floor(array_sum($forces_sum) / count($forces_sum));
-        return $data;
     }
 
     /**
@@ -1100,6 +1189,72 @@ class UserController extends Controller
     }
 
     /**
+     * @api {get} /user/follow/suggestions/<follow_user_id> Get follow suggestions for current user
+     * @apiGroup Social
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Array} data Data contains list of suggested users to follow
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": [
+     *          {
+     *              "id": 5,
+     *              "first_name": "Max",
+     *              "last_name": "Zuck",
+     *              "user_following": true,
+     *              "user_follower": false,
+     *              "points": 125,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          },
+     *          {
+     *              "id": 6,
+     *              "first_name": "Elena",
+     *              "last_name": "Jaz",
+     *              "user_following": true,
+     *              "user_follower": false,
+     *              "points": 135,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          },
+     *          {
+     *              "id": 8,
+     *              "first_name": "Carl",
+     *              "last_name": "Lobstor",
+     *              "user_following": false,
+     *              "user_follower": true,
+     *              "points": 140,
+     *              "photo_url": "http://example.com/image.jpg"
+     *          }
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getFollowSuggestions()
+    {
+        // TODO
+    }
+
+    /**
      * @api {get} /user/connections Get user's connections
      * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
@@ -1257,12 +1412,12 @@ class UserController extends Controller
      *         {
      *             "id": 1,
      *             "question": "What is Lorem Ipsum?",
-     *             "answer": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+     *             "answer": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book."
      *         },
      *         {
      *             "id": 2,
      *             "question": "Why do we use it?",
-     *             "answer": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text,"
+     *             "answer": "It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout."
      *         }
      *     ]
      *  }
@@ -1407,174 +1562,95 @@ class UserController extends Controller
      */
     public function getUsersList(Request $request)
     {
+        $userId = \Auth::user()->id;
 
-        try {
-            $userId = \Auth::user()->id;
-            $offset = (int) ($request->get('start') ? $request->get('start') : 0);
-            $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
-            $users = User::where('id', '!=', $userId)->offset($offset)->limit($limit)->get();
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Users list information',
-                        'data' => $users,
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
+
+        $users = User::where('id', '!=', $userId)->offset($offset)->limit($limit)->get();
+        
+        return response()->json([
+                    'error' => 'false',
+                    'message' => 'Users list information',
+                    'data' => $users,
+        ]);
     }
 
-//finished battles
-    public function getFinishedBattles($userId)
+    // get avg speed, punches & force
+    private function getAvgSpeedAndForce()
+    {
+        $sessionIds = Sessions::select('id')
+                        ->where('user_id', \Auth::user()->id)
+                        ->where(function($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->get()->toArray();
+
+        $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
+
+        $forceCount = $currDamage = 0;
+        $punches = [];
+        
+        foreach ($sessionRounds as $sessionRound) {
+            $punches = $sessionRound['punches'];
+
+            if ($punches) {
+                foreach ($punches as $forces) {
+                    $force[$forceCount][] = $forces['force'];
+                    $speed[$forceCount][] = $forces['speed'];
+                }
+                $forces_sum[] = array_sum($force[$forceCount]);
+                $speed_sum[] = array_sum($speed[$forceCount]);
+            }
+
+            $forceCount++;
+            $punch[] = count($sessionRound['punches']);
+        }
+
+        $avg = array_sum($punch) / count($punch);
+        $data['avg_punch'] = floor(array_sum($punch) / count($punch));
+        $data['avg_speed'] = floor(array_sum($speed_sum) / count($speed_sum));
+        $data['avg_force'] = floor(array_sum($forces_sum) / count($forces_sum));
+
+        return $data;
+    }
+
+    // Finished battles of user
+    private function getFinishedBattles($userId)
     {
         $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($userId) {
+                        ->where(function ($query) use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
                         ->orderBy('battles.updated_at', 'desc')
                         ->offset(0)->limit(20)->get()->toArray();
+        
         $array = array();
-        $countArr = $looserCount = $winnerCount = 0;
+        $countArr = $lost = $won = 0;
+        
         foreach ($battle_finished as $data) {
             if (empty($data['winner_user_id'])) {
                 $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
             }
-            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+
+            $loserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
+
             $array[$countArr]['battle_id'] = $data['battle_id'];
             $array[$countArr]['winner'] = User::get($data['winner_user_id']);
-            $array[$countArr]['loser'] = User::get($looserId);
+            $array[$countArr]['loser'] = User::get($loserId);
+            
             if ($data['winner_user_id'] == $userId) {
-                $winnerCount = $winnerCount + 1;
+                $won = $won + 1;
             }
-            if ($looserId == $userId) {
-                $looserCount = $looserCount + 1;
+
+            if ($loserId == $userId) {
+                $lost = $lost + 1;
             }
+
             $countArr++;
         }
-        $data = ['loose' => $looserCount, 'win' => $winnerCount, 'finished' => $array];
-        return $data;
+        
+        return  ['lost' => $lost, 'won' => $won, 'finished' => $array];
     }
-
-    /**
-     * @api {post} /user/register/fan Register a new FAN App user
-     * @apiGroup Users
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded"
-     *     }
-     * @apiParam {String} company_id Company ID of user
-     * @apiParam {String} email Email
-     * @apiParam {String} password Password
-     * @apiParamExample {json} Input
-     *    {
-     *      "company_id": "1",
-     *      "email": "john@smith.com",
-     *      "password": "Something123"
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {String} token Access token
-     * @apiSuccess {Object} user User object contains user's all information
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Authentication successful",
-     *      "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     *      "user": {
-     *          "id": 1,
-     *          "facebook_id": null,
-     *          "first_name": "John",
-     *          "last_name": "Smith",
-     *          "email": "john@smith.com",
-     *          "gender": null,
-     *          "birthday": "1975-05-09",
-     *          "weight": null,
-     *          "height": null,
-     *          "left_hand_sensor": null,
-     *          "right_hand_sensor": null,
-     *          "left_kick_sensor": null,
-     *          "right_kick_sensor": null,
-     *          "is_spectator": 0,
-     *          "company_id": 1, 
-     *          "stance": null,
-     *          "show_tip": 1,
-     *          "skill_level": "PRO",
-     *          "photo_url": "http://example.com/profile/pic.jpg",
-     *          "updated_at": "2016-02-10 15:46:51",
-     *          "created_at": "2016-02-10 15:46:51",
-     *          "preferences": {
-     *              "public_profile": 0,
-     *              "show_achivements": 1,
-     *              "show_training_stats": 1,
-     *              "show_challenges_history": 1
-     *          },
-     *          "country": {
-     *              "id": 14,
-     *              "name": "Austria"
-     *          },
-     *          "state": {
-     *              "id": 286,
-     *              "country_id": 14,
-     *              "name": "Oberosterreich"
-     *          },
-     *          "city": {
-     *              "id": 6997,
-     *              "state_id": 286,
-     *              "name": "Pettenbach"
-     *          }
-     *      }
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function registerFan(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-                    'email' => 'required|max:64|unique:users',
-                        // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-
-            return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
-        }
-
-        // Creates a new user
-        $user = User::create([
-                    'company_id' => $request->get('company_id'),
-                    'email' => $request->get('email'),
-                    'password' => app('hash')->make($request->get('password')),
-                    'show_tip' => 1,
-                    'is_spectator' => 0
-        ]);
-
-        try {
-            if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
-                return response()->json(['error' => 'true', 'message' => 'Invalid request']);
-            }
-        } catch (TokenExpiredException $e) {
-            return response()->json(['error' => 'true', 'message' => 'Token has been expired'], $e->getStatusCode());
-        } catch (TokenInvalidException $e) {
-            return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
-        }
-
-        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
-
-        return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
-    }
-
 }

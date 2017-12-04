@@ -71,7 +71,7 @@ class Battles extends Model
         }
 
         $winner = $loser = null;
-        
+
         if ($winnerUserId && $loserUserId) {
             // Winner
             $winner = \App\User::get($winnerUserId)->toArray();
@@ -79,6 +79,9 @@ class Battles extends Model
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
             $winner['avg_speed'] = $_session->avg_speed;
             $winner['avg_force'] = $_session->avg_force;
+            $loser['max_speed'] = $_session->max_speed;
+            $loser['max_force'] = $_session->max_force;
+            $loser['best_time'] = $_session->best_time;
             $winner['punches_count'] = $_session->punches_count;
 
             // loser

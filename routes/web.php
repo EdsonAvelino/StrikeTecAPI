@@ -54,6 +54,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get user's information
     $app->post('/users/change_password', 'UserController@setUserPassword');
 
+    // Get suggestions to follow
+    $app->get('/user/follow/suggestions ', 'UserController@getFollowSuggestions ');
+
     // User's social connectivity
     $app->get('/user/follow/{userId}', 'UserController@follow');
     $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
