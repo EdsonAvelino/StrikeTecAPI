@@ -51,13 +51,13 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get user's information
     $app->get('/users/{userId}', 'UserController@getUser');
 
-    // Get user's information
+    // Change password
     $app->post('/users/change_password', 'UserController@setUserPassword');
 
-    // Get suggestions to follow
-    $app->get('/user/follow/suggestions ', 'UserController@getFollowSuggestions ');
-
     // User's social connectivity
+    // Get suggestions to follow
+    $app->get('/user/follow/suggestions/{followUserId}', 'UserController@getFollowSuggestions');
+
     $app->get('/user/follow/{userId}', 'UserController@follow');
     $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
 

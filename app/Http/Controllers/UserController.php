@@ -1161,23 +1161,20 @@ class UserController extends Controller
         $_following = [];
 
         foreach ($following as $follower) {
-            $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
-                            ->where('user_id', \Auth::user()->id)->exists();
-
-            $follow = UserConnections::where('user_id', $follower->follow_user_id)
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
-
-            $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+            $user = User::select(
+                        \DB::raw('id as user_following'),
+                        \DB::raw('id as user_follower'),
+                        \DB::raw('id as points'))
+                    ->where('id', $follower->follow_user_id)->first();
 
             $_following[] = [
                 'id' => $follower->follow_user_id,
                 'first_name' => $follower->followUser->first_name,
                 'last_name' => $follower->followUser->last_name,
                 'photo_url' => $follower->followUser->photo_url,
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
+                'points' => (int) $user->points,
+                'user_following' => (bool) $user->user_following,
+                'user_follower' => (bool) $user->user_follower
             ];
         }
 
@@ -1216,28 +1213,22 @@ class UserController extends Controller
      *              "id": 5,
      *              "first_name": "Max",
      *              "last_name": "Zuck",
-     *              "user_following": true,
-     *              "user_follower": false,
-     *              "points": 125,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://example.com/image.jpg",
+     *              "points": 125
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
-     *              "user_following": true,
-     *              "user_follower": false,
-     *              "points": 135,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://example.com/image.jpg",
+     *              "points": 135
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
-     *              "user_following": false,
-     *              "user_follower": true,
-     *              "points": 140,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://example.com/image.jpg",
+     *              "points": 140
      *          }
      *          ]
      *      }
@@ -1245,13 +1236,45 @@ class UserController extends Controller
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
-     *          "message": "Invalid data"
+     *          "message": "Invalid request"
      *      }
      * @apiVersion 1.0.0
      */
-    public function getFollowSuggestions()
+    public function getFollowSuggestions($followUserId = null, Request $request)
     {
-        // TODO
+        // a) suggested users who are following current user
+        // b) suggested users who are followed by user whom current user is following. of course, current user is not following returned users.
+
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        $currentUserFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
+
+        $suggested1 = \DB::table('user_connections')->select('user_id')->where('follow_user_id', \Auth::user()->id)->whereRaw("user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id]);
+
+        $suggestedUsersQuery = \DB::table('user_connections')->select('follow_user_id as user_id')
+            ->where('user_id', $followUserId)
+            ->where('follow_user_id', '!=', \Auth::user()->id)
+            ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
+            ->union($suggested1);
+
+        $suggestedUsers = \DB::table( \DB::raw("({$suggestedUsersQuery->toSql()}) as raw") )
+            ->select('user_id')->mergeBindings($suggestedUsersQuery)
+            ->offset($offset)->limit($limit)->get();
+
+        $suggestedUsersIds = [];
+
+        foreach ($suggestedUsers as $user) {
+            $suggestedUsersIds[] = $user->user_id;
+        }
+
+        $users = User::select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as points')])->whereIn('id', $suggestedUsersIds)->get();
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $users
+        ]);
     }
 
     /**
