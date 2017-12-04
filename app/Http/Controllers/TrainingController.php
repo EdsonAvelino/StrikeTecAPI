@@ -872,6 +872,7 @@ class TrainingController extends Controller
                             $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
                         })->first();
 
+
         if ($session) {
             $sessionType = $session->type_id;
             $sessionPlan = $session->plan_id;
@@ -882,10 +883,11 @@ class TrainingController extends Controller
                         $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id);
                     })->get()->toArray();
 
-            $sessionData = SessionRounds::select(
+            $sessionData = Sessions::select(
                             \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
-                    )->whereIn('session_id', $sessionIds)->first();
-
+                    )->where(function ($query) use($sessionType, $sessionPlan) {
+                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id);
+                    })->first();
             $data['current_speed'] = $session->avg_speed;
             $data['highest_speed'] = $sessionData->highest_speed;
             $data['lowest_speed'] = $sessionData->lowest_speed;
@@ -894,28 +896,26 @@ class TrainingController extends Controller
             $data['lowest_force'] = $sessionData->lowest_force;
 
             $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
-
-            $forceCount = $currDamage = 0;
-
+            $currDamageData = SessionRounds::with('punches')->select('id')->where('session_id', $sessionId)->first()->toArray();
+            $currPunche = $currDamageData['punches'];
+            $currDamageForce = [];
+            foreach ($currPunche as $currDamage) {
+                $currDamageForce[] = $currDamage['force'];
+            }
+            $forceCount = 0;
             foreach ($sessionRounds as $sessionRound) {
                 $punches = $sessionRound['punches'];
-
                 if ($punches) {
                     foreach ($punches as $forces) {
                         $force[$forceCount][] = $forces['force'];
-
-                        if ($sessionId == $sessionRound['id']) {
-                            $currDamage = $currDamage + $forces['force'];
-                        }
                     }
-
                     $forces_sum[] = array_sum($force[$forceCount]);
                 }
 
                 $forceCount++;
             }
 
-            $data['current_damage'] = $currDamage;
+            $data['current_damage'] = array_sum($currDamageForce);
             $data['highest_damage'] = max($forces_sum);
             $data['lowest_damage'] = min($forces_sum);
 
