@@ -880,7 +880,7 @@ class TrainingController extends Controller
             $currDamage = $sessionIds = $data = $force = [];
 
             $sessionIds = Sessions::select('id')->where(function ($query) use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id);
+                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)->whereNull('battle_id')->orWhere('battle_id', '0');
                     })->get()->toArray();
 
             $sessionData = Sessions::select(
