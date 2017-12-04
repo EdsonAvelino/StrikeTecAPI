@@ -39,7 +39,7 @@ class FeedController extends Controller
      *            "data_id": 7,
      *            "title": "Rakesh Kumar is now following Qiang Hu",
      *            "text": null,
-     *            "created_at": "2017-11-07 20:14:26",
+     *            "created_at": "1511546127",
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
@@ -68,6 +68,35 @@ class FeedController extends Controller
      *                "gender": "male"
      *            },
      *            "user_likes": false
+     *            "extra_data": {
+     *                  "winner": {
+     *                      "id": 20,
+     *                      "first_name": "da",
+     *                      "last_name": "cheng",
+     *                      "photo_url": null,
+     *                      "user_following": true,
+     *                      "user_follower": true,
+     *                      "points": 518,
+     *                      "avg_speed": 21,
+     *                      "avg_force": 583,
+     *                      "punches_count": 10
+     *                  },
+     *                  "looser": {
+     *                      "id": 7,
+     *                      "first_name": "Qiang",
+     *                      "last_name": "Hu",
+     *                      "photo_url": null,
+     *                      "user_following": false,
+     *                      "user_follower": false,
+     *                      "points": 2308,
+     *                      "avg_speed": 20,
+     *                      "avg_force": 575,
+     *                      "max_speed": 29,
+     *                      "max_force": 948,
+     *                      "best_time": "0.50",
+     *                      "punches_count": 10
+     *                  }
+     *             }
      *        },
      *        {
      *            "id": 5,
@@ -86,6 +115,7 @@ class FeedController extends Controller
      *                "gender": "male"
      *            },
      *            "user_likes": false
+     *            "extra_data": []
      *        },
      *        {
      *            "id": 4,
@@ -104,6 +134,7 @@ class FeedController extends Controller
      *                "gender": null
      *            },
      *            "user_likes": false
+     *            "extra_data": []
      *        },
      *        {
      *            "id": 3,
@@ -121,7 +152,12 @@ class FeedController extends Controller
      *                "photo_url": null,
      *                "gender": null
      *            },
-     *            "user_likes": false
+     *            "user_likes": false,
+     *            "extra_data": {
+     *                  "punches_count": 25,
+     *                  "avg_speed": 20,
+     *                  "avg_force": 217
+     *              }
      *        },
      *        {
      *            "id": 2,
@@ -139,7 +175,12 @@ class FeedController extends Controller
      *                "photo_url": null,
      *                "gender": "male"
      *            },
-     *            "user_likes": false
+     *            "user_likes": false,
+     *            "extra_data": {
+     *                  "punches_count": 19,
+     *                  "avg_speed": 20,
+     *                  "avg_force": 217
+     *              }
      *        }
      *    ]
      *    }
@@ -178,6 +219,8 @@ class FeedController extends Controller
             $user1FullName = $post->user->first_name.' '.$post->user->last_name;
             
             $user2FullName = null;
+
+            $_post['extra_data'] = [];
 
             switch ($post->post_type_id) {
                 case 1:
