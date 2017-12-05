@@ -898,7 +898,7 @@ class TrainingController extends Controller
             $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
             $currDamageData = SessionRounds::with('punches')->select('id')->where('session_id', $sessionId)->first()->toArray();
             $currPunche = $currDamageData['punches'];
-            $currDamageForce = [];
+            $currDamageForce = $forces_sum = [];
             foreach ($currPunche as $currDamage) {
                 $currDamageForce[] = $currDamage['force'];
             }
