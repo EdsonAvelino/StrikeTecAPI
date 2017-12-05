@@ -879,15 +879,17 @@ class TrainingController extends Controller
 
             $currDamage = $sessionIds = $data = $force = [];
 
-            $sessionIds = Sessions::select('id')->where(function ($query) use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)->whereNull('battle_id')->orWhere('battle_id', '0');
-                    })->get()->toArray();
+            $sessionIds = Sessions::select('id')->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)
+                            ->where(function ($query) {
+                                $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                            })->get()->toArray();
 
             $sessionData = Sessions::select(
-                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
-                    )->where(function ($query) use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)->whereNull('battle_id')->orWhere('battle_id', '0');
-                    })->first();
+                                    \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                            )->where('plan_id', $sessionPlan)->where('user_id', \Auth::user()->id)
+                            ->where(function ($query) {
+                                $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                            })->first();
             $data['current_speed'] = $session->avg_speed;
             $data['highest_speed'] = $sessionData->highest_speed;
             $data['lowest_speed'] = $sessionData->lowest_speed;
@@ -914,7 +916,8 @@ class TrainingController extends Controller
 
                 $forceCount++;
             }
-
+//            print_r($forces_sum);
+//            die;
             $data['current_damage'] = array_sum($currDamageForce);
             $data['highest_damage'] = max($forces_sum);
             $data['lowest_damage'] = min($forces_sum);
