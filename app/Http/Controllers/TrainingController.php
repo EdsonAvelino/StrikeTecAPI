@@ -804,12 +804,10 @@ class TrainingController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *     }
-     * @apiParam {Number} [session_id] Session ID (one of these two parameter is required)
-     * @apiParam {Number} [round_id] Round ID (one of these two parameter is required)
+     * @apiParam {Number} session_id Session ID 
      * @apiParamExample {json} Input
      *    {
-     *      "session_id": 75,
-     *      "round_id": 69
+     *      "session_id": 75
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -842,12 +840,6 @@ class TrainingController extends Controller
     public function tips(Request $request)
     {
         $sessionId = (int) $request->get('session_id');
-        $roundId = (int) $request->get('round_id');
-
-        if ($roundId) {
-            $sessionId = SessionRounds::where('id', $roundId)->first()->session_id;
-        }
-
         $data = $this->getTipsData($sessionId);
 
         if ($data === false) {
@@ -916,8 +908,6 @@ class TrainingController extends Controller
 
                 $forceCount++;
             }
-//            print_r($forces_sum);
-//            die;
             $data['current_damage'] = array_sum($currDamageForce);
             $data['highest_damage'] = max($forces_sum);
             $data['lowest_damage'] = min($forces_sum);
