@@ -240,7 +240,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
 
     // Get comments of feed-post
-    // $app->get('/feed/posts/{postId}/comment', 'FeedController@getComments');
+    $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
 
     // Post comment on feed-post
     $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');

@@ -335,6 +335,49 @@ class FeedController extends Controller
     }
 
     /**
+     * @api {get} /feed/posts/<post_id>/comments Get comments of feed-post
+     * @apiGroup Feed
+     * @apiHeader {String} Authorization Authorization token
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} post_id Feed-Post ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "post_id": 12,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getComments(Request $request)
+    {
+        echo $request->get('post_id');
+        die();
+        $comments = PostComments::where('post_id', (int) $request->get('post_id'))->orderBy('created_at', 'desc')->get();
+
+        print_r($comments->toArray());
+        die();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => []]);
+    }
+
+    /**
      * @api {post} /feed/posts/<post_id>/comment Add comment to feed-post
      * @apiGroup Feed
      * @apiHeader {String} Authorization Authorization token

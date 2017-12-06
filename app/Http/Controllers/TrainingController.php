@@ -109,8 +109,11 @@ class TrainingController extends Controller
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('type_id');
 
-        $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
-        $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
+        // $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
+        // $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
+
+        $startDate = ($startDate) ? $startDate * 1000 : null;
+        $endDate = ($endDate) ? ($endDate * 1000) - 1 : null;
 
         $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'created_at', 'updated_at'])->where('user_id', $userId);
 
@@ -119,7 +122,9 @@ class TrainingController extends Controller
         });
 
         if (!empty($startDate) && !empty($endDate)) {
-            $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+            // $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+            $_sessions->where('start_time', '>', $startDate);
+            $_sessions->where('start_time', '<', $endDate);
         }
 
         if ($trainingTypeId) {
