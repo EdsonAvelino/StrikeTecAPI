@@ -1256,7 +1256,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /user/follow/suggestions/<follow_user_id> Get follow suggestions for current user
+     * @api {get} /user/follow/suggestions Get follow suggestions for current user
      * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1310,7 +1310,7 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getFollowSuggestions($followUserId = null, Request $request)
+    public function getFollowSuggestions(Request $request)
     {
         // a) suggested users who are following current user
         // b) suggested users who are followed by user whom current user is following. of course, current user is not following returned users.
@@ -1323,7 +1323,7 @@ class UserController extends Controller
         $suggested1 = \DB::table('user_connections')->select('user_id')->where('follow_user_id', \Auth::user()->id)->whereRaw("user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id]);
 
         $suggestedUsersQuery = \DB::table('user_connections')->select('follow_user_id as user_id')
-            ->where('user_id', $followUserId)
+            ->whereRaw("user_id IN ($currentUserFollowing)", [\Auth::user()->id])
             ->where('follow_user_id', '!=', \Auth::user()->id)
             ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
             ->union($suggested1);
