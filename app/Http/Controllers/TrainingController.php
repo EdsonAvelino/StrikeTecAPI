@@ -9,6 +9,7 @@ use App\SessionRoundPunches;
 use App\Leaderboard;
 use App\Battles;
 use App\User;
+use App\Videos;
 use App\Helpers\Push;
 use App\Helpers\PushTypes;
 use App\GoalSession;
@@ -869,12 +870,11 @@ class TrainingController extends Controller
                             $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
                         })->first();
 
-
         if ($session) {
             $sessionType = $session->type_id;
             $sessionPlan = $session->plan_id;
             $currDamage = $sessionIds = $data = $force = [];
-            if ($sessionPlan == 1 or $sessionPlan == 2) {
+            if ($sessionType == 1 or $sessionType == 2) {
                 $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
@@ -885,9 +885,10 @@ class TrainingController extends Controller
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->first();
             } else {
-                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
-                            $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                        })->where(function ($query) {
+                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)
+                                ->where(function ($query)use($sessionType, $sessionPlan) {
+                                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                                })->where(function ($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
 
@@ -905,7 +906,6 @@ class TrainingController extends Controller
             $data['current_force'] = $session->avg_force;
             $data['highest_force'] = $sessionData->highest_force;
             $data['lowest_force'] = $sessionData->lowest_force;
-
             $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
             $currDamageData = SessionRounds::with('punches')->select('id')->where('session_id', $sessionId)->first()->toArray();
             $currPunche = $currDamageData['punches'];
@@ -922,13 +922,13 @@ class TrainingController extends Controller
                     }
                     $forces_sum[] = array_sum($force[$forceCount]);
                 }
-
                 $forceCount++;
             }
-            $data['current_damage'] = array_sum($currDamageForce);
+
             $data['highest_damage'] = max($forces_sum);
             $data['lowest_damage'] = min($forces_sum);
-
+            $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->offset(0)->limit(4)->get();
+            $data['videos'] = $_videos;
             return $data;
         }
 

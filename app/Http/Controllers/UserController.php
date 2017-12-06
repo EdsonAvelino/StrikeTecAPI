@@ -662,10 +662,9 @@ class UserController extends Controller
         $user['user_follower'] = (bool) $follow;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
-        $user['total_time_trained'] = $leaderboard->total_time_trained;
-        $user['total_day_trained'] = floor($leaderboard->total_time_trained / 3600 / 24);
-
         $data = $this->getAvgSpeedAndForce($userId);
+        $user['total_time_trained'] = floor($data['total_time_trained']);
+        $user['total_day_trained'] = floor($data['total_day_trained']);
         $user['avg_speed'] = floor($data['avg_speed']);
         $user['avg_force'] = floor($data['avg_force']);
         $user['punches_count'] = $leaderboard->punches_count;
@@ -680,6 +679,14 @@ class UserController extends Controller
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connection'] = $connections;
+        $json = [ 'name' => 'iron first',
+            'description' => 'Single punch over 600lbs',
+            'image' => '',
+            'awarded' => true,
+            'count' => 3,
+            'shared' => false
+        ];
+        $user['achievements'] = $json;
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
@@ -1232,10 +1239,8 @@ class UserController extends Controller
 
         foreach ($following as $follower) {
             $user = User::select(
-                        \DB::raw('id as user_following'),
-                        \DB::raw('id as user_follower'),
-                        \DB::raw('id as points'))
-                    ->where('id', $follower->follow_user_id)->first();
+                                    \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points'))
+                            ->where('id', $follower->follow_user_id)->first();
 
             $_following[] = [
                 'id' => $follower->follow_user_id,
@@ -1323,14 +1328,16 @@ class UserController extends Controller
         $suggested1 = \DB::table('user_connections')->select('user_id')->where('follow_user_id', \Auth::user()->id)->whereRaw("user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id]);
 
         $suggestedUsersQuery = \DB::table('user_connections')->select('follow_user_id as user_id')
+
             ->whereRaw("user_id IN ($currentUserFollowing)", [\Auth::user()->id])
             ->where('follow_user_id', '!=', \Auth::user()->id)
             ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
             ->union($suggested1);
 
-        $suggestedUsers = \DB::table( \DB::raw("({$suggestedUsersQuery->toSql()}) as raw") )
-            ->select('user_id')->mergeBindings($suggestedUsersQuery)
-            ->offset($offset)->limit($limit)->get();
+
+        $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
+                        ->select('user_id')->mergeBindings($suggestedUsersQuery)
+                        ->offset($offset)->limit($limit)->get();
 
         $suggestedUsersIds = [];
 
@@ -1672,10 +1679,16 @@ class UserController extends Controller
     // get avg speed, punches & force
     private function getAvgSpeedAndForce($userId)
     {
-        $sessionIds = Sessions::select('id')
+        $session = Sessions::select('id', 'start_time', 'end_time')
                         ->where(function($query) use($userId) {
                             $query->where('user_id', $userId)->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
+        $sessionIds = array_column($session, 'id');
+        $totalTime = $totalDays = 0;
+        foreach ($session as $time) {
+            $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
+            $startDate[] = date('y-m-d', (int) ($time['start_time'] / 1000));
+        }
 
         $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
 
@@ -1699,6 +1712,9 @@ class UserController extends Controller
         }
 
         $avg = array_sum($punch) / count($punch);
+
+        $data['total_time_trained'] = floor($totalTime / 1000);
+        $data['total_day_trained'] = floor(count(array_unique($startDate)));
         $data['avg_punch'] = floor(array_sum($punch) / count($punch));
         $data['avg_speed'] = floor(array_sum($speed_sum) / count($speed_sum));
         $data['avg_force'] = floor(array_sum($forces_sum) / count($forces_sum));
