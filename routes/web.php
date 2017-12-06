@@ -55,6 +55,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/users/change_password', 'UserController@setUserPassword');
 
     // User's social connectivity
+    // Get user's connections
+    $app->get('/user/connections/{userId}', 'UserController@getConnections');
+
     // Get suggestions to follow
     $app->get('/user/follow/suggestions', 'UserController@getFollowSuggestions');
 
@@ -66,8 +69,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     $app->get('/user/following', 'UserController@getFollowing');
     $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
-
-    $app->get('/user/connections', 'UserController@getConnections');
 
     $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
 });

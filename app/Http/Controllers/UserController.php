@@ -1348,7 +1348,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /user/connections Get user's connections
+     * @api {get} /user/connections/<user_id> Get user's connections
      * @apiGroup Social
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1402,8 +1402,10 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getConnections(Request $request)
+    public function getConnections(Request $request, $userId = null)
     {
+        $userId = (int) ($userId ?? \Auth::user()->id);
+
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
@@ -1411,8 +1413,8 @@ class UserController extends Controller
 
         $connections = [];
 
-        $_connections = UserConnections::where('follow_user_id', \Auth::user()->id)
-                        ->whereRaw("user_id IN ($userFollowing)", [\Auth::user()->id])
+        $_connections = UserConnections::where('follow_user_id', $userId)
+                        ->whereRaw("user_id IN ($userFollowing)", [$userId])
                         ->offset($offset)->limit($limit)->get();
 
         foreach ($_connections as $connection) {
