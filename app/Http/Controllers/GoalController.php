@@ -58,11 +58,12 @@ class GoalController extends Controller
 
         $user_id = \Auth::user()->id;
         $startAt = ($request->start_date) ? $request->start_date : null;
-        $startDate = date('Y-m-d H:i:s', (int) $startAt);
         $endAt = ($request->end_date) ? $request->end_date : null;
-        $endDate = date('Y-m-d H:i:s', (int) $endAt);
-        if ($startDate >= date('Y-m-d') && $endDate >= date('Y-m-d')) {
-            if ($endDate < $startDate) {
+        $startChk = date('Y-m-d', (int) $startAt);
+        $endChk = date('Y-m-d', (int) $startAt);
+        
+        if ($startChk >= date('Y-m-d') && $endChk >= date('Y-m-d')) {
+            if ($endChk < $startChk) {
                 return response()->json(['error' => 'true', 'message' => 'Please choose end date greater than start date.']);
             }
             $goalId = Goals::create([
@@ -70,12 +71,12 @@ class GoalController extends Controller
                         'activity_id' => $request->get('activity_id'),
                         'activity_type_id' => $request->get('activity_type_id'),
                         'target' => $request->get('target'),
-                        'start_at' => $startDate,
-                        'end_at' => $endDate
+                        'start_at' => date('Y-m-d H:i:s', (int) $startAt),
+                        'end_at' => date('Y-m-d H:i:s', (int) $endAt)
                     ])->id;
             return response()->json(['error' => 'false', 'message' => 'Your goal has been added.', 'data' => ['id' => $goalId]]);
         } else {
-            return response()->json(['error' => 'true', 'message' => 'Your can not add a goal from past date.']);
+            return response()->json(['error' => 'true', 'message' => 'You can not add a goal from past date.']);
         }
     }
 
@@ -266,7 +267,7 @@ class GoalController extends Controller
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
         $user_id = \Auth::user()->id;
         $this->calculateGoal(); //calculate data of followed 
-        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count','shared')
+        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count', 'shared')
                         ->where('user_id', $user_id)->orderBy('updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
@@ -431,7 +432,7 @@ class GoalController extends Controller
     public function goalInfo(Request $request)
     {
         $goalId = (int) $request->get('goal_id');
-        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type','shared')
+        $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
                         ->where('id', $goalId)->first();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
@@ -484,7 +485,7 @@ class GoalController extends Controller
         $goal = array();
         $message = 'No Goal is followed.';
         if ($goalId) {
-            $goal = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type','shared')
+            $goal = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
                             ->where('id', $goalId)->first();
             $message = '';
         }
