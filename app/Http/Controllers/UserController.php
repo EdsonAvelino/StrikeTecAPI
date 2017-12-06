@@ -565,8 +565,8 @@ class UserController extends Controller
      *             "user_following": true,
      *             "user_follower": false
      *             "total_time_trained": 5235
-     *             "total_time_trained": -1508874943,
-     *             "total_day_trained": -17464,
+     *             "total_time_trained": 15090,
+     *             "total_day_trained": 32,
      *             "avg_speed": 438,
      *             "avg_force": 7992,
      *             "punches_count": 5854,
@@ -630,7 +630,33 @@ class UserController extends Controller
      *                     }
      *                 }
      *             ],
-     *             "user_connection": 4
+     *             "user_connection": 4,
+	 *			 "achievements": [
+	 *				{
+	 *						"name": "Belt",
+	 *						"description": "Single punch over 600lbs",
+	 *						"image": "http://striketec.dev/storage/badges/Iron_Fist_1.png",
+	 *						"awarded": true,
+	 *						"count": 3,
+	 *						"shared": false
+	 *					},
+	 *					{
+	 *						"name": "Badge 1",
+	 *						"description": "Single punch over 600lbs",
+	 *						"image": "",
+	 *						"awarded": true,
+	 *						"count": 0,
+	 *						"shared": false
+	 *					},
+	 *					{
+	 *						"name": "Badge 2",
+	 *						"description": "Single punch over 600lbs",
+	 *						"image": "",
+	 *						"awarded": true,
+	 *						"count": 1,
+	 *						"shared": false
+	 *					}
+	 *				]
      *         }
      *     }
      * @apiErrorExample {json} Error Response
@@ -679,14 +705,30 @@ class UserController extends Controller
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connection'] = $connections;
-        $json = [ 'name' => 'iron first',
+        $badgeImgURL = env('APP_URL').'/storage/badges/';
+        $achievementsArr = array();
+        $achievementsArr[0] = [ 'name' => 'Belt',
             'description' => 'Single punch over 600lbs',
-            'image' => '',
+            'image' => $badgeImgURL.'Champion.png',
             'awarded' => true,
             'count' => 3,
             'shared' => false
         ];
-        $user['achievements'] = $json;
+        $achievementsArr[1] = [ 'name' => 'Badge 1',
+            'description' => 'Single punch over 600lbs',
+            'image' => $badgeImgURL.'Iron_Fist_1.png',
+            'awarded' => true,
+            'count' => 0,
+            'shared' => false
+        ];
+        $achievementsArr[2] = [ 'name' => 'Badge 2',
+            'description' => 'Single punch over 600lbs',
+            'image' => $badgeImgURL.'Iron_Fist_2.png',
+            'awarded' => true,
+            'count' => 1,
+            'shared' => false
+        ];
+        $user['achievements'] = $achievementsArr;
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
