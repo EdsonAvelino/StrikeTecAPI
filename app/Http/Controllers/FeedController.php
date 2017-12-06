@@ -376,7 +376,103 @@ class FeedController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-     *      ]
+     *           {
+     *               "id": 6,
+     *               "post_id": 2,
+     *               "user_id": 25,
+     *               "text": "Perfect..",
+     *               "created_at": "2017-12-06 20:00:44",
+     *               "user": {
+     *                   "id": 25,
+     *                   "first_name": "Rakesh",
+     *                   "last_name": "Kumar",
+     *                   "photo_url": null,
+     *                   "user_following": false,
+     *                   "user_follower": false,
+     *                   "points": 809
+     *               }
+     *           },
+     *           {
+     *               "id": 5,
+     *               "post_id": 2,
+     *               "user_id": 23,
+     *               "text": "Good one!",
+     *               "created_at": "2017-12-06 20:00:40",
+     *               "user": {
+     *                   "id": 23,
+     *                   "first_name": "Abhishek",
+     *                   "last_name": "Nigam",
+     *                   "photo_url": null,
+     *                   "user_following": false,
+     *                   "user_follower": false,
+     *                   "points": 0
+     *               }
+     *           },
+     *           {
+     *               "id": 4,
+     *               "post_id": 2,
+     *               "user_id": 22,
+     *               "text": "Great!",
+     *               "created_at": "2017-12-06 20:00:39",
+     *               "user": {
+     *                   "id": 22,
+     *                   "first_name": "Wes",
+     *                   "last_name": "E",
+     *                   "photo_url": null,
+     *                   "user_following": false,
+     *                   "user_follower": false,
+     *                   "points": 0
+     *               }
+     *           },
+     *           {
+     *               "id": 3,
+     *               "post_id": 2,
+     *               "user_id": 20,
+     *               "text": "Hey nice one!",
+     *               "created_at": "2017-12-06 20:00:37",
+     *               "user": {
+     *                   "id": 20,
+     *                   "first_name": "da",
+     *                   "last_name": "cheng",
+     *                   "photo_url": null,
+     *                   "user_following": true,
+     *                   "user_follower": true,
+     *                   "points": 518
+     *               }
+     *           },
+     *           {
+     *               "id": 2,
+     *               "post_id": 2,
+     *               "user_id": 7,
+     *               "text": "Yeah! Thanks",
+     *               "created_at": "2017-12-06 20:00:34",
+     *               "user": {
+     *                   "id": 7,
+     *                   "first_name": "Qiang",
+     *                   "last_name": "Hu",
+     *                   "photo_url": null,
+     *                   "user_following": false,
+     *                   "user_follower": false,
+     *                   "points": 2308
+     *               }
+     *           },
+     *           {
+     *               "id": 1,
+     *               "post_id": 2,
+     *               "user_id": 1,
+     *               "text": "Wow Congratulations!",
+     *               "created_at": "2017-12-06 19:58:58",
+     *               "user": {
+     *                   "id": 1,
+     *                   "first_name": "Nawaz",
+     *                   "last_name": "Me",
+     *                   "photo_url": null,
+     *                   "user_following": true,
+     *                   "user_follower": true,
+     *                   "points": 80
+     *               }
+     *           }
+     *       ]
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -386,16 +482,20 @@ class FeedController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getComments(Request $request)
+    public function getComments(Request $request, $postId)
     {
-        echo $request->get('post_id');
-        die();
-        $comments = PostComments::where('post_id', (int) $request->get('post_id'))->orderBy('created_at', 'desc')->get();
+        $comments = [];
 
-        print_r($comments->toArray());
-        die();
+        $_comments = PostComments::where('post_id', (int) $postId)->orderBy('created_at', 'desc')->get();
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => []]);
+        foreach ($_comments as $comment) {
+            $_comment = $comment->toArray();
+            $_comment['user'] = \App\User::get($comment->user_id);
+
+            $comments[] = $_comment;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $comments]);
     }
 
     /**
