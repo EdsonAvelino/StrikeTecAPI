@@ -462,6 +462,7 @@ class LeaderboardController extends Controller
             	});
             }
     	})
+    	->where('user_id', '!=', \Auth::user()->id)
     	->whereHas('user.preferences', function($q) {
 			$q->where('public_profile', 1);
     	})
