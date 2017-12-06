@@ -211,7 +211,7 @@ class FeedController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} post_type_id Feed-Post type e.g. 1=Battle, 2=Training, 3=Tournament, 4=Game, 5=Following
+     * @apiParam {Number="1 = Finished Battle", "2 = Training", "3 = Accomplished Goal",  "4 = Badge"} post_type_id Feed-Post type 
      * @apiParam {Number} data_id ID of what user is sharing, battle/trounament etc
      * @apiParam {String} [text] Post text to share with feed-post
      * @apiParamExample {json} Input
