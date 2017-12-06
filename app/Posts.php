@@ -30,6 +30,8 @@ class Posts extends Model
         3 => '_TOURNAMENT_ just started',
         4 => '_GAME_ Game',
         5 => '_USER1_ is now following _USER2_'
+        6 => '_USER1_ has accomplished goal'
+        7 => '_USER1_ has now BADGE'
     ];
 
     public static function boot()
