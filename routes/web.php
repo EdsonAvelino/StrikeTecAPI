@@ -132,7 +132,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/leaderboard', 'LeaderboardController@getList');
 
     // Trending data
-    $app->get('/trending ', 'LeaderboardController@getTrendingList');
+    $app->get('/trending', 'LeaderboardController@getTrendingList');
 });
 
 // Push notifications APIs
