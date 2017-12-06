@@ -868,22 +868,32 @@ class TrainingController extends Controller
         if ($session) {
             $sessionType = $session->type_id;
             $sessionPlan = $session->plan_id;
-
             $currDamage = $sessionIds = $data = $force = [];
+            if ($sessionPlan == 1 or $sessionPlan == 2) {
+                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->get()->toArray();
 
-            $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                    })->where(function ($query) {
-                        $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                    })->get()->toArray();
+                $sessionData = Sessions::select(
+                                \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->first();
+            } else {
+                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
+                            $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                        })->where(function ($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->get()->toArray();
 
-            $sessionData = Sessions::select(
-                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
-                    )->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
-                        $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                    })->where(function ($query) {
-                        $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                    })->first();
+                $sessionData = Sessions::select(
+                                \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
+                            $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                        })->where(function ($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                        })->first();
+            }
             $data['current_speed'] = $session->avg_speed;
             $data['highest_speed'] = $sessionData->highest_speed;
             $data['lowest_speed'] = $sessionData->lowest_speed;

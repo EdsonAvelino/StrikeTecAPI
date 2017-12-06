@@ -61,7 +61,7 @@ class GoalController extends Controller
         $startDate = date('Y-m-d H:i:s', (int) $startAt);
         $endAt = ($request->end_date) ? $request->end_date : null;
         $endDate = date('Y-m-d H:i:s', (int) $endAt);
-        if ($startDate >= date('Y-m-d H:i:s') && $endDate >= date('Y-m-d H:i:s')) {
+        if ($startDate >= date('Y-m-d') && $endDate >= date('Y-m-d')) {
             if ($endDate < $startDate) {
                 return response()->json(['error' => 'true', 'message' => 'Please choose end date greater than start date.']);
             }
