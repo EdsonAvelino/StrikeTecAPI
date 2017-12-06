@@ -166,24 +166,25 @@ class FeedController extends Controller
 
             $_post['extra_data'] = [];
 
+            // TODO /issues/48#issuecomment-348886010
             switch ($post->post_type_id) {
                 case 1:
                     $user2FullName = $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name;
                     // extra_data contains feed type related data battle, training etc
-                    $_post['extra_data'] = \App\Battles::getResult($post->data_id);
-                    break;
+                    $_post['extra_data'] = json_encode( \App\Battles::getResult($post->data_id) );
+                break;
 
                 case 2:
                     // avg punch count, avg speed, avg power.
                     $extraData['punches_count'] = $post->data->punches_count;
                     $extraData['avg_speed'] = $post->data->avg_speed;
                     $extraData['avg_force'] = $post->data->avg_force;
-                    $_post['extra_data'] = $extraData;
-                    break;
+                    $_post['extra_data'] = json_encode($extraData);
+                break;
 
-                case 5:
-                    $user = \App\User::find($post->data_id);
-                    $user2FullName = $user->first_name.' '.$user->last_name;
+                case 3:
+                    // Goal
+                break;
             }
 
             $userTemplate = (strtolower($post->user->gender) == 'female') ? 'her' : 'his';
@@ -202,7 +203,7 @@ class FeedController extends Controller
     }
 
     /**
-     * @api {post} /feed/posts Add new Feed-Post
+     * @api {post} /feed/posts Add new Feed-Post (Share on feed)
      * @apiGroup Feed
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization token
@@ -237,12 +238,32 @@ class FeedController extends Controller
      */
     public function addPost(Request $request)
     {
-        $post = Posts::create([
-            'user_id' => \Auth::user()->id,
-            'post_type_id' => (int) $request->get('post_type_id'),
-            'data_id' => (int) $request->get('data_id'),
-            'text' => $request->get('text')
-        ]);
+        $data = null;
+
+        // Battle
+        if ($request->get('post_type_id') == 1) {
+            $data = \App\Battles::where('id', $request->get('data_id'))->first();
+        }
+        // Training session
+        elseif ($request->get('post_type_id') == 2) {
+            $data = \App\Sessions::where('id', $request->get('data_id'))->first();
+        }
+        // Goal
+        elseif ($request->get('post_type_id') == 3) {
+            $data = \App\Goals::where('id', $request->get('data_id'))->first();
+        }
+
+        if ($data && !$data->shared) {
+            $post = Posts::create([
+                'user_id' => \Auth::user()->id,
+                'post_type_id' => (int) $request->get('post_type_id'),
+                'data_id' => (int) $request->get('data_id'),
+                'text' => $request->get('text')
+            ]);
+
+            $data->shared = 1;
+            $data->save();
+        }
 
         return response()->json(['error' => 'false', 'message' => 'Shared on feed']);
     }
