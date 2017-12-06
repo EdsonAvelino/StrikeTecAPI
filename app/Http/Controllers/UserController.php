@@ -1362,6 +1362,7 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} user_id User's Id
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
      * @apiParamExample {json} Input
