@@ -681,20 +681,17 @@ class UserController extends Controller
         $follow = UserConnections::where('user_id', $userId)
                         ->where('follow_user_id', \Auth::user()->id)->exists();
 
-        $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
+        $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
-        $user = $user->toArray();
-        $user['user_following'] = (bool) $following;
-        $user['user_follower'] = (bool) $follow;
+        $userData = $userData->toArray();
+        $userData['user_following'] = (bool) $following;
+        $userData['user_follower'] = (bool) $follow;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $data = $this->getAvgSpeedAndForce($userId);
-        $user['total_time_trained'] = floor($data['total_time_trained']);
-        $user['total_day_trained'] = floor($data['total_day_trained']);
-        $user['avg_speed'] = floor($data['avg_speed']);
-        $user['avg_force'] = floor($data['avg_force']);
+        $user = array_merge($userData,$data);
+
         $user['punches_count'] = $leaderboard->punches_count;
-        $user['avg_count'] = floor($data['avg_punch']);
 
         $battles = $this->getFinishedBattles($userId);
         $user['loose_counts'] = $battles['lost'];
@@ -1723,12 +1720,14 @@ class UserController extends Controller
     private function getAvgSpeedAndForce($userId)
     {
         $session = Sessions::select('id', 'start_time', 'end_time')
-                        ->where(function($query) use($userId) {
-                            $query->where('user_id', $userId)->whereNull('battle_id')->orWhere('battle_id', '0');
+                        ->where('user_id', $userId)
+                        ->where(function($query) {
+                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
         $sessionIds = array_column($session, 'id');
-        $totalTime = $forceCount = 0;
-        $punch = $speed_sum = $forces_sum = $startDate = [];
+
+        $totalTime = 0;
+        $startDate = [];
         foreach ($session as $time) {
             if ($time['start_time'] > 0 && $time['end_time'] > 0 && $time['end_time'] > $time['start_time']) {
                 $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
@@ -1736,27 +1735,17 @@ class UserController extends Controller
             }
         }
 
-        $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
-
-        foreach ($sessionRounds as $sessionRound) {
-            $punches = $sessionRound['punches'];
-            if ($punches) {
-                foreach ($punches as $forces) {
-                    $force[$forceCount][] = $forces['force'];
-                    $speed[$forceCount][] = $forces['speed'];
-                }
-                $forces_sum[] = array_sum($force[$forceCount]);
-                $speed_sum[] = array_sum($speed[$forceCount]);
-            }
-            $forceCount++;
-            $punch[] = count($sessionRound['punches']);
-        }
+        $getAvgSession = Sessions::select(
+                                \DB::raw('AVG(avg_speed) as avg_speeds'), \DB::raw('AVG(avg_force) as avg_forces'), \DB::raw('MAX(punches_count) as avg_punch'))
+                        ->where('user_id', $userId)->where(function ($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })->first();
 
         $data['total_time_trained'] = floor($totalTime / 1000);
         $data['total_day_trained'] = floor(count(array_unique($startDate)));
-        $data['avg_punch'] = floor(array_sum($punch) / count($punch));
-        $data['avg_speed'] = floor(array_sum($speed_sum) / count($speed_sum));
-        $data['avg_force'] = floor(array_sum($forces_sum) / count($forces_sum));
+        $data['avg_count'] = floor($getAvgSession->avg_punch);
+        $data['avg_speed'] = floor($getAvgSession->avg_speeds);
+        $data['avg_force'] = floor($getAvgSession->avg_forces);
 
         return $data;
     }
