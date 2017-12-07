@@ -13,7 +13,7 @@ Class EventUserController extends Controller
 {
 
     /**
-     * @api {post} user/event/register register user to event
+     * @api {post} /fan/event/users/add register user to event
      * @apiGroup event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -31,6 +31,7 @@ Class EventUserController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event create successfully
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *   {
@@ -44,30 +45,30 @@ Class EventUserController extends Controller
      *          "message": "Invalid request"
      *      }
      * @apiVersion 1.0.0
-     */
-    public function eventUserRegister(Request $request)
-    {
+    */
+    public function usersAddEvent(Request $request)
+    {        
         $data = $request->input();
         $user_ids = explode(',', $data['user_id']);
         /*
-         * **** array_values for start indexing again with 0 ******
-         * **** array_filter for filtring null value *******
-         * ****   array uniqe for store only uniqe value  *****
-         */
+         ***** array_values for start indexing again with 0 ******
+         ***** array_filter for filtring null value *******
+         *****   array uniqe for store only uniqe value  *****
+        */
         $user_id = array_values(array_filter(array_unique($user_ids)));
-        for ($count = 0; $count < count($user_id); $count++) {
+        for($count = 0; $count < count($user_id); $count++) {
             $checkUserIdExist = EventUser::where(['user_id' => $user_id[$count], 'event_id' => $data['event_id'], 'status' => 0])
-                    ->first();
-            if ($checkUserIdExist) {
+                                        ->first();
+            if($checkUserIdExist) {
                 $updateStatusExistUserID = EventUser::where(['user_id' => $user_id[$count], 'event_id' => $data['event_id']])->update(['status' => 1]);
             } else {
                 $checkUserIdExist = EventUser::where(['user_id' => $user_id[$count], 'event_id' => $data['event_id'], 'status' => 1])
-                        ->first();
-                if (!$checkUserIdExist) {
+                                            ->first();
+                if(!$checkUserIdExist) {
                     $userIdStore = EventUser::create([
-                                'user_id' => $user_id[$count],
-                                'event_id' => $data['event_id'],
-                                'status' => 1
+                        'user_id' => $user_id[$count],
+                        'event_id' => $data['event_id'],
+                        'status' => 1
                     ]);
                 }
             }
@@ -76,12 +77,12 @@ Class EventUserController extends Controller
     }
 
     /**
-     * @api {post} /event/add_user Add new user to Event
+     * @api {post} /fan/event/register/user Add new user to Event
      * @apiGroup Event
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Content-Type application/form-data
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded"
+     *       "Content-Type": "application/form-data"
      *     }
      * @apiParam {String} name Name of user
      * @apiParam {String} event_id event id
@@ -90,6 +91,7 @@ Class EventUserController extends Controller
      * @apiParam {Date} [dob] Birthday in MM-DD-YYYY e.g. 09/11/1987
      * @apiParam {Number} [weight] Weight
      * @apiParam {Number} [height] Height
+     * @apiParam {string} [profile_image] image of user profile 
      * @apiParamExample {json} Input
      *    {
      *      "name": "John",
@@ -123,7 +125,7 @@ Class EventUserController extends Controller
      */
     public function addUserToDb(Request $request)
     {
-
+        $userProfile = '';
         $name = $request->input('name');
         $email = $request->input('email');
         $eventId = $request->input('event_id');
@@ -134,8 +136,9 @@ Class EventUserController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                         'email' => 'required|max:64',
-                        'gender' => 'in:male,female',
-                        'dob' => 'date'
+                        'gender' => 'in:male,female', 
+                        'dob' => 'date',
+                        'profile_image' => 'mimes:jpeg,jpg,png'
             ]);
             if ($validator->fails()) {
                 $errors = $validator->errors();
@@ -145,7 +148,7 @@ Class EventUserController extends Controller
             if ($user) { // Creates a new user
                 $userId = $user->id;
             } else {
-                 /* user profile pic */
+                /* user profile pic */
                 if ($request->hasFile('profile_image')) {
                     $userProfileInput = $request->file('profile_image');
                     $imagePath = 'storage/fanuser/profilepic';
@@ -156,6 +159,7 @@ Class EventUserController extends Controller
                     $userProfileInput->move($imagePath, $userProfileInformation);
                     $userProfile = url() . '/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
                 }
+            
                 $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob, $userProfile);
             }
             $checkUser = EventUser::where(function ($query) use ($userId, $eventId) {
@@ -164,7 +168,7 @@ Class EventUserController extends Controller
             if ($checkUser == true) {
                 return response()->json(['error' => 'true', 'message' => 'user already registered to the event.']);
             }
-            EventUser::create(['user_id' => $userId, 'event_id' => $eventId]);
+            EventUser::create(['user_id' => $userId, 'event_id' => $eventId, 'status' => 1]);
 
             return response()->json([ 'error' => 'false', 'message' => 'User has been added.', 'data' => ['event_id' => $eventId, 'user_id' => $userId]]);
         } catch (\Exception $e) {
