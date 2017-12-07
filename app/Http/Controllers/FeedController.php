@@ -53,6 +53,8 @@ class FeedController extends Controller
      *            },
      *            "user_likes": false
      *            "extra_data": "{
+     *                  \"win_counts\":5,
+     *                  \"lose_counts\":2,
      *                  \"winner\": {
      *                      \"id\": 20,
      *                      \"first_name\": \"da\",
@@ -111,30 +113,41 @@ class FeedController extends Controller
      *              }"
      *        },
      *        {
-     *            "id": 2,
-     *            "post_type_id": 2,
-     *            "data_id": 1,
-     *            "title": "Qiang Hu shared a training session",
-     *            "text": "Beat me if you can!",
-     *            "created_at": 1510078911,
+     *            "id": 13,
+     *            "post_type_id": 3,
+     *            "data_id": 18,
+     *            "title": "Nawaz Me has accomplished goal",
+     *            "text": null,
+     *            "created_at": 1512592159,
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
-     *                "id": 7,
-     *                "first_name": "Qiang",
-     *                "last_name": "Hu",
+     *                "id": 1,
+     *                "first_name": "Nawaz",
+     *                "last_name": "Me",
      *                "photo_url": null,
-     *                "user_following": true,
-     *                "user_follower": true
-     *                "points": 250
+     *                "user_following": false,
+     *                "user_follower": false,
+     *                "points": 80
      *            },
-     *            "user_likes": false,
      *            "extra_data": "{
-     *                  \"punches_count\": 19,
-     *                  \"avg_speed\": 20,
-     *                  \"avg_force\": 217
-     *              }"
-     *        }
+     *                     \"id\":18,
+     *                     \"activity_id\":1,
+     *                     \"activity_type_id\":1,
+     *                     \"target\":\"25\",
+     *                     \"start_date\":1511116200,
+     *                     \"end_date\":1511720999,
+     *                     \"followed\":0,
+     *                     \"followed_date\":1511438605,
+     *                     \"done_count\":0,
+     *                     \"avg_time\":0,
+     *                     \"avg_speed\":0,
+     *                     \"avg_power\":0,
+     *                     \"achieve_type\":0,
+     *                     \"shared\":0
+     *             }",
+     *             "user_likes": false
+     *        },
      *    ]
      *    }
      * @apiErrorExample {json} Error response
