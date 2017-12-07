@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Event;
 use App\EventUser;
+use Validator;
+use DB;
 
 class EventController extends Controller
 {
     /**
-     * @api {post} /event register event details
+     * @api {post} /fan/event register event details
      * @apiGroup event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -88,6 +90,7 @@ class EventController extends Controller
             }
             $event_detail = Event::create([
                         'event_title' => $request->get('event_title'),
+                        'user_id' =>  \Auth::user()->id,
                         'location_id' => (int) $request->get('location_id'),
                         'company_id' => $company_id,
                         'description' => !empty($request->get('description')) ? $request->get('description') : '',
@@ -110,7 +113,7 @@ class EventController extends Controller
     }
     
     /**
-     * @api {get} /events get event details information
+     * @api {get} /fan/events get event details information
      * @apiGroup event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -208,7 +211,7 @@ class EventController extends Controller
      * @apiSuccess {String} message Error message / Success message
      * @apiSuccess {Object} data Event list information
      * @apiSuccessExample {json} Success
-     * {
+     *{
      *       "error": "false",
      *       "message": "Users list information",
      *       "data": [
@@ -230,7 +233,7 @@ class EventController extends Controller
      *           },
      *           {
      *               "id": 7,
-     *               "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *               "photo_url": "null",
      *               "birthday": "1990-06-10",
      *               "gender": "male",
      *               "height": 57,
@@ -256,27 +259,412 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    function userEventList()
-    {
+    function userEventList() {
         try {
             $eventStorage = array();
             $eventInfo = array();
             $company_id = \Auth::user()->company_id;
             $ObjEvent = new Event();
             $eventList = $ObjEvent->usersList($company_id);
-            foreach ($eventList as $val) {
+            foreach($eventList  as $val) {  
                 $ObjEventUser = new EventUser();
                 $eventInfo = $ObjEventUser->getUsersList($val->user_id);
-                $eventInfo->full_name = $eventInfo->first_name . ' ' . $eventInfo->last_name;
-                unset($eventInfo->first_name, $eventInfo->last_name);
-                $eventInfo->events = array_map('intval', explode(',', $val->events));
+                if(!empty($val->events)){
+                    $eventInfo->events =  array_map('intval', explode(',', $val->events));
+                }
                 $eventStorage[] = $eventInfo;
             }
             return response()->json(['error' => 'false', 'message' => 'Users list information', 'data' => $eventStorage]);
         } catch (Exception $e) {
+           return response()->json([
+                       'error' => 'true',
+                       'message' => 'Invalid request',
+           ]);
+        }
+    }
+    
+     /**
+     * @api {get} /fan/my/events get my events details information
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event list information
+     * @apiSuccessExample {json} Success
+     * {
+     *       "error": "false",
+     *       "message": "Events list information",
+     *       "data": [
+     *           {
+     *               "id": 1,
+     *               "user_id": 1,
+     *               "company_id": 1,
+     *               "event_title": "yearly tournament edit",
+     *               "location_id": 2,
+     *               "description": "hii this is descripiton",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2018-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": false,
+     *               "type_of_activity": "power",
+     *               "created_at": "2017-11-28 16:28:37",
+     *               "updated_at": "2017-12-01 19:02:44",
+     *               "location_name": "Manhattan, New York",
+     *               "company_name": "Normal",
+     *               "users": [
+     *                   {
+     *                       "id": 7,
+     *                       "first_name": "Qiang",
+     *                       "last_name": "Hu",
+     *                       "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512069189.jpg",
+     *                       "birthday": "1990-06-10",
+     *                       "gender": "male",
+     *                       "height": 57,
+     *                       "weight": 200,
+     *                       "email": "toniorasma@yahoo.com",
+     *                       "state_name": "Texas",
+     *                       "country_name": "United States",
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 12,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "birthday": null,
+     *                       "gender": null,
+     *                       "height": null,
+     *                       "weight": null,
+     *                       "email": "anchal@gupta.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 13,
+     *                       "first_name": "John",
+     *                       "last_name": "Smith",
+     *                       "photo_url": null,
+     *                       "birthday": "1989-07-04",
+     *                       "gender": "male",
+     *                       "height": null,
+     *                       "weight": 201,
+     *                       "email": "test001@smith.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   }
+     *               ]
+     *           },
+     *           {
+     *               "id": 2,
+     *               "user_id": 1,
+     *               "company_id": 1,
+     *               "event_title": "yearly tournament 2 edit",
+     *               "location_id": 1,
+     *               "description": "",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2019-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": false,
+     *               "type_of_activity": "",
+     *               "created_at": "2017-11-28 16:39:44",
+     *               "updated_at": "2017-12-01 19:02:48",
+     *               "location_name": "Las Vegas, Nevada",
+     *               "company_name": "Normal",
+     *               "users": [
+     *                   {
+     *                       "id": 7,
+     *                       "first_name": "Qiang",
+     *                       "last_name": "Hu",
+     *                       "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512069189.jpg",
+     *                       "birthday": "1990-06-10",
+     *                       "gender": "male",
+     *                       "height": 57,
+     *                       "weight": 200,
+     *                       "email": "toniorasma@yahoo.com",
+     *                       "state_name": "Texas",
+     *                       "country_name": "United States",
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 12,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "birthday": null,
+     *                       "gender": null,
+     *                       "height": null,
+     *                       "weight": null,
+     *                       "email": "anchal@gupta.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   }
+     *               ]
+     *           }
+     *      ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function myEventsUsersList()
+    {
+        try {
+            $eventStorage = array();
+            $eventInfo = array();
+            $userID = \Auth::user()->id;
+            $ObjEvent = new Event();
+            $eventList = $ObjEvent->myEventList($userID);
+            foreach ($eventList as $val) {
+                $eventInfo = $val;
+                $eventInfo->all_day = (bool) $val->all_day;
+                $ObjEventUser = new EventUser();
+                $eventInfo->users = $ObjEventUser->myEventUsersInfo($val->id);
+                $eventStorage[] = $eventInfo;
+            }
+            return response()->json(['error' => 'false', 'message' => 'My events list information', 'data' => $eventStorage]);
+        } catch (Exception $e) {
             return response()->json([
                         'error' => 'true',
                         'message' => 'Invalid request',
+            ]);
+        }
+    }
+    
+    /**
+     * @api {get} /fan/all/events get all events details information
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data All events list information
+     * @apiSuccessExample {json} Success
+     * {
+     *       "error": "false",
+     *       "message": "Event list information",
+     *       "data": [
+     *           {
+     *               "id": 1,
+     *               "user_id": 1,
+     *               "company_id": 1,
+     *               "event_title": "yearly tournament edit",
+     *               "location_id": 2,
+     *               "description": "hii this is descripiton",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2018-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": 0,
+     *               "type_of_activity": "power",
+     *               "created_at": "2017-11-28 16:28:37",
+     *               "updated_at": "2017-12-01 19:02:44",
+     *               "location_name": "Manhattan, New York",
+     *               "company_name": "Normal",
+     *               "users": [
+     *                   {
+     *                       "id": 7,
+     *                       "first_name": "Qiang",
+     *                       "last_name": "Hu",
+     *                       "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                       "birthday": "1990-06-10",
+     *                       "gender": "male",
+     *                       "height": 57,
+     *                       "weight": 200,
+     *                       "email": "toniorasma@yahoo.com",
+     *                       "state_name": "Texas",
+     *                       "country_name": "United States",
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 12,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "birthday": null,
+     *                       "gender": null,
+     *                       "height": null,
+     *                       "weight": null,
+     *                       "email": "anchal@gupta.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 13,
+     *                       "first_name": "John",
+     *                       "last_name": "Smith",
+     *                       "photo_url": null,
+     *                       "birthday": "1989-07-04",
+     *                       "gender": "male",
+     *                       "height": null,
+     *                       "weight": 201,
+     *                       "email": "test001@smith.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   }
+     *               ]
+     *           },
+     *           {
+     *               "id": 2,
+     *               "user_id": 1,
+     *               "company_id": 1,
+     *               "event_title": "yearly tournament 2 edit",
+     *               "location_id": 1,
+     *               "description": "",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2019-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": 0,
+     *               "type_of_activity": "",
+     *               "created_at": "2017-11-28 16:39:44",
+     *               "updated_at": "2017-12-01 19:02:48",
+     *               "location_name": "Las Vegas, Nevada",
+     *               "company_name": "Normal",
+     *               "users": [
+     *                   {
+     *                       "id": 7,
+     *                       "first_name": "Qiang",
+     *                       "last_name": "Hu",
+     *                       "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                       "birthday": "1990-06-10",
+     *                       "gender": "male",
+     *                       "height": 57,
+     *                       "weight": 200,
+     *                       "email": "toniorasma@yahoo.com",
+     *                       "state_name": "Texas",
+     *                       "country_name": "United States",
+     *                       "city_name": null
+     *                   },
+     *                   {
+     *                       "id": 12,
+     *                       "first_name": "Anchal",
+     *                       "last_name": "Gupta",
+     *                       "photo_url": null,
+     *                       "birthday": null,
+     *                       "gender": null,
+     *                       "height": null,
+     *                       "weight": null,
+     *                       "email": "anchal@gupta.com",
+     *                       "state_name": null,
+     *                       "country_name": null,
+     *                       "city_name": null
+     *                   }
+     *               ]
+     *           }
+     *      ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function allEventsUsersList()
+    {
+        try {
+            $eventStorage = array();
+            $eventInfo = array();
+            $company_id = \Auth::user()->company_id;
+            $ObjEvent = new Event();
+            $eventList = $ObjEvent->eventsList($company_id);
+            foreach ($eventList as $val) {
+                $eventInfo = $val;
+                $eventInfo->all_day = (bool) $val->all_day;
+                $ObjEventUser = new EventUser();
+                $eventInfo->users = $ObjEventUser->myEventUsersInfo($val->id);
+                $eventStorage[] = $eventInfo;
+            }
+            return response()->json(['error' => 'false', 'message' => 'All events list information', 'data' => $eventStorage]);
+        } catch (Exception $e) {
+            return response()->json([
+                        'error' => 'true',
+                        'message' => 'Invalid request',
+            ]);
+        }
+    }
+    
+    /**
+     * @api {post} /fan/event/remove remove event
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} id id of event
+     * @apiParamExample {json} Input
+     *    {
+     *      "id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Event has been removed successfully",
+     *   }
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function eventRemove(Request $request)
+    {   
+        $validator = Validator::make($request->all(), [
+            'id'    => 'required|exists:events',
+        ]);
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors->first('id')]);
+        }
+        try {
+            $eventID = $request->get('id');
+            DB::beginTransaction();
+            Event::find($eventID)->delete();
+            EventUser::where('event_id', $eventID)->delete();
+            DB::commit();
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Event has been removed successfully'
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                    'error' => 'true',
+                    'message' => 'Invalid request',
             ]);
         }
     }

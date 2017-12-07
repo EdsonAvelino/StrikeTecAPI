@@ -10,7 +10,7 @@ class CompanyController extends Controller
 
     /**
      * @api {get}/companies Get list of Companies
-     * @apiGroup Company
+     * @apiGroup FAN APP Users
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -45,9 +45,7 @@ class CompanyController extends Controller
      */
     public function getCompanyList(Request $request)
     {
-        $companyList = Companies::select('id', 'company_name')->get();
+        $companyList = Companies::select('id', 'company_name', 'company_logo')->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $companyList]);
     }
-
-
 }

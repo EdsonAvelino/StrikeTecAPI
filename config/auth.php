@@ -36,6 +36,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'users',
         ],
+        'fanuser' => [
+            'driver' => 'jwt',
+            'provider' => 'fanappUsers',
+        ],
     ],
     /*
     |--------------------------------------------------------------------------
@@ -57,6 +61,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\User::class,
+        ],
+        'fanappUsers' => [
+            'driver' => 'eloquent',
+            'model' => App\FanUser::class,
         ],
     ],
 ];
