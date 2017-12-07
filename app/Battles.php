@@ -54,13 +54,13 @@ class Battles extends Model
 
         switch ($battle->type_id) {
             case 3: // Combo
-                $winnerUserId = self::compareBattleCombos($battle);
+                $winnerUserId = @self::compareBattleCombos($battle);
                 $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
             break;
 
             case 4: // Combo-Sets
-                $winnerUserId = self::compareComboSets($battle);
+                $winnerUserId = @self::compareComboSets($battle);
                 $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
             break;
@@ -158,6 +158,9 @@ class Battles extends Model
         $forceOfCorrectPunches = [];
 
         $sessions = \App\Sessions::with('rounds')->where('battle_id', $battle->id)->get();
+
+        // In case of no sessoins found for battle (would be very rare case)
+        if ($sessions->isEmpty()) return null;
 
         foreach($sessions as $session) {
             // Battle type combo and combo-set will always have one round

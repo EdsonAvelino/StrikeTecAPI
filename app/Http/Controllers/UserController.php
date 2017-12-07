@@ -571,7 +571,7 @@ class UserController extends Controller
      *             "avg_force": 7992,
      *             "punches_count": 5854,
      *             "avg_count": 6,
-     *             "loose_counts": 1,
+     *             "lose_counts": 1,
      *             "win_counts": 2,
      *             "finished_battles": [
      *                 {
@@ -694,7 +694,7 @@ class UserController extends Controller
         $user['punches_count'] = $leaderboard->punches_count;
 
         $battles = $this->getFinishedBattles($userId);
-        $user['loose_counts'] = $battles['lost'];
+        $user['lose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
