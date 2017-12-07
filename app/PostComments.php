@@ -28,4 +28,9 @@ class PostComments extends Model
             $model->created_at = $model->freshTimestamp();
         });
     }
+
+    public function getCreatedAtAttribute($createdAt)
+    {
+        return strtotime($createdAt);
+    }
 }

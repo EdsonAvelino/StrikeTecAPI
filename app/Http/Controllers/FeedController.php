@@ -151,7 +151,7 @@ class FeedController extends Controller
 
         // Feed-Posts from DB
         $_posts = Posts::with(['user' => function($q) {
-            $q->select('id','first_name', 'last_name', 'photo_url', 'gender');
+            $q->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
         }])
         ->whereRaw('user_id IN (SELECT follow_user_id as "user_id" FROM user_connections WHERE user_id = ?)', [\Auth::user()->id])
         ->orWhere('user_id', \Auth::user()->id)
@@ -167,7 +167,7 @@ class FeedController extends Controller
             
             $user2FullName = null;
 
-            $_post['extra_data'] = [];
+            $_post['extra_data'] = "";
 
             // TODO /issues/48#issuecomment-348886010
             switch ($post->post_type_id) {
@@ -186,7 +186,10 @@ class FeedController extends Controller
                 break;
 
                 case 3:
-                    // Goal
+                    $goalData = \App\Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
+                        ->where('id', $post->data_id)->first();
+
+                    $_post['extra_data'] = json_encode($goalData);
                 break;
             }
 
@@ -382,9 +385,8 @@ class FeedController extends Controller
      *           {
      *               "id": 6,
      *               "post_id": 2,
-     *               "user_id": 25,
      *               "text": "Perfect..",
-     *               "created_at": "2017-12-06 20:00:44",
+     *               "created_at": 1512566369,
      *               "user": {
      *                   "id": 25,
      *                   "first_name": "Rakesh",
@@ -398,9 +400,8 @@ class FeedController extends Controller
      *           {
      *               "id": 5,
      *               "post_id": 2,
-     *               "user_id": 23,
      *               "text": "Good one!",
-     *               "created_at": "2017-12-06 20:00:40",
+     *               "created_at": 1512596625,
      *               "user": {
      *                   "id": 23,
      *                   "first_name": "Abhishek",
@@ -414,9 +415,8 @@ class FeedController extends Controller
      *           {
      *               "id": 4,
      *               "post_id": 2,
-     *               "user_id": 22,
      *               "text": "Great!",
-     *               "created_at": "2017-12-06 20:00:39",
+     *               "created_at": 1512597885,
      *               "user": {
      *                   "id": 22,
      *                   "first_name": "Wes",
@@ -430,9 +430,8 @@ class FeedController extends Controller
      *           {
      *               "id": 3,
      *               "post_id": 2,
-     *               "user_id": 20,
      *               "text": "Hey nice one!",
-     *               "created_at": "2017-12-06 20:00:37",
+     *               "created_at": 1512591448,
      *               "user": {
      *                   "id": 20,
      *                   "first_name": "da",
@@ -446,9 +445,8 @@ class FeedController extends Controller
      *           {
      *               "id": 2,
      *               "post_id": 2,
-     *               "user_id": 7,
      *               "text": "Yeah! Thanks",
-     *               "created_at": "2017-12-06 20:00:34",
+     *               "created_at": 1512590440,
      *               "user": {
      *                   "id": 7,
      *                   "first_name": "Qiang",
@@ -462,9 +460,8 @@ class FeedController extends Controller
      *           {
      *               "id": 1,
      *               "post_id": 2,
-     *               "user_id": 1,
      *               "text": "Wow Congratulations!",
-     *               "created_at": "2017-12-06 19:58:58",
+     *               "created_at": 1512590444,
      *               "user": {
      *                   "id": 1,
      *                   "first_name": "Nawaz",
@@ -493,6 +490,7 @@ class FeedController extends Controller
 
         foreach ($_comments as $comment) {
             $_comment = $comment->toArray();
+            unset($_comment['user_id']);
             $_comment['user'] = \App\User::get($comment->user_id);
 
             $comments[] = $_comment;
