@@ -832,7 +832,48 @@ class TrainingController extends Controller
      *          "lowest_force": 1,
      *          "current_damage": 5689,
      *          "highest_damage": 464062,
-     *          "lowest_damage": 217
+     *          "lowest_damage": 217,
+     *          "videos": [
+     *              {
+     *                  "id": 1,
+     *                  "category_id": 2,
+     *                  "title": "Intro",
+     *                  "file": "http://54.233.233.189/storage/videos/video_1511358745.mp4",
+     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790678.png",
+     *                  "view_counts": 211,
+     *                  "duration": "00:00:06",
+     *                  "author_name": "Striketec",
+     *                  "price": null,
+     *                  "thumb_width": 1338,
+     *                  "thumb_height": 676
+     *              },
+     *              {
+     *                  "id": 4,
+     *                  "category_id": 2,
+     *                  "title": "The Hook",
+     *                  "file": "http://54.233.233.189/storage/videos/video_1511357565.mp4",
+     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790074.jpg",
+     *                  "view_counts": 19,
+     *                  "duration": "00:00:55",
+     *                  "author_name": "Striketec",
+     *                  "price": null,
+     *                  "thumb_width": 1327,
+     *                  "thumb_height": 753
+     *              },
+     *              {
+     *                  "id": 5,
+     *                  "category_id": 3,
+     *                  "title": "Right Handed Boxing Stance",
+     *                  "file": "http://54.233.233.189/storage/videos/video_1511357525.mp4",
+     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790106.jpg",
+     *                  "view_counts": 26,
+     *                  "duration": "00:00:27",
+     *                  "author_name": "Striketec",
+     *                  "price": null,
+     *                  "thumb_width": 1341,
+     *                  "thumb_height": 747
+     *              },
+     *          ]
      *      }
      *    }
      * @apiErrorExample {json} Error Response
@@ -873,7 +914,7 @@ class TrainingController extends Controller
         if ($session) {
             $sessionType = $session->type_id;
             $sessionPlan = $session->plan_id;
-            $currDamage = $sessionIds = $data = $force = [];
+            $sessionIds = $data = $force = [];
             if ($sessionType == 1 or $sessionType == 2) {
                 $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
@@ -906,13 +947,8 @@ class TrainingController extends Controller
             $data['current_force'] = $session->avg_force;
             $data['highest_force'] = $sessionData->highest_force;
             $data['lowest_force'] = $sessionData->lowest_force;
-            $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
-            $currDamageData = SessionRounds::with('punches')->select('id')->where('session_id', $sessionId)->first()->toArray();
-            $currPunche = $currDamageData['punches'];
-            $currDamageForce = $forces_sum = [];
-            foreach ($currPunche as $currDamage) {
-                $currDamageForce[] = $currDamage['force'];
-            }
+            $sessionRounds = SessionRounds::with('punches')->select('id', 'session_id')->whereIn('session_id', $sessionIds)->get()->toArray();
+            $roundForcesSum = [];
             $forceCount = 0;
             foreach ($sessionRounds as $sessionRound) {
                 $punches = $sessionRound['punches'];
@@ -920,13 +956,17 @@ class TrainingController extends Controller
                     foreach ($punches as $forces) {
                         $force[$forceCount][] = $forces['force'];
                     }
-                    $forces_sum[] = array_sum($force[$forceCount]);
+                    $roundForcesSum[$sessionRound['session_id']][] = array_sum($force[$forceCount]);
                 }
                 $forceCount++;
             }
-
-            $data['highest_damage'] = max($forces_sum);
-            $data['lowest_damage'] = min($forces_sum);
+            $sessionForce = [];
+            foreach ($roundForcesSum as $sessionID => $roundForces) {
+                $sessionForce[$sessionID] = array_sum($roundForces);
+            }
+            $data['current_damage'] = (int) $sessionForce[$sessionId];
+            $data['highest_damage'] = max($sessionForce);
+            $data['lowest_damage'] = min($sessionForce);
             $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->offset(0)->limit(4)->get();
             $data['videos'] = $_videos;
             return $data;
