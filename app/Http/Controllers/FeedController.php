@@ -178,7 +178,12 @@ class FeedController extends Controller
             // TODO /issues/48#issuecomment-348886010
             switch ($post->post_type_id) {
                 case 1:
-                    $user2FullName = $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name;
+                    if ($post->data->user_id == $post->user_id) {
+                        $user2FullName = $post->data->opponentUser->first_name.' '.$post->data->opponentUser->last_name;
+                    } else {
+                        $user2FullName = $post->data->user->first_name.' '.$post->data->user->last_name;
+                    }
+                    
                     // extra_data contains feed type related data battle, training etc
                     $_post['extra_data'] = json_encode( \App\Battles::getResult($post->data_id) );
                 break;
