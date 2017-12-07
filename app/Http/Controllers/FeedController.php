@@ -47,7 +47,9 @@ class FeedController extends Controller
      *                "first_name": "da",
      *                "last_name": "cheng",
      *                "photo_url": null,
-     *                "gender": "male"
+     *                "user_following": true,
+     *                "user_follower": false
+     *                "points": 99
      *            },
      *            "user_likes": false
      *            "extra_data": "{
@@ -97,7 +99,9 @@ class FeedController extends Controller
      *                "first_name": "John",
      *                "last_name": "Smith",
      *                "photo_url": null,
-     *                "gender": null
+     *                "user_following": false,
+     *                "user_follower": false
+     *                "points": 125
      *            },
      *            "user_likes": false,
      *            "extra_data": "{
@@ -120,7 +124,9 @@ class FeedController extends Controller
      *                "first_name": "Qiang",
      *                "last_name": "Hu",
      *                "photo_url": null,
-     *                "gender": "male"
+     *                "user_following": true,
+     *                "user_follower": true
+     *                "points": 250
      *            },
      *            "user_likes": false,
      *            "extra_data": "{
