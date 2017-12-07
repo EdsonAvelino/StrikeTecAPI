@@ -268,7 +268,7 @@ class GoalController extends Controller
         $user_id = \Auth::user()->id;
         $this->calculateGoal(); //calculate data of followed 
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count', 'shared')
-                        ->where('user_id', $user_id)->orderBy('updated_at', 'desc')
+                        ->where('user_id', $user_id)->orderBy('created_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
