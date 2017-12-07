@@ -228,8 +228,10 @@ class Battles extends Model
             } else if ($opponentSpeed < $userAvg) {
                 return $battle->opponent_user_id;
             }
-        } else if ($userMarks > $opponentMarks) {
+        } elseif ($userMarks > $opponentMarks) {
             return $battle->user_id;
+        } elseif ($opponentMarks > $userMarks) {
+            return $battle->opponent_user_id;
         }
     }
 }
