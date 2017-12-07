@@ -630,7 +630,7 @@ class UserController extends Controller
      *                     }
      *                 }
      *             ],
-     *             "user_connection": 4,
+     *             "user_connections": 4,
 	 *			 "achievements": [
 	 *				{
 	 *						"name": "Belt",
@@ -697,11 +697,12 @@ class UserController extends Controller
         $user['lose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
+        
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
-        $user['user_connection'] = $connections;
+        $user['user_connections'] = $connections;
         $badgeImgURL = env('APP_URL').'/storage/badges/';
         $achievementsArr = array();
         $achievementsArr[0] = [ 'name' => 'Belt',
@@ -1753,41 +1754,29 @@ class UserController extends Controller
     // Finished battles of user
     private function getFinishedBattles($userId)
     {
-        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query) use($userId) {
+        $finishedBattles = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
+                        ->where(function ($query)use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
                         ->orderBy('battles.updated_at', 'desc')
-                        ->offset(0)->limit(20)->get()->toArray();
+                        ->offset(0)->limit(20)->get();
 
-        $array = array();
-        $countArr = $lost = $won = 0;
+        $data = [];
+        $lost = $won = 0;
 
-        foreach ($battle_finished as $data) {
-            if (empty($data['winner_user_id'])) {
-                $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
-            }
+        foreach ($finishedBattles as $battle) {
+            $data[] = array_merge(['battle_id' => $battle->battle_id], Battles::getResult($battle->battle_id));
 
-            $loserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
-
-            $array[$countArr]['battle_id'] = $data['battle_id'];
-            $array[$countArr]['winner'] = User::get($data['winner_user_id']);
-            $array[$countArr]['loser'] = User::get($loserId);
-
-            if ($data['winner_user_id'] == $userId) {
+            if ($battle->winner_user_id == $userId) {
                 $won = $won + 1;
-            }
-
-            if ($loserId == $userId) {
+            } else {
                 $lost = $lost + 1;
             }
-
-            $countArr++;
         }
 
-        return ['lost' => $lost, 'won' => $won, 'finished' => $array];
+        return ['lost' => $lost, 'won' => $won, 'finished' => $data];
     }
 
 }

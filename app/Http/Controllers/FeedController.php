@@ -183,13 +183,24 @@ class FeedController extends Controller
                     } else {
                         $user2FullName = $post->data->user->first_name.' '.$post->data->user->last_name;
                     }
-                    
-                    // extra_data contains feed type related data battle, training etc
-                    $_post['extra_data'] = json_encode( \App\Battles::getResult($post->data_id) );
+
+                    // extra_data contains feed type related data battle, training, goal etc
+                    $extraData = [];
+                    $extraData['win_counts'] = \App\Battles::where('winner_user_id', $post->user_id)->count();
+
+                    $loseCounts = \App\Battles::where(function($query) use($post) {
+                        $query->where('user_id', $post->user_id)->orWhere('opponent_user_id', $post->user_id);
+                    })->where('winner_user_id', '!=', $post->user_id)->count();
+
+                    $extraData['lose_counts'] = $loseCounts;
+
+                    $extraData = array_merge($extraData, \App\Battles::getResult($post->data_id));
+                    $_post['extra_data'] = json_encode($extraData);
                 break;
 
                 case 2:
                     // avg punch count, avg speed, avg power.
+                    $extraData = [];
                     $extraData['punches_count'] = $post->data->punches_count;
                     $extraData['avg_speed'] = $post->data->avg_speed;
                     $extraData['avg_force'] = $post->data->avg_force;

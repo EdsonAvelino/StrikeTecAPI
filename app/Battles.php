@@ -73,6 +73,10 @@ class Battles extends Model
         $winner = $loser = null;
 
         if ($winnerUserId && $loserUserId) {
+            // In case of not updated
+            $battle->winner_user_id = $winnerUserId;
+            $battle->save();
+
             // Winner
             $winner = \App\User::get($winnerUserId)->toArray();
 
