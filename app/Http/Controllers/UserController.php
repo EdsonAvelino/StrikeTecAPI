@@ -1727,20 +1727,19 @@ class UserController extends Controller
                             $query->where('user_id', $userId)->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
         $sessionIds = array_column($session, 'id');
-        $totalTime = $totalDays = 0;
+        $totalTime = $forceCount = 0;
+        $punch = $speed_sum = $forces_sum = $startDate = [];
         foreach ($session as $time) {
-            $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
-            $startDate[] = date('y-m-d', (int) ($time['start_time'] / 1000));
+            if ($time['start_time'] > 0 && $time['end_time'] > 0 && $time['end_time'] > $time['start_time']) {
+                $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
+                $startDate[] = date('y-m-d', (int) ($time['start_time'] / 1000));
+            }
         }
 
         $sessionRounds = SessionRounds::with('punches')->select('id')->whereIn('session_id', $sessionIds)->get()->toArray();
 
-        $forceCount = $currDamage = 0;
-        $punches = $speed_sum = $forces_sum = [];
-
         foreach ($sessionRounds as $sessionRound) {
             $punches = $sessionRound['punches'];
-
             if ($punches) {
                 foreach ($punches as $forces) {
                     $force[$forceCount][] = $forces['force'];
@@ -1749,12 +1748,9 @@ class UserController extends Controller
                 $forces_sum[] = array_sum($force[$forceCount]);
                 $speed_sum[] = array_sum($speed[$forceCount]);
             }
-
             $forceCount++;
             $punch[] = count($sessionRound['punches']);
         }
-
-        $avg = array_sum($punch) / count($punch);
 
         $data['total_time_trained'] = floor($totalTime / 1000);
         $data['total_day_trained'] = floor(count(array_unique($startDate)));
