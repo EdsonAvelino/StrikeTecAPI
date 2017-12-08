@@ -1741,10 +1741,20 @@ class UserController extends Controller
                         ->where('user_id', $userId)->where(function ($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })->first();
-
+                
+        $avgCount = 0;
+        $getAvgCount = SessionRounds::select(
+                                \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
+                        ->where('start_time', '>', 0)
+                        ->where('end_time', '>', 0)
+                        ->whereIn('session_id', $sessionIds)->first();
+        if ($getAvgCount->total_time > 0) {
+            $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
+        }
+       
         $data['total_time_trained'] = floor($totalTime / 1000);
         $data['total_day_trained'] = floor(count(array_unique($startDate)));
-        $data['avg_count'] = floor($getAvgSession->avg_punch);
+        $data['avg_count'] = floor($avgCount);
         $data['avg_speed'] = floor($getAvgSession->avg_speeds);
         $data['avg_force'] = floor($getAvgSession->avg_forces);
 
