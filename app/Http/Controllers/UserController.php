@@ -1767,12 +1767,18 @@ class UserController extends Controller
         $lost = $won = 0;
 
         foreach ($finishedBattles as $battle) {
-            $data[] = array_merge(['battle_id' => $battle->battle_id], Battles::getResult($battle->battle_id));
+            $battleResult = Battles::getResult($battle->battle_id);
 
-            if ($battle->winner_user_id == $userId) {
-                $won = $won + 1;
+            if (!$battleResult['winner'] || !$battleResult['loser']) {
+                continue;
             } else {
-                $lost = $lost + 1;
+                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
+
+                if ($battle->winner_user_id == $userId) {
+                    $won = $won + 1;
+                } else {
+                    $lost = $lost + 1;
+                }
             }
         }
 

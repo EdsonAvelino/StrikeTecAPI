@@ -847,27 +847,28 @@ class BattleController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         $userId = \Auth::user()->id;
-        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
+        
+        $finishedBattles = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
                         ->where(function ($query)use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
                         ->orderBy('battles.updated_at', 'desc')
-                        ->offset($offset)->limit($limit)->get()->toArray();
-        $array = array();
-        $i = 0;
-        foreach ($battle_finished as $data) {
-            if (empty($data['winner_user_id'])) {
-                $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
-            }
-            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
-            $array[$i]['battle_id'] = $data['battle_id'];
-            $array[$i]['winner'] = User::get($data['winner_user_id']);
-            $array[$i]['loser'] = User::get($looserId);
-            $i++;
+                        ->offset($offset)->limit($limit)->get();
+        
+        $data = [];
+
+        foreach ($finishedBattles as $battle) {
+            $battleResult = Battles::getResult($battle->battle_id);
+
+            if (!$battleResult['winner'] || !$battleResult['loser'])
+                continue;
+            else
+                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
         }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
@@ -1256,11 +1257,16 @@ class BattleController extends Controller
                         ->orderBy('battles.updated_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
         $data = [];
+        
         foreach ($finishedBattles as $battle) {
-            $data[] = array_merge(['battle_id' => $battle->battle_id], Battles::getResult($battle->battle_id));
+            $battleResult = Battles::getResult($battle->battle_id);
+
+            if (!$battleResult['winner'] || !$battleResult['loser'])
+                continue;
+            else
+                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
-
 }
