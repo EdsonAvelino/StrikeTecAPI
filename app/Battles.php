@@ -29,6 +29,18 @@ class Battles extends Model
         return $this->hasOne('App\User', 'id', 'opponent_user_id');
     }
 
+    public static function updateWinner($battleId)
+    {
+        $battle = self::find($battleId);
+
+        $result = self::getResult($battleId);
+
+        if (!is_null($result['winner']) && !is_null($result['loser'])) {
+            $battle->winner_user_id = $result['winner']['id'];
+            $battle->save();
+        }
+    }
+
     public static function getResult($battleId)
     {
         /* 
@@ -73,10 +85,6 @@ class Battles extends Model
         $winner = $loser = null;
 
         if ($winnerUserId && $loserUserId) {
-            // In case of not updated
-            $battle->winner_user_id = $winnerUserId;
-            $battle->save();
-
             // Winner
             $winner = \App\User::get($winnerUserId)->toArray();
 
