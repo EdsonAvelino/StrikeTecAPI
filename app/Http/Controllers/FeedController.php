@@ -280,10 +280,17 @@ class FeedController extends Controller
     public function addPost(Request $request)
     {
         $data = null;
+        $shared = 'shared';
 
         // Battle
         if ($request->get('post_type_id') == 1) {
             $data = \App\Battles::where('id', $request->get('data_id'))->first();
+
+            if ($data->user_id == \Auth::user()->id) {
+                $shared = 'user_shared';
+            } elseif ($data->opponent_user_id == \Auth::user()->id) {
+                $shared = 'opponent_shared';
+            }
         }
         // Training session
         elseif ($request->get('post_type_id') == 2) {
@@ -294,7 +301,7 @@ class FeedController extends Controller
             $data = \App\Goals::where('id', $request->get('data_id'))->first();
         }
 
-        if ($data && !$data->shared) {
+        if ($data && !$data->{$shared}) {
             $post = Posts::create([
                 'user_id' => \Auth::user()->id,
                 'post_type_id' => (int) $request->get('post_type_id'),
@@ -302,7 +309,7 @@ class FeedController extends Controller
                 'text' => $request->get('text')
             ]);
 
-            $data->shared = 1;
+            $data->{$shared} = 1;
             $data->save();
         }
 
