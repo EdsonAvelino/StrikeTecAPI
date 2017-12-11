@@ -299,8 +299,7 @@ class FeedController extends Controller
                 elseif ($request->get('post_type_id') == 3) {
                     $data = \App\Goals::where('id', $request->get('data_id'))->first();
                 }
-//                print_r(!$data->{$shared} === false);
-//                die;
+
                 if ($data && !$data->{$shared} == false) {
 
                     $post = Posts::create([

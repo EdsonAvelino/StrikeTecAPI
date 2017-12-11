@@ -214,8 +214,13 @@ class BattleController extends Controller
 
         // ID of user who created the battle
         $battle['sender_user_id'] = $_battle->user_id;
-        
-        $battle['shared'] = filter_var($_battle->shared, FILTER_VALIDATE_BOOLEAN);
+
+
+        $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
+
+        if (\Auth::user()->id == $_battle->opponent_user_id) {
+            $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+        }
 
         // TODO
         // Battle result
@@ -768,7 +773,7 @@ class BattleController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
-  /**
+    /**
      * @api {get} /battles/finished  Get list of finished battles 
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
@@ -1066,8 +1071,7 @@ class BattleController extends Controller
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
     }
-    
-    
+
     /**
      * @api {post} /combos/audio Set audio in combos
      * @apiGroup Battles
@@ -1290,4 +1294,5 @@ class BattleController extends Controller
         $data = Battles::getFinishedBattles($userId, $offset, $limit);
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
+
 }
