@@ -11,6 +11,7 @@ use App\Battles;
 use App\Sessions;
 use App\SessionRounds;
 use App\SessionRoundPunches;
+use App\UserAchievements;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -634,32 +635,96 @@ class UserController extends Controller
      *                 }
      *             ],
      *             "user_connections": 4,
-	 *			 "achievements": [
-	 *				{
-	 *						"name": "Belt",
-	 *						"description": "Single punch over 600lbs",
-	 *						"image": "http://striketec.dev/storage/badges/Iron_Fist_1.png",
-	 *						"awarded": true,
-	 *						"count": 3,
-	 *						"shared": false
-	 *					},
-	 *					{
-	 *						"name": "Badge 1",
-	 *						"description": "Single punch over 600lbs",
-	 *						"image": "",
-	 *						"awarded": true,
-	 *						"count": 0,
-	 *						"shared": false
-	 *					},
-	 *					{
-	 *						"name": "Badge 2",
-	 *						"description": "Single punch over 600lbs",
-	 *						"image": "",
-	 *						"awarded": true,
-	 *						"count": 1,
-	 *						"shared": false
-	 *					}
-	 *				]
+     *             "achievements": [
+     *              {
+     *                  "name": "Badge 1",
+     *                  "description": "5,000 punches made within 1 week.",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 2",
+     *                  "description": "Most punches per minute",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 3",
+     *                  "description": "Accomplish 100% of goal",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 4",
+     *                  "description": "Most Powerful Punch ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 5",
+     *                  "description": "Top Speed – TBD based on users sex/weight",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 6",
+     *                  "description": "User Participation – if user uses app for training 20+ times per month. (Loyalty)",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 7",
+     *                  "description": "Champion – earned 1+ belt (which means user has won 5 battles in a row) ",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 8",
+     *                  "description": "Accuracy – if user scores 100% accurate on 10+ combinations ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 9",
+     *                  "description": "Strong Man – If user has power average over 500 lbs for more than 10 training sessions",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 10",
+     *                  "description": "Speed Demon – if user has speed average over 20mph for more than 10 training sessions",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 11",
+     *                  "description": "Iron Fist – Single punch over 600lbs for male – 400lbs for female - ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "belt",
+     *                  "description": "belts earned by user ",
+     *                  "image": "",
+     *                  "count": 3,
+     *                  "share": false,
+     *                  "awarded": true
+     *              }
+     *          ]
      *         }
      *     }
      * @apiErrorExample {json} Error Response
@@ -692,44 +757,23 @@ class UserController extends Controller
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $data = $this->getAvgSpeedAndForce($userId);
-        $user = array_merge($userData,$data);
+        $user = array_merge($userData, $data);
 
         $user['punches_count'] = $leaderboard->punches_count;
 
         $battles = Battles::getFinishedBattles($userId, 0, 20);
- 
+
         $user['lose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
-        
+
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connections'] = $connections;
-        $badgeImgURL = env('APP_URL').'/storage/badges/';
-        $achievementsArr = array();
-        $achievementsArr[0] = [ 'name' => 'Belt',
-            'description' => 'Single punch over 600lbs',
-            'image' => $badgeImgURL.'Champion.png',
-            'awarded' => true,
-            'count' => 3,
-            'shared' => false
-        ];
-        $achievementsArr[1] = [ 'name' => 'Badge 1',
-            'description' => 'Single punch over 600lbs',
-            'image' => $badgeImgURL.'Iron_Fist_1.png',
-            'awarded' => true,
-            'count' => 0,
-            'shared' => false
-        ];
-        $achievementsArr[2] = [ 'name' => 'Badge 2',
-            'description' => 'Single punch over 600lbs',
-            'image' => $badgeImgURL.'Iron_Fist_2.png',
-            'awarded' => true,
-            'count' => 1,
-            'shared' => false
-        ];
+        $badgeImgURL = env('APP_URL') . '/storage/badges/';
+        $achievementsArr = UserAchievements::getAchievements($userId);
         $user['achievements'] = $achievementsArr;
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
@@ -1372,11 +1416,10 @@ class UserController extends Controller
         $suggested1 = \DB::table('user_connections')->select('user_id')->where('follow_user_id', \Auth::user()->id)->whereRaw("user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id]);
 
         $suggestedUsersQuery = \DB::table('user_connections')->select('follow_user_id as user_id')
-
-            ->whereRaw("user_id IN ($currentUserFollowing)", [\Auth::user()->id])
-            ->where('follow_user_id', '!=', \Auth::user()->id)
-            ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
-            ->union($suggested1);
+                ->whereRaw("user_id IN ($currentUserFollowing)", [\Auth::user()->id])
+                ->where('follow_user_id', '!=', \Auth::user()->id)
+                ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
+                ->union($suggested1);
 
 
         $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
@@ -1745,7 +1788,7 @@ class UserController extends Controller
                         ->where('user_id', $userId)->where(function ($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })->first();
-                
+
         $avgCount = 0;
         $getAvgCount = SessionRounds::select(
                                 \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
@@ -1755,7 +1798,7 @@ class UserController extends Controller
         if ($getAvgCount->total_time > 0) {
             $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
         }
-       
+
         $data['total_time_trained'] = floor($totalTime / 1000);
         $data['total_day_trained'] = floor(count(array_unique($startDate)));
         $data['avg_count'] = floor($avgCount);
@@ -1763,6 +1806,139 @@ class UserController extends Controller
         $data['avg_force'] = floor($getAvgSession->avg_forces);
 
         return $data;
+    }
+
+    /**
+     * @api {get} /users/achivements Get list of achivements
+     * @apiGroup Users
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} user_id Start offset
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 20
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's information
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": [
+     *              {
+     *                  "name": "Badge 1",
+     *                  "description": "5,000 punches made within 1 week.",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 2",
+     *                  "description": "Most punches per minute",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 3",
+     *                  "description": "Accomplish 100% of goal",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 4",
+     *                  "description": "Most Powerful Punch ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 5",
+     *                  "description": "Top Speed – TBD based on users sex/weight",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 6",
+     *                  "description": "User Participation – if user uses app for training 20+ times per month. (Loyalty)",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 7",
+     *                  "description": "Champion – earned 1+ belt (which means user has won 5 battles in a row) ",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 8",
+     *                  "description": "Accuracy – if user scores 100% accurate on 10+ combinations ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 9",
+     *                  "description": "Strong Man – If user has power average over 500 lbs for more than 10 training sessions",
+     *                  "image": "",
+     *                  "count": 1,
+     *                  "share": false,
+     *                  "awarded": true
+     *              },
+     *              {
+     *                  "name": "Badge 10",
+     *                  "description": "Speed Demon – if user has speed average over 20mph for more than 10 training sessions",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "Badge 11",
+     *                  "description": "Iron Fist – Single punch over 600lbs for male – 400lbs for female - ",
+     *                  "image": "",
+     *                  "count": 0,
+     *                  "share": false
+     *              },
+     *              {
+     *                  "name": "belt",
+     *                  "description": "belts earned by user ",
+     *                  "image": "",
+     *                  "count": 3,
+     *                  "share": false,
+     *                  "awarded": true
+     *              }
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getAchievementList(Request $request)
+    {
+        $userId = $request->get('user_id');
+        $achivments = UserAchievements::getAchievements($userId);
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $achivments,
+        ]);
     }
 
 }

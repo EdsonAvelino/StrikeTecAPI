@@ -43,13 +43,13 @@ class Battles extends Model
 
     public static function getResult($battleId)
     {
-        /* 
-        * SCENARIO
-        * The man who has more correct punches will be winner
-        * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
-        * If avg speed is also same, then will determine with power of all correct punches
-        * If both user don't have any correct punches, then will calculate with Speed of all punches
-        */
+        /*
+         * SCENARIO
+         * The man who has more correct punches will be winner
+         * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+         * If avg speed is also same, then will determine with power of all correct punches
+         * If both user don't have any correct punches, then will calculate with Speed of all punches
+         */
 
         $battle = self::find($battleId);
 
@@ -69,17 +69,17 @@ class Battles extends Model
                 $winnerUserId = @self::compareBattleCombos($battle);
                 $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
-            break;
+                break;
 
             case 4: // Combo-Sets
                 $winnerUserId = @self::compareComboSets($battle);
                 $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
                         ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
-            break;
+                break;
 
             case 5: // Workouts
                 // TODO compare for combo-sets and workouts
-            break;
+                break;
         }
 
         $winner = $loser = null;
@@ -107,7 +107,7 @@ class Battles extends Model
             $loser['best_time'] = $_session->best_time;
             $loser['punches_count'] = $_session->punches_count;
         }
-        
+
         return ['winner' => $winner, 'loser' => $loser];
     }
 
@@ -115,7 +115,7 @@ class Battles extends Model
     private static function compareBattleCombos($battle)
     {
         $comboPunches = self::getComboPunches($battle->plan_id);
-        
+
         return self::doComparison($comboPunches, $battle);
     }
 
@@ -124,7 +124,7 @@ class Battles extends Model
     {
         $comboSet = \App\ComboSets::find($battle->plan_id);
         $comboPunches = [];
-        
+
         foreach ($comboSet->combos as $combo) {
             $comboPunches = array_merge($comboPunches, self::getComboPunches($combo->combo_id));
         }
@@ -135,26 +135,34 @@ class Battles extends Model
     // Compare workouts #5
     private static function compareWorkouts($battle)
     {
-
+        
     }
 
     private static function getComboPunches($comboId)
     {
         $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
-        
+
         foreach ($comboPunches as $i => $punch) {
             switch ($punch) {
-                case 1: $comboPunches[$i] = 'LJ|RJ'; break; // LEFT JAB / RIGHT JAB
-                case 2: $comboPunches[$i] = 'LS|RS'; break; // LEFT STRAIGHT / RIGHT STRAIGHT
-                case 3: $comboPunches[$i] = 'LH'; break; // LEFT HOOK
-                case 4: $comboPunches[$i] = 'RH'; break; // RIGHT HOOK
-                case 5: $comboPunches[$i] = 'LU'; break; // LEFT UPPERCUT
-                case 6: $comboPunches[$i] = 'RU'; break; // RIGHT UPPERCUT
-                case 7: $comboPunches[$i] = 'LSH|RSH'; break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
-                
+                case 1: $comboPunches[$i] = 'LJ|RJ';
+                    break; // LEFT JAB / RIGHT JAB
+                case 2: $comboPunches[$i] = 'LS|RS';
+                    break; // LEFT STRAIGHT / RIGHT STRAIGHT
+                case 3: $comboPunches[$i] = 'LH';
+                    break; // LEFT HOOK
+                case 4: $comboPunches[$i] = 'RH';
+                    break; // RIGHT HOOK
+                case 5: $comboPunches[$i] = 'LU';
+                    break; // LEFT UPPERCUT
+                case 6: $comboPunches[$i] = 'RU';
+                    break; // RIGHT UPPERCUT
+                case 7: $comboPunches[$i] = 'LSH|RSH';
+                    break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
                 // to keep format same hand + punch-type
-                case 'DL': $comboPunches[$i] = 'LD'; break; // DUCK LEFT
-                case 'DR': $comboPunches[$i] = 'RD'; break; // DUCK RIGHT
+                case 'DL': $comboPunches[$i] = 'LD';
+                    break; // DUCK LEFT
+                case 'DR': $comboPunches[$i] = 'RD';
+                    break; // DUCK RIGHT
             }
         }
 
@@ -172,15 +180,16 @@ class Battles extends Model
         $sessions = \App\Sessions::with('rounds')->where('battle_id', $battle->id)->get();
 
         // In case of no sessoins found for battle (would be very rare case)
-        if ($sessions->isEmpty()) return null;
+        if ($sessions->isEmpty())
+            return null;
 
-        foreach($sessions as $session) {
+        foreach ($sessions as $session) {
             // Battle type combo and combo-set will always have one round
             $round = $session->rounds()->first();
-            
+
             foreach ($_punches = $round->punches as $punch) {
-                $roundPunches[$session->user_id][] = $punch->hand.$punch->punch_type;
-                
+                $roundPunches[$session->user_id][] = $punch->hand . $punch->punch_type;
+
                 $speed[$session->user_id][] = $punch->speed;
 
                 // Full punch info, use to get speed/force of correct punches
@@ -193,13 +202,13 @@ class Battles extends Model
 
         // Check for punches corrections
         foreach ($comboPunches as $key => $punch) {
-            if ( @strpos($punch, $roundPunches[$battle->user_id][$key]) !== false ) {
+            if (@strpos($punch, $roundPunches[$battle->user_id][$key]) !== false) {
                 $speedOfCorrectPunches[$battle->user_id][] = $puchnes[$battle->user_id][$key]['speed'];
                 $forceOfCorrectPunches[$battle->user_id][] = $puchnes[$battle->user_id][$key]['force'];
-                $userMarks += 1;    
+                $userMarks += 1;
             }
-            
-            if ( @strpos($punch, $roundPunches[$battle->opponent_user_id][$key]) !== false ) {
+
+            if (@strpos($punch, $roundPunches[$battle->opponent_user_id][$key]) !== false) {
                 $speedOfCorrectPunches[$battle->opponent_user_id][] = $puchnes[$battle->opponent_user_id][$key]['speed'];
                 $forceOfCorrectPunches[$battle->opponent_user_id][] = $puchnes[$battle->opponent_user_id][$key]['force'];
                 $opponentMarks += 1;
@@ -220,9 +229,7 @@ class Battles extends Model
         }
 
         // If avg speed is also same, then will determine with power of all correct punches, higher power will be winner
-        if ($userAvgSpeedOfCorrectPunches > 0 && $opponentAvgSpeedOfCorrectPunches > 0
-            && $userAvgSpeedOfCorrectPunches == $opponentAvgSpeedOfCorrectPunches)
-        {
+        if ($userAvgSpeedOfCorrectPunches > 0 && $opponentAvgSpeedOfCorrectPunches > 0 && $userAvgSpeedOfCorrectPunches == $opponentAvgSpeedOfCorrectPunches) {
             $userMaxForce = max($forceOfCorrectPunches[$battle->user_id]);
             $opponentMaxForce = max($forceOfCorrectPunches[$battle->opponent_user_id]);
 
@@ -249,8 +256,7 @@ class Battles extends Model
             return $battle->opponent_user_id;
         }
     }
-    
-    
+
     // Finished battles of user
     public static function getFinishedBattles($userId, $offset, $limit)
     {
@@ -274,7 +280,7 @@ class Battles extends Model
             } else {
                 $share['battle_id'] = $battle->battle_id;
                 $share['shared'] = filter_var($battle->shared, FILTER_VALIDATE_BOOLEAN);
-               
+
                 $data[] = array_merge($share, $battleResult);
 
                 if ($battle->winner_user_id == $userId) {
@@ -287,4 +293,5 @@ class Battles extends Model
 
         return ['lost' => $lost, 'won' => $won, 'finished' => $data];
     }
+
 }
