@@ -279,8 +279,13 @@ class Battles extends Model
                 continue;
             } else {
                 $share['battle_id'] = $battle->battle_id;
-                $share['shared'] = filter_var($battle->shared, FILTER_VALIDATE_BOOLEAN);
 
+                $share['shared'] = filter_var($battle->user_shared, FILTER_VALIDATE_BOOLEAN);
+
+                if ($userId == $battle->opponent_user_id) {
+                    $share['shared'] = filter_var($battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+                }
+                
                 $data[] = array_merge($share, $battleResult);
 
                 if ($battle->winner_user_id == $userId) {
