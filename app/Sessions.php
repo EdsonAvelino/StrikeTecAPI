@@ -61,4 +61,10 @@ class Sessions extends Model
             return parent::asDateTime(new \DateTimeImmutable($value));
         }
     }
+
+    public function getSharedAttribute($shared)
+    {
+        $shared = filter_var($shared, FILTER_VALIDATE_BOOLEAN);
+        return ($shared) ? 'true' : 'false';
+    }
 }

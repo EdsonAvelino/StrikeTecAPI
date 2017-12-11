@@ -50,48 +50,54 @@ class TrainingController extends Controller
      *          "user_id": 1,
      *          "type_id": 1,
      *          "start_time": "1504960422890",
-     *          "end_time": null,
+     *          "end_time": "1507203103523",
      *          "plan_id": -1,
-     *          "avg_speed": "20.16",
-     *          "avg_force": "348.03",
+     *          "avg_speed": 20.16,
+     *          "avg_force": 348.03,
      *          "punches_count": 31,
-     *          "max_speed": "34.00",
-     *          "max_force": "549.00",
+     *          "max_speed": 34.00,
+     *          "max_force": 549.00,
+     *          "best_time": "0.50",
+     *          "shared": "true",
      *          "created_at": "2017-09-09 18:03:57",
      *          "updated_at": "2017-09-09 18:03:57",
-     *          "round_ids" : [{ "id":1},{"id":2} ]}
+     *          "round_ids" : [{ "id":1}, {"id":2} ]}
      *      },
      *      {
      *          "id": 2,
      *          "user_id": 1,
      *          "type_id": 1,
      *          "start_time": "1504978767000",
-     *          "end_time": null,
+     *          "end_time": "1507203088297",
      *          "plan_id": -1,
-     *          "avg_speed": "20.16",
-     *          "avg_force": "348.03",
+     *          "avg_speed": 20.16,
+     *          "avg_force": 348.03,
      *          "punches_count": 31,
-     *          "max_speed": "34.00",
-     *          "max_force": "549.00",
+     *          "max_speed": 34.00,
+     *          "max_force": 549.00,
+     *          "best_time": "0.45",
+     *          "shared": "false",
      *          "created_at": "2017-09-09 18:08:21",
      *          "updated_at": "2017-09-09 18:08:21"
-     *          "round_ids" : [{ "id":3},{"id":4} ]}
+     *          "round_ids" : [{ "id":3}, {"id":4} ]}
      *      },
      *      {
      *          "id": 3,
      *          "user_id": 1,
      *          "type_id": 1,
      *          "start_time": "1505025567000",
-     *          "end_time": null,
+     *          "end_time": "1507203103523",
      *          "plan_id": -1,
-     *          "avg_speed": "20.16",
-     *          "avg_force": "348.03",
+     *          "avg_speed": 20.16,
+     *          "avg_force": 348.03,
      *          "punches_count": 31,
-     *          "max_speed": "34.00",
-     *          "max_force": "549.00",
+     *          "max_speed": 34.00,
+     *          "max_force": 549.00,
+     *          "best_time": "0.40",
+     *          "shared": "true",
      *          "created_at": "2017-09-10 18:09:30",
      *          "updated_at": "2017-09-10 18:09:30"
-     *          "round_ids" : [{ "id":5},{"id":6} ]}
+     *          "round_ids" : [{ "id":5}, {"id":6} ]}
      *      }
      *    }
      * @apiErrorExample {json} Error Response
@@ -116,9 +122,9 @@ class TrainingController extends Controller
         $startDate = ($startDate) ? $startDate * 1000 : null;
         $endDate = ($endDate) ? ($endDate * 1000) - 1 : null;
 
-        $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'created_at', 'updated_at'])->where('user_id', $userId);
+        $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'shared', 'created_at', 'updated_at'])->where('user_id', $userId);
 
-        $_sessions->where(function($query) {
+        $_sessions->where(function ($query) {
             $query->whereNull('battle_id')->orWhere('battle_id', '0');
         });
 
@@ -172,13 +178,15 @@ class TrainingController extends Controller
      *          "user_id": 1,
      *          "type_id": 1,
      *          "start_time": "1504960422890",
-     *          "end_time": null,
+     *          "end_time": "1504960423000",
      *          "plan_id": -1,
      *          "avg_speed": "20.16",
      *          "avg_force": "348.03",
      *          "punches_count": 31,
      *          "max_speed": "34.00",
      *          "max_force": "549.00",
+     *          "best_time": "0.50",
+     *          "shared": "true",
      *          "created_at": "2017-09-09 18:03:57",
      *          "updated_at": "2017-09-09 18:03:57"
      *      }
@@ -186,7 +194,7 @@ class TrainingController extends Controller
      *          "id": 1,
      *          "session_id": 1,
      *          "start_time": "1504960422890",
-     *          "end_time": null,
+     *          "end_time": "1504960423000",
      *          "avg_speed": 20.71,
      *          "avg_force": 358.64,
      *          "punches_count": 28,
@@ -201,7 +209,7 @@ class TrainingController extends Controller
      *          "id": 2,
      *          "session_id": 1,
      *          "start_time": "1504960422890",
-     *          "end_time": null,
+     *          "end_time": "15049604223000",
      *          "avg_speed": 20.71,
      *          "avg_force": 358.64,
      *          "punches_count": 28,
@@ -211,7 +219,7 @@ class TrainingController extends Controller
      *          "avg_time": "0.51",
      *          "created_at": "2017-09-09 18:06:33",
      *          "updated_at": "2017-09-09 18:06:33"
-     *      }],
+     *      }]
      *    }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK

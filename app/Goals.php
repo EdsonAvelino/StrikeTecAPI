@@ -27,7 +27,12 @@ class Goals extends Model
 
     public function goalSessions()
     {
-        return $this->hasMany('App\GoalSession','goal_id');
+        return $this->hasMany('App\GoalSession', 'goal_id');
     }
 
+    public function getSharedAttribute($shared)
+    {
+        $shared = filter_var($shared, FILTER_VALIDATE_BOOLEAN);
+        return ($shared) ? 'true' : 'false';
+    }
 }
