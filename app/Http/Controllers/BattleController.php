@@ -110,6 +110,7 @@ class BattleController extends Controller
      *          "user_finished_at": null,
      *          "opponent_finished_at": null,
      *          "winner_user_id": null,
+     *          "shared": false,
      *          "created_at": "2017-10-30 19:01:53",
      *          "updated_at": "2017-10-30 19:01:53",
      *          "opponent_user": 
@@ -213,6 +214,8 @@ class BattleController extends Controller
 
         // ID of user who created the battle
         $battle['sender_user_id'] = $_battle->user_id;
+        
+        $battle['shared'] = filter_var($_battle->shared, FILTER_VALIDATE_BOOLEAN);
 
         // TODO
         // Battle result
