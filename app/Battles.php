@@ -273,11 +273,9 @@ class Battles extends Model
                 continue;
             } else {
                 $share['battle_id'] = $battle->battle_id;
-                $share['user_share'] = false;
-                if ($battle->shared == 1) {
-                    if ($userId == $battle->user_id) {
-                        $share['user_share'] = true;
-                    }
+                $share['shared'] = false;
+                if ($battle->shared == 1 && $userId == $battle->user_id) {
+                    $share['shared'] = true;
                 }
                 $data[] = array_merge($share, $battleResult);
 
