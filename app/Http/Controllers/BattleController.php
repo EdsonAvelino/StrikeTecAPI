@@ -765,7 +765,7 @@ class BattleController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
-    /**
+  /**
      * @api {get} /battles/finished  Get list of finished battles 
      * @apiGroup Battles
      * @apiHeader {String} Authorization Authorization Token
@@ -791,6 +791,7 @@ class BattleController extends Controller
      *      "data": [
      *      {
      *          "battle_id": 4,
+     *          "user_share": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -798,7 +799,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          },
      *          "loser": {
      *                 "id": 33,
@@ -807,11 +814,18 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          }
      *      },
      *      {
      *          "battle_id": 6,
+     *          "user_share": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -819,7 +833,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          },
      *          "loser": {
      *                 "id": 33,
@@ -828,7 +848,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          }
      *      }
      *  ]
@@ -841,34 +867,14 @@ class BattleController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getFinishedBattles(Request $request)
+    public function getAllFinishedBattles(Request $request)
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         $userId = \Auth::user()->id;
-        
-        $finishedBattles = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->offset($offset)->limit($limit)->get();
-        
-        $data = [];
-
-        foreach ($finishedBattles as $battle) {
-            $battleResult = Battles::getResult($battle->battle_id);
-
-            if (!$battleResult['winner'] || !$battleResult['loser'])
-                continue;
-            else
-                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
-        }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        $useBattleData = Battles::getFinishedBattles($userId, $offset, $limit);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData['finished']]);
     }
 
     /**
@@ -928,52 +934,78 @@ class BattleController extends Controller
      *                         }
      *                     },
      *                   ],
-     *                 "finished": [
-     *                      {
-     *                  "battle_id": 4,
-     *                   "winner": {
-     *                       "id": 33,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "points": 0,
-     *                       "user_following": false,
-     *                       "user_follower": false
-     *                       },
-     *                  "loser": {
-     *                       "id": 33,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "points": 0,
-     *                       "user_following": false,
-     *                       "user_follower": false
-     *                      }
-     *                 },
-     *           {
+     * "finished": [
+     *      {
+     *          "battle_id": 4,
+     *          "user_share": false,
+     *          "winner": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
+     *          },
+     *          "loser": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
+     *          }
+     *      },
+     *      {
      *          "battle_id": 6,
-     *                  "winner": {
-     *                    "id": 33,
-     *                    "first_name": "Anchal",
-     *                    "last_name": "Gupta",
-     *                    "photo_url": null,
-     *                    "points": 0,
-     *                    "user_following": false,
-     *                    "user_follower": false
-     *                   },
-     *                "loser": {
-     *                     "id": 33,
-     *                     "first_name": "Anchal",
-     *                     "last_name": "Gupta",
-     *                     "photo_url": null,
-     *                     "points": 0,
-     *                    "user_following": false,
-     *                    "user_follower": false
-     *                   }
-     *                   }
-     *                 ]
-     *             }
-     *  }
+     *          "user_share": false,
+     *          "winner": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
+     *          },
+     *          "loser": {
+     *                 "id": 33,
+     *                 "first_name": "Anchal",
+     *                 "last_name": "Gupta",
+     *                 "photo_url": null,
+     *                 "points": 0,
+     *                 "user_following": false,
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
+     *          }
+     *      }
+     *     ]
+     *   }
+     * }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
      *      {
@@ -984,7 +1016,7 @@ class BattleController extends Controller
      */
     public function getAllBattles(Request $request)
     {
-        $array = array();
+        $useBattleData = array();
         $userId = \Auth::user()->id;
 
         $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
@@ -1002,7 +1034,7 @@ class BattleController extends Controller
             $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
         }
-        $array['received'] = $data;
+        $useBattleData['received'] = $data;
 
         $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where(function ($query) use($userId) {
@@ -1025,33 +1057,14 @@ class BattleController extends Controller
             $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $j++;
         }
-        $array['my_battles'] = $my_battle_data;
+        $useBattleData['my_battles'] = $my_battle_data;
+        $finished = Battles::getFinishedBattles($userId, 0, 20);
+        $useBattleData['finished'] = $finished['finished'];
 
-        $battle_finished = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->get()->toArray();
-        $finished = array();
-        $k = 0;
-        foreach ($battle_finished as $data) {
-            if (empty($data['winner_user_id'])) {
-                $data['winner_user_id'] = (strtotime($data['user_finished_at']) < strtotime($data['opponent_finished_at'])) ? $data['user_id'] : $data['opponent_user_id'];
-            }
-            $looserId = ($data['winner_user_id'] == $data['user_id']) ? $data['opponent_user_id'] : $data['user_id'];
-            $finished[$k]['battle_id'] = $data['battle_id'];
-            $finished[$k]['winner'] = User::get($data['winner_user_id']);
-            $finished[$k]['loser'] = User::get($looserId);
-            $k++;
-        }
-        $array['finished'] = $finished;
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $array]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
     }
-
+    
+    
     /**
      * @api {post} /combos/audio Set audio in combos
      * @apiGroup Battles
@@ -1184,13 +1197,13 @@ class BattleController extends Controller
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data list of finished battles 
      * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
      *    {
      *      "error": "false",
      *      "message": "",
      *      "data": [
      *      {
      *          "battle_id": 4,
+     *          "user_share": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -1198,7 +1211,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          },
      *          "loser": {
      *                 "id": 33,
@@ -1207,11 +1226,18 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          }
      *      },
      *      {
      *          "battle_id": 6,
+     *          "user_share": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -1219,7 +1245,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          },
      *          "loser": {
      *                 "id": 33,
@@ -1228,7 +1260,13 @@ class BattleController extends Controller
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
-     *                 "user_follower": false
+     *                 "user_follower": false,
+     *                 "avg_speed": 23,
+     *                 "avg_force": 340,
+     *                 "max_speed": 33,
+     *                 "max_force": 483,
+     *                 "best_time": "0.50",
+     *                 "punches_count": 10
      *          }
      *      }
      *  ]
@@ -1245,28 +1283,8 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-
         $userId = $request->get('user_id');
-
-        $finishedBattles = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->offset($offset)->limit($limit)->get();
-        $data = [];
-        
-        foreach ($finishedBattles as $battle) {
-            $battleResult = Battles::getResult($battle->battle_id);
-
-            if (!$battleResult['winner'] || !$battleResult['loser'])
-                continue;
-            else
-                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
-        }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        $data = Battles::getFinishedBattles($userId, $offset, $limit);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
 }

@@ -693,7 +693,8 @@ class UserController extends Controller
 
         $user['punches_count'] = $leaderboard->punches_count;
 
-        $battles = $this->getFinishedBattles($userId);
+        $battles = Battles::getFinishedBattles($userId, 0, 20);
+ 
         $user['lose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
@@ -1759,40 +1760,6 @@ class UserController extends Controller
         $data['avg_force'] = floor($getAvgSession->avg_forces);
 
         return $data;
-    }
-
-    // Finished battles of user
-    private function getFinishedBattles($userId)
-    {
-        $finishedBattles = Battles::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->offset(0)->limit(20)->get();
-
-        $data = [];
-        $lost = $won = 0;
-
-        foreach ($finishedBattles as $battle) {
-            $battleResult = Battles::getResult($battle->battle_id);
-
-            if (!$battleResult['winner'] || !$battleResult['loser']) {
-                continue;
-            } else {
-                $data[] = array_merge(['battle_id' => $battle->battle_id], $battleResult);
-
-                if ($battle->winner_user_id == $userId) {
-                    $won = $won + 1;
-                } else {
-                    $lost = $lost + 1;
-                }
-            }
-        }
-
-        return ['lost' => $lost, 'won' => $won, 'finished' => $data];
     }
 
 }

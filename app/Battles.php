@@ -249,4 +249,46 @@ class Battles extends Model
             return $battle->opponent_user_id;
         }
     }
+    
+    
+    // Finished battles of user
+    public static function getFinishedBattles($userId, $offset, $limit)
+    {
+        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'shared')
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                        })
+                        ->where(['opponent_finished' => TRUE])
+                        ->where(['user_finished' => TRUE])
+                        ->orderBy('battles.updated_at', 'desc')
+                        ->offset($offset)->limit($limit)->get();
+
+        $data = [];
+        $lost = $won = 0;
+
+        foreach ($finishedBattles as $battle) {
+            $battleResult = self::getResult($battle->battle_id);
+
+            if (!$battleResult['winner'] || !$battleResult['loser']) {
+                continue;
+            } else {
+                $share['battle_id'] = $battle->battle_id;
+                $share['user_share'] = false;
+                if ($battle->shared == 1) {
+                    if ($userId == $battle->user_id) {
+                        $share['user_share'] = true;
+                    }
+                }
+                $data[] = array_merge($share, $battleResult);
+
+                if ($battle->winner_user_id == $userId) {
+                    $won = $won + 1;
+                } else {
+                    $lost = $lost + 1;
+                }
+            }
+        }
+
+        return ['lost' => $lost, 'won' => $won, 'finished' => $data];
+    }
 }
