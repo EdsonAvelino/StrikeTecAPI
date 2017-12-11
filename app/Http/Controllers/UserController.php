@@ -576,6 +576,7 @@ class UserController extends Controller
      *             "finished_battles": [
      *                 {
      *                     "battle_id": 119,
+     *                     "shared": false,
      *                     "winner": {
      *                         "id": 20,
      *                         "first_name": "da",
@@ -597,6 +598,7 @@ class UserController extends Controller
      *                 },
      *                 {
      *                     "battle_id": 120,
+     *                     "shared": false,
      *                     "winner": {
      *                         "id": 7,
      *                         "first_name": "Qiang",
@@ -610,6 +612,7 @@ class UserController extends Controller
      *                 },
      *                 {
      *                     "battle_id": 32,
+     *                     "shared": false,
      *                     "winner": {
      *                         "id": 7,
      *                         "first_name": "Qiang",
