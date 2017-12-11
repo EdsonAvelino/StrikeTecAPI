@@ -791,7 +791,7 @@ class BattleController extends Controller
      *      "data": [
      *      {
      *          "battle_id": 4,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -825,7 +825,7 @@ class BattleController extends Controller
      *      },
      *      {
      *          "battle_id": 6,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -937,7 +937,7 @@ class BattleController extends Controller
      * "finished": [
      *      {
      *          "battle_id": 4,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -971,7 +971,7 @@ class BattleController extends Controller
      *      },
      *      {
      *          "battle_id": 6,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -1203,7 +1203,7 @@ class BattleController extends Controller
      *      "data": [
      *      {
      *          "battle_id": 4,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
@@ -1237,7 +1237,7 @@ class BattleController extends Controller
      *      },
      *      {
      *          "battle_id": 6,
-     *          "user_share": false,
+     *          "shared": false,
      *          "winner": {
      *                 "id": 33,
      *                 "first_name": "Anchal",
