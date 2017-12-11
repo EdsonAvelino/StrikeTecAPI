@@ -158,7 +158,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/battles/my_battles', 'BattleController@getMyBattles');
 
     // Get finished battles
-    $app->get('/battles/finished', 'BattleController@getFinishedBattles');
+    $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
 
     // Get all battles
     $app->get('/battles/all', 'BattleController@getAllBattles');
