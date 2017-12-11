@@ -98,6 +98,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     //get Tips data
     $app->get('/tips', 'TrainingController@tips');
+
+    //get Achievement List
+    $app->get('/achivements', 'UserController@getAchievementList');
 });
 
 // Video APIs
@@ -192,7 +195,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get details of battle(challenge)
     $app->get('/battles/{battleId}', 'BattleController@getBattle');
-    
+
     // Get battles of user 
     $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
 });
@@ -268,53 +271,51 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 // Fan App APIs routes
-
 // This API does not need auth  
 /* ~~~~~~~~~~~~~~~~~~~~~ FAN APP API ROUTES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    //get user list for fan APP
-    $app->get('/fan/companies', 'CompanyController@getCompanyList');
-    
-    // register user for fan APP API
-    $app->post('fan/user/register', 'FanUserController@registerFan');
+//get user list for fan APP
+$app->get('/fan/companies', 'CompanyController@getCompanyList');
 
-    // login for fan APP user
-    $app->post('/fan/login/auth', 'FanUserController@authenticate');
+// register user for fan APP API
+$app->post('fan/user/register', 'FanUserController@registerFan');
+
+// login for fan APP user
+$app->post('/fan/login/auth', 'FanUserController@authenticate');
 
 $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
-    
+
     //add event for fan API
     $app->post('/fan/event', 'EventController@addEvent');
 
     //get event list for fan API
     $app->get('/fan/events', 'EventController@getEventList');
-    
+
     //remove event for fan APP API'
     $app->post('/fan/event/remove', 'EventController@eventRemove');
-    
+
     //get users list by country id for fan APP 
     $app->get('/fan/users/event/list', 'EventController@userEventList');
-    
+
     //get users list of event
-   // $app->get('/fan/event/users/list', 'EventController@userEventList');
-    
+    // $app->get('/fan/event/users/list', 'EventController@userEventList');
     //register fan userto add db
     $app->post('/fan/event/adduser', 'EventUserController@addUserToDb');
-    
+
     //get all events list for fan APP APIs
     $app->get('/fan/all/events', 'EventController@allEventsUsersList');
-    
+
     //get my events list for fan APP API
     $app->get('/fan/my/events', 'EventController@myEventsUsersList');
-    
+
     //add event for fan API
     $app->post('/fan/event/users/add', 'EventUserController@usersAddEvent');
-    
+
     //add event for fan API
     $app->get('/fan/locations', 'LocationController@getLocationList');
 
     // get user list for fan API
     $app->get('/fan/users/list', 'EventController@getUsersList');
-    
-    
+
+
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
 });
