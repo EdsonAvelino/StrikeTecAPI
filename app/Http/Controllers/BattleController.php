@@ -393,17 +393,27 @@ class BattleController extends Controller
      *          "id": 1,
      *          "name": "Attack",
      *          "key_set": "1-2-SR-2-3-2-5-6-3-2",
+     *          "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *          "keys": [
      *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
-     *          ],
+     *          ]
      *      },
      *      {
      *          "id": 2,
      *          "name": "Crafty",
      *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
+     *          "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *          "keys": [
      *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
-     *          ],
+     *          ]
      *      }
      *      ]
      *    }
@@ -1286,7 +1296,7 @@ class BattleController extends Controller
      *                      {
      *                          "id": 2,
      *                          "type": 2,
-     *                          "activity_name": "Kickboxing"
+     *                          "name": "Kickboxing"
      *                      }
      *                  ]
      *  }
