@@ -15,7 +15,6 @@ class ComboSets extends Model
     protected $fillable = [
         'name',
     ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -32,4 +31,18 @@ class ComboSets extends Model
 
         return implode('-', $keySet);
     }
+
+    public function getTagsAttribute($comboSetId)
+    {
+        $comboSetId = (int) $comboSetId;
+
+        if (empty($comboSetId)) {
+            return null;
+        }
+
+        $tags = \DB::table('combo_set_tags')->where('combo_set_id', $comboSetId)->pluck('tag_id')->toArray();
+
+        return $tags;
+    }
+
 }
