@@ -138,7 +138,7 @@ class Battles extends Model
         
     }
 
-    private static function getComboPunches($comboId)
+    public static function getComboPunches($comboId)
     {
         $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
 

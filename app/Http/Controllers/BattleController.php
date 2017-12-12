@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
 use App\Battles;
+use App\Tags;
 use App\Combos;
 use App\ComboSets;
 use App\Workouts;
@@ -427,7 +428,7 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'),\DB::raw('id as tags'))->get()->toArray();
+        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
 
         foreach ($combos as $i => $combo) {
             $keySet = $combo['key_set'];
@@ -458,6 +459,11 @@ class BattleController extends Controller
      *      {
      *          "id": 1,
      *          "name": "AGGRESSOR",
+     *          "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *          "combos": [
      *              "1", "2", "3"
      *          ],
@@ -465,6 +471,11 @@ class BattleController extends Controller
      *      {
      *          "id": 2,
      *          "name": "DEFENSIVE",
+     *          "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *          "combos": [
      *              "1", "4", "5"
      *          ],
@@ -482,7 +493,7 @@ class BattleController extends Controller
     public function getComboSets()
     {
         $comboSets = [];
-        $_comboSets = ComboSets::get();
+        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'))->get();
 
         foreach ($_comboSets as $comboSet) {
             $_comboSet = $comboSet->toArray();
@@ -514,6 +525,11 @@ class BattleController extends Controller
      *          {
      *              "id": 1,
      *              "name": "Workout 1",
+     *              "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *              "combos": [
      *                  [ 1, 2, 3 ],
      *                  [ 1, 4, 5 ],
@@ -525,6 +541,11 @@ class BattleController extends Controller
      *          {
      *              "id": 2,
      *              "name": "Workout 2",
+     *              "tags": [
+     *                 5,
+     *                 6,
+     *                 7
+     *             ],
      *              "combos": [
      *                  [ 1, 5, 3 ],
      *                  [ 2, 4, 3 ],
@@ -551,7 +572,7 @@ class BattleController extends Controller
         // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::get();
+        $_workouts = Workouts::select('*', \DB::raw('id as tags'))->get();
 
         foreach ($_workouts as $workout) {
             $_workout = $workout->toArray();
@@ -1263,25 +1284,30 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        
+
         $userId = $request->get('user_id');
 
         $data = Battles::getFinishedBattles($userId, $offset, $limit);
-        
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
-    
-     /**
-     * @api {get}/combo/tags list of combo's tags
+
+    /**
+     * @api {get}/tags list of tags
      * @apiGroup Battles
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} type_id Type Id eg. 1 for videos, 2 for combos,3 for workouts, 4 for sets
+     * @apiParamExample {json} Input
+     *    {
+     *      "type_id": 1
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of combo's tags
+     * @apiSuccess {Object} data List of tags
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *   {
@@ -1308,9 +1334,10 @@ class BattleController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getComboTags(Request $request)
+    public function getTags(Request $request)
     {
-        $tagList = Tags::getTags(2);
+        $typeId = $request->get('type_id');
+        $tagList = Tags::getTags($typeId);
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
 

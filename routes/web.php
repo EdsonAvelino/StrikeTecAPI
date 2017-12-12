@@ -184,8 +184,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // upload audio
     $app->post('/combos/audio', 'BattleController@saveAudio');
     
-    // get combo tags
-    $app->post('/combo/tags', 'BattleController@getComboTags');
+    // get tags
+    $app->get('/tags', 'BattleController@getTags');
 
     //lis of combos with audios
     $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
