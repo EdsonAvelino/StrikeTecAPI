@@ -417,7 +417,7 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'))->get()->toArray();
+        $combos = Combos::select('*', \DB::raw('id as key_set'),\DB::raw('id as tags'))->get()->toArray();
 
         foreach ($combos as $i => $combo) {
             $keySet = $combo['key_set'];
@@ -1259,6 +1259,49 @@ class BattleController extends Controller
         $data = Battles::getFinishedBattles($userId, $offset, $limit);
         
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
+    }
+    
+     /**
+     * @api {get}/combo/tags list of combo's tags
+     * @apiGroup Battles
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of combo's tags
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":[
+     *                      {
+     *                          "id": 1,
+     *                          "type": 2,
+     *                          "name": "Boxing"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "type": 2,
+     *                          "activity_name": "Kickboxing"
+     *                      }
+     *                  ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getComboTags(Request $request)
+    {
+        $tagList = Tags::getTags(2);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
 
 }

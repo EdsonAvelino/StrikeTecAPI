@@ -15,7 +15,6 @@ class Combos extends Model
     protected $fillable = [
         'name',
     ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -40,4 +39,18 @@ class Combos extends Model
 
         return $_this->getKeySetAttribute($comboId);
     }
+
+    public function getTagsAttribute($comboId)
+    {
+        $comboId = (int) $comboId;
+
+        if (empty($comboId)) {
+            return null;
+        }
+
+        $tags = \DB::table('combo_tags')->where('combo_id', $comboId)->pluck('tag_id')->toArray();
+
+        return $tags;
+    }
+
 }

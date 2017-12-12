@@ -772,9 +772,8 @@ class UserController extends Controller
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connections'] = $connections;
-        $badgeImgURL = env('APP_URL') . '/storage/badges/';
         $achievementsArr = UserAchievements::getAchievements($userId);
-        $user['achievements'] = $achievementsArr;
+        $user['achievements'] = array_slice($achievementsArr,0, 3);
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }

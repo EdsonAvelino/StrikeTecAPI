@@ -20,7 +20,6 @@ class Videos extends Model
         'duration',
         'author_name'
     ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -37,7 +36,7 @@ class Videos extends Model
 
             $videoFormat = 'video/mp4'; // The MIME type of the video. e.g. video/mp4, video/webm, etc.
 
-            parse_str(file_get_contents("http://youtube.com/get_video_info?video_id=".$videoId), $info);
+            parse_str(file_get_contents("http://youtube.com/get_video_info?video_id=" . $videoId), $info);
 
             $streams = $info['url_encoded_fmt_stream_map'];
             $streams = explode(',', $streams);
@@ -45,18 +44,18 @@ class Videos extends Model
             foreach ($streams as $stream) {
                 parse_str($stream, $data); //Now decode the stream
 
-                if ( stripos($data['type'], $videoFormat) !== false ) {
+                if (stripos($data['type'], $videoFormat) !== false) {
                     return $data['url'];
                 }
             }
         } else {
-            return env('APP_URL').'/storage/videos/'.$value;
+            return env('APP_URL') . '/storage/videos/' . $value;
         }
     }
 
     public function getThumbnailAttribute($value)
     {
-        return env('APP_URL').'/storage/videos/thumbnails/'.$value;
+        return env('APP_URL') . '/storage/videos/thumbnails/' . $value;
     }
 
     public function getThumbWidthAttribute($thumb)
@@ -72,4 +71,10 @@ class Videos extends Model
 
         return $height;
     }
+
+    public function RecommendedVideos()
+    {
+        return $this->belongsTo('App\Videos', 'video_id');
+    }
+
 }
