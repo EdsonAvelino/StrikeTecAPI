@@ -8,7 +8,7 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\Leaderboard;
 use App\Battles;
-use App\User;
+use App\RecommendVideos;
 use App\UserAchievements;
 use App\Achievements;
 use App\Videos;
@@ -977,8 +977,28 @@ class TrainingController extends Controller
             $data['current_damage'] = (int) $sessionForce[$sessionId];
             $data['highest_damage'] = max($sessionForce);
             $data['lowest_damage'] = min($sessionForce);
-            $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])->offset(0)->limit(4)->get();
-            $data['videos'] = $_videos;
+
+            $tag = [];
+            if ($sessionType == 1 || $sessionType == 2) {
+                if ($data['current_speed'] < 10) {
+                    $tag[] = 1; //speed video
+                }
+                if ($data['current_force'] < 350) {
+                    $tag[] = 2; //power video
+                }
+                if ($data['current_speed'] >= 25 && $data['current_force'] >= 450) {
+                    $tag[] = 4; //recommended video
+                }
+//            todo task by nawaz
+            } else {
+                $tag[] = 4; //recommended video
+            }
+            $videos = [];
+            $_videos = RecommendVideos::with('Videos')->whereIn('recommend_tag_id', $tag)->inRandomOrder()->limit(4)->get();
+            foreach ($_videos as $vido) {
+                array_push($videos, $vido['videos'][0]);
+            }
+            $data['videos'] = $videos; // $videos;
             return $data;
         }
 
@@ -1016,7 +1036,7 @@ class TrainingController extends Controller
                         })->where('created_at', '>', $week)
                         ->where('created_at', '<', $createdDate)->pluck('punches_count')->first();
 
-        if ($punchesCount > $badge[0]['config']) {
+        if ($punchesCount > $badge[1]['config']) {
             $userAchievements->punch_count = $userAchievements->punch_count + 1;
         }
 
@@ -1031,7 +1051,7 @@ class TrainingController extends Controller
         if ($getAvgCount->total_time > 0) {
             $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
         }
-        if ($avgCount >= $badge[1]['config']) {
+        if ($avgCount >= $badge[2]['config']) {
             $userAchievements->punches_per_min = $userAchievements->punches_per_min + 1;
         }
 
@@ -1050,13 +1070,13 @@ class TrainingController extends Controller
                         ->where(function ($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->first();
-        if ($punchCount->punches_count > $badge[3]['config']) {
+        if ($punchCount->punches_count > $badge[4]['config']) {
             $userAchievements->powerful_punch = $userAchievements->powerful_punch + 1;
         }
 
 
         /* Badge 5 */
-        if ($punchCount->punches_count > $badge[4]['config']) {
+        if ($punchCount->punches_count > $badge[5]['config']) {
             $userAchievements->top_speed = $userAchievements->top_speed + 1;
         }
 
@@ -1067,7 +1087,7 @@ class TrainingController extends Controller
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->count();
 
-        if ($userParticpation >= $badge[5]['config']) {
+        if ($userParticpation >= $badge[6]['config']) {
             $userAchievements->user_participation = $userAchievements->user_participation + 1;
         }
 
@@ -1088,19 +1108,19 @@ class TrainingController extends Controller
 
         /* Badge 9 */
         $leaderboard = Leaderboard::select('avg_force', 'avg_speed')->where('user_id', \Auth::user()->id)->where('sessions_count', '>=', 10)->first();
-        if ($leaderboard->avg_force >= $badge[8]['config']) {
+        if ($leaderboard->avg_force >= $badge[9]['config']) {
             $userAchievements->accuracy = $userAchievements->accuracy + 1;
         }
 
         /* Badge 10 */
-        if ($leaderboard->avg_speed >= $badge[9]['config']) {
+        if ($leaderboard->avg_speed >= $badge[10]['config']) {
             $userAchievements->strong_man = $userAchievements->strong_man + 1;
         }
 
         /* Badge 11 */
-        $power = $badge[10]['male'];
+        $power = $badge[11]['male'];
         if (\Auth::user()->gender == 'female') {
-            $power = $badge[10]['female'];
+            $power = $badge[11]['female'];
         }
         $sessionRounds = [];
         if ($sessonId) {
@@ -1119,8 +1139,8 @@ class TrainingController extends Controller
         }
 
         /* belts */
-        
-
+        $belts = Battles::getBeltCount(\Auth::user()->id);
+        $userAchievements->belts = $belts;
         $userAchievements->save();
     }
 

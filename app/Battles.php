@@ -260,7 +260,7 @@ class Battles extends Model
     // Finished battles of user
     public static function getFinishedBattles($userId, $offset, $limit)
     {
-        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared','opponent_shared')
+        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared', 'opponent_shared')
                         ->where(function ($query)use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
@@ -285,7 +285,7 @@ class Battles extends Model
                 if ($userId == $battle->opponent_user_id) {
                     $share['shared'] = filter_var($battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
                 }
-                
+
                 $data[] = array_merge($share, $battleResult);
             }
         }
@@ -296,6 +296,40 @@ class Battles extends Model
                                 })->where('winner_user_id', '!=', $userId)->count();
 
         return ['lost' => $lost, 'won' => $won, 'finished' => $data];
+    }
+
+    public static function getBeltCount($userId)
+    {
+        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared', 'opponent_shared')
+                        ->where(function ($query)use($userId) {
+                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                        })
+                        ->where(['opponent_finished' => TRUE])
+                        ->where(['user_finished' => TRUE])
+                        ->orderBy('battles.updated_at', 'desc')
+                        ->get();
+
+        $winCount = $beltCount = 0; 
+        foreach ($finishedBattles as $battle) {
+            $battleResult = self::getResult($battle->battle_id);
+
+            if (!$battleResult['winner'] || !$battleResult['loser']) {
+                continue;
+            } else {
+                if ($battle->winner_user_id == $userId) {
+                    $winCount++;
+                } else {
+                    $winCount = 0;
+                }
+            }
+            if($winCount == 5)
+            {
+                $winCount = 0;
+                $beltCount++;
+            }
+        }
+
+        return $beltCount;
     }
 
 }

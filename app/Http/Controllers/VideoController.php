@@ -410,7 +410,7 @@ class VideoController extends Controller
      *                      },
      *                      {
      *                          "id": 2,
-     *                          "type": 2,
+     *                          "type": 1,
      *                          "activity_name": "Kickboxing Videos"
      *                      }
      *                  ]
@@ -425,7 +425,7 @@ class VideoController extends Controller
      */
     public function getVideoTags(Request $request)
     {
-        $tagList = Tags::all()->where('type', 1);
+        $tagList = Tags::getTags(1);
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
 

@@ -53,18 +53,19 @@ class UserAchievements extends Model
             ];
             $userAchievements = (object) $userAchievements;
         }
-        $achivements[0]['count'] = $userAchievements->punch_count;
-        $achivements[1]['count'] = $userAchievements->punches_per_min;
-        $achivements[2]['count'] = $userAchievements->goal_accomplish;
-        $achivements[3]['count'] = $userAchievements->powerful_punch;
-        $achivements[4]['count'] = $userAchievements->top_speed;
-        $achivements[5]['count'] = $userAchievements->user_participation;
-        $achivements[6]['count'] = $userAchievements->champion;
-        $achivements[7]['count'] = $userAchievements->accuracy;
-        $achivements[8]['count'] = $userAchievements->strong_man;
-        $achivements[9]['count'] = $userAchievements->speed_demon;
-        $achivements[10]['count'] = $userAchievements->iron_fist;
-        $achivements[11]['count'] = $userAchievements->belts;
+        $achivements[0]['count'] = $userAchievements->belts;
+        $achivements[1]['count'] = $userAchievements->punch_count;
+        $achivements[2]['count'] = $userAchievements->punches_per_min;
+        $achivements[3]['count'] = $userAchievements->goal_accomplish;
+        $achivements[4]['count'] = $userAchievements->powerful_punch;
+        $achivements[5]['count'] = $userAchievements->top_speed;
+        $achivements[6]['count'] = $userAchievements->user_participation;
+        $achivements[7]['count'] = $userAchievements->champion;
+        $achivements[8]['count'] = $userAchievements->accuracy;
+        $achivements[9]['count'] = $userAchievements->strong_man;
+        $achivements[10]['count'] = $userAchievements->speed_demon;
+        $achivements[11]['count'] = $userAchievements->iron_fist;
+
         for ($count = 0; $count <= 11; $count++) {
             $achivements[$count]['share'] = false;
             if ($achivements[$count]['count'] > 0) {
