@@ -260,7 +260,7 @@ class Battles extends Model
     // Finished battles of user
     public static function getFinishedBattles($userId, $offset, $limit)
     {
-        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'shared')
+        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared','opponent_shared')
                         ->where(function ($query)use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
