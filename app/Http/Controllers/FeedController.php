@@ -53,8 +53,8 @@ class FeedController extends Controller
      *            },
      *            "user_likes": false
      *            "extra_data": "{
-     *                  \"win_counts\":5,
-     *                  \"lose_counts\":2,
+     *                  \"winner_total_win_counts\":5,
+     *                  \"loser_total_win_counts\":2,
      *                  \"winner\": {
      *                      \"id\": 20,
      *                      \"first_name\": \"da\",
@@ -116,15 +116,15 @@ class FeedController extends Controller
      *            "id": 13,
      *            "post_type_id": 3,
      *            "data_id": 18,
-     *            "title": "Nawaz Me has accomplished goal",
+     *            "title": "Steve Johns has accomplished goal",
      *            "text": null,
      *            "created_at": 1512592159,
      *            "likes_count": 0,
      *            "comments_count": 0,
      *            "user": {
      *                "id": 1,
-     *                "first_name": "Nawaz",
-     *                "last_name": "Me",
+     *                "first_name": "Steve",
+     *                "last_name": "Johns",
      *                "photo_url": null,
      *                "user_following": false,
      *                "user_follower": false,
