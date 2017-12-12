@@ -187,7 +187,6 @@ class FeedController extends Controller
 
                 $_post['extra_data'] = "";
 
-                // TODO /issues/48#issuecomment-348886010
                 switch ($post->post_type_id) {
                     case 1:
                         if ($post->data->user_id == $post->user_id) {
@@ -198,15 +197,25 @@ class FeedController extends Controller
 
                         // extra_data contains feed type related data battle, training, goal etc
                         $extraData = [];
-                        $extraData['win_counts'] = \App\Battles::where('winner_user_id', $post->user_id)->count();
+                        $battleResult = \App\Battles::getResult($post->data_id);
 
-                        $loseCounts = \App\Battles::where(function($query) use($post) {
-                                    $query->where('user_id', $post->user_id)->orWhere('opponent_user_id', $post->user_id);
-                                })->where('winner_user_id', '!=', $post->user_id)->count();
+                        $winnerTotalWinCounts = 0;
+                        $loserTotalWinCounts = 0;
 
-                        $extraData['lose_counts'] = $loseCounts;
+                        if (!is_null($battleResult['winner']) && !is_null($battleResult['loser'])) {
+                            $winnerUserId = $battleResult['winner']['id'];
+                            $loserUserId = $battleResult['loser']['id'];
 
-                        $extraData = array_merge($extraData, \App\Battles::getResult($post->data_id));
+                            $winnerTotalWinCounts = \App\Battles::where('winner_user_id', $winnerUserId)->count();
+                            $loserTotalWinCounts = \App\Battles::where(function($query) use($loserUserId) {
+                                    $query->where('user_id', $loserUserId)->orWhere('opponent_user_id', $loserUserId);
+                                })->where('winner_user_id', $loserUserId)->count();
+                        }
+
+                        $extraData['winner_total_win_counts'] = $winnerTotalWinCounts;
+                        $extraData['loser_total_win_counts'] = $loserTotalWinCounts;
+
+                        $extraData = array_merge($extraData, $battleResult);
                         $_post['extra_data'] = json_encode($extraData);
                         break;
 
