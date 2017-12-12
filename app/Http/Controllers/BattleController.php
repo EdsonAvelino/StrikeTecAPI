@@ -100,35 +100,35 @@ class BattleController extends Controller
      *      "data": {
      *          "id": 8,
      *          "user_id": 31,
-     *          "opponent_user_id": 1,
+     *          "opponent_user_id": 7,
      *          "plan_id": 3,
      *          "type_id": 3,
-     *          "accepted": null,
-     *          "accepted_at": null,
-     *          "user_finished": null,
-     *          "opponent_finished": null,
-     *          "user_finished_at": null,
-     *          "opponent_finished_at": null,
-     *          "winner_user_id": null,
+     *          "accepted": 1,
+     *          "accepted_at": "2017-12-07 18:38:55",
+     *          "user_finished": 1,
+     *          "opponent_finished": 1,
+     *          "user_finished_at": "2017-12-07 20:39:41",
+     *          "opponent_finished_at": 2017-12-07 21:30:59,
+     *          "winner_user_id": 31,
      *          "shared": false,
      *          "created_at": "2017-10-30 19:01:53",
      *          "updated_at": "2017-10-30 19:01:53",
      *          "opponent_user": 
      *              {
-     *                  "id": 1,
-     *                  "first_name": "Nawaz",
-     *                  "last_name": "Me",
+     *                  "id": 7,
+     *                  "first_name": "Qiang",
+     *                  "last_name": "Hu",
      *                  "photo_url": null,
      *                  "points": 2768,
      *                  "user_following": true,
      *                  "user_follower": true
      *              },
-     *          "sender_user_id": 1,
+     *          "sender_user_id": 31,
      *          "battle_result": {
      *              "winner": {
      *                  "id": 31,
-     *                  "first_name": "Test",
-     *                  "last_name": "Test",
+     *                  "first_name": "Rick",
+     *                  "last_name": "Buchner",
      *                  "photo_url": null,
      *                  "user_following": false,
      *                  "user_follower": false,
@@ -166,43 +166,6 @@ class BattleController extends Controller
 
         $_battle = Battles::find($battleId);
 
-        /*
-          $battleData = null;
-
-          switch ($_battle->type_id) {
-          case 3:
-          $_combo = Combos::select('*', \DB::raw('id as key_set'))->where('id', $_battle->plan_id)->first()->toArray();
-
-          $_combo['keys'] = explode('-', $_combo['key_set']);
-
-          $battleData = $_combo;
-          break;
-
-          case 4:
-          $comboSet = ComboSets::find($_battle->plan_id);
-
-          $_comboSet = $comboSet->toArray();
-          $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
-
-          $battleData = $_comboSet;
-          break;
-
-          case 5:
-          $workout = Workouts::find($_battle->plan_id);
-          $_workout = $workout->toArray();
-          $combos = [];
-
-          foreach ($workout->rounds as $round) {
-          $combos[] = $round->combos->pluck('combo_id')->toArray();
-          }
-
-          $_workout['combos'] = $combos;
-
-          $battleData = $_workout;
-          break;
-          }
-         */
-
         // Opponent user is opponent of current logged in user
         $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
 
@@ -215,14 +178,12 @@ class BattleController extends Controller
         // ID of user who created the battle
         $battle['sender_user_id'] = $_battle->user_id;
 
-
         $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
 
         if (\Auth::user()->id == $_battle->opponent_user_id) {
             $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
         }
 
-        // TODO
         // Battle result
         $battle['battle_result'] = Battles::getResult($battleId);
 
@@ -577,7 +538,7 @@ class BattleController extends Controller
      */
     public function getWorkouts()
     {
-        \DB::enableQueryLog();
+        // \DB::enableQueryLog();
 
         $workouts = [];
         $_workouts = Workouts::get();
@@ -802,8 +763,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Anna",
+     *                 "last_name": "Mull",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -817,8 +778,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Paige",
+     *                 "last_name": "Turner",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -836,8 +797,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Petey",
+     *                 "last_name": "Cruiser",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -851,8 +812,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Bob",
+     *                 "last_name": "Frapples",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -881,8 +842,9 @@ class BattleController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         $userId = \Auth::user()->id;
-        $useBattleData = Battles::getFinishedBattles($userId, $offset, $limit);
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData['finished']]);
+        $data = Battles::getFinishedBattles($userId, $offset, $limit);
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
 
     /**
@@ -907,8 +869,8 @@ class BattleController extends Controller
      *                         "battle_id": 7,
      *                         "opponent_user": {
      *                             "id": 1,
-     *                             "first_name": "Nawaz",
-     *                             "last_name": "Me",
+     *                             "first_name": "Mario",
+     *                             "last_name": "Toad",
      *                             "photo_url": null,
      *                             "points": 2768,
      *                             "user_following": true,
@@ -919,8 +881,8 @@ class BattleController extends Controller
      *                         "battle_id": 6,
      *                         "opponent_user": {
      *                             "id": 1,
-     *                             "first_name": "Nawaz",
-     *                             "last_name": "Me",
+     *                             "first_name": "Michal",
+     *                             "last_name": "Latour",
      *                             "photo_url": null,
      *                             "points": 2768,
      *                             "user_following": true,
@@ -933,8 +895,8 @@ class BattleController extends Controller
      *                         "battle_id": 32,
      *                         "opponent_user": {
      *                             "id": 1,
-     *                             "first_name": "Nawaz",
-     *                             "last_name": "Me",
+     *                             "first_name": "Phillip",
+     *                             "last_name": "Newberry",
      *                             "photo_url": null,
      *                             "points": 2768,
      *                             "user_following": true,
@@ -948,8 +910,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Shon",
+     *                 "last_name": "Hunsicker",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -963,8 +925,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Jody",
+     *                 "last_name": "Bridger",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -982,8 +944,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Johnty",
+     *                 "last_name": "Roads",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -997,8 +959,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Fritz",
+     *                 "last_name": "Ellis",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -1180,6 +1142,7 @@ class BattleController extends Controller
     public function getCombosAudio()
     {
         $combos = Combos::select('id', 'name', 'audio')->get()->toArray();
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
     }
 
@@ -1213,8 +1176,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Dalton",
+     *                 "last_name": "Stilwell",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -1228,8 +1191,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Emmitt",
+     *                 "last_name": "Hamblin",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -1247,8 +1210,8 @@ class BattleController extends Controller
      *          "shared": false,
      *          "winner": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Jospeh",
+     *                 "last_name": "Engels",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -1262,8 +1225,8 @@ class BattleController extends Controller
      *          },
      *          "loser": {
      *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
+     *                 "first_name": "Carl",
+     *                 "last_name": "Cuomo",
      *                 "photo_url": null,
      *                 "points": 0,
      *                 "user_following": false,
@@ -1290,8 +1253,11 @@ class BattleController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        
         $userId = $request->get('user_id');
+
         $data = Battles::getFinishedBattles($userId, $offset, $limit);
+        
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
 

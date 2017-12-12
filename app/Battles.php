@@ -287,14 +287,13 @@ class Battles extends Model
                 }
                 
                 $data[] = array_merge($share, $battleResult);
-
-                if ($battle->winner_user_id == $userId) {
-                    $won = $won + 1;
-                } else {
-                    $lost = $lost + 1;
-                }
             }
         }
+
+        $won = \App\Battles::where('winner_user_id', $userId)->count();
+        $lost = \App\Battles::where(function($query) use($userId) {
+                                    $query->where('user_id', $userId)->orWhere('opponent_user_id', $userId);
+                                })->where('winner_user_id', '!=', $userId)->count();
 
         return ['lost' => $lost, 'won' => $won, 'finished' => $data];
     }
