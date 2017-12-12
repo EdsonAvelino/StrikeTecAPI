@@ -411,7 +411,7 @@ class VideoController extends Controller
      *                      {
      *                          "id": 2,
      *                          "type": 1,
-     *                          "activity_name": "Kickboxing Videos"
+     *                          "name": "Kickboxing Videos"
      *                      }
      *                  ]
      *  }
