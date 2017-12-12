@@ -258,16 +258,21 @@ class Battles extends Model
     }
 
     // Finished battles of user
-    public static function getFinishedBattles($userId, $offset, $limit)
+    public static function getFinishedBattles($userId, $days = 0, $offset = 0, $limit = 20)
     {
-        $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared', 'opponent_shared')
+        $_finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared','opponent_shared')
                         ->where(function ($query)use($userId) {
                             $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
                         })
                         ->where(['opponent_finished' => TRUE])
                         ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->offset($offset)->limit($limit)->get();
+                        ->orderBy('battles.updated_at', 'desc');
+        
+        if ($days > 1) {
+            $_finishedBattles->whereRaw('created_at >= DATE_FORMAT(NOW(), "%Y-%m-%d 00:00:00") - INTERVAL '.$days.' DAY');
+        }
+
+        $finishedBattles = $_finishedBattles->offset($offset)->limit($limit)->get();
 
         $data = [];
         $lost = $won = 0;

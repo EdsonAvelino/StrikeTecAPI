@@ -775,10 +775,12 @@ class BattleController extends Controller
      *     }
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
+     * @apiParam {Number="0 = All", "7 = Last 7 Days", "30 = Last 30 Days",  "60 = Last 30 Days", "90 = Last 90 Days"} [days] Filter records by days interval
      * @apiParamExample {json} Input
      *    {
      *      "start": 20,
-     *      "limit": 50
+     *      "limit": 50,
+     *      "days": 7
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -872,8 +874,10 @@ class BattleController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
+        $days = (int) ($request->get('days') ? $request->get('days') : null);
+
         $userId = \Auth::user()->id;
-        $data = Battles::getFinishedBattles($userId, $offset, $limit);
+        $data = Battles::getFinishedBattles($userId, $days, $offset, $limit);
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
@@ -1059,7 +1063,7 @@ class BattleController extends Controller
             $j++;
         }
         $useBattleData['my_battles'] = $my_battle_data;
-        $finished = Battles::getFinishedBattles($userId, 0, 20);
+        $finished = Battles::getFinishedBattles($userId);
         $useBattleData['finished'] = $finished['finished'];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
@@ -1287,7 +1291,7 @@ class BattleController extends Controller
 
         $userId = $request->get('user_id');
 
-        $data = Battles::getFinishedBattles($userId, $offset, $limit);
+        $data = Battles::getFinishedBattles($userId, null, $offset, $limit);
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
