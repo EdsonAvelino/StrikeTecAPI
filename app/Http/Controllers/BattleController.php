@@ -1341,7 +1341,11 @@ class BattleController extends Controller
     public function getTags(Request $request)
     {
         $typeId = $request->get('type_id');
-        $tagList = Tags::getTags($typeId);
+        if ($typeId) {
+            $tagList = Tags::getTags($typeId);
+        } else {
+            $tagList = Tags::all();
+        }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
 
