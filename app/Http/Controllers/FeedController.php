@@ -355,8 +355,9 @@ class FeedController extends Controller
     public function postLike($postId)
     {
         $postId = (int) $postId;
+        $post = Posts::find($postId);
 
-        if ($postId &&
+        if ($post &&
                 !(PostLikes::where('post_id', $postId)->where('user_id', \Auth::user()->id)->exists())
         ) {
 
@@ -364,6 +365,11 @@ class FeedController extends Controller
                 'post_id' => $postId,
                 'user_id' => \Auth::user()->id,
             ]);
+
+            if ($post->user_id != \Auth::user()->id) {
+                // Generates new notification for user
+                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_LIKE, $post->user_id, \Auth::user()->id);
+            }
 
             return response()->json(['error' => 'false', 'message' => 'Liked']);
         }
@@ -579,14 +585,24 @@ class FeedController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function postComment(Request $request)
+    public function postComment(Request $request, $postId)
     {
-        PostComments::create([
-            'user_id' => \Auth::user()->id,
-            'post_id' => (int) $request->get('post_id'),
-            'text' => $request->get('text'),
-        ]);
+        $postId = (int) $postId;
+        $post = Posts::find($postId);
 
+        if ($post) {
+            PostComments::create([
+                'user_id' => \Auth::user()->id,
+                'post_id' => $postId,
+                'text' => $request->get('text'),
+            ]);
+
+            // Generates new notification for user
+            if ($post->user_id != \Auth::user()->id) {
+                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_COMMENT, $post->user_id, \Auth::user()->id);
+            }
+        }
+        
         return response()->json(['error' => 'false', 'message' => 'Comment added']);
     }
 }

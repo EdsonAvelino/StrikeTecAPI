@@ -70,6 +70,9 @@ class BattleController extends Controller
         // Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
         Push::send(PushTypes::BATTLE_INVITE, $opponentUserId, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
+        // Generates new notification for user
+        \App\UserNotifications::generate(\App\UserNotifications::BATTLE_CHALLENGED, $opponentUserId, \Auth::user()->id);
+
         return response()->json([
                     'error' => 'false',
                     'message' => 'User invited for battle successfully',

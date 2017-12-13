@@ -322,7 +322,7 @@ class TrainingController extends Controller
             // Update battle details, if any
             if ($_session->battle_id) {
                 $battle = Battles::where('id', $_session->battle_id)->first();
-
+                
                 if (\Auth::user()->id == $battle->user_id) {
                     $battle->user_finished = 1;
                     $battle->user_finished_at = date('Y-m-d H:i:s');
@@ -345,6 +345,9 @@ class TrainingController extends Controller
 
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
 
+                // Generates new notification for user
+                \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId);
+                
                 $battle->update();
             } else {
                 // Update goal progress

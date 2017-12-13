@@ -892,6 +892,9 @@ class UserController extends Controller
                 'follow_user_id' => $userId,
             ]);
 
+            // Generates new notification for user
+            UserNotifications::generate(UserNotifications::FOLLOW, $userId, \Auth::user()->id);
+
             $followUser = User::find($userId);
 
             return response()->json([
@@ -1663,8 +1666,11 @@ class UserController extends Controller
 
         $messagesCount = (int) @$chats->sum('messages_count');
 
-        // TODO get unread notification counts
-        $unreadCounts = ['chat_count' => $messagesCount, 'notif_count' => 0];
+        $notificationsCount = UserNotifications::where('user_id', $userId)->where(function ($query) {
+            $query->whereNull('is_read')->orWhere('is_read', 0);
+        })->orderBy('created_at', 'desc')->count();
+
+        $unreadCounts = ['chat_count' => $messagesCount, 'notif_count' => $notificationsCount];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }

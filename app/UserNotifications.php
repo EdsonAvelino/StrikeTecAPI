@@ -6,19 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserNotifications extends Model
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'user_id',
+        'data_user_id',
         'text'
     ];
 
-    protected $hidden = [];
+    protected $hidden = [
+        'read_at'
+    ];
     
+    public $timestamps = false;
+
     const FOLLOW = 1;
     const BATTLE_CHALLENGED = 2;
     const BATTLE_FINISHED = 3;
@@ -37,12 +36,18 @@ class UserNotifications extends Model
     {
         parent::boot();
         
-        $titleTemplates = self::$titleTemplates;
-
-        static::creating(function ($model) use ($titleTemplates) {
-            $model->title = $titleTemplates[$model->post_type_id];
+        static::creating(function ($model) {
             $model->created_at = $model->freshTimestamp();
         });
+    }
+
+    public static function generate($type, $toUserId, $dataUserId)
+    {
+        return self::create([
+            'user_id' => $toUserId,
+            'data_user_id' => $dataUserId,
+            'text' => self::$textTemplates[$type]
+        ]);
     }
 
     public function user()
