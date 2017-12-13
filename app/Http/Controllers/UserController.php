@@ -12,6 +12,8 @@ use App\Sessions;
 use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
+use App\UserNotifications;
+
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -1810,11 +1812,9 @@ class UserController extends Controller
     /**
      * @api {get} /users/achivements Get list of achivements
      * @apiGroup Users
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} user_id Start offset
@@ -1932,7 +1932,9 @@ class UserController extends Controller
     public function getAchievementList(Request $request)
     {
         $userId = $request->get('user_id');
+        
         $achivments = UserAchievements::getAchievements($userId);
+        
         return response()->json([
                     'error' => 'false',
                     'message' => '',
@@ -1940,4 +1942,55 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /users/notifications Get all unread notifications of current user
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's unread notifications
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": [
+     *               
+     *          ]
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getNotifications(Request $request)
+    {
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
+
+        $_notifications = UserNotifications::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
+
+        $notifications = [];
+
+        foreach ($_notifications as $notification) {
+            $temp = $notification->toArray();
+            $dataUserFullName = $notification->dataUser->first_name . ' ' . $notification->dataUser->last_name;
+            $temp['text'] = str_replace('_USER1_', $dataUserFullName, $notification->text);
+
+            $notifications[] = $temp;
+        }
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $notifications,
+        ]);
+    }
 }

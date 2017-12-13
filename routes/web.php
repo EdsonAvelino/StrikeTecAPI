@@ -71,6 +71,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
     $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+    
+    $app->get('/user/notifications', 'UserController@getNotifications');
 });
 
 // Training APIs
