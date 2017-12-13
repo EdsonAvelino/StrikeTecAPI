@@ -1297,14 +1297,9 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get}/tags list of tags
+     * @api {get}/tags Get list of tags
      * @apiGroup Battles
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} type_id Type Id eg. 1 for videos, 2 for combos,3 for workouts, 4 for sets
+     * @apiParam {Number} [type_id] Type Id eg. 1 for videos, 2 for combos,3 for workouts, 4 for sets
      * @apiParamExample {json} Input
      *    {
      *      "type_id": 1

@@ -39,6 +39,9 @@ $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 // Get FAQs
 $app->get('/faqs', 'UserController@getFaqs');
 
+// get tags
+$app->get('/tags', 'BattleController@getTags');
+
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -183,11 +186,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // upload audio
     $app->post('/combos/audio', 'BattleController@saveAudio');
-    
-    // get tags
-    $app->get('/tags', 'BattleController@getTags');
 
-    //lis of combos with audios
+    //list of combos with audios
     $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
 
     // Get list of comobo-sets
