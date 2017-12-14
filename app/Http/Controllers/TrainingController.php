@@ -377,7 +377,9 @@ class TrainingController extends Controller
                 }
             }
         }
+        
         $this->achivements($_session->id);
+
         // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
         $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
@@ -1008,12 +1010,13 @@ class TrainingController extends Controller
         return false;
     }
 
-//achievements
+    // Achievements
     public function achivements($sessonId)
     {
         $userAchievements = UserAchievements::where('user_id', \Auth::user()->id)->first();
         $badge = Achievements::all()->toArray();
-        $sessonId = $request->session_id;
+        // $sessonId = $request->session_id;
+        
         if ($userAchievements === null) {
             $userAchievements = UserAchievements::create([
                         'user_id' => \Auth::user()->id,
@@ -1030,6 +1033,7 @@ class TrainingController extends Controller
                         'iron_fist' => false,
             ]);
         }
+        
         /* Badge 1 */
         $createdDate = date('y-m-d');
         $week = date('y-m-d', strtotime('-1 week'));
@@ -1058,7 +1062,6 @@ class TrainingController extends Controller
             $userAchievements->punches_per_min = $userAchievements->punches_per_min + 1;
         }
 
-
         /* Badge 3 */
         $goal = Goals::select('start_at', 'end_at', 'target', 'done_count')->where('user_id', \Auth::user()->id)->where('followed', 1)->first();
         $progress = $goal->done_count * 100 / $goal->target;
@@ -1066,7 +1069,6 @@ class TrainingController extends Controller
         if ((int) $progress > 100) {
             $userAchievements->goal_accomplish = $userAchievements->goal_accomplish + 1;
         }
-
 
         /* Badge 4 */
         $punchCount = Sessions::select('punches_count')->where('user_id', \Auth::user()->id)
@@ -1076,7 +1078,6 @@ class TrainingController extends Controller
         if ($punchCount->punches_count > $badge[4]['config']) {
             $userAchievements->powerful_punch = $userAchievements->powerful_punch + 1;
         }
-
 
         /* Badge 5 */
         if ($punchCount->punches_count > $badge[5]['config']) {
@@ -1102,9 +1103,7 @@ class TrainingController extends Controller
             }
         }
 
-
         /* Badge 8 */
-
         if ($getAvgCount->punches >= 100) {
             
         }
@@ -1146,7 +1145,6 @@ class TrainingController extends Controller
         $userAchievements->belts = $belts;
         $userAchievements->save();
     }
-
 }
 
 ?> 
