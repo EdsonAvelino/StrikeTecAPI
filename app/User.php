@@ -161,7 +161,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'speed_demon' => false,
                 'iron_fist' => false,
             ]);
-            
+
             Leaderboard::create([
                 'user_id' => $user->id,
                 'sessions_count' => 0,
@@ -172,6 +172,16 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         static::deleting(function($user) {
             // TODO Cleanup when user deleted, delete all their data & settings 
         });
+    }
+
+    public function setFirstNameAttribute($firstName)
+    {
+        $this->attributes['first_name'] = ucfirst(strtolower($firstName));
+    }
+
+    public function setLastNameAttribute($lastName)
+    {
+        $this->attributes['last_name'] = ucfirst(strtolower($lastName));
     }
 
     public function getAgeAttribute($birthday)

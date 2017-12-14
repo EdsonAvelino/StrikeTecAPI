@@ -102,7 +102,8 @@ class UserController extends Controller
      *              "id": 6997,
      *              "state_id": 286,
      *              "name": "Pettenbach"
-     *          }
+     *          },
+     *          "points": 0
      *      }
      *    }
      * @apiErrorExample {json} Error Response
@@ -148,9 +149,12 @@ class UserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id())->toArray();
+        
+        $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
+        $user['points'] = (int) $userPoints;
 
-        return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => \Auth::user()]);
+        return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
     }
 
     /**
@@ -222,7 +226,8 @@ class UserController extends Controller
      *              "id": 6997,
      *              "state_id": 286,
      *              "name": "Pettenbach"
-     *          }
+     *          },
+     *          "points": 0
      *      }
      *    }
      * @apiErrorExample {json} Error response
@@ -268,9 +273,12 @@ class UserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id())->toArray();
 
-        return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => \Auth::user()]);
+        $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
+        $user['points'] = (int) $userPoints;
+
+        return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => $user]);
     }
 
     /**
@@ -566,8 +574,9 @@ class UserController extends Controller
      *                  "name": "Pettenbach"
      *              },
      *             "user_following": true,
-     *             "user_follower": false
-     *             "total_time_trained": 5235
+     *             "user_follower": false,
+     *             "points": 2999,
+     *             "total_time_trained": 5235,
      *             "total_time_trained": 15090,
      *             "total_day_trained": 32,
      *             "avg_speed": 438,
@@ -744,18 +753,21 @@ class UserController extends Controller
         }
 
         // user_following = current user is following this user
-        $following = UserConnections::where('follow_user_id', $userId)
+        $userFollowing = UserConnections::where('follow_user_id', $userId)
                         ->where('user_id', \Auth::user()->id)->exists();
 
         // user_follower = this user if following current user
-        $follow = UserConnections::where('user_id', $userId)
+        $userFollower = UserConnections::where('user_id', $userId)
                         ->where('follow_user_id', \Auth::user()->id)->exists();
 
         $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         $userData = $userData->toArray();
-        $userData['user_following'] = (bool) $following;
-        $userData['user_follower'] = (bool) $follow;
+        $userData['user_following'] = (bool) $userFollowing;
+        $userData['user_follower'] = (bool) $userFollower;
+
+        $userPoints = User::select('id as points')->where('id', $userId)->pluck('points')->first();
+        $userData['points'] = (int) $userPoints;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
         $data = $this->getAvgSpeedAndForce($userId);

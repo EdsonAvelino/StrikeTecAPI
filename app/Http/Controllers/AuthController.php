@@ -87,7 +87,8 @@ class AuthController extends Controller
      *              "id": 6997,
      *              "state_id": 286,
      *              "name": "Pettenbach"
-     *          }
+     *          },
+     *          "points": 2500
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
@@ -123,7 +124,10 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city','company'])->find(\Auth::id());
+        $user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id())->toArray();
+
+        $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
+        $user['points'] = (int) $userPoints;
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
@@ -191,7 +195,8 @@ class AuthController extends Controller
      *              "id": 6997,
      *              "state_id": 286,
      *              "name": "Pettenbach"
-     *          }
+     *          },
+     *          "points": 2752
      *      }
      *    }
      * @apiErrorExample {json} Authentication error
@@ -224,7 +229,10 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id());
+        $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id())->toArray();
+
+        $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
+        $user['points'] = (int) $userPoints;
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
