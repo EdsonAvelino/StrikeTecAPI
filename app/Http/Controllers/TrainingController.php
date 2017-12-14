@@ -667,8 +667,9 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $punch) {
+                $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-// Store punch
+                // Store punches
                 $_punch = SessionRoundPunches::create([
                             'session_round_id' => $sessionRound->id,
                             'punch_time' => $punch['punch_time'],
@@ -1033,7 +1034,7 @@ class TrainingController extends Controller
                         'iron_fist' => false,
             ]);
         }
-        
+
         /* Badge 1 */
         $createdDate = date('y-m-d');
         $week = date('y-m-d', strtotime('-1 week'));
