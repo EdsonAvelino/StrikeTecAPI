@@ -801,10 +801,11 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_achivements] Show achivements on to public profile or not
      * @apiParam {Boolean} [show_training_stats] Show training statistics on to public profile or not
      * @apiParam {Boolean} [show_challenges_history] Show challenges history on to public profile or not
+     * @apiParam {Boolean} [badge_notification] Badge notification
      * @apiParamExample {json} Input
      *    {
      *      "public_profile": true,
-     *      "show_achivements": false,
+     *      "badge_notification": true
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -812,13 +813,13 @@ class UserController extends Controller
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "false",
-     *          "message": "Preferences have been updated successfully",
+     *          "message": "Preferences have been saved",
      *      }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
-     *          "message": "Error message what problem is..."
+     *          "message": "Invalid request"
      *      }
      * @apiVersion 1.0.0
      */
@@ -841,11 +842,14 @@ class UserController extends Controller
         $showChallengesHistory = filter_var($request->get('show_challenges_history'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_challenges_history = $request->get('show_challenges_history') ? $showChallengesHistory : $userPreferences->show_challenges_history;
 
+        $badgeNotification = filter_var($request->get('badge_notification'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->badge_notification = $request->get('badge_notification') ? $badgeNotification : $userPreferences->badge_notification;
+
         $userPreferences->save();
 
         return response()->json([
                     'error' => 'false',
-                    'message' => 'Preferences have been updated successfully',
+                    'message' => 'Preferences have been saved',
         ]);
     }
 

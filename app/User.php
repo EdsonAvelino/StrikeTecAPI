@@ -130,6 +130,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'show_achivements' => true,
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
+                'badge_notification' => true
             ]);
 
             Settings::create([
@@ -145,8 +146,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'striketec_promos' => true,
                 'striketec_news' => true
             ]);
+
             UserAchievements::create([
-                'user_id' => \Auth::user()->id,
+                'user_id' => $user->id,
                 'punch_count' => false,
                 'punches_per_min' => false,
                 'goal_accomplish' => false,
@@ -159,6 +161,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'speed_demon' => false,
                 'iron_fist' => false,
             ]);
+            
             Leaderboard::create([
                 'user_id' => $user->id,
                 'sessions_count' => 0,
