@@ -378,7 +378,7 @@ class TrainingController extends Controller
             }
         }
         
-        $this->achivements($_session->id);
+       // $this->achivements($_session->id);
 
         // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
