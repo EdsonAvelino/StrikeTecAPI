@@ -48,9 +48,10 @@ class Push
                 if (!$notifSettings->battle_update) return;
                 break;
 
-            case PushTypes::CHAT_SEND_MESSAGE:
-                if (!$notifSettings->new_message) return;
-                break;
+            // commented reason /issues/24#issuecomment-349465302
+            // case PushTypes::CHAT_SEND_MESSAGE:
+            //     if (!$notifSettings->new_message) return;
+            //     break;
         }
 
         self::$typeId = $typeId;
