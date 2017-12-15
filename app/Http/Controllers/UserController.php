@@ -1968,11 +1968,43 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
-        $_notifications = UserNotifications::with(['opponentUser' => function($query) {
+        // Current week's monday to sunday
+        $currentWeekStart = strtotime("last monday midnight");
+        $currentWeekEnd = strtotime("next sunday", $currentWeekStart);
+
+        // Last week's monday to sunday
+        $lastWeek = strtotime("-1 week +1 day");
+        $lastWeekStart = strtotime("last monday midnight", $lastWeek);
+        $lastWeekEnd = strtotime("next sunday", $lastWeekStart);
+
+        $lastWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
+            ->where('start_time', '>', ($lastWeekStart * 1000))
+            ->where('start_time', '<', (($lastWeekEnd * 1000) - 1))
+            ->orderBy('avg_force', 'desc')->limit(1)->first();
+
+        $currentWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
+            ->where('start_time', '>', ($currentWeekStart * 1000))
+            ->where('start_time', '<', (($currentWeekEnd * 1000) - 1))
+            ->orderBy('avg_force', 'desc')->limit(1)->first();
+
+        $lastWeekMaxAvgForce = $currentWeekMaxAvgForce = 0;
+        
+        if ($lastWeekBestSession) {
+            $lastWeekMaxAvgForce = $lastWeekBestSession->avg_force;
+        }
+
+        if ($currentWeekBestSession) {
+            $currentWeekMaxAvgForce = $currentWeekBestSession->avg_force;
+        }
+
+        $percentage = @($currentWeekMaxAvgForce / $lastWeekMaxAvgForce);
+
+        $_notifications = UserNotifications::with(['opponentUser' => function ($query) {
                     $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
                 }])->where('user_id', \Auth::user()->id)->orderBy('created_at')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
+        $notifications[] = ['percentage' => (int) round($percentage)];
 
         foreach ($_notifications as $notification) {
             $temp = $notification->toArray();
