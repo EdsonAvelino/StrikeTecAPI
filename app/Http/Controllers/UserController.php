@@ -1922,7 +1922,7 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Any="#ID = to mark single notification read", "#to-#from = e.g. 2-10 will mark notificaions read having id in range of 2 to 10", "all = will mark all of current user's notification read"} user_id Start offset
+     * @apiParam {Any="#ID = to mark single notification read", "#to-#from = e.g. 2-10 will mark notificaions read having id in range of 2 to 10", "all = will mark all of current user's notification read"} notification_id Notification e.g. 1, 2-10 or all
      * @apiParamExample {json} Input
      *    {
      *      "notification_id": 20
