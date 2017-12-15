@@ -287,6 +287,7 @@ $app->post('fan/user/register', 'FanUserController@registerFan');
 // login for fan APP user
 $app->post('/fan/login/auth', 'FanUserController@authenticate');
 
+//fan app authentication
 $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 
     //add event for fan API
@@ -321,6 +322,9 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     // get user list for fan API
     $app->get('/fan/users/list', 'EventController@getUsersList');
 
-
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
+    
+     // Change password
+    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
+
 });

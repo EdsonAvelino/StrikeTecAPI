@@ -185,4 +185,60 @@ class FanUserController extends Controller
         $user = FanUser::with('company')->find(\Auth::id());
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'data' => $user]);
     }
+    
+    
+     /**
+     * @api {post} /fan/user/change_password Change Fan user's password
+     * @apiGroup Fan User
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Boolean} old_password Current password
+     * @apiParam {Boolean} password New password to set
+     * @apiParamExample {json} Input
+     *    {
+     *      "old_password": "Something123",
+     *      "password": "NewPassword123",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Password changed successfully",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid old password"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function setFanUserPassword(Request $request)
+    {
+        // Get current user
+        $user = \Auth::user();
+
+        $oldPassword = $request->get('old_password');
+
+        if (app('hash')->check($oldPassword, $user->password)) {
+            $user->where('id', $user->id)->update(['password' => app('hash')->make($request->get('password'))]);
+
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'Password changed successfully'
+            ]);
+        } else {
+            return response()->json([
+                        'error' => 'true',
+                        'message' => 'Invalid old password'
+            ]);
+        }
+    }
 }
