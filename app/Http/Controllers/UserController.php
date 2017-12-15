@@ -1864,7 +1864,22 @@ class UserController extends Controller
      *          "error": "false",
      *          "message": "",
      *          "data": [
-     *               
+     *               {
+     *                  "id": 1,
+     *                  "user_id": 1,
+     *                  "data_user_id": 20,
+     *                  "text": "Da Cheng has finished battle",
+     *                  "is_read": null,
+     *                  "created_at": 1513240151
+     *              },
+     *              {
+     *                  "id": 2,
+     *                  "user_id": 1,
+     *                  "data_user_id": 7,
+     *                  "text": "Qiang Hu is now following you",
+     *                  "is_read": null,
+     *                  "created_at": 1513240163
+     *              }
      *          ]
      *      }
      * @apiErrorExample {json} Error Response
@@ -1880,7 +1895,7 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
-        $_notifications = UserNotifications::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
+        $_notifications = UserNotifications::where('user_id', \Auth::user()->id)->orderBy('created_at')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
 
@@ -1896,6 +1911,57 @@ class UserController extends Controller
                     'error' => 'false',
                     'message' => '',
                     'data' => $notifications,
+        ]);
+    }
+
+    /**
+     * @api {get} /users/notifications/read/<notification_id> Mark notifications read
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Any="#ID = to mark single notification read", "#to-#from = e.g. 2-10 will mark notificaions read having id in range of 2 to 10", "all = will mark all of current user's notification read"} user_id Start offset
+     * @apiParamExample {json} Input
+     *    {
+     *      "notification_id": 20
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's unread notifications
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Marked notifications read",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function readNotifications(Request $request, $notificationId)
+    {
+        $notificationIds = [];
+        
+        if (is_numeric($notificationId)) {
+            $_notifications = UserNotifications::where('id', $notificationId)->where('user_id', \Auth::id());
+        } elseif (count($exploded = explode('-', $notificationId)) > 1) {
+            $notificationIds = range($exploded[0], $exploded[1]);
+            $_notifications = UserNotifications::whereIn('id', $notificationIds)->where('user_id', \Auth::id());
+        } elseif (strtolower($notificationId) == 'all') {
+            $_notifications = UserNotifications::where('user_id', \Auth::id());
+        }
+
+        $_notifications->update(['is_read' => 1, 'read_at' => date('Y-m-d H:i:s')]);
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => 'Marked notifications read'
         ]);
     }
 }
