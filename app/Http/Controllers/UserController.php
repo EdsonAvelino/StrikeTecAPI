@@ -1864,6 +1864,9 @@ class UserController extends Controller
      *          "error": "false",
      *          "message": "",
      *          "data": [ {
+     *                "percentage": 1
+     *              },
+     *              {
      *                 "id": 4,
      *                 "user_id": 1,
      *                 "notification_type_id": 1,
