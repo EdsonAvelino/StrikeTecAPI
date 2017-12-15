@@ -1863,23 +1863,96 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *          "data": [
-     *               {
-     *                  "id": 1,
-     *                  "user_id": 1,
-     *                  "data_user_id": 20,
-     *                  "text": "Da Cheng has finished battle",
-     *                  "is_read": null,
-     *                  "created_at": 1513240151
-     *              },
-     *              {
-     *                  "id": 2,
-     *                  "user_id": 1,
-     *                  "data_user_id": 7,
-     *                  "text": "Qiang Hu is now following you",
-     *                  "is_read": null,
-     *                  "created_at": 1513240163
-     *              }
+     *          "data": [ {
+     *                 "id": 4,
+     *                 "user_id": 1,
+     *                 "notification_type_id": 1,
+     *                 "text": "Tia Maria is now following you",
+     *                 "is_read": null,
+     *                 "created_at": false,
+     *                 "opponent_user": {
+     *                     "id": 31,
+     *                     "first_name": "Tia",
+     *                     "last_name": "Maria",
+     *                     "photo_url": "http://example.com/image.jpg",
+     *                     "user_following": false,
+     *                     "user_follower": true,
+     *                     "points": 2367
+     *                 }
+     *             },
+     *             {
+     *                 "id": 5,
+     *                 "user_id": 1,
+     *                 "notification_type_id": 2,
+     *                 "text": "Tisa Cott has challenged you for battle",
+     *                 "is_read": null,
+     *                 "created_at": false,
+     *                 "opponent_user": {
+     *                     "id": 15,
+     *                     "first_name": "Tisa",
+     *                     "last_name": "Cott",
+     *                     "photo_url": null,
+     *                     "user_following": false,
+     *                     "user_follower": false,
+     *                     "points": 433
+     *                 },
+     *                 "battle_id": 131
+     *             },
+     *             {
+     *                 "id": 6,
+     *                 "user_id": 1,
+     *                 "notification_type_id": 4,
+     *                 "text": "John Smith likes your post",
+     *                 "is_read": null,
+     *                 "created_at": false,
+     *                 "opponent_user": {
+     *                     "id": 16,
+     *                     "first_name": "John",
+     *                     "last_name": "Smith",
+     *                     "photo_url": null,
+     *                     "user_following": false,
+     *                     "user_follower": false,
+     *                     "points": 7247
+     *                 },
+     *                 "post_id": 1
+     *             },
+     *             {
+     *                 "id": 10,
+     *                 "user_id": 1,
+     *                 "notification_type_id": 5,
+     *                 "text": "Weebo Pet has commented on your post",
+     *                 "is_read": null,
+     *                 "created_at": false,
+     *                 "opponent_user": {
+     *                     "id": 22,
+     *                     "first_name": "Weebo",
+     *                     "last_name": "Pet",
+     *                     "photo_url": null,
+     *                     "user_following": false,
+     *                     "user_follower": false,
+     *                     "points": 0
+     *                 },
+     *                 "post_id": 1
+     *             },
+     *             {
+     *                 "id": 1,
+     *                 "user_id": 1,
+     *                 "notification_type_id": 3,
+     *                 "text": "De Soza has finished battle",
+     *                 "is_read": null,
+     *                 "created_at": 1513240151,
+     *                 "opponent_user": {
+     *                     "id": 7,
+     *                     "first_name": "De",
+     *                     "last_name": "Soza",
+     *                     "photo_url": "http://example.com/image.jpg",
+     *                     "user_following": true,
+     *                     "user_follower": true,
+     *                     "points": 3270
+     *                 },
+     *                 "battle_id": 32,
+     *                 "battle_finished": false
+     *             }
      *          ]
      *      }
      * @apiErrorExample {json} Error Response
@@ -1895,14 +1968,34 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
-        $_notifications = UserNotifications::where('user_id', \Auth::user()->id)->orderBy('created_at')->offset($offset)->limit($limit)->get();
+        $_notifications = UserNotifications::with(['opponentUser' => function($query) {
+                    $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
+                }])->where('user_id', \Auth::user()->id)->orderBy('created_at')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
 
         foreach ($_notifications as $notification) {
             $temp = $notification->toArray();
-            $dataUserFullName = $notification->dataUser->first_name . ' ' . $notification->dataUser->last_name;
-            $temp['text'] = str_replace('_USER1_', $dataUserFullName, $notification->text);
+            $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
+
+            $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+            switch ($notification->notification_type_id) {
+                case UserNotifications::BATTLE_CHALLENGED:
+                    $temp['battle_id'] = $notification->data_id;
+                    break;
+                
+                case UserNotifications::BATTLE_FINISHED:
+                    $temp['battle_id'] = $notification->data_id;
+
+                    $battle = \App\Battles::find($notification->data_id);
+                    $temp['battle_finished'] = filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN);
+                    break;
+
+                case UserNotifications::FEED_POST_LIKE:
+                case UserNotifications::FEED_POST_COMMENT:
+                    $temp['post_id'] = $notification->data_id;
+                    break;
+            }
 
             $notifications[] = $temp;
         }

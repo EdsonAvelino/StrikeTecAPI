@@ -9,11 +9,15 @@ class UserNotifications extends Model
     protected $fillable = [
         'user_id',
         'data_user_id',
+        'notification_type_id',
+        'data_id',
         'text'
     ];
 
     protected $hidden = [
-        'read_at'
+        'read_at',
+        'data_user_id',
+        'data_id'
     ];
     
     public $timestamps = false;
@@ -41,11 +45,13 @@ class UserNotifications extends Model
         });
     }
 
-    public static function generate($type, $toUserId, $dataUserId)
+    public static function generate($type, $toUserId, $dataUserId, $dataId)
     {
         return self::create([
             'user_id' => $toUserId,
             'data_user_id' => $dataUserId,
+            'notification_type_id' => $type,
+            'data_id' => $dataId,
             'text' => self::$textTemplates[$type]
         ]);
     }
@@ -55,7 +61,7 @@ class UserNotifications extends Model
         return $this->hasOne('App\User', 'id', 'user_id');
     }
 
-    public function dataUser()
+    public function opponentUser()
     {
         return $this->hasOne('App\User', 'id', 'data_user_id');
     }

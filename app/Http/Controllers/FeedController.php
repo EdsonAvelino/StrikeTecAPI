@@ -368,7 +368,7 @@ class FeedController extends Controller
 
             if ($post->user_id != \Auth::user()->id) {
                 // Generates new notification for user
-                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_LIKE, $post->user_id, \Auth::user()->id);
+                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_LIKE, $post->user_id, \Auth::user()->id, $postId);
             }
 
             return response()->json(['error' => 'false', 'message' => 'Liked']);
@@ -599,7 +599,7 @@ class FeedController extends Controller
 
             // Generates new notification for user
             if ($post->user_id != \Auth::user()->id) {
-                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_COMMENT, $post->user_id, \Auth::user()->id);
+                \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_COMMENT, $post->user_id, \Auth::user()->id, $postId);
             }
         }
         
