@@ -181,7 +181,7 @@ class Battles extends Model
 
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessions->isEmpty())
-            return null;
+            return 0;
 
         foreach ($sessions as $session) {
             // Battle type combo and combo-set will always have one round
@@ -260,16 +260,16 @@ class Battles extends Model
     // Finished battles of user
     public static function getFinishedBattles($userId, $days = 0, $offset = 0, $limit = 20)
     {
-        $_finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared','opponent_shared')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc');
-        
+        $_finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared', 'opponent_shared')
+                ->where(function ($query)use($userId) {
+                    $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                })
+                ->where(['opponent_finished' => TRUE])
+                ->where(['user_finished' => TRUE])
+                ->orderBy('battles.updated_at', 'desc');
+
         if ($days > 1) {
-            $_finishedBattles->whereRaw('created_at >= DATE_FORMAT(NOW(), "%Y-%m-%d 00:00:00") - INTERVAL '.$days.' DAY');
+            $_finishedBattles->whereRaw('created_at >= DATE_FORMAT(NOW(), "%Y-%m-%d 00:00:00") - INTERVAL ' . $days . ' DAY');
         }
 
         $finishedBattles = $_finishedBattles->offset($offset)->limit($limit)->get();
@@ -297,8 +297,8 @@ class Battles extends Model
 
         $won = \App\Battles::where('winner_user_id', $userId)->count();
         $lost = \App\Battles::where(function($query) use($userId) {
-                                    $query->where('user_id', $userId)->orWhere('opponent_user_id', $userId);
-                                })->where('winner_user_id', '!=', $userId)->count();
+                    $query->where('user_id', $userId)->orWhere('opponent_user_id', $userId);
+                })->where('winner_user_id', '!=', $userId)->count();
 
         return ['lost' => $lost, 'won' => $won, 'finished' => $data];
     }
@@ -306,15 +306,15 @@ class Battles extends Model
     public static function getBeltCount($userId)
     {
         $finishedBattles = self::select('battles.id as battle_id', 'winner_user_id', 'user_id', 'opponent_user_id', 'user_finished_at', 'opponent_finished_at', 'user_shared', 'opponent_shared')
-                        ->where(function ($query)use($userId) {
-                            $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
-                        })
-                        ->where(['opponent_finished' => TRUE])
-                        ->where(['user_finished' => TRUE])
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->get();
+                ->where(function ($query)use($userId) {
+                    $query->where(['user_id' => $userId])->orWhere(['opponent_user_id' => $userId]);
+                })
+                ->where(['opponent_finished' => TRUE])
+                ->where(['user_finished' => TRUE])
+                ->orderBy('battles.updated_at', 'desc')
+                ->get();
 
-        $winCount = $beltCount = 0; 
+        $winCount = $beltCount = 0;
         foreach ($finishedBattles as $battle) {
             $battleResult = self::getResult($battle->battle_id);
 
@@ -327,14 +327,25 @@ class Battles extends Model
                     $winCount = 0;
                 }
             }
-            if($winCount == 5)
-            {
+            if ($winCount == 5) {
                 $winCount = 0;
                 $beltCount++;
             }
         }
 
         return $beltCount;
+    }
+
+    public static function getChampian($battleId)
+    {
+        $champion = 0;
+        $battle = self::where('user_id', \Auth::user()->id)->Where('id', $battleId)->where('winner_user_id', \Auth::user()->id)->get();
+        if ($battle) {
+            $finishedBattle = self::getFinishedBattles($userId, $days = 0, $offset = 0, $limit = 5);
+            if ($finishedBattle['won'] == 5)
+                $champion = 1;
+        }
+        return $champion;
     }
 
 }

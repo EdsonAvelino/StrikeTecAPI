@@ -18,7 +18,8 @@ class Goals extends Model
         'activity_type_id',
         'target',
         'start_at',
-        'end_at'
+        'end_at',
+        'awarded'
     ];
     protected $hidden = [
         'created_at',
@@ -35,4 +36,23 @@ class Goals extends Model
         $shared = filter_var($shared, FILTER_VALIDATE_BOOLEAN);
         return ($shared) ? 'true' : 'false';
     }
+
+    public static function getAccomplishedGoal()
+    {
+        $goal = self::where('user_id', \Auth::user()->id)
+                        ->where('awarded', '!=', 1)
+                        ->where('followed', 1)->first();
+        $progress = 0;
+        if ($goal) {
+            $goalData = (int) $goal->done_count * 100 / $goal->target;
+            if ($goalData >= 100) {
+                $progress = 1;
+                $goal->awarded = 1;
+                $goal->save();
+            }
+        }
+
+        return $progress;
+    }
+
 }

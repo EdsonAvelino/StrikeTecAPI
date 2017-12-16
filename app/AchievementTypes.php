@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Achievements extends Model
+class AchievementTypes extends Model
 {
 
     /**
@@ -14,8 +14,13 @@ class Achievements extends Model
      */
     protected $fillable = [
         'id',
+        'achievement_id',
         'name',
-        'sequence'
+        'description',
+        'image',
+        'config',
+        'min',
+        'max'
     ];
     protected $hidden = [
 
@@ -23,9 +28,9 @@ class Achievements extends Model
         'updated_at'
     ];
 
-    public function achievementType()
+    public function userAchievements()
     {
-        return $this->hasMany('App\AchievementTypes','achievement_id');
+        return $this->belongsTo('App\UserAchievements','id', 'achievement_id');
     }
 
 }

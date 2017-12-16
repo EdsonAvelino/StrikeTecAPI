@@ -14,65 +14,75 @@ class UserAchievements extends Model
      */
     protected $table = 'user_achievements';
     protected $fillable = [
+        'id',
         'user_id',
-        'punch_count',
-        'punches_per_min',
-        'goal_accomplish',
-        'powerful_punch',
-        'top_speed',
-        'user_participation',
-        'champion',
-        'accuracy',
-        'strong_man',
-        'speed_demon',
-        'iron_fist'
+        'achievement_id',
+        'achievement_type_id',
+        'awarded',
+        'shared',
+        'metric_value',
+        'count',
+        'session_id'
     ];
     protected $hidden = [
         'created_at',
         'updated_at'
     ];
 
-    public static function getAchievements($userId)
+    public function achievementType()
     {
-        $achivements = Achievements::select('name', 'description', 'image')->get()->toArray();
-        $userAchievements = UserAchievements::where('user_id', $userId)->first();
-        if ($userAchievements === null) {
-            $userAchievements = [
-                'punch_count' => 0,
-                'punches_per_min' => 0,
-                'goal_accomplish' => 0,
-                'powerful_punch' => 0,
-                'top_speed' => 0,
-                'user_participation' => 0,
-                'champion' => 0,
-                'accuracy' => 0,
-                'strong_man' => 0,
-                'speed_demon' => 0,
-                'iron_fist' => 0,
-                'belts' => 0
-            ];
-            $userAchievements = (object) $userAchievements;
-        }
-        $achivements[0]['count'] = $userAchievements->belts;
-        $achivements[1]['count'] = $userAchievements->punch_count;
-        $achivements[2]['count'] = $userAchievements->punches_per_min;
-        $achivements[3]['count'] = $userAchievements->goal_accomplish;
-        $achivements[4]['count'] = $userAchievements->powerful_punch;
-        $achivements[5]['count'] = $userAchievements->top_speed;
-        $achivements[6]['count'] = $userAchievements->user_participation;
-        $achivements[7]['count'] = $userAchievements->champion;
-        $achivements[8]['count'] = $userAchievements->accuracy;
-        $achivements[9]['count'] = $userAchievements->strong_man;
-        $achivements[10]['count'] = $userAchievements->speed_demon;
-        $achivements[11]['count'] = $userAchievements->iron_fist;
+        return $this->hasMany('App\AchievementTypes', 'id', 'achievement_id');
+    }
 
-        for ($count = 0; $count <= 11; $count++) {
-            $achivements[$count]['share'] = false;
-            if ($achivements[$count]['count'] > 0) {
-                $achivements[$count]['awarded'] = true;
+    public static function getSessionAchievements($userId, $sessionId)
+    {
+        $achievements = Achievements::with('achievementType')->orderBy('sequence')->get()->keyBy('id');
+        $userAchievements = UserAchievements::select('metric_value', 'achievement_id')
+                        ->where('user_id', $userId)
+                        ->where('session_id', $sessionId)
+                        ->get()->keyBy('achievement_id')->toArray();
+        $result = [];
+        foreach ($userAchievements as $achievementId => $checkData) {
+            $metric = $checkData['metric_value'];
+            $achievementType = $achievements[$achievementId]['achievementType'];
+            $resultData = [];
+            foreach ($achievementType as $typeId => $data) {
+                if ($data['min'] > 0 && $data['max'] > 0) {
+                    if ($metric >= $data['min'] && $metric <= $data['max']) {
+                        if ($data['interval_value'] > 0) {
+                            $metric = (int) ($metric / $data['interval_value']);
+                            $metric = $metric * $data['interval_value'];
+                        }
+                        $resultData['achievement_name'] = $achievements[$achievementId]['name'];
+                        $resultData['name'] = $data['name'];
+                        $resultData['description'] = $data['description'];
+                        $resultData['image'] = $data['image'];
+                        $resultData['badge_value'] = $metric;
+                        $resultData['awarded'] = true;
+                        $resultData['count'] = 1;
+                    }
+                } else {
+                    if ($metric >= $data['config']) {
+                        $resultData['achievement_name'] = $achievements[$achievementId]['name'];
+                        $resultData['name'] = $data['name'];
+                        $resultData['description'] = $data['description'];
+                        $resultData['image'] = $data['image'];
+                        $resultData['badge_value'] = $metric;
+                        $resultData['awarded'] = true;
+                        $resultData['count'] = 1;
+                        if ($data['achievement_id'] == 1 || $data['achievement_id'] == 4) {
+                            $resultData['count'] = $metric;
+                            $resultData['badge_value'] = 0;
+                        }
+                    }
+                }
+            }
+            if ($resultData) {
+                $result[] = $resultData;
             }
         }
-        return $achivements;
+
+        return $result;
     }
 
 }
