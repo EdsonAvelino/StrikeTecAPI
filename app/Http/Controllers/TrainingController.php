@@ -282,8 +282,34 @@ class TrainingController extends Controller
      *      "error": "false",
      *      "message": "Training sessions saved successfully",
      *      "data": {[
-     *          {"start_time": 1505745766000},
-     *          {"start_time": 1505745775000},
+     *          {
+     *             "start_time": "1513591500000",
+     *             "achievements": [
+     *           {
+     *              "achievement_id": 5,
+     *              "achievement_name": "Most Powerful Punch",
+     *              "name": "Powerful Punch",
+     *              "description": "Most Powerful Punch",
+     *              "image": "",
+     *              "badge_value": 930,
+     *              "awarded": true,
+     *              "count": 1
+     *          },
+     *          {
+     *              "achievement_id": 12,
+     *              "achievement_name": "Iron First",
+     *              "name": "Gold",
+     *              "description": "User Participation",
+     *              "image": "",
+     *              "badge_value": 930,
+     *              "awarded": true,
+     *              "count": 1
+     *          }
+     *         },
+     *         {
+     *             "start_time": "1513591500000",
+     *             "achievements": []
+     *         }
      *      ]}
      *    }
      * @apiErrorExample {json} Error Response
