@@ -181,7 +181,7 @@ class Battles extends Model
 
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessions->isEmpty())
-            return 0;
+            return Null;
 
         foreach ($sessions as $session) {
             // Battle type combo and combo-set will always have one round

@@ -53,6 +53,7 @@ class UserAchievements extends Model
                             $metric = (int) ($metric / $data['interval_value']);
                             $metric = $metric * $data['interval_value'];
                         }
+                        $resultData['achievement_id'] = $achievements[$achievementId]['id'];
                         $resultData['achievement_name'] = $achievements[$achievementId]['name'];
                         $resultData['name'] = $data['name'];
                         $resultData['description'] = $data['description'];
@@ -63,6 +64,7 @@ class UserAchievements extends Model
                     }
                 } else {
                     if ($metric >= $data['config']) {
+                        $resultData['achievement_id'] = $achievements[$achievementId]['id'];
                         $resultData['achievement_name'] = $achievements[$achievementId]['name'];
                         $resultData['name'] = $data['name'];
                         $resultData['description'] = $data['description'];
