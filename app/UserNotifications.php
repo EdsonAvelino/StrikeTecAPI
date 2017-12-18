@@ -45,7 +45,7 @@ class UserNotifications extends Model
         });
     }
 
-    public static function generate($type, $toUserId, $dataUserId, $dataId)
+    public static function generate($type, $toUserId, $dataUserId, $dataId = null)
     {
         return self::create([
             'user_id' => $toUserId,
