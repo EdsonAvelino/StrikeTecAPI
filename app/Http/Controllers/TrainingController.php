@@ -11,7 +11,7 @@ use App\Battles;
 use App\RecommendVideos;
 use App\UserAchievements;
 use App\Achievements;
-use App\Videos;
+use App\AchievementTypes;
 use App\Helpers\Push;
 use App\Helpers\PushTypes;
 use App\GoalSession;
@@ -118,8 +118,8 @@ class TrainingController extends Controller
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('type_id');
 
-        // $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
-        // $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
+// $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
+// $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
 
         $startDate = ($startDate) ? $startDate * 1000 : null;
         $endDate = ($endDate) ? ($endDate * 1000) - 1 : null;
@@ -131,7 +131,7 @@ class TrainingController extends Controller
         });
 
         if (!empty($startDate) && !empty($endDate)) {
-            // $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+// $_sessions->whereBetween('created_at', [$startDate, $endDate]);
             $_sessions->where('start_time', '>', $startDate);
             $_sessions->where('start_time', '<', $endDate);
         }
@@ -317,12 +317,11 @@ class TrainingController extends Controller
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-            $sessions[] = ['start_time' => $_session->start_time];
-
-            // Update battle details, if any
+//            $sessions[] = ['start_time' => $_session->start_time];
+// Update battle details, if any
             if ($_session->battle_id) {
                 $battle = Battles::where('id', $_session->battle_id)->first();
-                
+
                 if (\Auth::user()->id == $battle->user_id) {
                     $battle->user_finished = 1;
                     $battle->user_finished_at = date('Y-m-d H:i:s');
@@ -337,10 +336,10 @@ class TrainingController extends Controller
                     $pushOpponentUserId = $battle->opponent_user_id;
                 }
 
-                // Push to opponent, about battle is finished by current user
+// Push to opponent, about battle is finished by current user
                 $pushMessage = 'User has finished battle';
 
-                // Set battle winner, according to battle-result
+// Set battle winner, according to battle-result
                 Battles::updateWinner($battle->id);
 
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
@@ -350,7 +349,7 @@ class TrainingController extends Controller
                 
                 $battle->update();
             } else {
-                // Update goal progress
+// Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
                         ->where('start_at', '<=', date('Y-m-d H:i:s'))
                         ->where('end_at', '>=', date('Y-m-d H:i:s'))
@@ -376,22 +375,23 @@ class TrainingController extends Controller
                     }
                 }
             }
-        }
-        
-       // $this->achivements($_session->id);
 
-        // User's total sessions count
+            $achievements = $this->achievements($_session->id, $_session->battle_id);
+            $sessions[] = ['start_time' => $_session->start_time, 'achievements' => $achievements];
+
+        }
+   // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
         $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
 
-        // Create / Update Leaderboard entry for this user
+// Create / Update Leaderboard entry for this user
         $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
 
-        // Set all old averate data to 0
+// Set all old averate data to 0
         $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
 
         if (!$leaderboardStatus) {
-            // TODO check for all users' leaderboard entry exists
+// TODO check for all users' leaderboard entry exists
         } else {
             $oldAvgSpeed = $leaderboardStatus->avg_speed;
             $oldAvgForce = $leaderboardStatus->avg_force;
@@ -402,8 +402,8 @@ class TrainingController extends Controller
             $leaderboardStatus->save();
         }
 
-        // Formula
-        // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+// Formula
+// (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
 
         $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
         $avgForceData[] = $oldAvgForce * $oldPunchesCount;
@@ -669,7 +669,7 @@ class TrainingController extends Controller
             foreach ($data as $punch) {
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-                // Store punches
+// Store punches
                 $_punch = SessionRoundPunches::create([
                             'session_round_id' => $sessionRound->id,
                             'punch_time' => $punch['punch_time'],
@@ -764,7 +764,7 @@ class TrainingController extends Controller
      */
     public function getSessionsRoundsByTrainingType(Request $request)
     {
-        // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
+// $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
@@ -809,7 +809,7 @@ class TrainingController extends Controller
         ]);
     }
 
-    //store sessions for goal
+//store sessions for goal
     public function storeGoalSession($goalId, $sessionId)
     {
         GoalSession::create([
@@ -919,7 +919,7 @@ class TrainingController extends Controller
         ]);
     }
 
-    // Get data calculated for tips
+// Get data calculated for tips
     private function getTipsData($sessionId)
     {
         $session = Sessions::select('plan_id', 'type_id', 'avg_speed', 'avg_force')
@@ -1011,141 +1011,91 @@ class TrainingController extends Controller
         return false;
     }
 
-    // Achievements
-    public function achivements($sessonId)
+    public function achievements($sessionId, $battleId)
     {
-        $userAchievements = UserAchievements::where('user_id', \Auth::user()->id)->first();
-        $badge = Achievements::all()->toArray();
-        // $sessonId = $request->session_id;
-        
-        if ($userAchievements === null) {
-            $userAchievements = UserAchievements::create([
-                        'user_id' => \Auth::user()->id,
-                        'punch_count' => false,
-                        'punches_per_min' => false,
-                        'goal_accomplish' => false,
-                        'powerful_punch' => false,
-                        'top_speed' => false,
-                        'user_participation' => false,
-                        'champion' => false,
-                        'accuracy' => false,
-                        'strong_man' => false,
-                        'speed_demon' => false,
-                        'iron_fist' => false,
-            ]);
-        }
+        $userId = \Auth::user()->id;
+        $offerArray = UserAchievements::select('metric_value', 'achievement_id')->where('user_id', $userId)->get()->keyBy('achievement_id')->toArray();
+//        return $offerArray;
+        $champion = 0;
 
-        /* Badge 1 */
-        $createdDate = date('y-m-d');
-        $week = date('y-m-d', strtotime('-1 week'));
-        $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->where('created_at', '>', $week)
-                        ->where('created_at', '<', $createdDate)->pluck('punches_count')->first();
-
-        if ($punchesCount > $badge[1]['config']) {
-            $userAchievements->punch_count = $userAchievements->punch_count + 1;
-        }
-
-        /* Badge 2 */
-        $avgCount = 0;
-        $getAvgCount = SessionRounds::select(
-                                \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
-                        ->where('start_time', '>', 0)
-                        ->where('end_time', '>', 0)
-                        ->where('session_id', $sessonId)->first();
-
-        if ($getAvgCount->total_time > 0) {
-            $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
-        }
-        if ($avgCount >= $badge[2]['config']) {
-            $userAchievements->punches_per_min = $userAchievements->punches_per_min + 1;
-        }
-
-        /* Badge 3 */
-        $goal = Goals::select('start_at', 'end_at', 'target', 'done_count')->where('user_id', \Auth::user()->id)->where('followed', 1)->first();
-        $progress = $goal->done_count * 100 / $goal->target;
-
-        if ((int) $progress > 100) {
-            $userAchievements->goal_accomplish = $userAchievements->goal_accomplish + 1;
-        }
-
-        /* Badge 4 */
-        $punchCount = Sessions::select('punches_count')->where('user_id', \Auth::user()->id)
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->first();
-        if ($punchCount->punches_count > $badge[4]['config']) {
-            $userAchievements->powerful_punch = $userAchievements->powerful_punch + 1;
-        }
-
-        /* Badge 5 */
-        if ($punchCount->punches_count > $badge[5]['config']) {
-            $userAchievements->top_speed = $userAchievements->top_speed + 1;
-        }
-
-        /* Badge 6 */
-        $userParticpation = Sessions::where('user_id', \Auth::user()->id)
-                        ->where(\DB::raw("MONTH(created_at)"), date('m'))
-                        ->where(function($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->count();
-
-        if ($userParticpation >= $badge[6]['config']) {
-            $userAchievements->user_participation = $userAchievements->user_participation + 1;
-        }
-
-        /* Badge 7 */
-        $beltCnt = $userAchievements->belts;
-        if ($beltCnt) {
-            if ($beltCnt > $badge[11]['config']) {
-                $userAchievements->champion = $userAchievements->champion + 1;
-            }
-        }
-
-        /* Badge 8 */
-        if ($getAvgCount->punches >= 100) {
-            
-        }
-
-        /* Badge 9 */
-        $leaderboard = Leaderboard::select('avg_force', 'avg_speed')->where('user_id', \Auth::user()->id)->where('sessions_count', '>=', 10)->first();
-        if ($leaderboard->avg_force >= $badge[9]['config']) {
-            $userAchievements->accuracy = $userAchievements->accuracy + 1;
-        }
-
-        /* Badge 10 */
-        if ($leaderboard->avg_speed >= $badge[10]['config']) {
-            $userAchievements->strong_man = $userAchievements->strong_man + 1;
-        }
-
-        /* Badge 11 */
-        $power = $badge[11]['male'];
-        if (\Auth::user()->gender == 'female') {
-            $power = $badge[11]['female'];
-        }
-        $sessionRounds = [];
-        if ($sessonId) {
-            $sessionRounds = SessionRounds::where('session_id', $sessonId)->with('punches')->get()->toArray();
-        }
-        foreach ($sessionRounds as $punch) {
-            if ($punch['punches']) {
-                foreach ($punch['punches'] as $forces) {
-                    $force[] = $forces['force'];
-                }
-            }
-        }
-
-        if (max($force) > $power) {
-            $userAchievements->speed_demon = $userAchievements->speed_demon + 1;
-        }
-
+        $insert = [];
         /* belts */
         $belts = Battles::getBeltCount(\Auth::user()->id);
-        $userAchievements->belts = $belts;
-        $userAchievements->save();
+
+        /* Badge 1 */
+        $punchCount = Sessions::getPunchCount();
+
+        /* Badge 2 */
+        $mostPunches = 0;
+        if (empty($battleId)) {
+            $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
+        }
+        /* Badge 3 */
+        $goal = Goals::getAccomplishedGoal();
+
+        if ($goal == 1)
+            $goal = $offerArray[4]['metric_value'] + 1;
+
+        /* Badge 4 and 5 */
+        $mostPowefulPunch = $mostPowefulSpeed = 0;
+
+        if (empty($battleId)) {
+            $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
+            $mostPowefulPunch = $mostPoweful->max_force;
+            $mostPowefulSpeed = $mostPoweful->max_speed;
+        }
+
+
+        /* Badge 6 */
+        $userParticpation = Sessions::getUserParticpation();
+
+        /* Badge 7 */
+        if ($battleId) {
+            $champion = Battles::getChampian($battleId);
+        }
+        /* Badge 8 */
+        $accuracy = Sessions::getAccuracy();
+
+        /* Badge 9 */
+        $leaderBoard = Sessions::getSpeedDemonAndStrongMen(20);
+        $strongMan = $leaderBoard->strong_man;
+
+
+        /* Badge 10 */
+        $speedDemon = $leaderBoard->speed_demon;
+
+
+        /* Badge 11 */
+        $ironFirst = $mostPoweful->max_force;
+
+        $insert = [ 1 => $belts,
+            2 => $punchCount,
+            3 => $mostPunches,
+            4 => $goal,
+            5 => $mostPowefulPunch,
+            6 => $mostPowefulSpeed,
+            7 => $userParticpation,
+            8 => $champion,
+            9 => $accuracy,
+            10 => $strongMan,
+            11 => $speedDemon,
+            12 => $ironFirst
+        ];
+
+
+        foreach ($offerArray as $achievementID => $value) {
+            if ($insert[$achievementID] <= $value['metric_value']) {
+                unset($insert[$achievementID]);
+            }
+        }
+
+        foreach ($insert as $key => $data) {
+            UserAchievements::updateOrCreate(['user_id' => $userId, 'achievement_id' => $key], ['metric_value' => $data, 'session_id' => $sessionId]);
+        }
+
+        return UserAchievements::getSessionAchievements($userId, $sessionId);
     }
+
 }
 
 ?> 

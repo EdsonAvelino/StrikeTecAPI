@@ -147,21 +147,6 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'striketec_news' => true
             ]);
 
-            UserAchievements::create([
-                'user_id' => $user->id,
-                'punch_count' => false,
-                'punches_per_min' => false,
-                'goal_accomplish' => false,
-                'powerful_punch' => false,
-                'top_speed' => false,
-                'user_participation' => false,
-                'champion' => false,
-                'accuracy' => false,
-                'strong_man' => false,
-                'speed_demon' => false,
-                'iron_fist' => false,
-            ]);
-
             Leaderboard::create([
                 'user_id' => $user->id,
                 'sessions_count' => 0,

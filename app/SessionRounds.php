@@ -22,9 +22,8 @@ class SessionRounds extends Model
         'max_speed',
         'max_force',
         'best_time',
-        // 'avg_time',
+            // 'avg_time',
     ];
-
     protected $dateFormat = 'Y-m-d\TH:i:s.u';
 
     public function session()
@@ -43,10 +42,10 @@ class SessionRounds extends Model
 
         static::creating(function ($model) {
             $timestamp = $model->start_time / 1000;
-            
-            $micro = sprintf("%06d",($timestamp - floor($timestamp)) * 1000000);
-            $d = new \DateTime( date('Y-m-d H:i:s.'.$micro, $timestamp) );
-            
+
+            $micro = sprintf("%06d", ($timestamp - floor($timestamp)) * 1000000);
+            $d = new \DateTime(date('Y-m-d H:i:s.' . $micro, $timestamp));
+
             $model->created_at = $d->format("Y-m-d H:i:s.u");
         });
     }
@@ -59,4 +58,19 @@ class SessionRounds extends Model
             return parent::asDateTime(new \DateTimeImmutable($value));
         }
     }
+
+    public static function getMostPunchesPerMinute($sessionId)
+    {
+        $avgCount = 0;
+        $getAvgCount = SessionRounds::select(
+                                \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
+                        ->where('start_time', '>', 0)
+                        ->where('end_time', '>', 0)
+                        ->where('session_id', $sessionId)->first();
+        if ($getAvgCount->total_time > 0) {
+            $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
+        }
+        return $avgCount;
+    }
+
 }
