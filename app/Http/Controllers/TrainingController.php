@@ -343,8 +343,7 @@ class TrainingController extends Controller
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-//            $sessions[] = ['start_time' => $_session->start_time];
-// Update battle details, if any
+            // Update battle details, if any
             if ($_session->battle_id) {
                 $battle = Battles::where('id', $_session->battle_id)->first();
 
@@ -362,20 +361,19 @@ class TrainingController extends Controller
                     $pushOpponentUserId = $battle->opponent_user_id;
                 }
 
-// Push to opponent, about battle is finished by current user
+                // Push to opponent, about battle is finished by current user
                 $pushMessage = 'User has finished battle';
 
-// Set battle winner, according to battle-result
+                // Set battle winner, according to battle-result
                 Battles::updateWinner($battle->id);
 
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
-
                 // Generates new notification for user
                 \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
-                
+
                 $battle->update();
             } else {
-// Update goal progress
+                // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
                         ->where('start_at', '<=', date('Y-m-d H:i:s'))
                         ->where('end_at', '>=', date('Y-m-d H:i:s'))
@@ -404,9 +402,8 @@ class TrainingController extends Controller
 
             $achievements = $this->achievements($_session->id, $_session->battle_id);
             $sessions[] = ['start_time' => $_session->start_time, 'achievements' => $achievements];
-
         }
-   // User's total sessions count
+        // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
         $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
 
@@ -1062,13 +1059,14 @@ class TrainingController extends Controller
         if ($goal == 1)
             $goal = $offerArray[4]['metric_value'] + 1;
 
-        /* Badge 4 and 5 */
-        $mostPowefulPunch = $mostPowefulSpeed = 0;
+        /* Badge 4 , 5 and 11 */
+        $mostPowefulPunch = $mostPowefulSpeed = $ironFirst = 0;
 
         if (empty($battleId)) {
             $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
             $mostPowefulPunch = $mostPoweful->max_force;
             $mostPowefulSpeed = $mostPoweful->max_speed;
+            $ironFirst = $mostPoweful->max_force;
         }
 
 
@@ -1091,8 +1089,7 @@ class TrainingController extends Controller
         $speedDemon = $leaderBoard->speed_demon;
 
 
-        /* Badge 11 */
-        $ironFirst = $mostPoweful->max_force;
+
 
         $insert = [ 1 => $belts,
             2 => $punchCount,

@@ -341,7 +341,7 @@ class Battles extends Model
         $champion = 0;
         $battle = self::where('user_id', \Auth::user()->id)->Where('id', $battleId)->where('winner_user_id', \Auth::user()->id)->get();
         if ($battle) {
-            $finishedBattle = self::getFinishedBattles($userId, $days = 0, $offset = 0, $limit = 5);
+            $finishedBattle = self::getFinishedBattles(\Auth::user()->id, $days = 0, $offset = 0, $limit = 5);
             if ($finishedBattle['won'] == 5)
                 $champion = 1;
         }
