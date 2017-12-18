@@ -2004,7 +2004,7 @@ class UserController extends Controller
 
         $_notifications = UserNotifications::with(['opponentUser' => function ($query) {
                     $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
-                }])->where('user_id', \Auth::user()->id)->orderBy('created_at')->offset($offset)->limit($limit)->get();
+                }])->where('user_id', \Auth::user()->id)->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
         $notifications[] = ['percentage' => (int) round($percentage)];
