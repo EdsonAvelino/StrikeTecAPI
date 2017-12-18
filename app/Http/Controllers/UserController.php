@@ -528,98 +528,28 @@ class UserController extends Controller
      *                     }
      *                 }
      *             ],
-     *             "user_connections": 4,
-     *             "achievements": [
-     *              {
-     *                  "name": "Badge 1",
-     *                  "description": "5,000 punches made within 1 week.",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 2",
-     *                  "description": "Most punches per minute",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 3",
-     *                  "description": "Accomplish 100% of goal",
-     *                  "image": "",
-     *                  "count": 1,
-     *                  "share": false,
-     *                  "awarded": true
-     *              },
-     *              {
-     *                  "name": "Badge 4",
-     *                  "description": "Most Powerful Punch ",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 5",
-     *                  "description": "Top Speed – TBD based on users sex/weight",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 6",
-     *                  "description": "User Participation – if user uses app for training 20+ times per month. (Loyalty)",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 7",
-     *                  "description": "Champion – earned 1+ belt (which means user has won 5 battles in a row) ",
-     *                  "image": "",
-     *                  "count": 1,
-     *                  "share": false,
-     *                  "awarded": true
-     *              },
-     *              {
-     *                  "name": "Badge 8",
-     *                  "description": "Accuracy – if user scores 100% accurate on 10+ combinations ",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 9",
-     *                  "description": "Strong Man – If user has power average over 500 lbs for more than 10 training sessions",
-     *                  "image": "",
-     *                  "count": 1,
-     *                  "share": false,
-     *                  "awarded": true
-     *              },
-     *              {
-     *                  "name": "Badge 10",
-     *                  "description": "Speed Demon – if user has speed average over 20mph for more than 10 training sessions",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "Badge 11",
-     *                  "description": "Iron Fist – Single punch over 600lbs for male – 400lbs for female - ",
-     *                  "image": "",
-     *                  "count": 0,
-     *                  "share": false
-     *              },
-     *              {
-     *                  "name": "belt",
-     *                  "description": "belts earned by user ",
-     *                  "image": "",
-     *                  "count": 3,
-     *                  "share": false,
-     *                  "awarded": true
-     *              }
-     *          ]
-     *         }
+     *           "user_connections": 4,
+     *           "achievements": [
+     *           {
+     *              "achievement_id": 5,
+     *              "achievement_name": "Most Powerful Punch",
+     *              "name": "Powerful Punch",
+     *              "description": "Most Powerful Punch",
+     *              "image": "",
+     *              "badge_value": 930,
+     *              "awarded": true,
+     *              "count": 1
+     *          },
+     *          {
+     *              "achievement_id": 12,
+     *              "achievement_name": "Iron First",
+     *              "name": "Gold",
+     *              "description": "User Participation",
+     *              "image": "",
+     *              "badge_value": 930,
+     *              "awarded": true,
+     *              "count": 1
+     *          }]
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -669,8 +599,8 @@ class UserController extends Controller
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connections'] = $connections;
-//        $achievementsArr = UserAchievements::getAchievements($userId);
-//        $user['achievements'] = array_slice($achievementsArr,0, 3);
+        $achievementsArr = UserAchievements::getUsersAchievements($userId);
+        $user['achievements'] = array_slice($achievementsArr,0, 3);
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
