@@ -529,12 +529,12 @@ class UserController extends Controller
      *           "user_connections": 4,
      *           "achievements": [
      *           {
-     *              "achievement_id": 5,
-     *              "achievement_name": "Most Powerful Punch",
-     *              "name": "Powerful Punch",
-     *              "description": "Most Powerful Punch",
+     *              "achievement_id": 1,
+     *              "achievement_name": "belt",
+     *              "name": "belt",
+     *              "description": "belt",
      *              "image": "",
-     *              "badge_value": 930,
+     *              "badge_value": 1,
      *              "awarded": true,
      *              "count": 1
      *          },
