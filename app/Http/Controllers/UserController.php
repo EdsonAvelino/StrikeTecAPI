@@ -1799,98 +1799,98 @@ class UserController extends Controller
             $currentWeekMaxAvgForce = $currentWeekBestSession->avg_force;
         }
 
-        $percentage = @($currentWeekMaxAvgForce / $lastWeekMaxAvgForce);
+        $percentage = @(($currentWeekMaxAvgForce / $lastWeekMaxAvgForce) * 100);
 
         $_notifications = UserNotifications::with(['opponentUser' => function ($query) {
                         $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
                     }])->where('user_id', \Auth::user()->id)->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
-                $notifications = [];
-                $notifications[] = ['percentage' => (int) round($percentage)];
+        $notifications = [];
+        $notifications[] = ['percentage' => (int) $percentage];
 
-                foreach ($_notifications as $notification) {
-                    $temp = $notification->toArray();
-                    $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
+        foreach ($_notifications as $notification) {
+            $temp = $notification->toArray();
+            $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
 
-                    $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
-                    switch ($notification->notification_type_id) {
-                        case UserNotifications::BATTLE_CHALLENGED:
-                            $temp['battle_id'] = $notification->data_id;
-                            break;
+            $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+            switch ($notification->notification_type_id) {
+                case UserNotifications::BATTLE_CHALLENGED:
+                    $temp['battle_id'] = $notification->data_id;
+                    break;
 
-                        case UserNotifications::BATTLE_FINISHED:
-                            $temp['battle_id'] = $notification->data_id;
+                case UserNotifications::BATTLE_FINISHED:
+                    $temp['battle_id'] = $notification->data_id;
 
-                            $battle = \App\Battles::find($notification->data_id);
-                            $temp['battle_finished'] = filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN);
-                            break;
+                    $battle = \App\Battles::find($notification->data_id);
+                    $temp['battle_finished'] = filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN);
+                    break;
 
-                        case UserNotifications::FEED_POST_LIKE:
-                        case UserNotifications::FEED_POST_COMMENT:
-                            $temp['post_id'] = $notification->data_id;
-                            break;
-                    }
-
-                    $notifications[] = $temp;
-                }
-
-                return response()->json([
-                            'error' => 'false',
-                            'message' => '',
-                            'data' => $notifications,
-                ]);
+                case UserNotifications::FEED_POST_LIKE:
+                case UserNotifications::FEED_POST_COMMENT:
+                    $temp['post_id'] = $notification->data_id;
+                    break;
             }
 
-            /**
-             * @api {get} /users/notifications/read/<notification_id> Mark notifications read
-             * @apiGroup Users
-             * @apiHeader {String} authorization Authorization value
-             * @apiHeaderExample {json} Header-Example:
-             *     {
-             *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-             *     }
-             * @apiParam {Any="#ID = to mark single notification read", "#to-#from = e.g. 2-10 will mark notificaions read having id in range of 2 to 10", "all = will mark all of current user's notification read"} notification_id Notification e.g. 1, 2-10 or all
-             * @apiParamExample {json} Input
-             *    {
-             *      "notification_id": 20
-             *    }
-             * @apiSuccess {Boolean} error Error flag 
-             * @apiSuccess {String} message Error message
-             * @apiSuccess {Object} user User's unread notifications
-             * @apiSuccessExample {json} Success
-             *    HTTP/1.1 200 OK
-             *      {
-             *          "error": "false",
-             *          "message": "Marked notifications read",
-             *      }
-             * @apiErrorExample {json} Error Response
-             *    HTTP/1.1 200 OK
-             *      {
-             *          "error": "true",
-             *          "message": "Invalid request"
-             *      }
-             * @apiVersion 1.0.0
-             */
-            public function readNotifications(Request $request, $notificationId)
-            {
-                $notificationIds = [];
-
-                if (is_numeric($notificationId)) {
-                    $_notifications = UserNotifications::where('id', $notificationId)->where('user_id', \Auth::id());
-                } elseif (count($exploded = explode('-', $notificationId)) > 1) {
-                    $notificationIds = range($exploded[0], $exploded[1]);
-                    $_notifications = UserNotifications::whereIn('id', $notificationIds)->where('user_id', \Auth::id());
-                } elseif (strtolower($notificationId) == 'all') {
-                    $_notifications = UserNotifications::where('user_id', \Auth::id());
-                }
-
-                $_notifications->update(['is_read' => 1, 'read_at' => date('Y-m-d H:i:s')]);
-
-                return response()->json([
-                            'error' => 'false',
-                            'message' => 'Marked notifications read'
-                ]);
-            }
-
+            $notifications[] = $temp;
         }
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => '',
+                    'data' => $notifications,
+        ]);
+    }
+
+    /**
+     * @api {get} /users/notifications/read/<notification_id> Mark notifications read
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Any="#ID = to mark single notification read", "#to-#from = e.g. 2-10 will mark notificaions read having id in range of 2 to 10", "all = will mark all of current user's notification read"} notification_id Notification e.g. 1, 2-10 or all
+     * @apiParamExample {json} Input
+     *    {
+     *      "notification_id": 20
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} user User's unread notifications
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Marked notifications read",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function readNotifications(Request $request, $notificationId)
+    {
+        $notificationIds = [];
+
+        if (is_numeric($notificationId)) {
+            $_notifications = UserNotifications::where('id', $notificationId)->where('user_id', \Auth::id());
+        } elseif (count($exploded = explode('-', $notificationId)) > 1) {
+            $notificationIds = range($exploded[0], $exploded[1]);
+            $_notifications = UserNotifications::whereIn('id', $notificationIds)->where('user_id', \Auth::id());
+        } elseif (strtolower($notificationId) == 'all') {
+            $_notifications = UserNotifications::where('user_id', \Auth::id());
+        }
+
+        $_notifications->update(['is_read' => 1, 'read_at' => date('Y-m-d H:i:s')]);
+
+        return response()->json([
+                    'error' => 'false',
+                    'message' => 'Marked notifications read'
+        ]);
+    }
+
+}
         
