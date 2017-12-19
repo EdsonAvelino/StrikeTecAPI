@@ -58,7 +58,7 @@ class Battles extends Model
             return null;
 
         // Check battle is finished from both side
-        if (!$battle->user_finished && !$battle->opponent_finished)
+        if (!$battle->user_finished || !$battle->opponent_finished)
             return null;
 
         $winnerUserId = null;
