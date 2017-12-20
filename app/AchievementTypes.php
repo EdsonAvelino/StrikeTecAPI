@@ -28,9 +28,9 @@ class AchievementTypes extends Model
         'updated_at'
     ];
 
-    public function userAchievements()
+    public function achievements()
     {
-        return $this->belongsTo('App\UserAchievements','id', 'achievement_id');
+        return $this->hasOne('App\Achievements','id');
     }
 
 }

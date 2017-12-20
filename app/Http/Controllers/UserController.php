@@ -528,25 +528,27 @@ class UserController extends Controller
      *             ],
      *           "user_connections": 4,
      *           "achievements": [
-     *           {
+     *           {  
      *              "achievement_id": 1,
      *              "achievement_name": "belt",
-     *              "name": "belt",
+     *              "badge_name": "belt",
      *              "description": "belt",
-     *              "image": "",
+     *              "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
      *              "badge_value": 1,
      *              "awarded": true,
-     *              "count": 1
+     *              "count": 1,
+     *              "shared": false
      *          },
      *          {
      *              "achievement_id": 12,
      *              "achievement_name": "Iron First",
      *              "name": "Gold",
-     *              "description": "User Participation",
-     *              "image": "",
-     *              "badge_value": 930,
+     *              "description": "Iron First",
+     *              "image": "http://54.233.233.189/storage/badges/Iron_First.png",
+     *              "badge_value": 1,
      *              "awarded": true,
-     *              "count": 1
+     *              "count": 1,
+     *              "shared": false
      *          }]
      *     }
      * @apiErrorExample {json} Error Response

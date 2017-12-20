@@ -106,7 +106,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/tips', 'TrainingController@tips');
 
     //get Achievement List
-    $app->get('/user/achievements', 'UserController@getUserAchievements');
+//    $app->get('/achievement', 'TrainingController@achievements');
+    $app->get('/achievements', 'AchievementController@getAchievementList');
 });
 
 // Video APIs

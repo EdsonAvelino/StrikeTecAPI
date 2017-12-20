@@ -89,40 +89,69 @@ class Sessions extends Model
 
     public static function getUserParticpation()
     {
-        $currentWeekStart = strtotime("monday this week");
+        $currentWeekMonday = strtotime("monday this week");
+        $lastWeekMonday = strtotime('Monday last week');
         $userParticpation = self::where('user_id', \Auth::user()->id)
-                        ->where('start_time', '>', ($currentWeekStart * 1000))
+                        ->where('start_time', '<', ($currentWeekMonday * 1000))
+                        ->where('start_time', '>', ($lastWeekMonday * 1000))
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->count();
         return $userParticpation;
     }
 
-    public static function getSpeedDemonAndStrongMen($trainingCount)
+    public static function getSpeedDemon($trainingCount)
     {
-        $currentWeekStart = strtotime("monday this week");
-        $returnData['strong_man'] = self::where('user_id', \Auth::user()->id)
+        $currentWeekMonday = strtotime("monday this week");
+        $lastWeekMonday = strtotime('Monday last week');
+        $speedDemon = self::where('user_id', \Auth::user()->id)
                 ->where(function($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })
-                ->where('avg_force', '>', 500)
-                ->where('start_time', '>', ($currentWeekStart * 1000))
-                ->count();
-        $returnData['speed_demon'] = self::where('user_id', \Auth::user()->id)
-                ->where(function($query) {
-                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                })
-                ->where('avg_speed', '>', 20)
-                ->where('start_time', '>', ($currentWeekStart * 1000))
+                ->where('avg_speed', '>', $trainingCount)
+                ->where('start_time', '<', ($currentWeekMonday * 1000))
+                ->where('start_time', '>', ($lastWeekMonday * 1000))
                 ->count();
 
-        return (object) $returnData;
+        return $speedDemon;
+    }
+
+    public static function getStrongMen($force)
+    {
+        $currentWeekMonday = strtotime("monday this week");
+        $lastWeekMonday = strtotime('Monday last week');
+        $returnData = self::where('user_id', \Auth::user()->id)
+                ->where(function($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })
+                ->where('avg_force', '>', $force)
+                ->where('start_time', '<', ($currentWeekMonday * 1000))
+                ->where('start_time', '>', ($lastWeekMonday * 1000))
+                ->count();
+        return $returnData;
+    }
+
+    public static function ironFirst()
+    {
+        $currentWeekMonday = strtotime("monday this week");
+        $lastWeekMonday = strtotime('Monday last week');
+        $ironFirst = self::select(\DB::raw('MAX(max_force) as max_force'))
+                ->where('user_id', \Auth::user()->id)
+                ->where(function ($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })->where('start_time', '<', ($currentWeekMonday * 1000))
+                ->where('start_time', '>', ($lastWeekMonday * 1000))
+                ->first();
+        return $ironFirst->max_force;
     }
 
     public static function getAccuracy()
     {
-        $currentWeekStart = strtotime("monday this week");
-        $sessionsData = \App\Sessions::with('rounds')->where('start_time', '>', ($currentWeekStart * 1000))
+        $currentWeekMonday = strtotime("monday this week");
+        $lastWeekMonday = strtotime('Monday last week');
+        $sessionsData = \App\Sessions::with('rounds')
+                        ->where('start_time', '<', ($currentWeekMonday * 1000))
+                        ->where('start_time', '>', ($lastWeekMonday * 1000))
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get();
