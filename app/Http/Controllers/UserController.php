@@ -599,6 +599,7 @@ class UserController extends Controller
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
         $user['user_connections'] = $connections;
+        //User Achievements data
         $achievementsArr = UserAchievements::getUsersAchievements($userId);
         if (count($achievementsArr) > 3) {
             $user['achievements'] = array_slice($achievementsArr, 0, 3);

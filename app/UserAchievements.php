@@ -110,7 +110,7 @@ class UserAchievements extends Model
         } else {
             $resultData['achievement_id'] = $belts['id'];
             $resultData['achievement_name'] = $belts['name'];
-            $beltBadge = $belts['achievement_type'];
+            $beltBadge = $belts['achievement_type'][0];
             $resultData['badge_name'] = $beltBadge['name'];
             $resultData['description'] = $beltBadge['name'];
             $resultData['image'] = $beltBadge['image'];
