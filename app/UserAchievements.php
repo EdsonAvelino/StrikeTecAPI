@@ -62,7 +62,7 @@ class UserAchievements extends Model
 
     public static function getUsersAchievements($userId)
     {
-        
+
         $achievements = Achievements::orderBy('sequence')->get()->keyBy('id');
         $userAchievements = UserAchievements::with('achievementType')
                 ->where('user_id', $userId)
@@ -138,13 +138,14 @@ class UserAchievements extends Model
                             ->where('max', '>', $userParticpation)
                             ->first();
                     if ($achievementType) {
-                        $userParticpationData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                        $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
                         if ($userParticpation > 0) {
                             if ($userParticpationData) {
                                 if ($userParticpationData->metric_value < $userParticpation) {
+                                    $userParticpationData->achievement_type_id = $achievementType->id;
                                     $userParticpationData->metric_value = $userParticpation;
                                     $userParticpationData->count = 1;
                                     $userParticpationData->shared = false;
@@ -160,6 +161,9 @@ class UserAchievements extends Model
                                     'awarded' => true,
                                 ]);
                             }
+                        } else {
+                            if ($userParticpationData)
+                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
@@ -172,7 +176,7 @@ class UserAchievements extends Model
                             ->where('max', '>', $accuracy)
                             ->first();
                     if ($achievementType) {
-                        $accuracyData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                        $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
@@ -180,6 +184,7 @@ class UserAchievements extends Model
                             if ($accuracyData) {
                                 if ($accuracyData->metric_value < $accuracy) {
                                     $accuracyData->metric_value = $accuracy;
+                                    $accuracyData->achievement_type_id = $achievementType->id;
                                     $accuracyData->count = 1;
                                     $accuracyData->shared = false;
                                     $accuracyData->awarded = true;
@@ -194,6 +199,9 @@ class UserAchievements extends Model
                                     'awarded' => true,
                                 ]);
                             }
+                        } else {
+                            if ($accuracyData)
+                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
@@ -206,7 +214,7 @@ class UserAchievements extends Model
                             ->where('max', '>', $strongMan)
                             ->first();
                     if ($achievementType) {
-                        $strongManData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                        $strongManData = UserAchievements::where('achievement_id', $achievement->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
@@ -215,6 +223,7 @@ class UserAchievements extends Model
                                 if ($strongManData->metric_value < $strongMan) {
                                     $strongManData->metric_value = $strongMan;
                                     $strongManData->count = 1;
+                                    $strongManData->achievement_type_id = $achievementType->id;
                                     $strongManData->shared = false;
                                     $strongManData->awarded = true;
                                     $strongManData->save();
@@ -228,6 +237,9 @@ class UserAchievements extends Model
                                     'awarded' => true,
                                 ]);
                             }
+                        } else {
+                            if ($strongManData)
+                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
@@ -240,7 +252,7 @@ class UserAchievements extends Model
                             ->where('max', '>', $strongMan)
                             ->first();
                     if ($achievementType) {
-                        $speedDemonData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                        $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
@@ -248,6 +260,7 @@ class UserAchievements extends Model
                             if ($speedDemonData) {
                                 if ($speedDemonData->metric_value < $speedDemon) {
                                     $speedDemonData->metric_value = $speedDemon;
+                                    $speedDemonData->achievement_type_id = $achievementType->id;
                                     $speedDemonData->count = 1;
                                     $speedDemonData->shared = false;
                                     $speedDemonData->awarded = true;
@@ -262,6 +275,9 @@ class UserAchievements extends Model
                                     'awarded' => true,
                                 ]);
                             }
+                        } else {
+                            if ($speedDemonData)
+                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
@@ -275,7 +291,7 @@ class UserAchievements extends Model
                             ->first();
 
                     if ($achievementType) {
-                        $ironFirstData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                        $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
@@ -284,6 +300,7 @@ class UserAchievements extends Model
                                 if ($ironFirstData->metric_value < $ironFirst) {
                                     $ironFirstData->metric_value = $ironFirst;
                                     $ironFirstData->count = 1;
+                                    $ironFirstData->achievement_type_id = $achievementType->id;
                                     $ironFirstData->shared = false;
                                     $ironFirstData->awarded = true;
                                     $ironFirstData->save();
@@ -297,6 +314,9 @@ class UserAchievements extends Model
                                     'awarded' => true,
                                 ]);
                             }
+                        } else {
+                            if ($ironFirstData)
+                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;

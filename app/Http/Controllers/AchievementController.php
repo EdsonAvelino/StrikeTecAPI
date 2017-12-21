@@ -40,6 +40,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 0,
      *                               "max": 0,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           }
@@ -57,6 +58,7 @@ class AchievementController extends Controller
      *                               "badge_value": 1,
      *                               "min": 0,
      *                               "max": 0,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           }
@@ -74,6 +76,7 @@ class AchievementController extends Controller
      *                               "badge_value": 1,
      *                               "min": 0,
      *                               "max": 0,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           }
@@ -91,6 +94,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 600,
      *                               "max": 700,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           },
@@ -102,6 +106,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 701,
      *                               "max": 800,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           },
@@ -113,6 +118,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 801,
      *                               "max": 1250,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           }
@@ -130,6 +136,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 1,
      *                               "max": 5,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           },
@@ -141,6 +148,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 6,
      *                               "max": 15,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           },
@@ -152,6 +160,7 @@ class AchievementController extends Controller
      *                               "badge_value": 0,
      *                               "min": 16,
      *                               "max": 50,
+     *                               "count": 0,
      *                               "shared": false,
      *                               "awarded": false
      *                           }
@@ -170,6 +179,7 @@ class AchievementController extends Controller
      *                               "min": 10,
      *                               "max": 10,
      *                               "shared": false,
+     *                               "count": 0,
      *                               "awarded": false
      *                           },
      *                           {
@@ -181,6 +191,7 @@ class AchievementController extends Controller
      *                               "min": 11,
      *                               "max": 25,
      *                               "shared": false,
+     *                               "count": 0,
      *                               "awarded": false
      *                           },
      *                       ]
@@ -202,7 +213,7 @@ class AchievementController extends Controller
         $userAchievements = UserAchievements::where('user_id', $userId)->get()->keyBy('achievement_type_id')->toArray();
 //scheduler budge update
         UserAchievements::schedulerForAchievements($userId);
-        
+
         foreach ($achievements as $checkData) {
             $achievementType = $checkData['achievementType'];
             $resultFinalData = [];
@@ -210,12 +221,16 @@ class AchievementController extends Controller
             $resultFinalData['achievement_name'] = $checkData['name'];
             $resultFinalData['badges'] = [];
             foreach ($achievementType as $data) {
+                $count = 0;
+                $userBadgeValue = $data['config'];
                 $shared = FALSE;
                 $awarded = FALSE;
                 $userBadgeID = NULL;
                 $achievementTypeID = $data['id'];
                 if (isset($userAchievements[$achievementTypeID])) {
+                    $count = $userAchievements[$achievementTypeID]['count'];
                     $userBadgeID = $userAchievements[$achievementTypeID]['id'];
+                    $userBadgeValue = $userAchievements[$achievementTypeID]['metric_value'];
                     $shared = filter_var($userAchievements[$achievementTypeID]['shared'], FILTER_VALIDATE_BOOLEAN);
                     $awarded = filter_var($userAchievements[$achievementTypeID]['awarded'], FILTER_VALIDATE_BOOLEAN);
                 }
@@ -223,9 +238,10 @@ class AchievementController extends Controller
                 $resultData['badge_name'] = $data['name'];
                 $resultData['description'] = $data['description'];
                 $resultData['image'] = $data['image'];
-                $resultData['badge_value'] = $data['config'];
+                $resultData['badge_value'] = $userBadgeValue;
                 $resultData['min'] = $data['min'];
                 $resultData['max'] = $data['max'];
+                $resultData['count'] = $count;
                 $resultData['shared'] = $shared;
                 $resultData['awarded'] = $awarded;
 
