@@ -1825,7 +1825,7 @@ class UserController extends Controller
                     $temp['battle_id'] = $notification->data_id;
 
                     $battle = \App\Battles::find($notification->data_id);
-                    $temp['battle_finished'] = filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN);
+                    $temp['battle_finished'] = ($battle) ? filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN) : null;
                     break;
 
                 case UserNotifications::FEED_POST_LIKE:
