@@ -888,11 +888,13 @@ class TrainingController extends Controller
      *          "highest_damage": 464062,
      *          "lowest_damage": 217,
      *           "missing_punches": {
-     *                      "J": 10,
-     *                      "U": 6,
-     *                      "H": 6,
-     *                      "UR": 2,
-     *                      "S": 2
+     *                      "S": 6,
+     *                      "SR": 2,
+     *                      "LH": 7,
+     *                      "LU": 6,
+     *                      "RU": 1,
+     *                      "J": 4,
+     *                      "SH": 1
      *                  },
      *          "videos": [
      *              {
