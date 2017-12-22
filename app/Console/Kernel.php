@@ -30,8 +30,8 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
 
             $users = User::select('id')->get();
-
             foreach ($users as $userId) {
+                \Log::info("achievements for user id :: " . $userId->id);
                 UserAchievements::schedulerForAchievements($userId->id);
             }
         });
