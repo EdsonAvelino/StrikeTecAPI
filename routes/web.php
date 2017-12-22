@@ -74,7 +74,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
     $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
-    
+
     $app->get('/user/notifications', 'UserController@getNotifications');
     $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
 });
@@ -106,7 +106,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/tips', 'TrainingController@tips');
 
     //get Achievement List
-//    $app->get('/achievement', 'TrainingController@achievements');
     $app->get('/achievements', 'AchievementController@getAchievementList');
 });
 
@@ -325,8 +324,7 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     $app->get('/fan/users/list', 'EventController@getUsersList');
 
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
-    
-     // Change password
-    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
 
+    // Change password
+    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
 });
