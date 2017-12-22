@@ -234,4 +234,71 @@ class Sessions extends Model
         
     }
 
+    public static function getMissingPunches($sessions)
+    {
+        $data = [];
+
+        switch ($sessions->type_id) {
+            case 3: // Combo
+                $data = @self::comparePunchCombos($sessions);
+                break;
+
+            case 4: // Combo-Sets
+                $data = @self::comparePunchComboSets($sessions);
+                break;
+
+            case 5: // Workouts
+                // TODO compare for combo-sets and workouts
+                break;
+        }
+        return $data;
+    }
+
+    private static function doPunchComparison($comboPunches, $session)
+    {
+        $roundPunches = [];
+        $missingPunch = $missing = [];
+        $sessions = self::with('rounds')->where('id', $session->id)->get();
+
+        // In case of no sessoins found for battle (would be very rare case)
+        if ($sessions->isEmpty())
+            return null;
+        $userMarks = 0;
+        // Battle type combo and combo-set will always have one round
+        $rounds = $session->rounds()->get();
+        foreach ($rounds as $round) {
+            $roundPunches[$session->user_id] = [];
+            foreach ($_punches = $round->punches as $key => $punch) {
+                $roundPunch = $punch->hand . $punch->punch_type;
+                if (@strpos($comboPunches[$key], $roundPunch) == false) {
+                    $missingPunch[$punch->punch_type][] = 1;
+                }
+            }
+        }
+        foreach ($missingPunch as $key => $data) {
+            $missing[$key] = array_sum($data);
+        }
+        return $missing;
+    }
+
+    // Compare combos type #3
+    private static function comparePunchCombos($session)
+    {
+        $comboPunches = Battles::getComboPunches($session->plan_id);
+        return self::doPunchComparison($comboPunches, $session);
+    }
+
+    // Compare combo-sets #4
+    private static function comparePunchComboSets($session)
+    {
+        $comboSet = \App\ComboSets::find($session->plan_id);
+        $comboPunches = [];
+
+        foreach ($comboSet->combos as $combo) {
+            $comboPunches = array_merge($comboPunches, Battles::getComboPunches($combo->combo_id));
+        }
+
+        return self::doPunchComparison($comboPunches, $session);
+    }
+
 }

@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Sessions;
+use Illuminate\Support\Facades\Config;
 use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\Leaderboard;
 use App\Battles;
-use App\RecommendVideos;
+use App\Videos;
 use App\UserAchievements;
 use App\Achievements;
 use App\AchievementTypes;
@@ -947,7 +948,7 @@ class TrainingController extends Controller
 // Get data calculated for tips
     private function getTipsData($sessionId)
     {
-        $session = Sessions::select('plan_id', 'type_id', 'avg_speed', 'avg_force')
+        $session = Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
                         ->where(function ($query) use($sessionId) {
                             $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
                         })->first();
@@ -1008,8 +1009,11 @@ class TrainingController extends Controller
             $data['current_damage'] = (int) $sessionForce[$sessionId];
             $data['highest_damage'] = max($sessionForce);
             $data['lowest_damage'] = min($sessionForce);
+            $missingPunches = Sessions::getMissingPunches($session);
+            $data['missing_punches'] = $missingPunches;
 
             $tag = [];
+            $punchTypeTags = config('constants.tags');
             if ($sessionType == 1 || $sessionType == 2) {
                 if ($data['current_speed'] < 10) {
                     $tag[] = 1; //speed video
@@ -1020,23 +1024,35 @@ class TrainingController extends Controller
                 if ($data['current_speed'] >= 25 && $data['current_force'] >= 450) {
                     $tag[] = 4; //recommended video
                 }
-//            todo task by nawaz
             } else {
+                foreach ($missingPunches as $key => $punchVideos) {
+                    if ($sessionType == 3 || $sessionType == 4) {
+                        if ($punchVideos > 1) {
+                            $tag[] = $punchTypeTags[$key];
+                        }
+                    } else if ($sessionType == 5) {
+                        if ($punchVideos > 5) {
+                            $tag[] = $punchTypeTags[$key];
+                        }
+                    }
+                }
+            }
+            if (count($tag) == 0) {
                 $tag[] = 4; //recommended video
             }
-            $videos = [];
-            $_videos = RecommendVideos::with('Videos')->whereIn('recommend_tag_id', $tag)->inRandomOrder()->limit(4)->get();
-            foreach ($_videos as $vido) {
-                array_push($videos, $vido['videos'][0]);
-            }
-            $data['videos'] = $videos; // $videos;
+
+            $_videos = Videos::select(['videos.*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
+                            ->join('recommend_videos', 'recommend_videos.video_id', '=', 'videos.id')
+                            ->whereIn('recommend_tag_id', $tag)->distinct()->inRandomOrder()->limit(4)->get();
+
+
+            $data['videos'] = $_videos;
             return $data;
         }
 
         return false;
     }
 
-//    public function achievements(Request $request)
     public function achievements($sessionId, $battleId)
     {
 
@@ -1161,7 +1177,7 @@ class TrainingController extends Controller
                     if ($achievement->id == 5) {
                         $speedAndPunch = $mostPowefulPunch;
                     }
-                    $achievementType = AchievementTypes::select('min', 'id')->where('achievement_id', $achievement->id)->first();
+                    $achievementType = AchievementTypes:: select('min', 'id')->where('achievement_id', $achievement->id)->first();
                     if ($speedAndPunch > $achievementType->min) {
                         $mostPowefulSpeedData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
