@@ -15,17 +15,26 @@ class Event extends Model
      */
     
     protected $fillable = [
-        'id', 'user_id', 'location_id', 'company_id', 'event_title', 'description', 'to_date', 'to_time', 'from_date', 'from_time','all_day', 'type_of_activity',
+        'id', 'user_id', 'location_id', 'company_id', 'event_title', 'description', 'to_date', 'to_time', 'from_date', 'from_time','all_day', 'status'
     ];
     
-    public function eventsUser()
+    public function eventUser()
     {
         return $this->hasMany('App\EventUser', 'event_id');
     }
    
+    public function eventActivity()
+    {
+        return $this->hasMany('App\EventFanActivity', 'event_id');
+    }
+    
     public function eventLocation()
     {
          return $this->belongsTo('App\Location', 'location');
+    }
+    
+    public function getStatusAttribute($value) {
+        return (bool) $value;
     }
     
     /**
@@ -77,5 +86,15 @@ class Event extends Model
                         ->leftJoin('companies', $table.'.company_id',  '=', 'companies.id')
                         ->select( $table . '.*','locations.name as location_name', 'companies.company_name')
                         ->where($table. '.user_id', $userID)->get();
+    }
+    
+    public function eventActivityUsersList($eventID)
+    {
+        $table = 'events';
+        return DB::table($table)
+                        ->Join('event_users', $table.'.id',  '=', 'event_users.event_id')
+                        ->select('event_users.user_id as userID',  $table . '.*')
+                        ->where('event_users.event_id', $eventID)
+                        ->where($table. '.id', $eventID)->get();
     }
 }

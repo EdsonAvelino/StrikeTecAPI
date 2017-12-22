@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Event;
 use App\EventUser;
+use App\FanActivity;
 use Validator;
 use DB;
 
@@ -27,7 +28,7 @@ class EventController extends Controller
      * @apiParam {String} to_time To time
      * @apiParam {String} from_date From date
      * @apiParam {String} from_time From time
-     * @apiParam {String} [type_of_activity] Type of activity
+     * @apiParam {int} activity_id id of activity
      * @apiParam {Boolean} [all_day] it could be 0 or 1
      * @apiParamExample {json} Input
      *    {
@@ -38,7 +39,7 @@ class EventController extends Controller
      *      "to_time": "20:30",
      *      "from_date": "12-12-2018",
      *      "from_time": "20:00",
-     *      "type_of_activity": "",
+     *      "activity_id": "1",
      *      "all_day": "0",
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -49,7 +50,7 @@ class EventController extends Controller
      * {
      *   {
      *       "error": "false",
-     *       "message": Event has been created successfully,
+     *       "message": "Event has been created successfully",
      *       "data": {
      *               "id": 1
      *           }
@@ -80,6 +81,11 @@ class EventController extends Controller
                     $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
                     $event->type_of_activity = !empty($request->get('type_of_activity')) ? $request->get('type_of_activity') : $event->type_of_activity;
                     $event->save();
+                    if(!empty($request->get('activity_id'))) {
+                        $request->merge(['event_id' => $request->get('event_id'), 'activity_id' => $request->get('activity_id')]);
+                        $objEventFanActivity = new EventFanActivityController();
+                        $objEventFanActivity->activityAddEvent($request);
+                    }
                     return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => $event]);
                 } catch (Exception $e) {
                     return response()->json([
@@ -101,7 +107,11 @@ class EventController extends Controller
                         'all_day' => $request->get('all_day'),
                         'type_of_activity' => !empty($request->get('type_of_activity')) ? $request->get('type_of_activity') : ''
                     ])->id;
-            $objEventUser = new EventUserController();
+            if(!empty($request->get('activity_id'))) {
+                $request->merge(['event_id' => $event_detail, 'activity_id' => $request->get('activity_id')]);
+                $objEventFanActivity = new EventFanActivityController();
+                $objEventFanActivity->activityAddEvent($request);
+            }
             $data = ['id' => $event_detail];
             return response()->json(['error' => 'false', 'message' => 'Event has been created successfully', 'data' => $data]);
         } catch (Exception $e) {
@@ -667,6 +677,228 @@ class EventController extends Controller
                     'message' => 'Invalid request',
             ]);
         }
+    }
+    /**
+     * @api {get} /fan/event/users/activities/<event_id> get users details and activity details by event id
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   "error": "false",
+     *   "message": "Event users activity details",
+     *   "data": {
+     *      "id": 8,
+     *      "user_id": "66",
+     *      "company_id": "3",
+     *      "event_title": "chetu event",
+     *      "location_id": "1",
+     *      "description": "desc",
+     *      "to_date": "2017-12-22",
+     *      "to_time": "07:21:00",
+     *      "from_date": "2017-12-04",
+     *      "from_time": "07:21:00",
+     *      "all_day": "0",
+     *      "type_of_activity": "Endurance",
+     *      "created_at": "2017-12-04 13:50:46",
+     *      "updated_at": "2017-12-04 09:07:35",
+     *       "users": [
+     *           {
+     *               "id": "67",
+     *               "name": "a",
+     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395499.jpg",
+     *               "birthday": "2017-12-04",
+     *               "gender": "male",
+     *               "height": "96",
+     *               "weight": "297",
+     *               "email": "q@test.com",
+     *               "state_name": null,
+     *               "country_name": null,
+     *               "city_name": null
+     *           },
+     *           {
+     *               "id": "68",
+     *               "name": "w",
+     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395560.jpg",
+     *               "birthday": "2017-12-04",
+     *               "gender": "female",
+     *               "height": "96",
+     *               "weight": "296",
+     *               "email": "w@test.com",
+     *               "state_name": null,
+     *               "country_name": null,
+     *               "city_name": null
+     *           },
+     *           {
+     *               "id": "69",
+     *               "name": "e",
+     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395662.jpg",
+     *               "birthday": "2017-09-30",
+     *               "gender": "female",
+     *               "height": "100",
+     *               "weight": "300",
+     *               "email": "e@test.com",
+     *               "state_name": null,
+     *               "country_name": null,
+     *               "city_name": null
+     *           }
+     *       ],
+     *      "activities": [
+     *       {
+     *           "id": 1,
+     *           "name": "Speed",
+     *           "description": "Proin ut quam eros. Donecsed lobortis diam. Nulla necodio lacus.",
+     *           "image_url": "http://192.168.14.253/storage/fanuser/activityicon/activity_icon_speed.png",
+     *           "created_at": "2017-12-15 05:40:20",
+     *           "updated_at": "2017-12-15 11:10:38"
+     *           "status": "true",
+     *       }
+     *       {
+     *           "id": 2,
+     *           "name": "Power",
+     *           "description": "Proin ut quam eros. Donecsed lobortis diam. Nulla necodio lacus.",
+     *           "image_url": "http://192.168.14.253/storage/fanuser/activityicon/activity_icon_power.png",
+     *           "created_at": "2017-12-15 05:40:20",
+     *           "updated_at": "2017-12-15 11:10:38"
+     *           "status": "false",
+     *       }
+     *       ],
+     *   }
+     *}
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function getUsersActivitiesInfoByEvent($event_id)
+    {  
+        try{
+            $rules = [
+                'id' => 'required|exists:events',
+            ];
+            $input = array('id' => $event_id);
+            $validator = Validator::make($input, $rules);
+            if ($validator->fails()) { 
+                $errors = $validator->errors();
+                return response()->json(['error' => 'true', 'message' =>  $errors->first('id')]);
+            }
+            $ObjEventUser = new EventUser();
+            $eventActivityInfoUsersList = Event::with('eventUser', 'eventActivity')->find($event_id)->toArray();
+            //Get users list
+            foreach($eventActivityInfoUsersList['event_user'] as $val) {
+                $eventActivityInfoUsersList['users'][] = $ObjEventUser->getUsersList($val['user_id']);
+            }
+            //Get activities details 
+            foreach($eventActivityInfoUsersList['event_activity'] as $data) {
+                $tempStorage = FanActivity::where('id', $data['activity_id'])->first();
+                $tempStorage->status = $data['status'];
+                $eventActivityInfoUsersList['activities'][] = $tempStorage;
+            }
+            if(empty($eventActivityInfoUsersList['users'])) {
+                $eventActivityInfoUsersList['users'] = NULL;
+            }
+            if(empty($eventActivityInfoUsersList['activities'])) {
+               $eventActivityInfoUsersList['activities'] = NULL; 
+            } 
+            // remove eloquent object
+            unset($eventActivityInfoUsersList['event_user']);
+            // remove eloquent object
+            unset($eventActivityInfoUsersList['event_activity']);
+            return response()->json(['error' => 'false', 'message' => 'Event users activity details', 'data' => $eventActivityInfoUsersList]);
+        } catch (Exception $ex) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request'
+            ]);
+        }
+    }
+    
+    /**
+     * @api {get} /fan/events/logged/user get active event details information by logged user id
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Active event list information
+     * @apiSuccessExample {json} Success
+     *{
+     * "error": "false",
+     * "message": "Active event list information",
+     * "data": [
+     *           {
+     *               "id": 1,
+     *               "event_title": "yearly tournament edit",
+     *               "location_id": 2,
+     *               "description": "hii this is descripiton",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2018-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": 0,
+     *               "created_at": "2017-11-28 16:28:37",
+     *               "updated_at": "2017-11-28 16:33:23",
+     *               "location_name": "delhi",
+     *               "company_name": "Normal",
+     *               "status": true
+     *           },
+     *           {
+     *               "id": 4,
+     *               "event_title": "yearly tournament 2",
+     *               "location_id": 1,
+     *               "description": "",
+     *               "to_date": "2018-12-12",
+     *               "to_time": "20:00",
+     *               "from_date": "2018-12-12",
+     *               "from_time": "20:45",
+     *               "all_day": 0,
+     *               "created_at": "2017-11-28 16:39:44",
+     *               "updated_at": "2017-11-28 16:39:44",
+     *               "location_name": "noida",
+     *               "company_name": "Normal",
+     *               "status": true
+     *           }
+     *       ]
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getuserActiveEventsList($id = false) 
+    {  
+      try {
+            $eventStorage = array();
+            $eventInfo = array();
+            $loggedUserID = \Auth::user()->id;
+            $eventDetails = Event::where('user_id', $loggedUserID)
+                                ->where('status', 1)->get();
+            return response()->json(['error' => 'false', 'message' => 'Active Event list information', 'data' => $eventDetails]);
+        } catch (Exception $e) {
+           return response()->json([
+                       'error' => 'true',
+                       'message' => 'Invalid request',
+           ]);
+       }
     }
     
 }

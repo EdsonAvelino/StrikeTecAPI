@@ -1897,6 +1897,129 @@ class UserController extends Controller
                     'message' => 'Marked notifications read'
         ]);
     }
+    
+    /**
+     * @api {get} /users/list get user list by searching
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} user name 
+     * @apiParamExample {json} Input
+     *    {
+     *      "name": "n",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Users list information
+     * @apiSuccess {Object} data object of user list
+     * @apiSuccessExample {json} Success
+     *       {
+     *      "error": "false",
+     *      "message": "Users list information",
+     *      "data": [
+     *          {
+     *              "id": 1,
+     *              "facebook_id": null,
+     *              "company_id": null,
+     *              "first_name": "Nawaz",
+     *              "last_name": "Me",
+     *              "email": "ntestinfo@gmail.com",
+     *              "gender": null,
+     *              "birthday": "1970-01-01",
+     *              "weight": null,
+     *              "height": null,
+     *              "left_hand_sensor": null,
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 0,
+     *              "stance": null,
+     *              "show_tip": 1,
+     *              "skill_level": null,
+     *              "photo_url": null,
+     *              "created_at": "2017-08-17 11:57:43",
+     *              "updated_at": "2017-08-18 06:21:11"
+     *          },
+     *          {
+     *              "id": 7,
+     *              "facebook_id": null,
+     *              "company_id": null,
+     *              "first_name": "Qiang",
+     *              "last_name": "Hu",
+     *              "email": "toniorasma@yahoo.com",
+     *              "gender": "male",
+     *              "birthday": "1990-06-10",
+     *              "weight": 200,
+     *              "height": 57,
+     *              "left_hand_sensor": "123",
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 1,
+     *              "stance": "Traditional",
+     *              "show_tip": 0,
+     *              "skill_level": "Box like a Professional",
+     *              "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *              "created_at": "2017-09-03 14:25:41",
+     *              "updated_at": "2017-10-31 14:32:39"
+     *          },
+     *          {
+     *              "id": 14,
+     *              "facebook_id": null,
+     *              "company_id": null,
+     *              "first_name": "John",
+     *              "last_name": "Smith",
+     *              "email": "test002@smith.com",
+     *              "gender": null,
+     *              "birthday": "1989-02-12",
+     *              "weight": 165,
+     *              "height": null,
+     *              "left_hand_sensor": null,
+     *              "right_hand_sensor": null,
+     *              "left_kick_sensor": null,
+     *              "right_kick_sensor": null,
+     *              "is_spectator": 0,
+     *              "stance": null,
+     *              "show_tip": 1,
+     *              "skill_level": null,
+     *              "photo_url": null,
+     *              "created_at": "2017-09-28 08:18:05",
+     *              "updated_at": "2017-09-28 08:18:05"
+     *          }
+     *      ]
+     *  }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUsersListBySerch(Request $request)
+    {
+        try{
+            $validator = Validator::make($request->all(), [
+                    'name' => 'required',
+                ]);
+            if ($validator->fails()) {
+                $errors = $validator->errors();
+                return response()->json(['error' => 'true', 'message' => $errors]);
+            }
+            $usersList = User::where('first_name', 'like', '%' . $request->get('name') . '%')->get();
+            return response()->json([
+                    'error' => 'false',
+                    'message' => 'Users list information',
+                    'data' => $usersList
+                ]);
+        } catch (Exception $ex) {
+            return response()->json(['error' => 'true']);
+        }
+    }
 
 }
         

@@ -296,34 +296,56 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 
     //get event list for fan API
     $app->get('/fan/events', 'EventController@getEventList');
-
+    
     //remove event for fan APP API'
     $app->post('/fan/event/remove', 'EventController@eventRemove');
-
+    
     //get users list by country id for fan APP 
     $app->get('/fan/users/event/list', 'EventController@userEventList');
-
-    //get users list of event
-    // $app->get('/fan/event/users/list', 'EventController@userEventList');
-    //register fan userto add db
-    $app->post('/fan/event/adduser', 'EventUserController@addUserToDb');
-
+    
     //get all events list for fan APP APIs
     $app->get('/fan/all/events', 'EventController@allEventsUsersList');
-
+    
     //get my events list for fan APP API
     $app->get('/fan/my/events', 'EventController@myEventsUsersList');
-
+    
     //add event for fan API
     $app->post('/fan/event/users/add', 'EventUserController@usersAddEvent');
-
+    
     //add event for fan API
     $app->get('/fan/locations', 'LocationController@getLocationList');
 
     // get user list for fan API
     $app->get('/fan/users/list', 'EventController@getUsersList');
-
+    
+    //register fan userto add db
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
+
+    
+    // register activity into event for Fan API
+    $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
+    
+    // get fan activity list
+    $app->get('/fan/activities','FanActivityController@getActivityList');
+
+    // Change password
+    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
+    
+    //get users list and activity list by eventID
+    $app->get('/fan/event/users/activities/{event_id}', 'EventController@getUsersActivitiesInfoByEvent');
+    
+    //remove activity
+    $app->post('/fan/activity/remove', 'EventFanActivityController@activityRemove');
+    
+    //remove users from event
+    $app->post('/fan/event/users/remove', 'EventUserController@eventUsersRemove');
+    
+    //get users list by user name#searching
+    $app->post('/fan/users/search', 'UserController@getUsersListBySerch');
+    
+    //get active event details by logged user
+    $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
+
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');

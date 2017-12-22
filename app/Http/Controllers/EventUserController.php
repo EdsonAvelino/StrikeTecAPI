@@ -77,6 +77,76 @@ Class EventUserController extends Controller
     }
 
     /**
+     * @api {post} /fan/event/users/remove remove users from event
+     * @apiGroup event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} event_id id of event
+     * @apiParam {int} user_id id of user
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_id": 1,
+     *      "user_id": 1,2,3
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *       "error": "false",
+     *       "message": "Users has been removed from event successfully",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function eventUsersRemove(Request $request)
+    {   
+        $validator = Validator::make($request->all(), [
+            'event_id'    => 'required|exists:event_users',
+            'user_id' => 'required'
+        ]);
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors]);
+        }
+        try {
+            $data = $request->input();
+            $user_ids = explode(',', $data['user_id']);
+            /*
+             ***** array_values for start indexing again with 0 ******
+             ***** array_filter for filtring null value *******
+             ***** array uniqe for store only uniqe value  *****
+            */
+            $user_id = array_values(array_filter(array_unique($user_ids)));
+            for($count = 0; $count < count($user_id); $count++) {
+                $event_id = $request->get('event_id');
+                EventUser::where('event_id', $event_id)
+                            ->where('user_id', $user_id[$count])->delete();
+            }
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Users has been removed from event successfully'
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                    'error' => 'true',
+                    'message' => 'Invalid request',
+            ]);
+        }
+    }
+    
+    /**
      * @api {post} /fan/event/register/user Add new user to Event
      * @apiGroup Event
      * @apiHeader {String} Content-Type application/form-data
@@ -128,7 +198,7 @@ Class EventUserController extends Controller
         $userProfile = '';
         $name = $request->input('name');
         $email = $request->input('email');
-        $eventId = $request->input('event_id');
+        $eventId = !empty($request->input('event_id')) ? $request->input('event_id') : '';
         $gender = $request->input('gender');
         $dob = $request->input('dob');
         $weight = $request->input('weight');
@@ -159,9 +229,16 @@ Class EventUserController extends Controller
                     $userProfileInput->move($imagePath, $userProfileInformation);
                     $userProfile = url() . '/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
                 }
-            
                 $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob, $userProfile);
             }
+            //here we put code for user create with out event id
+            if($eventId == 0) {
+                if($user) {
+                    return response()->json(['error' => 'true', 'message' => 'User email id already registered.']);
+                }
+                return response()->json([ 'error' => 'false', 'message' => 'User has been registerd successfully.', 'data' => ['user_id' => $userId]]);
+            }
+            // here if event id is there 
             $checkUser = EventUser::where(function ($query) use ($userId, $eventId) {
                         $query->where('user_id', $userId)->Where('event_id', $eventId);
                     })->exists();
