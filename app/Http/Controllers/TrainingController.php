@@ -18,8 +18,7 @@ use App\Helpers\PushTypes;
 use App\GoalSession;
 use App\Goals;
 
-class TrainingController extends Controller
-{
+class TrainingController extends Controller {
 
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
@@ -111,8 +110,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessions(Request $request)
-    {
+    public function getSessions(Request $request) {
         $userId = \Auth::user()->id;
 
         $startDate = $request->get('start_date');
@@ -232,8 +230,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSession($sessionId)
-    {
+    public function getSession($sessionId) {
         $userId = \Auth::user()->id;
 
         $session = Sessions::where('id', $sessionId)->first();
@@ -323,25 +320,24 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessions(Request $request)
-    {
+    public function storeSessions(Request $request) {
         $data = $request->get('data');
         $sessions = []; // Will be use for response
 
         foreach ($data as $session) {
             $_session = Sessions::create([
-            'user_id' => \Auth::user()->id,
-            'battle_id' => ($session['battle_id']) ?? null,
-            'type_id' => $session['type_id'],
-            'start_time' => $session['start_time'],
-            'end_time' => $session['end_time'],
-            'plan_id' => $session['plan_id'],
-            'avg_speed' => $session['avg_speed'],
-            'avg_force' => $session['avg_force'],
-            'punches_count' => $session['punches_count'],
-            'max_force' => $session['max_force'],
-            'max_speed' => $session['max_speed'],
-            'best_time' => $session['best_time']
+                        'user_id' => \Auth::user()->id,
+                        'battle_id' => ($session['battle_id']) ?? null,
+                        'type_id' => $session['type_id'],
+                        'start_time' => $session['start_time'],
+                        'end_time' => $session['end_time'],
+                        'plan_id' => $session['plan_id'],
+                        'avg_speed' => $session['avg_speed'],
+                        'avg_force' => $session['avg_force'],
+                        'punches_count' => $session['punches_count'],
+                        'max_force' => $session['max_force'],
+                        'max_speed' => $session['max_speed'],
+                        'best_time' => $session['best_time']
             ]);
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
@@ -371,12 +367,12 @@ class TrainingController extends Controller
                 Battles::updateWinner($battle->id);
 
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
-                
+
                 // Generates new notification for user
                 $userThisBattleNotif = \App\UserNotifications::where('data_id', $battle->id)
-                        ->where(function($query) {
-                            $query->whereNull('is_read')->orWhere('is_read', 0);
-                        })->where('user_id', \Auth::id())->first();
+                                ->where(function($query) {
+                                    $query->whereNull('is_read')->orWhere('is_read', 0);
+                                })->where('user_id', \Auth::id())->first();
 
                 if ($userThisBattleNotif) {
                     $userThisBattleNotif->is_read = 1;
@@ -417,7 +413,7 @@ class TrainingController extends Controller
             $achievements = $this->achievements($_session->id, $_session->battle_id);
             $sessions[] = ['start_time' => $_session->start_time, 'achievements' => $achievements];
         }
-        
+
         // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
         $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
@@ -556,8 +552,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRound($roundId)
-    {
+    public function getSessionsRound($roundId) {
         $round = SessionRounds::where('id', $roundId)->first();
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
@@ -618,8 +613,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessionsRounds(Request $request)
-    {
+    public function storeSessionsRounds(Request $request) {
         $data = $request->get('data');
         $rounds = [];
 
@@ -698,8 +692,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessionsRoundsPunches(Request $request)
-    {
+    public function storeSessionsRoundsPunches(Request $request) {
         $data = $request->get('data');
         $punches = [];
 
@@ -800,8 +793,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRoundsByTrainingType(Request $request)
-    {
+    public function getSessionsRoundsByTrainingType(Request $request) {
 // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
@@ -848,8 +840,7 @@ class TrainingController extends Controller
     }
 
 //store sessions for goal
-    public function storeGoalSession($goalId, $sessionId)
-    {
+    public function storeGoalSession($goalId, $sessionId) {
         GoalSession::create([
             'session_id' => $sessionId,
             'goal_id' => $goalId
@@ -947,8 +938,7 @@ class TrainingController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function tips(Request $request)
-    {
+    public function tips(Request $request) {
         $sessionId = (int) $request->get('session_id');
         $data = $this->getTipsData($sessionId);
 
@@ -967,8 +957,7 @@ class TrainingController extends Controller
     }
 
 // Get data calculated for tips
-    private function getTipsData($sessionId)
-    {
+    private function getTipsData($sessionId) {
         $session = Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
                         ->where(function ($query) use($sessionId) {
                             $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
@@ -1075,8 +1064,7 @@ class TrainingController extends Controller
         return false;
     }
 
-    public function achievements($sessionId, $battleId)
-    {
+    public function achievements($sessionId, $battleId) {
 
         $userId = \Auth::user()->id;
         $achievements = Achievements::orderBy('sequence')->get();
@@ -1093,27 +1081,30 @@ class TrainingController extends Controller
                     $belts = Battles::getBeltCount(\Auth::user()->id);
                     if ($belts > 0) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
-                        $beltsData = UserAchievements::where('achievement_type_id', $achievementType->id)
-                                ->where('user_id', $userId)
-                                ->where('achievement_id', $achievement->id)
-                                ->first();
-                        if ($beltsData) {
-                            if ($beltsData->metric_value < $belts) {
-                                $beltsData->metric_value = $belts;
-                                $beltsData->count = $belts;
-                                $beltsData->shared = false;
-                                $beltsData->session_id = $sessionId;
-                                $beltsData->awarded = true;
-                                $beltsData->save();
+
+                        if ($achievementType) {
+                            $beltsData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($beltsData) {
+                                if ($beltsData->metric_value < $belts) {
+                                    $beltsData->metric_value = $belts;
+                                    $beltsData->count = $belts;
+                                    $beltsData->shared = false;
+                                    $beltsData->session_id = $sessionId;
+                                    $beltsData->awarded = true;
+                                    $beltsData->save();
+                                }
+                            } else {
+                                UserAchievements::Create(['user_id' => $userId,
+                                    'achievement_id' => $achievement->id,
+                                    'achievement_type_id' => $achievementType->id,
+                                    'metric_value' => $belts,
+                                    'count' => $belts,
+                                    'awarded' => true,
+                                    'session_id' => $sessionId]);
                             }
-                        } else {
-                            UserAchievements::Create(['user_id' => $userId,
-                                'achievement_id' => $achievement->id,
-                                'achievement_type_id' => $achievementType->id,
-                                'metric_value' => $belts,
-                                'count' => $belts,
-                                'awarded' => true,
-                                'session_id' => $sessionId]);
                         }
                     }
                     break;
@@ -1123,19 +1114,21 @@ class TrainingController extends Controller
                         $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
                                         ->where('achievement_id', $achievement->id)->first();
 
-                        $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
-                                ->where('user_id', $userId)
-                                ->where('achievement_id', $achievement->id)
-                                ->first();
+                        if ($achievementType) {
+                            $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
 
-                        if (empty($getUserPunchData)) {
-                            UserAchievements::Create(['user_id' => $userId,
-                                'achievement_id' => $achievement->id,
-                                'achievement_type_id' => $achievementType->id,
-                                'metric_value' => $achievementType->max_val,
-                                'count' => 1,
-                                'awarded' => true,
-                                'session_id' => $sessionId]);
+                            if (empty($getUserPunchData)) {
+                                UserAchievements::Create(['user_id' => $userId,
+                                    'achievement_id' => $achievement->id,
+                                    'achievement_type_id' => $achievementType->id,
+                                    'metric_value' => $achievementType->max_val,
+                                    'count' => 1,
+                                    'awarded' => true,
+                                    'session_id' => $sessionId]);
+                            }
                         }
                     }
                     break;
@@ -1147,18 +1140,19 @@ class TrainingController extends Controller
                         if ($mostPunches > 0) {
                             $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $mostPunches)
                                             ->where('achievement_id', $achievement->id)->first();
+                            if ($achievementType) {
+                                $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                                        ->where('user_id', $userId)
+                                        ->where('achievement_id', $achievement->id)
+                                        ->first();
 
-                            $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
-                                    ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
-                                    ->first();
-
-                            if (empty($mostPunchesData)) {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'awarded' => true,
-                                    'achievement_type_id' => $achievementType->id, 'count' => 1,
-                                    'metric_value' => $achievementType->max_val, 'session_id' => $sessionId]);
+                                if (empty($mostPunchesData)) {
+                                    UserAchievements::Create(['user_id' => $userId,
+                                        'achievement_id' => $achievement->id,
+                                        'awarded' => true,
+                                        'achievement_type_id' => $achievementType->id, 'count' => 1,
+                                        'metric_value' => $achievementType->max_val, 'session_id' => $sessionId]);
+                                }
                             }
                         }
                     }
