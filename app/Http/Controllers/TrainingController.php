@@ -346,7 +346,7 @@ class TrainingController extends Controller
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-// Update battle details, if any
+            // Update battle details, if any
             if ($_session->battle_id) {
                 $battle = Battles::where('id', $_session->battle_id)->first();
 
@@ -364,19 +364,30 @@ class TrainingController extends Controller
                     $pushOpponentUserId = $battle->opponent_user_id;
                 }
 
-// Push to opponent, about battle is finished by current user
+                // Push to opponent, about battle is finished by current user
                 $pushMessage = 'User has finished battle';
 
-// Set battle winner, according to battle-result
+                // Set battle winner, according to battle-result
                 Battles::updateWinner($battle->id);
 
                 Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
-// Generates new notification for user
+                
+                // Generates new notification for user
+                $userThisBattleNotif = \App\UserNotifications::where('data_id', $battle->id)
+                        ->where(function($query) {
+                            $query->whereNull('is_read')->orWhere('is_read', 0);
+                        })->where('user_id', \Auth::id())->first();
+
+                if ($userThisBattleNotif) {
+                    $userThisBattleNotif->is_read = 1;
+                    $userThisBattleNotif->save();
+                }
+
                 \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
 
                 $battle->update();
             } else {
-// Update goal progress
+                // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
                         ->where('start_at', '<=', date('Y-m-d H:i:s'))
                         ->where('end_at', '>=', date('Y-m-d H:i:s'))
@@ -406,18 +417,19 @@ class TrainingController extends Controller
             $achievements = $this->achievements($_session->id, $_session->battle_id);
             $sessions[] = ['start_time' => $_session->start_time, 'achievements' => $achievements];
         }
-// User's total sessions count
+        
+        // User's total sessions count
         $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
         $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
 
-// Create / Update Leaderboard entry for this user
+        // Create / Update Leaderboard entry for this user
         $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
 
-// Set all old averate data to 0
+        // Set all old averate data to 0
         $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
 
         if (!$leaderboardStatus) {
-// TODO check for all users' leaderboard entry exists
+            // TODO check for all users' leaderboard entry exists
         } else {
             $oldAvgSpeed = $leaderboardStatus->avg_speed;
             $oldAvgForce = $leaderboardStatus->avg_force;
@@ -428,8 +440,8 @@ class TrainingController extends Controller
             $leaderboardStatus->save();
         }
 
-// Formula
-// (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+        // Formula
+        // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
 
         $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
         $avgForceData[] = $oldAvgForce * $oldPunchesCount;
