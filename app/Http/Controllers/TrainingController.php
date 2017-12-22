@@ -1002,12 +1002,13 @@ class TrainingController extends Controller
             foreach ($sessionRounds as $sessionRound) {
                 $punches = $sessionRound['punches'];
                 if ($punches) {
+                    $force[$forceCount] = [];
                     foreach ($punches as $forces) {
                         $force[$forceCount][] = $forces['force'];
                     }
                     $roundForcesSum[$sessionRound['session_id']][] = array_sum($force[$forceCount]);
+                    $forceCount + 1;
                 }
-                $forceCount + 1;
             }
             $sessionForce = [];
             foreach ($roundForcesSum as $sessionID => $roundForces) {
