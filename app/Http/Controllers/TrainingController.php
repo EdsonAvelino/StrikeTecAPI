@@ -18,7 +18,8 @@ use App\Helpers\PushTypes;
 use App\GoalSession;
 use App\Goals;
 
-class TrainingController extends Controller {
+class TrainingController extends Controller
+{
 
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
@@ -110,7 +111,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessions(Request $request) {
+    public function getSessions(Request $request)
+    {
         $userId = \Auth::user()->id;
 
         $startDate = $request->get('start_date');
@@ -230,7 +232,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSession($sessionId) {
+    public function getSession($sessionId)
+    {
         $userId = \Auth::user()->id;
 
         $session = Sessions::where('id', $sessionId)->first();
@@ -320,24 +323,25 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessions(Request $request) {
+    public function storeSessions(Request $request)
+    {
         $data = $request->get('data');
         $sessions = []; // Will be use for response
 
         foreach ($data as $session) {
             $_session = Sessions::create([
-                        'user_id' => \Auth::user()->id,
-                        'battle_id' => ($session['battle_id']) ?? null,
-                        'type_id' => $session['type_id'],
-                        'start_time' => $session['start_time'],
-                        'end_time' => $session['end_time'],
-                        'plan_id' => $session['plan_id'],
-                        'avg_speed' => $session['avg_speed'],
-                        'avg_force' => $session['avg_force'],
-                        'punches_count' => $session['punches_count'],
-                        'max_force' => $session['max_force'],
-                        'max_speed' => $session['max_speed'],
-                        'best_time' => $session['best_time']
+            'user_id' => \Auth::user()->id,
+            'battle_id' => ($session['battle_id']) ?? null,
+            'type_id' => $session['type_id'],
+            'start_time' => $session['start_time'],
+            'end_time' => $session['end_time'],
+            'plan_id' => $session['plan_id'],
+            'avg_speed' => $session['avg_speed'],
+            'avg_force' => $session['avg_force'],
+            'punches_count' => $session['punches_count'],
+            'max_force' => $session['max_force'],
+            'max_speed' => $session['max_speed'],
+            'best_time' => $session['best_time']
             ]);
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
@@ -552,7 +556,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRound($roundId) {
+    public function getSessionsRound($roundId)
+    {
         $round = SessionRounds::where('id', $roundId)->first();
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
@@ -613,7 +618,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessionsRounds(Request $request) {
+    public function storeSessionsRounds(Request $request)
+    {
         $data = $request->get('data');
         $rounds = [];
 
@@ -692,7 +698,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function storeSessionsRoundsPunches(Request $request) {
+    public function storeSessionsRoundsPunches(Request $request)
+    {
         $data = $request->get('data');
         $punches = [];
 
@@ -793,7 +800,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function getSessionsRoundsByTrainingType(Request $request) {
+    public function getSessionsRoundsByTrainingType(Request $request)
+    {
 // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
@@ -840,7 +848,8 @@ class TrainingController extends Controller {
     }
 
 //store sessions for goal
-    public function storeGoalSession($goalId, $sessionId) {
+    public function storeGoalSession($goalId, $sessionId)
+    {
         GoalSession::create([
             'session_id' => $sessionId,
             'goal_id' => $goalId
@@ -938,7 +947,8 @@ class TrainingController extends Controller {
      *      }
      * @apiVersion 1.0.0
      */
-    public function tips(Request $request) {
+    public function tips(Request $request)
+    {
         $sessionId = (int) $request->get('session_id');
         $data = $this->getTipsData($sessionId);
 
@@ -957,7 +967,8 @@ class TrainingController extends Controller {
     }
 
 // Get data calculated for tips
-    private function getTipsData($sessionId) {
+    private function getTipsData($sessionId)
+    {
         $session = Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
                         ->where(function ($query) use($sessionId) {
                             $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
@@ -1064,7 +1075,8 @@ class TrainingController extends Controller {
         return false;
     }
 
-    public function achievements($sessionId, $battleId) {
+    public function achievements($sessionId, $battleId)
+    {
 
         $userId = \Auth::user()->id;
         $achievements = Achievements::orderBy('sequence')->get();
