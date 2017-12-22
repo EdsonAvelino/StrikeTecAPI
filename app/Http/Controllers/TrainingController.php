@@ -284,6 +284,7 @@ class TrainingController extends Controller
      *      "message": "Training sessions saved successfully",
      *      "data": {[
      *          {
+     *             "session_id": 639,
      *             "start_time": "1513591500000",
      *             "achievements": [
      *           {
@@ -310,6 +311,7 @@ class TrainingController extends Controller
      *          }
      *         },
      *         {
+     *             "session_id": 639,
      *             "start_time": "1513591500000",
      *             "achievements": []
      *         }
@@ -415,7 +417,7 @@ class TrainingController extends Controller
             }
 
             $achievements = $this->achievements($_session->id, $_session->battle_id);
-            $sessions[] = ['start_time' => $_session->start_time, 'achievements' => $achievements];
+            $sessions[] = ['session_id' => $_session->id, 'start_time' => $_session->start_time, 'achievements' => $achievements];
         }
 
         // User's total sessions count
@@ -1094,7 +1096,7 @@ class TrainingController extends Controller
                     if ($belts > 0) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
 
-                        if ($achievementType) {
+                        if ($achievementType->id) {
                             $beltsData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                     ->where('user_id', $userId)
                                     ->where('achievement_id', $achievement->id)
@@ -1126,7 +1128,7 @@ class TrainingController extends Controller
                         $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
                                         ->where('achievement_id', $achievement->id)->first();
 
-                        if ($achievementType) {
+                        if ($achievementType->id) {
                             $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                     ->where('user_id', $userId)
                                     ->where('achievement_id', $achievement->id)
@@ -1152,7 +1154,7 @@ class TrainingController extends Controller
                         if ($mostPunches > 0) {
                             $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $mostPunches)
                                             ->where('achievement_id', $achievement->id)->first();
-                            if ($achievementType) {
+                            if ($achievementType->id) {
                                 $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
                                         ->where('achievement_id', $achievement->id)
