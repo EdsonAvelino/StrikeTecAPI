@@ -875,6 +875,13 @@ class TrainingController extends Controller
      *          "current_damage": 5689,
      *          "highest_damage": 464062,
      *          "lowest_damage": 217,
+     *           "missing_punches": {
+     *                      "J": 10,
+     *                      "U": 6,
+     *                      "H": 6,
+     *                      "UR": 2,
+     *                      "S": 2
+     *                  },
      *          "videos": [
      *              {
      *                  "id": 1,
