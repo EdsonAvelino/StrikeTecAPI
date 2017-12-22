@@ -1177,7 +1177,7 @@ class TrainingController extends Controller
                     if ($achievement->id == 5) {
                         $speedAndPunch = $mostPowefulPunch;
                     }
-                    $achievementType = AchievementTypes:: select('min', 'id')->where('achievement_id', $achievement->id)->first();
+                    $achievementType = AchievementTypes::select('min', 'id')->where('achievement_id', $achievement->id)->first();
                     if ($speedAndPunch > $achievementType->min) {
                         $mostPowefulSpeedData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
