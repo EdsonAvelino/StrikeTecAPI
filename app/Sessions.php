@@ -254,7 +254,7 @@ class Sessions extends Model
         return $data;
     }
 
-    private static function doPunchComparison($comboPunches, $session)
+    private static function doPunchComparison($comboPunches, $session, $comboPunchType)
     {
         $roundPunches = [];
         $missingPunch = $missing = [];
@@ -271,7 +271,7 @@ class Sessions extends Model
             foreach ($_punches = $round->punches as $key => $punch) {
                 $roundPunch = $punch->hand . $punch->punch_type;
                 if (@strpos($comboPunches[$key], $roundPunch) == false) {
-                    $missingPunch[$punch->punch_type][] = 1;
+                    $missingPunch[$comboPunchType[$key]][] = 1;
                 }
             }
         }
@@ -285,7 +285,8 @@ class Sessions extends Model
     private static function comparePunchCombos($session)
     {
         $comboPunches = Battles::getComboPunches($session->plan_id);
-        return self::doPunchComparison($comboPunches, $session);
+        $comboPunchesType = self::getPunches($session->plan_id);
+        return self::doPunchComparison($comboPunches, $session, $comboPunchesType);
     }
 
     // Compare combo-sets #4
@@ -293,12 +294,44 @@ class Sessions extends Model
     {
         $comboSet = \App\ComboSets::find($session->plan_id);
         $comboPunches = [];
+        $comboPunchesTypes = [];
 
         foreach ($comboSet->combos as $combo) {
             $comboPunches = array_merge($comboPunches, Battles::getComboPunches($combo->combo_id));
+            $comboPunchesTypes = array_merge($comboPunchesTypes, self::getPunches($combo->combo_id));
         }
 
-        return self::doPunchComparison($comboPunches, $session);
+        return self::doPunchComparison($comboPunches, $session, $comboPunchesTypes);
+    }
+
+    public static function getPunches($comboId)
+    {
+        $comboPunches = \App\ComboKeys::where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
+
+        foreach ($comboPunches as $i => $punch) {
+            switch ($punch) {
+                case 1: $comboPunches[$i] = 'J';
+                    break; // LEFT JAB / RIGHT JAB
+                case 2: $comboPunches[$i] = 'S';
+                    break; // LEFT STRAIGHT / RIGHT STRAIGHT
+                case 3: $comboPunches[$i] = 'LH';
+                    break; // LEFT HOOK
+                case 4: $comboPunches[$i] = 'RH';
+                    break; // RIGHT HOOK
+                case 5: $comboPunches[$i] = 'LU';
+                    break; // LEFT UPPERCUT
+                case 6: $comboPunches[$i] = 'RU';
+                    break; // RIGHT UPPERCUT
+                case 7: $comboPunches[$i] = 'SH';
+                    break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
+                // to keep format same hand + punch-type
+                case 'DL': $comboPunches[$i] = 'LD';
+                    break; // DUCK LEFT
+                case 'DR': $comboPunches[$i] = 'RD';
+                    break; // DUCK RIGHT
+            }
+        }
+        return $comboPunches;
     }
 
 }
