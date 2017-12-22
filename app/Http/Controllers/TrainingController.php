@@ -1002,12 +1002,13 @@ class TrainingController extends Controller
             foreach ($sessionRounds as $sessionRound) {
                 $punches = $sessionRound['punches'];
                 if ($punches) {
+                    $force[$forceCount] = [];
                     foreach ($punches as $forces) {
                         $force[$forceCount][] = $forces['force'];
                     }
                     $roundForcesSum[$sessionRound['session_id']][] = array_sum($force[$forceCount]);
+                    $forceCount + 1;
                 }
-                $forceCount + 1;
             }
             $sessionForce = [];
             foreach ($roundForcesSum as $sessionID => $roundForces) {
@@ -1048,7 +1049,7 @@ class TrainingController extends Controller
                 $tag[] = 4; //recommended video
             }
 
-            $_videos = Videos::select(['videos.*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
+            $_videos = Videos::select(['videos.*'])
                             ->join('recommend_videos', 'recommend_videos.video_id', '=', 'videos.id')
                             ->whereIn('recommend_tag_id', $tag)->distinct()->inRandomOrder()->limit(4)->get();
 
