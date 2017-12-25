@@ -7,7 +7,7 @@ Class EventFanActivity extends Model
 {
     protected $fillable = ['activity_id', 'event_id', 'status'];  
     
-    public function getstatusAttribute($value) {
+    public function getStatusAttribute($value) {
         return (bool) $value;
     }
 }

@@ -80,7 +80,7 @@ Class EventFanActivityController extends Controller {
      *    HTTP/1.1 200 OK
      *    {
      *       "error": "false",
-     *       "message": "Acitvity has been removed for event successfully",
+     *       "message": "Activity has been removed for event successfully",
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -108,7 +108,7 @@ Class EventFanActivityController extends Controller {
             DB::commit();
             return response()->json([
                 'error' => 'false',
-                'message' => 'Acitvity has been removed for event successfully'
+                'message' => 'Activity has been removed for event successfully'
             ]);
         } catch (Exception $e) {
             DB::rollBack();
