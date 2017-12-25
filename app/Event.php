@@ -37,6 +37,10 @@ class Event extends Model
         return (bool) $value;
     }
     
+    public function getAllDayAttribute($value) {
+        return (bool) $value;
+    }
+    
     /**
      * Function for get event and users list information
      * 
