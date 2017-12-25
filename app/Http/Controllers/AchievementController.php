@@ -34,6 +34,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "belts",
      *                               "badge_name": "Belts",
      *                               "description": "User will get his badge when won battle 5 times in a row.",
      *                               "image": "http://54.233.233.189/storage/badges/Champion.png",
@@ -52,6 +53,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Champion",
      *                               "badge_name": "Champion",
      *                               "description": "Champion",
      *                               "image": "http://54.233.233.189/storage/badges/Champion.png",
@@ -70,6 +72,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Accomplish 100% of goal",
      *                               "badge_name": "Goal",
      *                               "description": "User can earn several badges for this like belt.\nIf user accomplish goal, then count will be increased, user can earn only one badge for each\ngoal.",
      *                               "image": "http://54.233.233.189/storage/badges/Accomplish_100.png",
@@ -88,6 +91,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Iron First",
      *                               "badge_name": "Bronze",
      *                               "description": "Strong Man",
      *                               "image": "http://54.233.233.189/storage/badges/Iron_Fist_1.png",
@@ -100,6 +104,7 @@ class AchievementController extends Controller
      *                           },
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Iron First",
      *                               "badge_name": "Silver",
      *                               "description": "Iron Fist â€“ Single punch over 600lbs for male â€“ 400lbs for female - ",
      *                               "image": "http://54.233.233.189/storage/badges/Iron_Fist_2.png",
@@ -112,6 +117,7 @@ class AchievementController extends Controller
      *                           },
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Iron First",
      *                               "badge_name": "Gold",
      *                               "description": "User Participation",
      *                               "image": "http://54.233.233.189/storage/badges/Iron_Fist_1.png",
@@ -130,6 +136,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "User Participation",
      *                               "badge_name": "Bronze",
      *                               "description": "Speed Demon â€“ if user has speed average over 20mph for more than 10 training sessions",
      *                               "image": "http://54.233.233.189/storage/badges/User_Participation.png",
@@ -142,6 +149,7 @@ class AchievementController extends Controller
      *                           },
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "User Participation",
      *                               "badge_name": "Silver",
      *                               "description": "Iron Fist â€“ Single punch over 600lbs for male â€“ 400lbs for female - ",
      *                               "image": "http://54.233.233.189/storage/badges/User_Participation.png",
@@ -155,6 +163,7 @@ class AchievementController extends Controller
      *                           {
      *                               "id": null,
      *                               "badge_name": "Gold",
+     *                               "achievement_name": "User Participation",
      *                               "description": "User Participation",
      *                               "image": "http://54.233.233.189/storage/badges/User_Participation.png",
      *                               "badge_value": 0,
@@ -172,6 +181,7 @@ class AchievementController extends Controller
      *                       "badges": [
      *                           {
      *                               "id": null,
+     *                               "achievement_name": "Accuracy",
      *                               "badge_name": "Bronze",
      *                               "description": "Speed Demon â€“ if user has speed average over 20mph for more than 10 training sessions",
      *                               "image": "http://54.233.233.189/storage/badges/Accuracy.png",
@@ -185,6 +195,7 @@ class AchievementController extends Controller
      *                           {
      *                               "id": null,
      *                               "badge_name": "Silver",
+     *                               "achievement_name": "Accuracy",
      *                               "description": "Iron Fist â€“ Single punch over 600lbs for male â€“ 400lbs for female - ",
      *                               "image": "http://54.233.233.189/storage/badges/Accuracy.png",
      *                               "badge_value": 0,
@@ -235,6 +246,7 @@ class AchievementController extends Controller
                     $awarded = filter_var($userAchievements[$achievementTypeID]['awarded'], FILTER_VALIDATE_BOOLEAN);
                 }
                 $resultData['id'] = $userBadgeID;
+                $resultData['achievement_name'] = $checkData['name'];
                 $resultData['badge_name'] = $data['name'];
                 $resultData['description'] = $data['description'];
                 $resultData['image'] = $data['image'];

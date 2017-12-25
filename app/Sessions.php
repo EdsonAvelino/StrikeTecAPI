@@ -222,7 +222,7 @@ class Sessions extends Model
         $comboPunches = [];
 
         foreach ($comboSet->combos as $combo) {
-            $comboPunches = array_merge($comboPunches, self::getComboPunches($combo->combo_id));
+            $comboPunches = array_merge($comboPunches, Battles::getComboPunches($combo->combo_id));
         }
 
         return self::doSessionComparison($comboPunches, $session);
