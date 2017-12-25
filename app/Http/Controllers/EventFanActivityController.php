@@ -58,7 +58,7 @@ Class EventFanActivityController extends Controller {
         }
     } 
     
-    /**
+     /**
      * @api {post} /fan/activity/remove remove activity
      * @apiGroup event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -71,7 +71,8 @@ Class EventFanActivityController extends Controller {
      * @apiParam {int} id id of event
      * @apiParamExample {json} Input
      *    {
-     *      "id": 1,
+     *      "event_id": 1,
+     *      "activity_id":2
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
@@ -79,7 +80,7 @@ Class EventFanActivityController extends Controller {
      *    HTTP/1.1 200 OK
      *    {
      *       "error": "false",
-     *       "message": "Acitvity has been removed successfully",
+     *       "message": "Acitvity has been removed for event successfully",
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -92,21 +93,22 @@ Class EventFanActivityController extends Controller {
     public function activityRemove(Request $request)
     {   
         $validator = Validator::make($request->all(), [
-            'id'    => 'required|exists:event_fan_activities',
+            'activity_id'    => 'required|exists:event_fan_activities',
         ]);
         if ($validator->fails()) { 
             $errors = $validator->errors();
             return response()->json(['error' => 'true', 'message' =>  $errors->first('id')]);
         }
         try {
-            $activityID = $request->get('id');
+            $activityID = $request->get('activity_id');
+            $eventID = $request->get('event_id');
             DB::beginTransaction();
-            FanActivity::find($activityID)->delete();
-            EventFanActivity::where('activity_id', $activityID)->delete();
+            EventFanActivity::where('activity_id', $activityID)
+                            ->where('event_id', $eventID)->delete();
             DB::commit();
             return response()->json([
                 'error' => 'false',
-                'message' => 'Acitvity has been removed successfully'
+                'message' => 'Acitvity has been removed for event successfully'
             ]);
         } catch (Exception $e) {
             DB::rollBack();
