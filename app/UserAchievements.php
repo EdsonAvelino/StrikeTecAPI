@@ -13,7 +13,6 @@ class UserAchievements extends Model
      * @var array
      */
     protected $table = 'user_achievements';
-
     protected $fillable = [
         'id',
         'user_id',
@@ -25,7 +24,6 @@ class UserAchievements extends Model
         'count',
         'session_id'
     ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -44,8 +42,9 @@ class UserAchievements extends Model
     public static function getSessionAchievements($userId, $sessionId)
     {
         $userAchievements = UserAchievements::with(['achievementType', 'achievement'])->where('user_id', $userId)
-                        ->where('session_id', $sessionId)
-                        ->get()->toArray();
+                ->where('session_id', $sessionId)
+                ->get()
+                ->toArray();
         $result = [];
         foreach ($userAchievements as $achievements) {
             $resultData['achievement_id'] = $achievements['achievement']['id'];
@@ -339,7 +338,7 @@ class UserAchievements extends Model
     public static function get($achievementId)
     {
         $userAchievement = \App\UserAchievements::select('achievement_id', 'achievement_type_id', 'metric_value as badge_value', 'awarded', 'count', 'shared')->where('id', $achievementId)->first();
-        
+
         $achievement = $userAchievement->toArray();
 
         $_achievement = $userAchievement->achievement;
@@ -347,11 +346,12 @@ class UserAchievements extends Model
 
         unset($achievement['achievement_type_id']);
         $achievement['achievement_name'] = $_achievement->name;
-        
+
         $achievement['badge_name'] = $_achievementType->name;
         $achievement['description'] = $_achievementType->description;
         $achievement['image'] = $_achievementType->image;
 
         return $achievement;
     }
+
 }
