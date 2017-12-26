@@ -13,7 +13,6 @@ class UserAchievements extends Model
      * @var array
      */
     protected $table = 'user_achievements';
-
     protected $fillable = [
         'id',
         'user_id',
@@ -25,7 +24,6 @@ class UserAchievements extends Model
         'count',
         'session_id'
     ];
-
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -43,13 +41,14 @@ class UserAchievements extends Model
 
     public static function getSessionAchievements($userId, $sessionId)
     {
-        $userAchievements = UserAchievements::with(['achievementType', 'achievements'])->where('user_id', $userId)
-                        ->where('session_id', $sessionId)
-                        ->get()->toArray();
+        $userAchievements = UserAchievements::with(['achievementType', 'achievement'])->where('user_id', $userId)
+                ->where('session_id', $sessionId)
+                ->get()
+                ->toArray();
         $result = [];
         foreach ($userAchievements as $achievements) {
-            $resultData['achievement_id'] = $achievements['achievements']['id'];
-            $resultData['achievement_name'] = $achievements['achievements']['name'];
+            $resultData['achievement_id'] = $achievements['achievement']['id'];
+            $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];
             $resultData['description'] = $achievements['achievement_type']['description'];
             $resultData['image'] = $achievements['achievement_type']['image'];
@@ -153,15 +152,17 @@ class UserAchievements extends Model
                                     $userParticpationData->shared = false;
                                     $userParticpationData->awarded = true;
                                     $userParticpationData->save();
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userParticpationData->id);
                                 }
                             } else {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $userParticpation,
-                                    'count' => 1,
-                                    'awarded' => true,
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $userParticpation,
+                                            'count' => 1,
+                                            'awarded' => true,
                                 ]);
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userAchievements->id);
                             }
                         } else {
                             if ($userParticpationData)
@@ -191,15 +192,17 @@ class UserAchievements extends Model
                                     $accuracyData->shared = false;
                                     $accuracyData->awarded = true;
                                     $accuracyData->save();
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $accuracyData->id);
                                 }
                             } else {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $accuracy,
-                                    'count' => 1,
-                                    'awarded' => true,
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $accuracy,
+                                            'count' => 1,
+                                            'awarded' => true,
                                 ]);
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $userAchievements->id);
                             }
                         } else {
                             if ($accuracyData)
@@ -229,15 +232,17 @@ class UserAchievements extends Model
                                     $strongManData->shared = false;
                                     $strongManData->awarded = true;
                                     $strongManData->save();
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $strongManData->id);
                                 }
                             } else {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $strongMan,
-                                    'count' => 1,
-                                    'awarded' => true,
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $strongMan,
+                                            'count' => 1,
+                                            'awarded' => true,
                                 ]);
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $userAchievements->id);
                             }
                         } else {
                             if ($strongManData)
@@ -268,14 +273,16 @@ class UserAchievements extends Model
                                     $speedDemonData->awarded = true;
                                     $speedDemonData->save();
                                 }
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $speedDemonData->id);
                             } else {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $speedDemon,
-                                    'count' => 1,
-                                    'awarded' => true,
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $speedDemon,
+                                            'count' => 1,
+                                            'awarded' => true,
                                 ]);
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $userAchievements->id);
                             }
                         } else {
                             if ($speedDemonData)
@@ -306,6 +313,7 @@ class UserAchievements extends Model
                                     $ironFirstData->shared = false;
                                     $ironFirstData->awarded = true;
                                     $ironFirstData->save();
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $ironFirstData->id);
                                 }
                             } else {
                                 UserAchievements::Create(['user_id' => $userId,
@@ -315,6 +323,7 @@ class UserAchievements extends Model
                                     'count' => 1,
                                     'awarded' => true,
                                 ]);
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $userAchievements->id);
                             }
                         } else {
                             if ($ironFirstData)
@@ -329,7 +338,7 @@ class UserAchievements extends Model
     public static function get($achievementId)
     {
         $userAchievement = \App\UserAchievements::select('achievement_id', 'achievement_type_id', 'metric_value as badge_value', 'awarded', 'count', 'shared')->where('id', $achievementId)->first();
-        
+
         $achievement = $userAchievement->toArray();
 
         $_achievement = $userAchievement->achievement;
@@ -337,11 +346,12 @@ class UserAchievements extends Model
 
         unset($achievement['achievement_type_id']);
         $achievement['achievement_name'] = $_achievement->name;
-        
+
         $achievement['badge_name'] = $_achievementType->name;
         $achievement['description'] = $_achievementType->description;
         $achievement['image'] = $_achievementType->image;
 
         return $achievement;
     }
+
 }
