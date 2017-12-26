@@ -168,13 +168,15 @@ class FeedController extends Controller
      *                "points": 80
      *            },
      *            "extra_data": "{
-     *                     \"id\":18,
-     *                     \"achievement_id\":1,
-     *                     \"achievement_type_id\":1,
-     *                     \"awarded\":False,
-     *                     \"shared\":False,
-     *                     \"metric_value\":0,
-     *                     \"count\":0,
+     *                     \"achievement_id\": 1,
+     *                     \"achievement_name\": \"belts\",
+     *                     \"badge_name\": \"Belts\",
+     *                     \"description\": \"Belts\",
+     *                     \"image\": \"http://54.233.233.189/storage/badges/Champion.png\",
+     *                     \"badge_value\": 0,
+     *                     \"awarded\": false,
+     *                     \"count\": 0,
+     *                     \"shared\": false
      *             }",
      *             "user_likes": false
      *        },
