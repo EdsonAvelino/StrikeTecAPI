@@ -222,7 +222,7 @@ class AchievementController extends Controller
         $userId = \Auth::user()->id;
         $achievements = Achievements::with('achievementType')->orderBy('sequence')->get();
         $userAchievements = UserAchievements::where('user_id', $userId)->get()->keyBy('achievement_type_id')->toArray();
-//scheduler budge update
+        //scheduler budge update
         UserAchievements::schedulerForAchievements($userId);
 
         foreach ($achievements as $checkData) {

@@ -13,6 +13,7 @@ class UserAchievements extends Model
      * @var array
      */
     protected $table = 'user_achievements';
+
     protected $fillable = [
         'id',
         'user_id',
@@ -24,6 +25,7 @@ class UserAchievements extends Model
         'count',
         'session_id'
     ];
+
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -34,7 +36,7 @@ class UserAchievements extends Model
         return $this->hasOne('App\AchievementTypes', 'id', 'achievement_type_id');
     }
 
-    public function achievements()
+    public function achievement()
     {
         return $this->hasOne('App\Achievements', 'id', 'achievement_id');
     }
