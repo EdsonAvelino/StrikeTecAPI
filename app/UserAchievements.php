@@ -326,4 +326,22 @@ class UserAchievements extends Model
         }
     }
 
+    public static function get($achievementId)
+    {
+        $userAchievement = \App\UserAchievements::select('achievement_id', 'achievement_type_id', 'metric_value as badge_value', 'awarded', 'count', 'shared')->where('id', $achievementId)->first();
+        
+        $achievement = $userAchievement->toArray();
+
+        $_achievement = $userAchievement->achievement;
+        $_achievementType = \App\AchievementTypes::where('id', $userAchievement->achievement_type_id)->first();
+
+        unset($achievement['achievement_type_id']);
+        $achievement['achievement_name'] = $_achievement->name;
+        
+        $achievement['badge_name'] = $_achievementType->name;
+        $achievement['description'] = $_achievementType->description;
+        $achievement['image'] = $_achievementType->image;
+
+        return $achievement;
+    }
 }

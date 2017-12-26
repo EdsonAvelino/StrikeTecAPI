@@ -25,7 +25,7 @@ class Achievements extends Model
 
     public function achievementType()
     {
-        return $this->hasMany('App\AchievementTypes','achievement_id');
+        return $this->hasMany('App\AchievementTypes', 'achievement_id');
     }
 
 }

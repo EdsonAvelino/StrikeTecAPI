@@ -266,9 +266,9 @@ class FeedController extends Controller
                     break;
 
                 case 4:
-                    $badgeData = \App\UserAchievements::with('achievement')->select('achievement_id', 'shared')->where('id', $post->data_id)->first();
+                    $achievement = \App\UserAchievements::get($post->data_id);
 
-                    $_post['extra_data'] = $badgeData;
+                    $_post['extra_data'] = json_encode($achievement);
                     break;
             }
 
