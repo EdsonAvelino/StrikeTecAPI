@@ -69,6 +69,7 @@ class GoalAchievements extends Model
                         ->get()->toArray();
         $result = [];
         foreach ($userAchievements as $achievements) {
+            $resultData['id'] = $achievements['id'];
             $resultData['achievement_id'] = $achievements['achievement']['id'];
             $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];

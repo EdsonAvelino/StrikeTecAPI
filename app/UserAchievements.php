@@ -47,6 +47,7 @@ class UserAchievements extends Model
                 ->toArray();
         $result = [];
         foreach ($userAchievements as $achievements) {
+            $resultData['id'] = $achievements['id'];
             $resultData['achievement_id'] = $achievements['achievement']['id'];
             $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];
@@ -316,12 +317,12 @@ class UserAchievements extends Model
                                     GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $ironFirstData->id);
                                 }
                             } else {
-                                UserAchievements::Create(['user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $ironFirst,
-                                    'count' => 1,
-                                    'awarded' => true,
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $ironFirst,
+                                            'count' => 1,
+                                            'awarded' => true,
                                 ]);
                                 GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $userAchievements->id);
                             }

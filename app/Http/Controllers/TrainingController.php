@@ -373,7 +373,7 @@ class TrainingController extends Controller
                 // Set battle winner, according to battle-result
                 Battles::updateWinner($battle->id);
 
-//                Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
+                Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
                 // Generates new notification for user
                 $userThisBattleNotif = \App\UserNotifications::where('data_id', $battle->id)
                                 ->where(function($query) {
@@ -1219,13 +1219,15 @@ class TrainingController extends Controller
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
                         if ($mostPowefulSpeedData) {
-                            $mostPowefulSpeedData->metric_value = $speedAndPunch;
-                            $mostPowefulSpeedData->count = 1;
-                            $mostPowefulSpeedData->session_id = $sessionId;
-                            $mostPowefulSpeedData->shared = false;
-                            $mostPowefulSpeedData->awarded = true;
-                            $mostPowefulSpeedData->save();
-                            GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedAndPunch, $speedAndPunch, $mostPowefulSpeedData->id);
+                            if ($mostPowefulSpeedData->metric_value < $speedAndPunch) {
+                                $mostPowefulSpeedData->metric_value = $speedAndPunch;
+                                $mostPowefulSpeedData->count = 1;
+                                $mostPowefulSpeedData->session_id = $sessionId;
+                                $mostPowefulSpeedData->shared = false;
+                                $mostPowefulSpeedData->awarded = true;
+                                $mostPowefulSpeedData->save();
+                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedAndPunch, $speedAndPunch, $mostPowefulSpeedData->id);
+                            }
                         } else {
                             $userAchievements = UserAchievements::Create(['user_id' => $userId, 'count' => 1, 'awarded' => true, 'achievement_id' => $achievement->id, 'achievement_type_id' => $achievementType->id, 'metric_value' => $mostPowefulSpeed, 'session_id' => $sessionId]);
                             GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedAndPunch, 1, $userAchievements->id);
@@ -1234,7 +1236,6 @@ class TrainingController extends Controller
                     break;
 
                 case 7:
-                    $battleId = 122;
                     if ($battleId) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
                         $champion = Battles::getChampian($battleId);
