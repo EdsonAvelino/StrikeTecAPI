@@ -9,6 +9,7 @@ use App\Sessions;
 
 class GoalController extends Controller
 {
+
     /**
      * @api {post} /goal/add Add goal of user
      * @apiGroup Goals
@@ -60,7 +61,7 @@ class GoalController extends Controller
         $endAt = ($request->end_date) ? $request->end_date : null;
         $startChk = date('Y-m-d', (int) $startAt);
         $endChk = date('Y-m-d', (int) $startAt);
-        
+
         if ($startChk >= date('Y-m-d') && $endChk >= date('Y-m-d')) {
             if ($endChk < $startChk) {
                 return response()->json(['error' => 'true', 'message' => 'Please choose end date greater than start date.']);
@@ -265,13 +266,13 @@ class GoalController extends Controller
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
         $userId = \Auth::user()->id;
-        
+
         $this->calculateGoal(); // Calculate data of followed 
-        
+
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', 'done_count', 'shared')
                         ->where('user_id', $userId)->orderBy('created_at', 'desc')
                         ->offset($offset)->limit($limit)->get();
-        
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
 
@@ -330,7 +331,7 @@ class GoalController extends Controller
             }
 
             Goals::where('user_id', $userId)->where('id', '!=', $goalId)->where('followed', 1)->update([ 'followed' => 0]);
-            
+
             return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goalId]]);
         } else {
             return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goalId]]);
@@ -373,8 +374,32 @@ class GoalController extends Controller
      *              "avg_speed": 0,
      *              "avg_power": 0,
      *              "achieve_type": 0
-     *              "shared": "true"
-     *            }
+     *              "shared": "true",
+     *              "achievements": [
+     *           {
+     *              "achievement_id": 5,
+     *              "achievement_name": "Most Powerful Punch",
+     *              "name": "Powerful Punch",
+     *              "description": "Most Powerful Punch",
+     *              "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
+     *              "badge_value": 1,
+     *              "awarded": true,
+     *              "count": 1,
+     *              "shared": false
+     *          },
+     *          {
+     *              "achievement_id": 12,
+     *              "achievement_name": "Iron First",
+     *              "name": "Gold",
+     *              "description": "User Participation",
+     *               "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
+     *              "badge_value": 1,
+     *              "awarded": true,
+     *              "count": 1,
+     *              "shared": false
+     *          }
+     *         }
+     *       }]
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -387,10 +412,13 @@ class GoalController extends Controller
     public function goalInfo(Request $request)
     {
         $goalId = (int) $request->get('goal_id');
-        
+        $userId = \Auth::user()->id;
         $goalList = Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
-                        ->where('id', $goalId)->first();
-        
+                ->where('id', $goalId)
+                ->where('user_id', $userId)
+                ->first();
+
+        $goalList['badge'] = \App\GoalAchievements::getGoalAchievements($userId, $goalId);
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
 
@@ -426,7 +454,6 @@ class GoalController extends Controller
      *              "avg_power": 0,
      *              "achieve_type": 0,
      *              "shared": "false"
-     *            }
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -460,53 +487,55 @@ class GoalController extends Controller
         if ($goalList) {
             $endDate = $goalList->end_at;
             $today = date("Y-m-d");
-            
+
             if ($today >= $endDate) {
                 $goalList->followed = 0;
                 $goalList->followed_at = date("Y-m-d H:i:s");
                 $goalList->save();
-            }
+            } else {
 
-            $goalSession = Goals::with('goalSessions')->where('id', $goalList->id)->first()->toArray();
-            $sessionId = [];
+                $goalSession = Goals::with('goalSessions')->where('id', $goalList->id)->first()->toArray();
+                $sessionId = [];
 
-            foreach ($goalSession['goal_sessions'] as $value) {
-                $sessionId[] = $value['session_id'];
-            }
-
-            $sessions = Sessions::where('user_id', \Auth::user()->id)
-                            ->whereIn('id', $sessionId)
-                            ->get()->toArray();
-            $division = 0;
-            $doneCount = 0;
-
-            if (count($sessions)) {
-                foreach ($sessions as $session) {
-                    $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-                    $avgTimeData[] = $session['best_time'] * $session['punches_count'];
-                    $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-                    $division += $session['punches_count'];
-                    $doneCount++;
+                foreach ($goalSession['goal_sessions'] as $value) {
+                    $sessionId[] = $value['session_id'];
                 }
 
-                $avgSpeed = array_sum($avgSpeedData) / $division;
-                $avgForce = array_sum($avgForceData) / $division;
-                $avgTime = array_sum($avgTimeData) / $division;
-                $goalList->avg_speed = (int) $avgSpeed;
-                $goalList->avg_power = (int) $avgForce;
-                $goalList->avg_time = round($avgTime, 2);
-                if ($goalList->activity_type_id == 2) {
-                    if ($session['type_id'] == 5) {
-                        $goalList->done_count = $doneCount;
+                $sessions = Sessions::where('user_id', \Auth::user()->id)
+                                ->whereIn('id', $sessionId)
+                                ->get()->toArray();
+                $division = 0;
+                $doneCount = 0;
+
+                if (count($sessions)) {
+                    foreach ($sessions as $session) {
+                        $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                        $avgTimeData[] = $session['best_time'] * $session['punches_count'];
+                        $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+                        $division += $session['punches_count'];
+                        $doneCount++;
                     }
-                } else {
-                    $goalList->done_count = $division;
+
+                    $avgSpeed = array_sum($avgSpeedData) / $division;
+                    $avgForce = array_sum($avgForceData) / $division;
+                    $avgTime = array_sum($avgTimeData) / $division;
+                    $goalList->avg_speed = (int) $avgSpeed;
+                    $goalList->avg_power = (int) $avgForce;
+                    $goalList->avg_time = round($avgTime, 2);
+                    if ($goalList->activity_type_id == 2) {
+                        if ($session['type_id'] == 5) {
+                            $goalList->done_count = $doneCount;
+                        }
+                    } else {
+                        $goalList->done_count = $division;
+                    }
+
+                    $goalList->save();
                 }
 
-                $goalList->save();
+                return $goalList->id;
             }
-
-            return $goalList->id;
         }
     }
+
 }
