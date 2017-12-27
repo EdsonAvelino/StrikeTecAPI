@@ -53,4 +53,17 @@ class Combos extends Model
         return $tags;
     }
 
+    public function getFiltersAttribute($comboId)
+    {
+        $comboId = (int) $comboId;
+
+        if (empty($comboId)) {
+            return null;
+        }
+
+        $filters = \DB::table('combo_filters')->where('combo_id', $comboId)->pluck('filter_id')->toArray();
+
+        return $filters;
+    }
+
 }

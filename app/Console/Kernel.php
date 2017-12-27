@@ -28,12 +28,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function () {
-
-            $users = User::select('id')->get();
-            foreach ($users as $userId) {
-                \Log::info("achievements for user id :: " . $userId->id);
-                UserAchievements::schedulerForAchievements($userId->id);
-            }
+            UserAchievements::achievementsSchedulerRun();
         });
     }
 

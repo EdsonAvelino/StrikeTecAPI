@@ -35,4 +35,17 @@ class Workouts extends Model
         return $tags;
     }
 
+    public function getFiltersAttribute($workoutId)
+    {
+        $workoutId = (int) $workoutId;
+
+        if (empty($workoutId)) {
+            return null;
+        }
+
+        $filters = \DB::table('workout_filters')->where('workout_id', $workoutId)->pluck('filter_id')->toArray();
+
+        return $filters;
+    }
+
 }
