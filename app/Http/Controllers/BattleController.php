@@ -402,6 +402,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "keys": [
      *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
      *          ]
@@ -415,6 +419,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "keys": [
      *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
      *          ]
@@ -467,6 +475,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "combos": [
      *              "1", "2", "3"
      *          ],
@@ -479,6 +491,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "combos": [
      *              "1", "4", "5"
      *          ],
@@ -533,6 +549,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *              "combos": [
      *                  [ 1, 2, 3 ],
      *                  [ 1, 4, 5 ],
@@ -549,6 +569,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *              "combos": [
      *                  [ 1, 5, 3 ],
      *                  [ 2, 4, 3 ],

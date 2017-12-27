@@ -223,12 +223,52 @@ class FeedController extends Controller
                     $_post['extra_data'] = "";
 
                     switch ($post->post_type_id) {
-                case 1:
-                    if ($post->data->user_id == $post->user_id) {
-                        $user2FullName = $post->data->opponentUser->first_name . ' ' . $post->data->opponentUser->last_name;
-                    } else {
-                        $user2FullName = $post->data->user->first_name . ' ' . $post->data->user->last_name;
-                    }
+                        case 1:
+                            if ($post->data->user_id == $post->user_id) {
+                                $user2FullName = $post->data->opponentUser->first_name . ' ' . $post->data->opponentUser->last_name;
+                            } else {
+                                $user2FullName = $post->data->user->first_name . ' ' . $post->data->user->last_name;
+                            }
+
+                            // extra_data contains feed type related data battle, training, goal etc
+                            $extraData = [];
+                            $battleResult = \App\Battles::getResult($post->data_id);
+
+                            $winnerTotalWinCounts = 0;
+                            $loserTotalWinCounts = 0;
+
+                            if (!is_null($battleResult['winner']) && !is_null($battleResult['loser'])) {
+                                $winnerUserId = $battleResult['winner']['id'];
+                                $loserUserId = $battleResult['loser']['id'];
+
+                                $winnerTotalWinCounts = \App\Battles::where('winner_user_id', $winnerUserId)->count();
+                                $loserTotalWinCounts = \App\Battles::where(function($query) use($loserUserId) {
+                                            $query->where('user_id', $loserUserId)->orWhere('opponent_user_id', $loserUserId);
+                                        })->where('winner_user_id', $loserUserId)->count();
+                            }
+
+                            $extraData['winner_total_win_counts'] = $winnerTotalWinCounts;
+                            $extraData['loser_total_win_counts'] = $loserTotalWinCounts;
+
+                            $extraData = array_merge($extraData, $battleResult);
+                            $_post['extra_data'] = json_encode($extraData);
+                            break;
+
+                        case 2:
+                            // avg punch count, avg speed, avg power.
+                            $extraData = [];
+                            $extraData['punches_count'] = $post->data->punches_count;
+                            $extraData['avg_speed'] = $post->data->avg_speed;
+                            $extraData['avg_force'] = $post->data->avg_force;
+                            $_post['extra_data'] = json_encode($extraData);
+                            break;
+
+                        case 3:
+                            $goalData = \App\Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
+                                            ->where('id', $post->data_id)->first();
+
+                            $_post['extra_data'] = json_encode($goalData);
+                            break;
 
                         case 4:
                             $achievement = \App\SharedAchievements::find($post->data_id);
