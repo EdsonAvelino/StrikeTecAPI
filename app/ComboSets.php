@@ -45,4 +45,17 @@ class ComboSets extends Model
         return $tags;
     }
 
+    public function getFiltersAttribute($comboSetId)
+    {
+        $comboSetId = (int) $comboSetId;
+
+        if (empty($comboSetId)) {
+            return null;
+        }
+
+        $filters = \DB::table('combo_set_filters')->where('combo_set_id', $comboSetId)->pluck('filter_id')->toArray();
+
+        return $filters;
+    }
+
 }

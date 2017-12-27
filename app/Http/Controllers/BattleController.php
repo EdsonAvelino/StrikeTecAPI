@@ -402,6 +402,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "keys": [
      *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
      *          ]
@@ -415,6 +419,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "keys": [
      *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
      *          ]
@@ -431,7 +439,7 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
+        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get()->toArray();
 
         foreach ($combos as $i => $combo) {
             $keySet = $combo['key_set'];
@@ -467,6 +475,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "combos": [
      *              "1", "2", "3"
      *          ],
@@ -479,6 +491,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *          "combos": [
      *              "1", "4", "5"
      *          ],
@@ -496,7 +512,7 @@ class BattleController extends Controller
     public function getComboSets()
     {
         $comboSets = [];
-        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'))->get();
+        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
 
         foreach ($_comboSets as $comboSet) {
             $_comboSet = $comboSet->toArray();
@@ -533,6 +549,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *              "combos": [
      *                  [ 1, 2, 3 ],
      *                  [ 1, 4, 5 ],
@@ -549,6 +569,10 @@ class BattleController extends Controller
      *                 6,
      *                 7
      *             ],
+     *         "filters": [
+     *                   1,
+     *                   2
+     *              ],
      *              "combos": [
      *                  [ 1, 5, 3 ],
      *                  [ 2, 4, 3 ],
@@ -575,7 +599,7 @@ class BattleController extends Controller
         // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::select('*', \DB::raw('id as tags'))->get();
+        $_workouts = Workouts::select('*', \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
 
         foreach ($_workouts as $workout) {
             $_workout = $workout->toArray();

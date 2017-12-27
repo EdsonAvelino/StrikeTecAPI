@@ -87,11 +87,11 @@ class Sessions extends Model
         return $punchCount;
     }
 
-    public static function getUserParticpation()
+    public static function getUserParticpation($userId)
     {
         $currentWeekMonday = strtotime("monday this week");
         $lastWeekMonday = strtotime('Monday last week');
-        $userParticpation = self::where('user_id', \Auth::user()->id)
+        $userParticpation = self::where('user_id', $userId)
                         ->where('start_time', '<', ($currentWeekMonday * 1000))
                         ->where('start_time', '>', ($lastWeekMonday * 1000))
                         ->where(function($query) {
@@ -100,11 +100,11 @@ class Sessions extends Model
         return $userParticpation;
     }
 
-    public static function getSpeedDemon($trainingCount)
+    public static function getSpeedDemon($trainingCount, $userId)
     {
         $currentWeekMonday = strtotime("monday this week");
         $lastWeekMonday = strtotime('Monday last week');
-        $speedDemon = self::where('user_id', \Auth::user()->id)
+        $speedDemon = self::where('user_id', $userId)
                 ->where(function($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })
@@ -116,11 +116,11 @@ class Sessions extends Model
         return $speedDemon;
     }
 
-    public static function getStrongMen($force)
+    public static function getStrongMen($force, $userId)
     {
         $currentWeekMonday = strtotime("monday this week");
         $lastWeekMonday = strtotime('Monday last week');
-        $returnData = self::where('user_id', \Auth::user()->id)
+        $returnData = self::where('user_id', $userId)
                 ->where(function($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })
@@ -131,12 +131,12 @@ class Sessions extends Model
         return $returnData;
     }
 
-    public static function ironFirst()
+    public static function ironFirst($userId)
     {
         $currentWeekMonday = strtotime("monday this week");
         $lastWeekMonday = strtotime('Monday last week');
         $ironFirst = self::select(\DB::raw('MAX(max_force) as max_force'))
-                ->where('user_id', \Auth::user()->id)
+                ->where('user_id', $userId)
                 ->where(function ($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })->where('start_time', '<', ($currentWeekMonday * 1000))
@@ -173,7 +173,6 @@ class Sessions extends Model
                     break;
             }
         }
-//        print_r($data);die;
         return $data;
     }
 

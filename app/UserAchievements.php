@@ -133,207 +133,218 @@ class UserAchievements extends Model
             switch ($achievement->id) {
 
                 case 7:
-                    $userParticpation = Sessions::getUserParticpation();
-                    $achievementType = AchievementTypes::select('id')
-                            ->where('achievement_id', $achievement->id)
-                            ->where('min', '<', $userParticpation)
-                            ->where('max', '>', $userParticpation)
-                            ->first();
-                    if ($achievementType) {
-                        $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
-                                ->where('user_id', $userId)
+                    $userParticpation = Sessions::getUserParticpation($userId);
+                    if ($userParticpation) {
+                        $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('min', '<', $userParticpation)
+                                ->where('max', '>', $userParticpation)
                                 ->first();
-                        if ($userParticpation > 0) {
-                            if ($userParticpationData) {
-                                if ($userParticpationData->metric_value < $userParticpation) {
-                                    $userParticpationData->achievement_type_id = $achievementType->id;
-                                    $userParticpationData->metric_value = $userParticpation;
-                                    $userParticpationData->count = 1;
-                                    $userParticpationData->shared = false;
-                                    $userParticpationData->awarded = true;
-                                    $userParticpationData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userParticpationData->id);
+                        if ($achievementType) {
+                            $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($userParticpation > 0) {
+                                if ($userParticpationData) {
+                                    if ($userParticpationData->metric_value < $userParticpation) {
+                                        $userParticpationData->achievement_type_id = $achievementType->id;
+                                        $userParticpationData->metric_value = $userParticpation;
+                                        $userParticpationData->count = 1;
+                                        $userParticpationData->shared = false;
+                                        $userParticpationData->awarded = true;
+                                        $userParticpationData->save();
+                                        GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userParticpationData->id);
+                                    }
+                                } else {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $userParticpation,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                    ]);
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userAchievements->id);
                                 }
                             } else {
-                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                            'achievement_id' => $achievement->id,
-                                            'achievement_type_id' => $achievementType->id,
-                                            'metric_value' => $userParticpation,
-                                            'count' => 1,
-                                            'awarded' => true,
-                                ]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $userParticpation, 1, $userAchievements->id);
+                                if ($userParticpationData)
+                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
                             }
-                        } else {
-                            if ($userParticpationData)
-                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
 
                 case 9:
                     $accuracy = Sessions::getAccuracy();
-                    $achievementType = AchievementTypes::select('id')
-                            ->where('achievement_id', $achievement->id)
-                            ->where('min', '<', $accuracy)
-                            ->where('max', '>', $accuracy)
-                            ->first();
-                    if ($achievementType) {
-                        $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
-                                ->where('user_id', $userId)
+                    if ($accuracy) {
+                        $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('min', '<', $accuracy)
+                                ->where('max', '>', $accuracy)
                                 ->first();
-                        if ($accuracy > 0) {
-                            if ($accuracyData) {
-                                if ($accuracyData->metric_value < $accuracy) {
-                                    $accuracyData->metric_value = $accuracy;
-                                    $accuracyData->achievement_type_id = $achievementType->id;
-                                    $accuracyData->count = 1;
-                                    $accuracyData->shared = false;
-                                    $accuracyData->awarded = true;
-                                    $accuracyData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $accuracyData->id);
+                        if ($achievementType) {
+                            $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($accuracy > 0) {
+                                if ($accuracyData) {
+                                    if ($accuracyData->metric_value < $accuracy) {
+                                        $accuracyData->metric_value = $accuracy;
+                                        $accuracyData->achievement_type_id = $achievementType->id;
+                                        $accuracyData->count = 1;
+                                        $accuracyData->shared = false;
+                                        $accuracyData->awarded = true;
+                                        $accuracyData->save();
+                                        GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $accuracyData->id);
+                                    }
+                                } else {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $accuracy,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                    ]);
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $userAchievements->id);
                                 }
                             } else {
-                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                            'achievement_id' => $achievement->id,
-                                            'achievement_type_id' => $achievementType->id,
-                                            'metric_value' => $accuracy,
-                                            'count' => 1,
-                                            'awarded' => true,
-                                ]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $accuracy, 1, $userAchievements->id);
+                                if ($accuracyData)
+                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
                             }
-                        } else {
-                            if ($accuracyData)
-                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
 
                 case 10:
-                    $strongMan = Sessions::getStrongMen(500);
-                    $achievementType = AchievementTypes::select('id')
-                            ->where('achievement_id', $achievement->id)
-                            ->where('min', '<', $strongMan)
-                            ->where('max', '>', $strongMan)
-                            ->first();
-                    if ($achievementType) {
-                        $strongManData = UserAchievements::where('achievement_id', $achievement->id)
-                                ->where('user_id', $userId)
+                    $strongMan = Sessions::getStrongMen(500, $userId);
+                    if ($strongMan) {
+                        $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('min', '<', $strongMan)
+                                ->where('max', '>', $strongMan)
                                 ->first();
-                        if ($strongMan > 0) {
-                            if ($strongManData) {
-                                if ($strongManData->metric_value < $strongMan) {
-                                    $strongManData->metric_value = $strongMan;
-                                    $strongManData->count = 1;
-                                    $strongManData->achievement_type_id = $achievementType->id;
-                                    $strongManData->shared = false;
-                                    $strongManData->awarded = true;
-                                    $strongManData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $strongManData->id);
+                        if ($achievementType) {
+                            $strongManData = UserAchievements::where('achievement_id', $achievement->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($strongMan > 0) {
+                                if ($strongManData) {
+                                    if ($strongManData->metric_value < $strongMan) {
+                                        $strongManData->metric_value = $strongMan;
+                                        $strongManData->count = 1;
+                                        $strongManData->achievement_type_id = $achievementType->id;
+                                        $strongManData->shared = false;
+                                        $strongManData->awarded = true;
+                                        $strongManData->save();
+                                        GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $strongManData->id);
+                                    }
+                                } else {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $strongMan,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                    ]);
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $userAchievements->id);
                                 }
                             } else {
-                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                            'achievement_id' => $achievement->id,
-                                            'achievement_type_id' => $achievementType->id,
-                                            'metric_value' => $strongMan,
-                                            'count' => 1,
-                                            'awarded' => true,
-                                ]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $strongMan, 1, $userAchievements->id);
+                                if ($strongManData)
+                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
                             }
-                        } else {
-                            if ($strongManData)
-                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
 
                 case 11:
-                    $speedDemon = Sessions::getSpeedDemon(20);
-                    $achievementType = AchievementTypes::select('id')
-                            ->where('achievement_id', $achievement->id)
-                            ->where('min', '<', $strongMan)
-                            ->where('max', '>', $strongMan)
-                            ->first();
-                    if ($achievementType) {
-                        $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
-                                ->where('user_id', $userId)
+                    $speedDemon = Sessions::getSpeedDemon(20, $userId);
+                    if ($speedDemon) {
+                        $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('min', '<', $strongMan)
+                                ->where('max', '>', $strongMan)
                                 ->first();
-                        if ($speedDemon > 0) {
-                            if ($speedDemonData) {
-                                if ($speedDemonData->metric_value < $speedDemon) {
-                                    $speedDemonData->metric_value = $speedDemon;
-                                    $speedDemonData->achievement_type_id = $achievementType->id;
-                                    $speedDemonData->count = 1;
-                                    $speedDemonData->shared = false;
-                                    $speedDemonData->awarded = true;
-                                    $speedDemonData->save();
+                        if ($achievementType) {
+                            $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($speedDemon > 0) {
+                                if ($speedDemonData) {
+                                    if ($speedDemonData->metric_value < $speedDemon) {
+                                        $speedDemonData->metric_value = $speedDemon;
+                                        $speedDemonData->achievement_type_id = $achievementType->id;
+                                        $speedDemonData->count = 1;
+                                        $speedDemonData->shared = false;
+                                        $speedDemonData->awarded = true;
+                                        $speedDemonData->save();
+                                    }
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $speedDemonData->id);
+                                } else {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $speedDemon,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                    ]);
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $userAchievements->id);
                                 }
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $speedDemonData->id);
                             } else {
-                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                            'achievement_id' => $achievement->id,
-                                            'achievement_type_id' => $achievementType->id,
-                                            'metric_value' => $speedDemon,
-                                            'count' => 1,
-                                            'awarded' => true,
-                                ]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedDemon, 1, $userAchievements->id);
+                                if ($speedDemonData)
+                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
                             }
-                        } else {
-                            if ($speedDemonData)
-                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
 
                 case 12:
-                    $ironFirst = Sessions::ironFirst();
-                    $achievementType = AchievementTypes::select('id')
-                            ->where('achievement_id', $achievement->id)
-                            ->where('min', '<', $ironFirst)
-                            ->where('max', '>', $ironFirst)
-                            ->first();
-
-                    if ($achievementType) {
-                        $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
-                                ->where('user_id', $userId)
+                    $ironFirst = Sessions::ironFirst($userId);
+                    if ($ironFirst) {
+                        $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('min', '<', $ironFirst)
+                                ->where('max', '>', $ironFirst)
                                 ->first();
-                        if ($ironFirst > 0) {
-                            if ($ironFirstData) {
-                                if ($ironFirstData->metric_value < $ironFirst) {
-                                    $ironFirstData->metric_value = $ironFirst;
-                                    $ironFirstData->count = 1;
-                                    $ironFirstData->achievement_type_id = $achievementType->id;
-                                    $ironFirstData->shared = false;
-                                    $ironFirstData->awarded = true;
-                                    $ironFirstData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $ironFirstData->id);
+
+                        if ($achievementType) {
+                            $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($ironFirst > 0) {
+                                if ($ironFirstData) {
+                                    if ($ironFirstData->metric_value < $ironFirst) {
+                                        $ironFirstData->metric_value = $ironFirst;
+                                        $ironFirstData->count = 1;
+                                        $ironFirstData->achievement_type_id = $achievementType->id;
+                                        $ironFirstData->shared = false;
+                                        $ironFirstData->awarded = true;
+                                        $ironFirstData->save();
+                                        GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $ironFirstData->id);
+                                    }
+                                } else {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $ironFirst,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                    ]);
+                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $userAchievements->id);
                                 }
                             } else {
-                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                            'achievement_id' => $achievement->id,
-                                            'achievement_type_id' => $achievementType->id,
-                                            'metric_value' => $ironFirst,
-                                            'count' => 1,
-                                            'awarded' => true,
-                                ]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $ironFirst, 1, $userAchievements->id);
+                                if ($ironFirstData)
+                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
                             }
-                        } else {
-                            if ($ironFirstData)
-                                UserAchievements::where('achievement_id', $achievement->id)->delete();
                         }
                     }
                     break;
             }
         }
+        return;
     }
 
     public static function get($achievementId)
@@ -353,6 +364,17 @@ class UserAchievements extends Model
         $achievement['image'] = $_achievementType->image;
 
         return $achievement;
+    }
+
+    public static function achievementsSchedulerRun()
+    {
+        $date = date('y-m-d');
+        $users = User::select('id')->get();
+        foreach ($users as $userId) {
+            $text = "Achievement has been assigned to user  " . $userId->id;
+            \DB::insert('insert into scheduler_log (log,created_at) values (?,?)', [$text, $date]);
+            UserAchievements::schedulerForAchievements($userId->id);
+        }
     }
 
 }
