@@ -185,6 +185,10 @@ class LeaderboardController extends Controller
 	            if ($gender) {
 	            	$query->where('gender', $gender);
 	            }
+
+	            $query->where(function($q) {
+	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+	            });
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -223,6 +227,10 @@ class LeaderboardController extends Controller
 	            if ($gender) {
 	            	$query->where('gender', $gender);
 	            }
+
+	            $query->where(function($q) {
+	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+	            });
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -258,6 +266,10 @@ class LeaderboardController extends Controller
 	            if ($gender) {
 	            	$query->where('gender', $gender);
 	            }
+
+	            $query->where(function($q) {
+	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+	            });
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
@@ -449,6 +461,10 @@ class LeaderboardController extends Controller
             	$query->where('gender', $gender);
             }
 
+            $query->where(function($q) {
+            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+            });
+        
             if ($searchQuery) {
             	$query->where(function ($q) use ($searchQuery) {
             		$name = explode(' ', str_replace('+', ' ', $searchQuery));
