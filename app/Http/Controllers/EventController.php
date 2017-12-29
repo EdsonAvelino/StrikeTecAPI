@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Event;
 use App\EventUser;
 use App\FanActivity;
+use App\EventFanActivity;
+use App\EventSession;
 use Validator;
 use DB;
 
@@ -13,7 +15,7 @@ class EventController extends Controller
 {
     /**
      * @api {post} /fan/event register event details
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -124,7 +126,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/events get event details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -209,7 +211,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/users/event/list get users details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -295,7 +297,7 @@ class EventController extends Controller
     
      /**
      * @api {get} /fan/my/events get my events details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -457,7 +459,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/all/events get all events details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -619,7 +621,7 @@ class EventController extends Controller
     
     /**
      * @api {post} /fan/event/remove remove event
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -680,7 +682,7 @@ class EventController extends Controller
     }
     /**
      * @api {get} /fan/event/users/activities/<event_id> get users details and activity details by event id
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -797,12 +799,22 @@ class EventController extends Controller
             $eventActivityInfoUsersList = Event::with('eventUser', 'eventActivity')->find($event_id)->toArray();
             //Get users list
             foreach($eventActivityInfoUsersList['event_user'] as $val) {
+                
                 $eventActivityInfoUsersList['users'][] = $ObjEventUser->getUsersList($val['user_id']);
             }
-            //Get activities details 
-            foreach($eventActivityInfoUsersList['event_activity'] as $data) {
+            //Get activities details and users information
+           foreach($eventActivityInfoUsersList['event_activity'] as $data) {
                 $tempStorage = FanActivity::where('id', $data['activity_id'])->first();
+                $tempStoreActivityArray = EventSession::with('user')->where('activity_id', $data['activity_id'])
+                                             ->where('event_id', $event_id)->get()->toArray();
+           
                 $tempStorage->status = $data['status'];
+                $tempSessionStoreArray = array();
+                //Get session users information
+                foreach($tempStoreActivityArray as $userInfo){
+                        $tempSessionStoreArray[] = $userInfo['user'];
+                    }
+                $tempStorage->sessionUsers = $tempSessionStoreArray;
                 $eventActivityInfoUsersList['activities'][] = $tempStorage;
             }
             if(empty($eventActivityInfoUsersList['users'])) {
@@ -826,7 +838,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/events/logged/user get active event details information by logged user id
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -899,6 +911,109 @@ class EventController extends Controller
                        'message' => 'Invalid request',
            ]);
        }
+    }
+    
+    /**
+     * @api {post} /fan/event/activity/status Activity status update
+     * @apiGroup Event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} id id of event
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_id": 74,
+     *      "activity_id": 1,
+     *      "status": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Activity status is Inprogress",
+     *   }
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    function statusChangeActivity(Request $request)
+    {   
+        $validator = Validator::make($request->all(), [
+            'activity_id'    => 'required|exists:event_fan_activities',
+            'event_id'    => 'required|exists:event_fan_activities',
+            'status'    => 'required',
+        ]);
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors]);
+        }
+        try {
+            $eventID = $request->get('event_id');
+            $activityID = $request->get('activity_id');
+            if($request->get('status') == 0) {
+                $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
+                                                        ->where('event_id', $eventID)
+                                                        ->first();
+                if($eventFanActivityStatus->status == 0) {
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Activity already is Inprogress'
+                    ]);
+                }  
+                EventFanActivity::where('activity_id', $activityID)
+                                ->where('event_id', $eventID)
+                                ->update(['status' => 0]);
+                return response()->json([
+                            'error' => 'false',
+                            'message' => 'Activity status is Inprogress'
+                ]);
+            } else {
+                    $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
+                                                        ->where('event_id', $eventID)
+                                                        ->first();
+                    EventFanActivity::where('activity_id', $activityID)
+                                ->where('event_id', $eventID)
+                                ->update(['status' => 1]);
+                            $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
+                        if($activityID == 1) {
+                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                        }
+                        if($activityID == 2) {
+                            $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
+                        }
+                        if($activityID == 3) {
+                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                        }
+                    }])
+                    ->where('event_id', $eventID)
+                    ->where('activity_id', $activityID)->first();
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Activity status change successfully',
+                        'data' => $leaderBoardDetails
+                    ]);
+            }
+        }catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                    'error' => 'true',
+                    'message' => 'Invalid request',
+            ]);
+        
+        } 
     }
     
 }

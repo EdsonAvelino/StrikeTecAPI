@@ -346,7 +346,21 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     //get active event details by logged user
     $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
 
-
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
+    
+      //get leaderboard details by event id and activity id
+    $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
+
+    // register event training sessoins' rounds' punches data to db
+    $app->post('/fan/event/training/sessions', 'EventTrainingController@storeEventSessions');
+    
+    //get leaderboard detials for user
+    $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
+     
+    //update activity status
+    $app->post('/fan/event/activity/status', 'EventController@statusChangeActivity');
+     
+    //remove participant
+    $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
 });
