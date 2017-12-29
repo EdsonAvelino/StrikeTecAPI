@@ -94,13 +94,7 @@ class EventTrainingController extends Controller
     */
     public function storeEventSessions(Request $request)
     {  
-        $validator = Validator::make($request->all(), [
-            'participant_id' => 'required',
-        ]);
-        if ($validator->fails()) { 
-            $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' =>  $errors->first('participant_id')]);
-        }
+        
         try{
             $participantData = $request->get('participant_data');
             $paricipantSessionData = $request->get('participant_stats_data');
