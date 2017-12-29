@@ -221,7 +221,7 @@ Class EventUserController extends Controller
                 /* user profile pic */
                 if ($request->hasFile('profile_image')) {
                     $userProfileInput = $request->file('profile_image');
-                    $imagePath = 'storage/fanuser/profilepic';
+                    $imagePath = 'api/v1/storage/fanuser/profilepic';
                     $userProfileInformation = $userProfileInput->getClientOriginalName();
                     $profilePicName = pathinfo($userProfileInformation, PATHINFO_FILENAME);
                     $profilePicEXT = pathinfo($userProfileInformation, PATHINFO_EXTENSION);
