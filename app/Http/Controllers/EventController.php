@@ -15,7 +15,7 @@ class EventController extends Controller
 {
     /**
      * @api {post} /fan/event register event details
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -126,7 +126,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/events get event details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -211,7 +211,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/users/event/list get users details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -297,7 +297,7 @@ class EventController extends Controller
     
      /**
      * @api {get} /fan/my/events get my events details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -459,7 +459,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/all/events get all events details information
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -621,7 +621,7 @@ class EventController extends Controller
     
     /**
      * @api {post} /fan/event/remove remove event
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -682,7 +682,7 @@ class EventController extends Controller
     }
     /**
      * @api {get} /fan/event/users/activities/<event_id> get users details and activity details by event id
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -797,20 +797,13 @@ class EventController extends Controller
             }
             $ObjEventUser = new EventUser();
             $eventActivityInfoUsersList = Event::with('eventUser', 'eventActivity')->find($event_id)->toArray();
-            //return $eventActivityInfoUsersList;
             //Get users list
             foreach($eventActivityInfoUsersList['event_user'] as $val) {
                 
                 $eventActivityInfoUsersList['users'][] = $ObjEventUser->getUsersList($val['user_id']);
             }
-            //$tempSessionStoreArray = EventSession::with('user')->where('activity_id', 3)
-                                            // ->where('event_id', 80)->get()->toArray();
-                
-                   // return $tempSessionStoreArray;
-               
             //Get activities details and users information
-            //return $eventActivityInfoUsersList;
-            foreach($eventActivityInfoUsersList['event_activity'] as $data) {
+           foreach($eventActivityInfoUsersList['event_activity'] as $data) {
                 $tempStorage = FanActivity::where('id', $data['activity_id'])->first();
                 $tempStoreActivityArray = EventSession::with('user')->where('activity_id', $data['activity_id'])
                                              ->where('event_id', $event_id)->get()->toArray();
@@ -818,11 +811,9 @@ class EventController extends Controller
                 $tempStorage->status = $data['status'];
                 $tempSessionStoreArray = array();
                 //Get session users information
-                //if((bool) $data['status'] == 1){
-                    foreach($tempStoreActivityArray as $userInfo){
+                foreach($tempStoreActivityArray as $userInfo){
                         $tempSessionStoreArray[] = $userInfo['user'];
                     }
-                //}
                 $tempStorage->sessionUsers = $tempSessionStoreArray;
                 $eventActivityInfoUsersList['activities'][] = $tempStorage;
             }
@@ -847,7 +838,7 @@ class EventController extends Controller
     
     /**
      * @api {get} /fan/events/logged/user get active event details information by logged user id
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -922,6 +913,42 @@ class EventController extends Controller
        }
     }
     
+    /**
+     * @api {post} /fan/event/activity/status Activity status update
+     * @apiGroup Event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} id id of event
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_id": 74,
+     *      "activity_id": 1,
+     *      "status": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Activity status is Inprogress",
+     *   }
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
     function statusChangeActivity(Request $request)
     {   
         $validator = Validator::make($request->all(), [
@@ -957,12 +984,6 @@ class EventController extends Controller
                     $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
                                                         ->where('event_id', $eventID)
                                                         ->first();
-                    /*if($eventFanActivityStatus->status == 1) {
-                        return response()->json([
-                            'error' => 'false',
-                            'message' => 'Activity already in concluded'
-                        ]);
-                    }  */
                     EventFanActivity::where('activity_id', $activityID)
                                 ->where('event_id', $eventID)
                                 ->update(['status' => 1]);

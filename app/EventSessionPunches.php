@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EventSessionPunche extends Model
+class EventSessionPunches extends Model
 {
 
     /**

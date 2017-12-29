@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\EventSession;
-use App\EventSessionPunche;
-//use App\EventLeaderboard;
+use App\EventSessionPunches;
 use Validator;
 use DB;
 
@@ -13,8 +12,8 @@ class EventTrainingController extends Controller
 {
 
     /**
-     * @api {post} /user/training/sessions upload event session and punches
-     * @apiGroup Training
+     * @api {post} /fan/event/training/sessions upload event session and punches
+     * @apiGroup Event
      * @apiHeader {String} authorization Authorization value
      * @apiHeader {String} content-type Content-Type set to "application/json"
      * @apiHeaderExample {json} Header-Example:
@@ -118,7 +117,7 @@ class EventTrainingController extends Controller
                 ]);
             /************************* punchase create **********************************/
             foreach ($paricipantPunchData as $val) {
-                $_punch = EventSessionPunche::create([
+                $_punch = EventSessionPunches::create([
                             'event_session_id' =>  $_session->id,
                             'punch_time' => $val['punch_time'],
                             'punch_duration' => $val['punch_duration'],
@@ -143,7 +142,7 @@ class EventTrainingController extends Controller
     
     /**
      * @api {get} /fan/event/leaderboard Get leaderboard 
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -238,11 +237,9 @@ class EventTrainingController extends Controller
                 if($activityID == 3) {
                     $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
                 }
-               // $q->orderBy($columnDecendingValue, 'desc');
             }])
                     ->where('event_id', $eventID)
                     ->where('activity_id', $activityID)->first();
-                    //->orderBy($columnDecendingValue, 'desc')
         if (!empty($leaderBoardDetails)) {
                 return response()->json([
                             'error' => 'false',
@@ -260,7 +257,7 @@ class EventTrainingController extends Controller
    
     /**
      * @api {delete} /fan/event/participant/remove remove participant
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
