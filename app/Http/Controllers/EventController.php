@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Event;
 use App\EventUser;
 use App\FanActivity;
+use App\EventFanActivity;
+use App\EventSession;
 use Validator;
 use DB;
 
@@ -795,14 +797,33 @@ class EventController extends Controller
             }
             $ObjEventUser = new EventUser();
             $eventActivityInfoUsersList = Event::with('eventUser', 'eventActivity')->find($event_id)->toArray();
+            //return $eventActivityInfoUsersList;
             //Get users list
             foreach($eventActivityInfoUsersList['event_user'] as $val) {
+                
                 $eventActivityInfoUsersList['users'][] = $ObjEventUser->getUsersList($val['user_id']);
             }
-            //Get activities details 
+            //$tempSessionStoreArray = EventSession::with('user')->where('activity_id', 3)
+                                            // ->where('event_id', 80)->get()->toArray();
+                
+                   // return $tempSessionStoreArray;
+               
+            //Get activities details and users information
+            //return $eventActivityInfoUsersList;
             foreach($eventActivityInfoUsersList['event_activity'] as $data) {
                 $tempStorage = FanActivity::where('id', $data['activity_id'])->first();
+                $tempStoreActivityArray = EventSession::with('user')->where('activity_id', $data['activity_id'])
+                                             ->where('event_id', $event_id)->get()->toArray();
+           
                 $tempStorage->status = $data['status'];
+                $tempSessionStoreArray = array();
+                //Get session users information
+                //if((bool) $data['status'] == 1){
+                    foreach($tempStoreActivityArray as $userInfo){
+                        $tempSessionStoreArray[] = $userInfo['user'];
+                    }
+                //}
+                $tempStorage->sessionUsers = $tempSessionStoreArray;
                 $eventActivityInfoUsersList['activities'][] = $tempStorage;
             }
             if(empty($eventActivityInfoUsersList['users'])) {
@@ -899,6 +920,79 @@ class EventController extends Controller
                        'message' => 'Invalid request',
            ]);
        }
+    }
+    
+    function statusChangeActivity(Request $request)
+    {   
+        $validator = Validator::make($request->all(), [
+            'activity_id'    => 'required|exists:event_fan_activities',
+            'event_id'    => 'required|exists:event_fan_activities',
+            'status'    => 'required',
+        ]);
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors]);
+        }
+        try {
+            $eventID = $request->get('event_id');
+            $activityID = $request->get('activity_id');
+            if($request->get('status') == 0) {
+                $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
+                                                        ->where('event_id', $eventID)
+                                                        ->first();
+                if($eventFanActivityStatus->status == 0) {
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Activity already is Inprogress'
+                    ]);
+                }  
+                EventFanActivity::where('activity_id', $activityID)
+                                ->where('event_id', $eventID)
+                                ->update(['status' => 0]);
+                return response()->json([
+                            'error' => 'false',
+                            'message' => 'Activity status is Inprogress'
+                ]);
+            } else {
+                    $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
+                                                        ->where('event_id', $eventID)
+                                                        ->first();
+                    /*if($eventFanActivityStatus->status == 1) {
+                        return response()->json([
+                            'error' => 'false',
+                            'message' => 'Activity already in concluded'
+                        ]);
+                    }  */
+                    EventFanActivity::where('activity_id', $activityID)
+                                ->where('event_id', $eventID)
+                                ->update(['status' => 1]);
+                            $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
+                        if($activityID == 1) {
+                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                        }
+                        if($activityID == 2) {
+                            $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
+                        }
+                        if($activityID == 3) {
+                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                        }
+                    }])
+                    ->where('event_id', $eventID)
+                    ->where('activity_id', $activityID)->first();
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Activity status change successfully',
+                        'data' => $leaderBoardDetails
+                    ]);
+            }
+        }catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                    'error' => 'true',
+                    'message' => 'Invalid request',
+            ]);
+        
+        } 
     }
     
 }

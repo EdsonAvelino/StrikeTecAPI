@@ -58,7 +58,7 @@ Class EventFanActivityController extends Controller {
         }
     } 
     
-     /**
+    /**
      * @api {post} /fan/activity/remove remove activity
      * @apiGroup event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -118,4 +118,6 @@ Class EventFanActivityController extends Controller {
             ]);
         }
     }
+    
+    
 }

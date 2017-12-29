@@ -21,11 +21,6 @@ class Workouts extends Model
     {
         return $this->hasMany('App\WorkoutRounds', 'workout_id', 'id');
     }
-    
-    public function metrics()
-    {
-        return $this->hasMany('App\WorkoutMetrics', 'workout_id', 'id');
-    }
 
     public function getTagsAttribute($workoutId)
     {
