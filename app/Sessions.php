@@ -87,71 +87,56 @@ class Sessions extends Model
         return $punchCount;
     }
 
-    public static function getUserParticpation($userId)
+    public static function getUserParticpation($userId, $perviousMonday)
     {
-        $currentWeekMonday = strtotime("monday this week");
-        $lastWeekMonday = strtotime('Monday last week');
         $userParticpation = self::where('user_id', $userId)
-                        ->where('start_time', '<', ($currentWeekMonday * 1000))
-                        ->where('start_time', '>', ($lastWeekMonday * 1000))
+                        ->where('start_time', '>', ($perviousMonday * 1000))
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->count();
         return $userParticpation;
     }
 
-    public static function getSpeedDemon($trainingCount, $userId)
+    public static function getSpeedDemon($trainingCount, $userId, $perviousMonday)
     {
-        $currentWeekMonday = strtotime("monday this week");
-        $lastWeekMonday = strtotime('Monday last week');
         $speedDemon = self::where('user_id', $userId)
                 ->where(function($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })
                 ->where('avg_speed', '>', $trainingCount)
-                ->where('start_time', '<', ($currentWeekMonday * 1000))
-                ->where('start_time', '>', ($lastWeekMonday * 1000))
+                ->where('start_time', '>', ($perviousMonday * 1000))
                 ->count();
 
         return $speedDemon;
     }
 
-    public static function getStrongMen($force, $userId)
+    public static function getStrongMen($force, $userId, $perviousMonday)
     {
-        $currentWeekMonday = strtotime("monday this week");
-        $lastWeekMonday = strtotime('Monday last week');
         $returnData = self::where('user_id', $userId)
                 ->where(function($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })
                 ->where('avg_force', '>', $force)
-                ->where('start_time', '<', ($currentWeekMonday * 1000))
-                ->where('start_time', '>', ($lastWeekMonday * 1000))
+                ->where('start_time', '>', ($perviousMonday * 1000))
                 ->count();
         return $returnData;
     }
 
-    public static function ironFirst($userId)
+    public static function ironFirst($userId, $perviousMonday)
     {
-        $currentWeekMonday = strtotime("monday this week");
-        $lastWeekMonday = strtotime('Monday last week');
         $ironFirst = self::select(\DB::raw('MAX(max_force) as max_force'))
                 ->where('user_id', $userId)
                 ->where(function ($query) {
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                })->where('start_time', '<', ($currentWeekMonday * 1000))
-                ->where('start_time', '>', ($lastWeekMonday * 1000))
+                })->where('start_time', '>', ($perviousMonday * 1000))
                 ->first();
         return $ironFirst->max_force;
     }
 
-    public static function getAccuracy()
+    public static function getAccuracy($perviousMonday)
     {
-        $currentWeekMonday = strtotime("monday this week");
-        $lastWeekMonday = strtotime('Monday last week');
         $sessionsData = \App\Sessions::with('rounds')
-                        ->where('start_time', '<', ($currentWeekMonday * 1000))
-                        ->where('start_time', '>', ($lastWeekMonday * 1000))
+                        ->where('start_time', '>', ($perviousMonday * 1000))
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get();
