@@ -544,6 +544,27 @@ class BattleController extends Controller
      *          {
      *              "id": 1,
      *              "name": "Workout 1",
+     *              "rount_count": 0,
+     *                  "round_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "rest_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "prepare_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "warning_time": {
+     *                      "min": 5,
+     *                      "max": 60,
+     *                      "interval": 5
+     *                  },
      *              "tags": [
      *                 5,
      *                 6,
@@ -564,6 +585,27 @@ class BattleController extends Controller
      *          {
      *              "id": 2,
      *              "name": "Workout 2",
+     *              "rount_count": 0,
+     *                  "round_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "rest_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "prepare_time": {
+     *                      "min": 30,
+     *                      "max": 600,
+     *                      "interval": 30
+     *                  },
+     *                  "warning_time": {
+     *                      "min": 5,
+     *                      "max": 60,
+     *                      "interval": 5
+     *                  },
      *              "tags": [
      *                 5,
      *                 6,
@@ -599,7 +641,7 @@ class BattleController extends Controller
         // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::select('*', \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
+        $_workouts = Workouts::select('*', \DB::raw('id as round_time'), \DB::raw('id as rest_time'), \DB::raw('id as prepare_time'), \DB::raw('id as warning_time'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
 
         foreach ($_workouts as $workout) {
             $_workout = $workout->toArray();
