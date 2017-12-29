@@ -544,7 +544,7 @@ class BattleController extends Controller
      *          {
      *              "id": 1,
      *              "name": "Workout 1",
-     *              "rount_count": 0,
+     *              "round_count": 1,
      *                  "round_time": {
      *                      "min": 30,
      *                      "max": 600,
@@ -585,7 +585,7 @@ class BattleController extends Controller
      *          {
      *              "id": 2,
      *              "name": "Workout 2",
-     *              "rount_count": 0,
+     *              "round_count": 2,
      *                  "round_time": {
      *                      "min": 30,
      *                      "max": 600,
