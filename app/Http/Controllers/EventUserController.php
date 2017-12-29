@@ -227,7 +227,7 @@ Class EventUserController extends Controller
                     $profilePicEXT = pathinfo($userProfileInformation, PATHINFO_EXTENSION);
                     $userProfileInformation = $profilePicName . '-' . time() . '.' . $profilePicEXT; 
                     $userProfileInput->move($imagePath, $userProfileInformation);
-                    $userProfile = url() . '/api/v1/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
+                    $userProfile = url() . '/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
                 }
                 $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob, $userProfile);
             }
