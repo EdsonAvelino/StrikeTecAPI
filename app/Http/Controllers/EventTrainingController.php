@@ -78,14 +78,21 @@ class EventTrainingController extends Controller
      * @apiSuccess {String} message Error message
      * @apiSuccess {Array} data Data contains each sessions' start_time
      * @apiSuccessExample {json} Success
-     *  @apiErrorExample {json} Error Response
+     * HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Event training sessions saved successfully",
+     *   }
+     * }
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
      *          "message": "Invalid request"
      *      }
      * @apiVersion 1.0.0
-     */
+    */
     public function storeEventSessions(Request $request)
     {  
         $validator = Validator::make($request->all(), [
@@ -152,7 +159,7 @@ class EventTrainingController extends Controller
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} session Sessions information
      * @apiSuccess {Object} 
-     * @apiSuccessExample {json} Success
+     * @apiSuccessExample {json} Success 
      * {
      * "error": "false",
      * "message": "Leaderboard information",
