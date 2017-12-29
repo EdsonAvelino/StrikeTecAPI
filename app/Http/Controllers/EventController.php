@@ -607,6 +607,7 @@ class EventController extends Controller
             foreach ($eventList as $val) {
                 $eventInfo = $val;
                 $eventInfo->all_day = (bool) $val->all_day;
+                $eventInfo->status = (bool) $val->status;
                 $ObjEventUser = new EventUser();
                 $eventInfo->users = $ObjEventUser->myEventUsersInfo($val->id);
                 $eventStorage[] = $eventInfo;
