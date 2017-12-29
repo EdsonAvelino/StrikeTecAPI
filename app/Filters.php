@@ -16,6 +16,10 @@ class Filters extends Model
         'type',
         'filter_name'
     ];
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
 
     //get tags pass 1 for videos, 2 for combos, 3 for workout
     public static function getFilters($typeId)
