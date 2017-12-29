@@ -76,7 +76,6 @@ class EventTrainingController extends Controller
      * }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each sessions' start_time
      * @apiSuccessExample {json} Success
      * HTTP/1.1 200 OK
      * {
@@ -158,7 +157,6 @@ class EventTrainingController extends Controller
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} session Sessions information
-     * @apiSuccess {Object} 
      * @apiSuccessExample {json} Success 
      * {
      * "error": "false",
