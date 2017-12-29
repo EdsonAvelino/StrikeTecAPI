@@ -221,13 +221,13 @@ Class EventUserController extends Controller
                 /* user profile pic */
                 if ($request->hasFile('profile_image')) {
                     $userProfileInput = $request->file('profile_image');
-                    $imagePath = 'api/v1/storage/fanuser/profilepic';
+                    $imagePath = 'storage/fanuser/profilepic';
                     $userProfileInformation = $userProfileInput->getClientOriginalName();
                     $profilePicName = pathinfo($userProfileInformation, PATHINFO_FILENAME);
                     $profilePicEXT = pathinfo($userProfileInformation, PATHINFO_EXTENSION);
                     $userProfileInformation = $profilePicName . '-' . time() . '.' . $profilePicEXT; 
                     $userProfileInput->move($imagePath, $userProfileInformation);
-                    $userProfile = url() . '/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
+                    $userProfile = url() . '/api/v1/' . $imagePath . '/' . $userProfileInformation; // path to be inserted in table
                 }
                 $userId = $this->createUser($name, $email, $gender, $weight, $height, $dob, $userProfile);
             }
