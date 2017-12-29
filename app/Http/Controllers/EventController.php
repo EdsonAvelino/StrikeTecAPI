@@ -81,7 +81,6 @@ class EventController extends Controller
                     $event->from_date = !empty($request->get('from_date')) ? date('Y-m-d', strtotime($request->get('from_date'))) : $event->from_date;
                     $event->from_time = !empty($request->get('from_time')) ? $request->get('from_time') : $event->from_time;
                     $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
-                    $event->type_of_activity = !empty($request->get('type_of_activity')) ? $request->get('type_of_activity') : $event->type_of_activity;
                     $event->save();
                     if(!empty($request->get('activity_id'))) {
                         $request->merge(['event_id' => $request->get('event_id'), 'activity_id' => $request->get('activity_id')]);
@@ -107,7 +106,6 @@ class EventController extends Controller
                         'from_date' => date('Y-m-d', strtotime($request->get('from_date'))),
                         'from_time' => $request->get('from_time'),
                         'all_day' => $request->get('all_day'),
-                        'type_of_activity' => !empty($request->get('type_of_activity')) ? $request->get('type_of_activity') : ''
                     ])->id;
             if(!empty($request->get('activity_id'))) {
                 $request->merge(['event_id' => $event_detail, 'activity_id' => $request->get('activity_id')]);
