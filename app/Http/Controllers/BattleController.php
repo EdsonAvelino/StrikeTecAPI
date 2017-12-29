@@ -545,6 +545,7 @@ class BattleController extends Controller
      *              "id": 1,
      *              "name": "Workout 1",
      *              "round_count": 1,
+     *              "round_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -555,7 +556,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "rest_time": {
+     *                "rest_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -566,7 +567,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "prepare_time": {
+     *                "prepare_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -577,7 +578,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "warning_time": {
+     *                "warning_time": {
      *                     "5": 1,
      *                     "10": 2,
      *                     "15": 3,
@@ -604,7 +605,7 @@ class BattleController extends Controller
      *              "id": 2,
      *              "name": "Workout 2",
      *              "round_count": 2,
-     *                  "round_time": {
+     *              "round_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -615,7 +616,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "rest_time": {
+     *               "rest_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -626,7 +627,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "prepare_time": {
+     *                "prepare_time": {
      *                      "30": 1,
      *                      "60": 2,
      *                      "90": 3,
@@ -637,7 +638,7 @@ class BattleController extends Controller
      *                      "240": 8,
      *                      "270": 9
      *                  },
-     *                  "warning_time": {
+     *                "warning_time": {
      *                     "5": 1,
      *                     "10": 2,
      *                     "15": 3,
