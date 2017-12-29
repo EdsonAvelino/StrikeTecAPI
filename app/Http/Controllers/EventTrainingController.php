@@ -159,7 +159,7 @@ class EventTrainingController extends Controller
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} session Sessions information
      * @apiSuccess {Object} 
-     * @apiSuccessExample {json} Success
+     * @apiSuccessExample {json} Success 
      * {
      * "error": "false",
      * "message": "Leaderboard information",
