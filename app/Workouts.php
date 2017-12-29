@@ -58,7 +58,7 @@ class Workouts extends Model
 
         $rounds = [];
         $roundTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'round_time')->first();
-        $count = 1;
+        $count = 0;
         foreach (range($roundTime->min, $roundTime->max, $roundTime->interval) as $number) {
             $rounds[$number] = $count;
             $count = $count + 1;
@@ -76,7 +76,7 @@ class Workouts extends Model
 
         $rest = [];
         $restTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'rest_time')->first();
-        $count = 1;
+        $count = 0;
         foreach (range($restTime->min, $restTime->max, $restTime->interval) as $number) {
             $rest[$number] = $count;
             $count = $count + 1;
@@ -94,7 +94,7 @@ class Workouts extends Model
 
         $prep = [];
         $prepTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'prepare_time')->first();
-        $count = 1;
+        $count = 0;
         foreach (range($prepTime->min, $prepTime->max, $prepTime->interval) as $number) {
             $prep[$number] = $count;
             $count = $count + 1;
@@ -112,7 +112,7 @@ class Workouts extends Model
 
         $warning = [];
         $warningTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'warning_time')->first();
-        $count = 1;
+        $count = 0;
         foreach (range($warningTime->min, $warningTime->max, $warningTime->interval) as $number) {
             $warning[$number] = $count;
             $count = $count + 1;
