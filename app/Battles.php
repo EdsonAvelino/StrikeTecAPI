@@ -146,8 +146,8 @@ class Battles extends Model
             switch ($punch) {
                 case 1: $comboPunches[$i] = 'LJ|RJ';
                     break; // LEFT JAB / RIGHT JAB
-                case 2: $comboPunches[$i] = 'LS|RS';
-                    break; // LEFT STRAIGHT / RIGHT STRAIGHT
+                case 2: $comboPunches[$i] = 'LC|RC';
+                    break; // LEFT CROSS / RIGHT CROSS
                 case 3: $comboPunches[$i] = 'LH';
                     break; // LEFT HOOK
                 case 4: $comboPunches[$i] = 'RH';
@@ -158,11 +158,18 @@ class Battles extends Model
                     break; // RIGHT UPPERCUT
                 case 7: $comboPunches[$i] = 'LSH|RSH';
                     break; // LEFT SHOVEL HOOK / RIGHT SHOVEL HOOK
+                case 8: $comboPunches[$i] = 'RO';
+                    break; // RIGHT OVERHAND
+                    // We don't have LEFT OVERHAND
                 // to keep format same hand + punch-type
                 case 'DL': $comboPunches[$i] = 'LD';
                     break; // DUCK LEFT
                 case 'DR': $comboPunches[$i] = 'RD';
                     break; // DUCK RIGHT
+                case 'P': $comboPunches[$i] = 'LP|RP';
+                    break; // LEFT / RIGHT PARRY PUNCH 
+                case 'RL': $comboPunches[$i] = 'LR';
+                    break; // ROLL LEFT
             }
         }
 
