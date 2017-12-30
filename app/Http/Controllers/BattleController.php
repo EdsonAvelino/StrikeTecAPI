@@ -678,7 +678,7 @@ class BattleController extends Controller
         // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::select('*', \DB::raw('id as round_time'), \DB::raw('id as rest_time'), \DB::raw('id as prepare_time'), \DB::raw('id as warning_time'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
+        $_workouts = Workouts::select('*', \DB::raw('round_time as round_time'), \DB::raw('rest_time as rest_time'), \DB::raw('prepare_time as prepare_time'), \DB::raw('warning_time as warning_time'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
 
         foreach ($_workouts as $workout) {
             $_workout = $workout->toArray();

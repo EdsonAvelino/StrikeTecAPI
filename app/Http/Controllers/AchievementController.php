@@ -247,7 +247,7 @@ class AchievementController extends Controller
                 $resultData['achievement_name'] = $checkData['name'];
                 $resultData['badge_name'] = $data['name'];
                 $resultData['description'] = $data['description'];
-                $resultData['image'] = $data['image'];
+                $resultData['image'] = env('APP_URL') . '/storage/badges/' .$data['image'];
                 $resultData['badge_value'] = $userBadgeValue;
                 $resultData['min'] = $data['min'];
                 $resultData['max'] = $data['max'];

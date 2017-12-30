@@ -74,7 +74,7 @@ class GoalAchievements extends Model
             $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];
             $resultData['description'] = $achievements['achievement_type']['description'];
-            $resultData['image'] = $achievements['achievement_type']['image'];
+            $resultData['image'] = env('APP_URL') . '/storage/badges/' . $achievements['achievement_type']['image'];
             $resultData['badge_value'] = $achievements['metric_value'];
             $resultData['count'] = $achievements['count'];
             $resultData['awarded'] = (boolean) $achievements['awarded'];

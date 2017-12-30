@@ -48,76 +48,76 @@ class Workouts extends Model
         return $filters;
     }
 
-    public function getRoundTimeAttribute($workoutId)
+    public function getRoundTimeAttribute($roundTimes)
     {
-        $workoutId = (int) $workoutId;
+        $roundTimes = (int) $roundTimes;
 
-        if (empty($workoutId)) {
+        if (empty($roundTimes)) {
             return null;
         }
 
         $rounds = [];
-        $roundTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'round_time')->first();
+        $roundTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'round_time')->first();
         $count = 0;
         foreach (range($roundTime->min, $roundTime->max, $roundTime->interval) as $number) {
             $rounds[$number] = $count;
             $count = $count + 1;
         }
-        return $rounds;
+        return (int)$rounds[$roundTimes];
     }
 
-    public function getRestTimeAttribute($workoutId)
+    public function getRestTimeAttribute($restTimes)
     {
-        $workoutId = (int) $workoutId;
+        $restTimes = (int) $restTimes;
 
-        if (empty($workoutId)) {
+        if (empty($restTimes)) {
             return null;
         }
 
         $rest = [];
-        $restTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'rest_time')->first();
+        $restTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'rest_time')->first();
         $count = 0;
         foreach (range($restTime->min, $restTime->max, $restTime->interval) as $number) {
             $rest[$number] = $count;
             $count = $count + 1;
         }
-        return $rest;
+        return (int) $rest[$restTimes];
     }
 
-    public function getPrepareTimeAttribute($workoutId)
+    public function getPrepareTimeAttribute($preperationTime)
     {
-        $workoutId = (int) $workoutId;
+        $preperationTime = (int) $preperationTime;
 
-        if (empty($workoutId)) {
+        if (empty($preperationTime)) {
             return null;
         }
 
         $prep = [];
-        $prepTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'prepare_time')->first();
+        $prepTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'prepare_time')->first();
         $count = 0;
         foreach (range($prepTime->min, $prepTime->max, $prepTime->interval) as $number) {
             $prep[$number] = $count;
             $count = $count + 1;
         }
-        return $prep;
+        return (int) $prep[$preperationTime];
     }
 
-    public function getWarningTimeAttribute($workoutId)
+    public function getWarningTimeAttribute($warningTime)
     {
-        $workoutId = (int) $workoutId;
+        $warningTime = (int) $warningTime;
 
-        if (empty($workoutId)) {
+        if (empty($warningTime)) {
             return null;
         }
 
         $warning = [];
-        $warningTime = \DB::table('workout_metrics')->where('workout_id', $workoutId)->select('min', 'max', 'interval')->where('metric', 'warning_time')->first();
+        $warningTimeData = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'warning_time')->first();
         $count = 0;
-        foreach (range($warningTime->min, $warningTime->max, $warningTime->interval) as $number) {
+        foreach (range($warningTimeData->min, $warningTimeData->max, $warningTimeData->interval) as $number) {
             $warning[$number] = $count;
             $count = $count + 1;
         }
-        return $warning;
+        return (int) $warning[$warningTime];
     }
 
 }
