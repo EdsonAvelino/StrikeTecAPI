@@ -82,8 +82,8 @@ class UserAchievements extends Model
                     $resultData['achievement_name'] = $belts['name'];
                     $beltBadge = $belts['achievement_type'][0];
                     $resultData['badge_name'] = $beltBadge['name'];
-                    $resultData['description'] = $beltBadge['name'];
-                    $resultData['image'] = $beltBadge['image'];
+                    $resultData['description'] = $beltBadge['description'];
+                    $resultData['image'] = env('APP_URL') . '/storage/badges/' . $beltBadge['image'];
                     $resultData['badge_value'] = 0;
                     $resultData['awarded'] = false;
                     $resultData['count'] = 0;
@@ -95,8 +95,8 @@ class UserAchievements extends Model
                     $resultData['achievement_name'] = $checkData['name'];
                     $badge = $userData['achievement_type'];
                     $resultData['badge_name'] = $badge['name'];
-                    $resultData['description'] = $badge['name'];
-                    $resultData['image'] = $badge['image'];
+                    $resultData['description'] = $badge['description'];
+                    $resultData['image'] = env('APP_URL') . '/storage/badges/' . $badge['image'];
                     $resultData['badge_value'] = $userData['metric_value'];
                     $resultData['awarded'] = (boolean) $userData['awarded'];
                     $resultData['count'] = $userData['count'];
@@ -110,8 +110,8 @@ class UserAchievements extends Model
             $resultData['achievement_name'] = $belts['name'];
             $beltBadge = $belts['achievement_type'][0];
             $resultData['badge_name'] = $beltBadge['name'];
-            $resultData['description'] = $beltBadge['name'];
-            $resultData['image'] = $beltBadge['image'];
+            $resultData['description'] = $beltBadge['description'];
+            $resultData['image'] = env('APP_URL') . '/storage/badges/' . $beltBadge['image'];
             $resultData['badge_value'] = 0;
             $resultData['awarded'] = false;
             $resultData['count'] = 0;
