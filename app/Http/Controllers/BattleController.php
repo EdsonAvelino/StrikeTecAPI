@@ -1334,7 +1334,7 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get}/tags Get list of tags
+     * @api {get}/tags Get list of tags and filters
      * @apiGroup Battles
      * @apiParam {Number} [type_id] Type Id eg. 1 for videos, 2 for combos,3 for workouts, 4 for sets
      * @apiParamExample {json} Input
@@ -1408,7 +1408,7 @@ class BattleController extends Controller
         if ($typeId) {
             $tagList = Tags::getTags($typeId);
         } else {
-            $tagList = Tags::all();
+            $tagList = Tags::with('filters')->get();
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
