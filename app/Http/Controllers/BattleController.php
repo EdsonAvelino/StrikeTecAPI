@@ -397,15 +397,21 @@ class BattleController extends Controller
      *          "id": 1,
      *          "name": "Attack",
      *          "key_set": "1-2-SR-2-3-2-5-6-3-2",
-     *          "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *              "tags": [
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
      *          "keys": [
      *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
      *          ]
@@ -414,15 +420,21 @@ class BattleController extends Controller
      *          "id": 2,
      *          "name": "Crafty",
      *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
-     *          "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *              "tags": [
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
      *          "keys": [
      *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
      *          ]
@@ -470,15 +482,33 @@ class BattleController extends Controller
      *      {
      *          "id": 1,
      *          "name": "AGGRESSOR",
-     *          "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *           "tags": [
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
+     *          "videos":{
+     *              "id": 2,
+     *              "title": "Another Sample Video",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:27",
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
+     *          },
      *          "combos": [
      *              "1", "2", "3"
      *          ],
@@ -487,14 +517,32 @@ class BattleController extends Controller
      *          "id": 2,
      *          "name": "DEFENSIVE",
      *          "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
+     *          "videos":{
+     *              "id": 2,
+     *              "title": "Another Sample Video",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:27",
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
+     *          },
      *          "combos": [
      *              "1", "4", "5"
      *          ],
@@ -550,14 +598,20 @@ class BattleController extends Controller
      *              "prepare_time": 2,
      *              "warning_time": 1,
      *              "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
      *              "combos": [
      *                  [ 1, 2, 3 ],
      *                  [ 1, 4, 5 ],
@@ -575,14 +629,20 @@ class BattleController extends Controller
      *              "prepare_time": 2,
      *              "warning_time": 1,
      *              "tags": [
-     *                 5,
-     *                 6,
-     *                 7
-     *             ],
-     *         "filters": [
-     *                   1,
-     *                   2
-     *              ],
+     *                             {
+     *                                 "tag_id": 5,
+     *                                 "filters": [
+     *                                     1
+     *                                 ]
+     *                             },
+     *                             {
+     *                                 "tag_id": 6,
+     *                                 "filters": [
+     *                                     2,
+     *                                     3
+     *                                 ]
+     *                             }
+     *                         ],
      *              "combos": [
      *                  [ 1, 5, 3 ],
      *                  [ 2, 4, 3 ],
