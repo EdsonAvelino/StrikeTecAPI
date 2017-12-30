@@ -30,22 +30,14 @@ class Workouts extends Model
             return null;
         }
 
-        $tags = \DB::table('workout_tags')->where('workout_id', $workoutId)->pluck('tag_id')->toArray();
-
-        return $tags;
-    }
-
-    public function getFiltersAttribute($workoutId)
-    {
-        $workoutId = (int) $workoutId;
-
-        if (empty($workoutId)) {
-            return null;
+        $tagFilters = [];
+        $tags = \DB::table('workout_tags')->select('tag_id', 'filter_id')->where('workout_id', $workoutId)->get();
+        foreach ($tags as $tag) {
+            $tagFilters[$tag->tag_id]['tag_id'] = $tag->tag_id;
+            $tagFilters[$tag->tag_id]['filters'][] = $tag->filter_id;
         }
 
-        $filters = \DB::table('workout_filters')->where('workout_id', $workoutId)->pluck('filter_id')->toArray();
-
-        return $filters;
+        return array_values($tagFilters);
     }
 
     public function getRoundTimeAttribute($roundTimes)
@@ -63,7 +55,7 @@ class Workouts extends Model
             $rounds[$number] = $count;
             $count = $count + 1;
         }
-        return (int)$rounds[$roundTimes];
+        return (int) $rounds[$roundTimes];
     }
 
     public function getRestTimeAttribute($restTimes)

@@ -16,12 +16,16 @@ class Tags extends Model
         'type',
         'name'
     ];
-    
+
     //get tags pass 1 for videos, 2 for combos, 3 for workout
     public static function getTags($typeId)
     {
-        return self::where('type', $typeId)->get();
+        return self::where('type', $typeId)->with('filters')->get();
     }
 
+    public function filters()
+    {
+        return $this->hasMany('App\TagFilters', 'tag_id');
+    }
 
 }

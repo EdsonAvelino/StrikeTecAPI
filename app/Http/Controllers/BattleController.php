@@ -439,7 +439,7 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get()->toArray();
+        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->with('videos')->get()->toArray();
 
         foreach ($combos as $i => $combo) {
             $keySet = $combo['key_set'];
@@ -512,7 +512,7 @@ class BattleController extends Controller
     public function getComboSets()
     {
         $comboSets = [];
-        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
+        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'))->get();
 
         foreach ($_comboSets as $comboSet) {
             $_comboSet = $comboSet->toArray();
@@ -609,7 +609,7 @@ class BattleController extends Controller
         // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::select('*', \DB::raw('round_time as round_time'), \DB::raw('rest_time as rest_time'), \DB::raw('prepare_time as prepare_time'), \DB::raw('warning_time as warning_time'), \DB::raw('id as tags'), \DB::raw('id as filters'))->get();
+        $_workouts = Workouts::select('*', \DB::raw('round_time as round_time'), \DB::raw('rest_time as rest_time'), \DB::raw('prepare_time as prepare_time'), \DB::raw('warning_time as warning_time'), \DB::raw('id as tags'))->get();
 
         foreach ($_workouts as $workout) {
             $_workout = $workout->toArray();
@@ -1350,17 +1350,49 @@ class BattleController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data":[
+     *                {
+     *                    "id": 1,
+     *                    "type": 2,
+     *                    "name": "Boxing"
+     *                    "filters":
      *                      {
      *                          "id": 1,
      *                          "type": 2,
-     *                          "name": "Boxing"
+     *                          "filter_name": "beginner"
+     *                      },
+     *                      {
+     *                          "id": 1,
+     *                          "type": 2,
+     *                          "filter_name": "intermediate"
      *                      },
      *                      {
      *                          "id": 2,
      *                          "type": 2,
-     *                          "name": "Kickboxing"
+     *                          "filter_name": "advanced"
      *                      }
-     *                  ]
+     *                 },
+     *                {
+     *                     "id": 2,
+     *                     "type": 2,
+     *                     "name": "Kickboxing"
+     *                     "filters":
+     *                      {
+     *                          "id": 1,
+     *                          "type": 2,
+     *                          "filter_name": "beginner"
+     *                      },
+     *                      {
+     *                          "id": 1,
+     *                          "type": 2,
+     *                          "filter_name": "intermediate"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "type": 2,
+     *                          "filter_name": "advanced"
+     *                      }
+     *               }
+     *        ]
      *  }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -1377,59 +1409,6 @@ class BattleController extends Controller
             $tagList = Tags::getTags($typeId);
         } else {
             $tagList = Tags::all();
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
-    }
-
-    /**
-     * @api {get}/filters Get list of filters
-     * @apiGroup Battles
-     * @apiParam {Number} [type_id] Type Id eg. 1 for combos, 2 for combo-sets,3 for workouts
-     * @apiParamExample {json} Input
-     *    {
-     *      "type_id": 1
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of filters
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "beginner"
-     *                      },
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "intermediate"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "type": 2,
-     *                          "filter_name": "advanced"
-     *                      }
-     *                  ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function getFilters(Request $request)
-    {
-        $typeId = $request->get('type_id');
-        if ($typeId) {
-            $tagList = \App\Filters::getFilters($typeId);
-        } else {
-            $tagList = \App\Filters::all();
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
