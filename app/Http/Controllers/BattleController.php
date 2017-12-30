@@ -412,6 +412,18 @@ class BattleController extends Controller
      *                                 ]
      *                             }
      *                         ],
+     *          "videos":{
+     *              "id": 2,
+     *              "title": "Another Sample Video",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:27",
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
+     *          },
      *          "keys": [
      *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
      *          ]
@@ -420,7 +432,7 @@ class BattleController extends Controller
      *          "id": 2,
      *          "name": "Crafty",
      *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
-     *              "tags": [
+     *          "tags": [
      *                             {
      *                                 "tag_id": 5,
      *                                 "filters": [
@@ -435,6 +447,18 @@ class BattleController extends Controller
      *                                 ]
      *                             }
      *                         ],
+     *          "videos":{
+     *              "id": 2,
+     *              "title": "Another Sample Video",
+     *              "file": "https://youtu.be/ScMzIvxBSi4",
+     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
+     *              "view_counts": 360,
+     *              "author_name": "Aeron Emeatt",
+     *              "duration": "00:01:27",
+     *              "user_favourited": false,
+     *              "thumb_width": 342,
+     *              "thumb_height": 185
+     *          },
      *          "keys": [
      *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
      *          ]
@@ -497,18 +521,6 @@ class BattleController extends Controller
      *                                 ]
      *                             }
      *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
      *          "combos": [
      *              "1", "2", "3"
      *          ],
@@ -531,18 +543,6 @@ class BattleController extends Controller
      *                                 ]
      *                             }
      *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
      *          "combos": [
      *              "1", "4", "5"
      *          ],
