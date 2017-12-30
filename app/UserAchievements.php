@@ -64,46 +64,39 @@ class UserAchievements extends Model
 
     public static function getUsersAchievements($userId)
     {
-
-        $achievements = Achievements::get()->keyBy('id');
+        $achievements = Achievements::orderBy('sequence')->get()->keyBy('id');
         $userAchievements = UserAchievements::with('achievementType')
                 ->where('user_id', $userId)
                 ->groupBy('achievement_id')
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('achievement_id', 'desc')
                 ->get()
                 ->keyBy('achievement_id')
                 ->toArray();
-
         $belts = Achievements::with('achievementType')->find(1)->toArray();
         $result = [];
-
         if ($userAchievements) {
-
-            $result[0]['achievement_id'] = $belts['id'];
-            $result[0]['achievement_name'] = $belts['name'];
-            $beltBadge = $belts['achievement_type'][0];
-            $result[0]['badge_name'] = $beltBadge['name'];
-            $result[0]['description'] = $beltBadge['description'];
-            $result[0]['image'] =  env('APP_URL') . '/storage/badges/' .$beltBadge['image'];
-            $result[0]['badge_value'] = $userAchievements[1]['metric_value'];
-            $result[0]['awarded'] = (boolean) $userAchievements[1]['awarded'];
-            $result[0]['count'] = $userAchievements[1]['count'];
-            $result[0]['shared'] = (boolean) $userAchievements[1]['shared'];
-
-            foreach ($userAchievements as $key => $checkData) {
+            foreach ($achievements as $key => $checkData) {
                 $resultData = [];
                 if ($key == 1) {
-                    
+                    $resultData['achievement_id'] = $belts['id'];
+                    $resultData['achievement_name'] = $belts['name'];
+                    $beltBadge = $belts['achievement_type'][0];
+                    $resultData['badge_name'] = $beltBadge['name'];
+                    $resultData['description'] = $beltBadge['name'];
+                    $resultData['image'] = $beltBadge['image'];
+                    $resultData['badge_value'] = 0;
+                    $resultData['awarded'] = false;
+                    $resultData['count'] = 0;
+                    $resultData['shared'] = false;
                 }
-
                 if (isset($userAchievements[$key])) {
                     $userData = $userAchievements[$key];
                     $resultData['achievement_id'] = $userData['achievement_id'];
-                    $resultData['achievement_name'] = $achievements[$key]['name'];
+                    $resultData['achievement_name'] = $checkData['name'];
                     $badge = $userData['achievement_type'];
                     $resultData['badge_name'] = $badge['name'];
                     $resultData['description'] = $badge['name'];
-                    $resultData['image'] = env('APP_URL') . '/storage/badges/' . $badge['image'];
+                    $resultData['image'] = $badge['image'];
                     $resultData['badge_value'] = $userData['metric_value'];
                     $resultData['awarded'] = (boolean) $userData['awarded'];
                     $resultData['count'] = $userData['count'];
@@ -118,14 +111,13 @@ class UserAchievements extends Model
             $beltBadge = $belts['achievement_type'][0];
             $resultData['badge_name'] = $beltBadge['name'];
             $resultData['description'] = $beltBadge['name'];
-            $resultData['image'] =  env('APP_URL') . '/storage/badges/' .$beltBadge['image'];
+            $resultData['image'] = $beltBadge['image'];
             $resultData['badge_value'] = 0;
             $resultData['awarded'] = false;
             $resultData['count'] = 0;
             $resultData['shared'] = false;
             $result[] = $resultData;
         }
-        print_r($result);
         return $result;
     }
 
