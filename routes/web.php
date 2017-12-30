@@ -42,9 +42,6 @@ $app->get('/faqs', 'UserController@getFaqs');
 // get tags
 $app->get('/tags', 'BattleController@getTags');
 
-// get tags
-$app->get('/filters', 'BattleController@getFilters');
-
 // Rest of all APIs are secured with access-token
 // User APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {

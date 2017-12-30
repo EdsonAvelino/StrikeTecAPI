@@ -48,22 +48,20 @@ class Combos extends Model
             return null;
         }
 
-        $tags = \DB::table('combo_tags')->where('combo_id', $comboId)->pluck('tag_id')->toArray();
+        $tagFilters = [];
+        $tags = \DB::table('combo_tags')->select('tag_id', 'filter_id')->where('combo_id', $comboId)->get();
+        foreach ($tags as $tag) {
+            $tagFilters[$tag->tag_id]['tag_id'] = $tag->tag_id;
 
-        return $tags;
-    }
-
-    public function getFiltersAttribute($comboId)
-    {
-        $comboId = (int) $comboId;
-
-        if (empty($comboId)) {
-            return null;
+            $tagFilters[$tag->tag_id]['filters'][] = $tag->filter_id;
         }
 
-        $filters = \DB::table('combo_filters')->where('combo_id', $comboId)->pluck('filter_id')->toArray();
+        return array_values($tagFilters);
+    }
 
-        return $filters;
+    public function videos()
+    {
+        return $this->hasOne('App\ComboVideos', 'combo_id');
     }
 
 }

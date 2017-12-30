@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Filters extends Model
+class TagFilters extends Model
 {
 
     /**
@@ -13,18 +13,12 @@ class Filters extends Model
      * @var array
      */
     protected $fillable = [
-        'type',
+        'tag_id',
         'filter_name'
     ];
     protected $hidden = [
         'created_at',
         'updated_at'
     ];
-
-    //get tags pass 1 for videos, 2 for combos, 3 for workout
-    public static function getFilters($typeId)
-    {
-        return self::where('type', $typeId)->get();
-    }
 
 }

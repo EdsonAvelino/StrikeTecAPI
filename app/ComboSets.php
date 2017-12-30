@@ -39,23 +39,14 @@ class ComboSets extends Model
         if (empty($comboSetId)) {
             return null;
         }
-
-        $tags = \DB::table('combo_set_tags')->where('combo_set_id', $comboSetId)->pluck('tag_id')->toArray();
-
-        return $tags;
-    }
-
-    public function getFiltersAttribute($comboSetId)
-    {
-        $comboSetId = (int) $comboSetId;
-
-        if (empty($comboSetId)) {
-            return null;
+        $tagFilters = [];
+        $tags = \DB::table('combo_set_tags')->select('tag_id', 'filter_id')->where('combo_set_id', $comboSetId)->get();
+        foreach ($tags as $tag) {
+            $tagFilters[$tag->tag_id]['tag_id'] = $tag->tag_id;
+    
+        $tagFilters[$tag->tag_id]['filters'][] = $tag->filter_id;
         }
 
-        $filters = \DB::table('combo_set_filters')->where('combo_set_id', $comboSetId)->pluck('filter_id')->toArray();
-
-        return $filters;
+        return array_values($tagFilters);
     }
-
 }
