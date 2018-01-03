@@ -271,8 +271,8 @@ class FeedController extends Controller
                             break;
 
                         case 4:
-                            $achievement = \App\SharedAchievements::find($post->data_id);
-                            $_post['extra_data'] = $achievement->achievement_data;
+                            $achievement = \App\UserAchievements::get($post->data_id);
+                            $_post['extra_data'] = json_encode($achievement);
                             break;
                     }
 
@@ -350,11 +350,6 @@ class FeedController extends Controller
                 // Badge
                 elseif ($request->get('post_type_id') == 4) {
                     $data = \App\UserAchievements::where('id', $request->get('data_id'))->first();
-                    $sharedData = json_encode($data);
-                    $sharedData = \App\SharedAchievements::create([
-                                'achievement_data' => $sharedData
-                    ]);
-                    $dataId = $sharedData->id;
                 }
 
                 if ($data && !(filter_var($data->{$shared}, FILTER_VALIDATE_BOOLEAN))) {
