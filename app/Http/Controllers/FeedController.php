@@ -168,8 +168,6 @@ class FeedController extends Controller
      *                "points": 80
      *            },
      *            "extra_data": "{
-     *                     \"id\":11,
-     *                     \"user_id\":7,
      *                     \"achievement_id\": 1,
      *                     \"achievement_name\": \"belts\",
      *                     \"badge_name\": \"Belts\",
@@ -179,7 +177,6 @@ class FeedController extends Controller
      *                     \"awarded\": false,
      *                     \"count\": 0,
      *                     \"shared\": false
-     *                     \"session_id\": 667
      *             }",
      *             "user_likes": false
      *        },
@@ -197,11 +194,9 @@ class FeedController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-
         // \DB::enableQueryLog();
         // Feed-Post data
         $posts = [];
-
         // Feed-Posts from DB
         $_posts = Posts::with(['user' => function($q) {
                                 $q->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
@@ -262,17 +257,17 @@ class FeedController extends Controller
                             $extraData['avg_force'] = $post->data->avg_force;
                             $_post['extra_data'] = json_encode($extraData);
                             break;
-
+                        
                         case 3:
                             $goalData = \App\Goals::select('id', 'activity_id', 'activity_type_id', 'target', \DB::raw('UNIX_TIMESTAMP(start_at) as start_date'), \DB::raw('UNIX_TIMESTAMP(end_at) as end_date'), 'followed', \DB::raw('UNIX_TIMESTAMP(followed_at) as followed_date'), 'done_count', 'avg_time', 'avg_speed', 'avg_power', 'achieve_type', 'shared')
                                             ->where('id', $post->data_id)->first();
-
+                           
                             $_post['extra_data'] = json_encode($goalData);
                             break;
-
+                        
                         case 4:
-                            $achievement = \App\UserAchievements::get($post->data_id);
-                            $_post['extra_data'] = json_encode($achievement);
+                            $achievement = \App\SharedAchievements::find($post->data_id);
+                            $_post['extra_data'] = $achievement->achievement_data;
                             break;
                     }
 
@@ -350,6 +345,12 @@ class FeedController extends Controller
                 // Badge
                 elseif ($request->get('post_type_id') == 4) {
                     $data = \App\UserAchievements::where('id', $request->get('data_id'))->first();
+                    $sharedDataJson = \App\UserAchievements::get($data->id);
+                    $sharedData = json_encode($sharedDataJson);
+                    $sharedData = \App\SharedAchievements::create([
+                                'achievement_data' => $sharedData
+                    ]);
+                    $dataId = $sharedData->id;
                 }
 
                 if ($data && !(filter_var($data->{$shared}, FILTER_VALIDATE_BOOLEAN))) {
