@@ -55,7 +55,7 @@ class Goals extends Model
         return $progress;
     }
 
-    // Calculate followed goal data
+    // get followed goal 
     public static function getCurrentGoal($userId)
     {
         $goalId = 0;
