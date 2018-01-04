@@ -418,7 +418,7 @@ class GoalController extends Controller
                 ->where('user_id', $userId)
                 ->first();
 
-        $goalList['badge'] = \App\GoalAchievements::getGoalAchievements($userId, $goalId);
+        $goalList['badge'] = \App\UserAchievements::getGoalAchievements($userId, $goalId);
         return response()->json(['error' => 'false', 'message' => '', 'data' => $goalList]);
     }
 

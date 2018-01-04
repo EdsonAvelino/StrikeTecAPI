@@ -55,4 +55,18 @@ class Goals extends Model
         return $progress;
     }
 
+    // Calculate followed goal data
+    public static function getCurrentGoal($userId)
+    {
+        $goalId = 0;
+        $goal = self::where('user_id', $userId)
+                ->where('followed', 1)
+                ->first();
+
+        if ($goal)
+            $goalId = $goal->id;
+
+        return (int) $goalId;
+    }
+
 }
