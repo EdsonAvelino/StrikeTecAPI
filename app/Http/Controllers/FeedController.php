@@ -168,8 +168,6 @@ class FeedController extends Controller
      *                "points": 80
      *            },
      *            "extra_data": "{
-     *                     \"id\":11,
-     *                     \"user_id\":7,
      *                     \"achievement_id\": 1,
      *                     \"achievement_name\": \"belts\",
      *                     \"badge_name\": \"Belts\",
@@ -179,7 +177,6 @@ class FeedController extends Controller
      *                     \"awarded\": false,
      *                     \"count\": 0,
      *                     \"shared\": false
-     *                     \"session_id\": 667
      *             }",
      *             "user_likes": false
      *        },

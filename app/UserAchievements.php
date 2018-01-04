@@ -355,7 +355,9 @@ class UserAchievements extends Model
         unset($achievement['achievement_type_id']);
         $achievement['achievement_name'] = $_achievement->name;
 
+        $achievement['awarded'] = (boolean) $userAchievement->awarded;
         $achievement['badge_name'] = $_achievementType->name;
+        $achievement['shared'] = (boolean) $userAchievement->shared;
         $achievement['description'] = $_achievementType->description;
         $achievement['image'] = env('APP_URL') . '/storage/badges/' . $_achievementType->image;
 
