@@ -1081,6 +1081,7 @@ class TrainingController extends Controller
     {
 
         $userId = \Auth::user()->id;
+        $goalId = Goals::getCurrentGoal($userId);
         $achievements = Achievements::orderBy('sequence')->get();
         $mostPowefulPunch = $mostPowefulSpeed = 0;
         $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
@@ -1108,7 +1109,6 @@ class TrainingController extends Controller
                                     $beltsData->session_id = $sessionId;
                                     $beltsData->awarded = true;
                                     $beltsData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $belts, $belts, $beltsData->id);
                                 }
                             } else {
                                 $userAchievements = UserAchievements::Create(['user_id' => $userId,
@@ -1118,7 +1118,6 @@ class TrainingController extends Controller
                                             'count' => $belts,
                                             'awarded' => true,
                                             'session_id' => $sessionId]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $belts, $belts, $userAchievements->id);
                             }
                         }
                     }
@@ -1133,6 +1132,7 @@ class TrainingController extends Controller
                             $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                     ->where('user_id', $userId)
                                     ->where('achievement_id', $achievement->id)
+                                    ->where('metric_value', $achievementType->max_val)
                                     ->first();
 
                             if (empty($getUserPunchData)) {
@@ -1142,8 +1142,8 @@ class TrainingController extends Controller
                                             'metric_value' => $achievementType->max_val,
                                             'count' => 1,
                                             'awarded' => true,
+                                            'goal_id' => $goalId,
                                             'session_id' => $sessionId]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $achievementType->max_val, 1, $userAchievements->id);
                             }
                         }
                     }
@@ -1152,7 +1152,6 @@ class TrainingController extends Controller
                     $mostPunches = 0;
                     if (empty($battleId)) {
                         $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
-
                         if ($mostPunches > 0) {
                             $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $mostPunches)
                                             ->where('achievement_id', $achievement->id)->first();
@@ -1160,15 +1159,17 @@ class TrainingController extends Controller
                                 $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
                                         ->where('achievement_id', $achievement->id)
+                                        ->where('metric_value', $achievementType->max_val)
                                         ->first();
-
                                 if (empty($mostPunchesData)) {
                                     $userAchievements = UserAchievements::Create(['user_id' => $userId,
                                                 'achievement_id' => $achievement->id,
                                                 'awarded' => true,
-                                                'achievement_type_id' => $achievementType->id, 'count' => 1,
-                                                'metric_value' => $achievementType->max_val, 'session_id' => $sessionId]);
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $achievementType->max_val, 1, $userAchievements->id);
+                                                'achievement_type_id' => $achievementType->id,
+                                                'count' => 1,
+                                                'metric_value' => $achievementType->max_val,
+                                                'goal_id' => $goalId,
+                                                'session_id' => $sessionId]);
                                 }
                             }
                         }
@@ -1191,7 +1192,6 @@ class TrainingController extends Controller
                             $goalData->shared = false;
                             $goalData->awarded = true;
                             $goalData->save();
-                            GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $goalMatrix, $goalMatrix, $goalData->id);
                         } else {
                             $userAchievements = UserAchievements::Create(['user_id' => $userId,
                                         'achievement_id' => $achievement->id,
@@ -1200,7 +1200,6 @@ class TrainingController extends Controller
                                         'awarded' => true,
                                         'count' => $goal,
                                         'session_id' => $sessionId]);
-                            GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $goal, $goal, $userAchievements->id);
                         }
                     }
                     break;
@@ -1216,6 +1215,7 @@ class TrainingController extends Controller
                     if ($speedAndPunch > $achievementType->min) {
                         $mostPowefulSpeedData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
+                                ->where('goal_id', $goalId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
                         if ($mostPowefulSpeedData) {
@@ -1226,11 +1226,16 @@ class TrainingController extends Controller
                                 $mostPowefulSpeedData->shared = false;
                                 $mostPowefulSpeedData->awarded = true;
                                 $mostPowefulSpeedData->save();
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedAndPunch, $speedAndPunch, $mostPowefulSpeedData->id);
                             }
                         } else {
-                            $userAchievements = UserAchievements::Create(['user_id' => $userId, 'count' => 1, 'awarded' => true, 'achievement_id' => $achievement->id, 'achievement_type_id' => $achievementType->id, 'metric_value' => $mostPowefulSpeed, 'session_id' => $sessionId]);
-                            GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $speedAndPunch, 1, $userAchievements->id);
+                            $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                        'count' => 1,
+                                        'awarded' => true,
+                                        'achievement_id' => $achievement->id,
+                                        'achievement_type_id' => $achievementType->id,
+                                        'metric_value' => $mostPowefulSpeed,
+                                        'goal_id' => $goalId,
+                                        'session_id' => $sessionId]);
                         }
                     }
                     break;
@@ -1253,7 +1258,6 @@ class TrainingController extends Controller
                                     $championData->shared = false;
                                     $championData->awarded = true;
                                     $championData->save();
-                                    GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $champion, $champion, $championData->id);
                                 }
                             } else {
                                 $userAchievements = UserAchievements::Create(['user_id' => $userId,
@@ -1263,7 +1267,6 @@ class TrainingController extends Controller
                                             'count' => $champion,
                                             'awarded' => true,
                                             'session_id' => $sessionId]);
-                                GoalAchievements::goalAchievements($userId, $achievement->id, $achievementType->id, $champion, $champion, $userAchievements->id);
                             }
                         }
                     }
