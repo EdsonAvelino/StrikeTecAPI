@@ -123,8 +123,11 @@ class UserAchievements extends Model
         return $result;
     }
 
-    public static function schedulerForAchievements($userId)
+    public static function schedulerForAchievements($userId, $gender)
     {
+        if ($gender == NULL) {
+            $gender = 'male';
+        }
         $perviousMonday = strtotime('previous monday');
         $achievements = Achievements::orderBy('sequence')->get();
         foreach ($achievements as $achievement) {
@@ -211,7 +214,11 @@ class UserAchievements extends Model
                     break;
 
                 case 10:
-                    $strongMan = Sessions::getStrongMen(500, $userId, $perviousMonday);
+                    $config = $achievement->male;
+                    if ($gender == 'female') {
+                        $config = $achievement->female;
+                    }
+                    $strongMan = Sessions::getStrongMen($config, $userId, $perviousMonday);
                     if ($strongMan) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
@@ -251,7 +258,11 @@ class UserAchievements extends Model
                     break;
 
                 case 11:
-                    $speedDemon = Sessions::getSpeedDemon(20, $userId, $perviousMonday);
+                    $config = $achievement->male;
+                    if ($gender == 'female') {
+                        $config = $achievement->female;
+                    }
+                    $speedDemon = Sessions::getSpeedDemon($config, $userId, $perviousMonday);
                     if ($speedDemon) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
@@ -295,6 +306,7 @@ class UserAchievements extends Model
                     if ($ironFirst) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
+                                ->where('gender', $gender)
                                 ->where('min', '<', $ironFirst)
                                 ->where('max', '>', $ironFirst)
                                 ->first();
@@ -359,11 +371,11 @@ class UserAchievements extends Model
     public static function achievementsSchedulerRun()
     {
         $date = date('y-m-d H:i:s');
-        $users = User::select('id')->get();
+        $users = User::select('id', 'gender')->get();
         foreach ($users as $userId) {
             $text = "Achievement has been assigned to user  " . $userId->id;
             \DB::insert('insert into scheduler_log (log,created_at) values (?,?)', [$text, $date]);
-            UserAchievements::schedulerForAchievements($userId->id);
+            UserAchievements::schedulerForAchievements($userId->id, $userId->gender);
         }
     }
 
