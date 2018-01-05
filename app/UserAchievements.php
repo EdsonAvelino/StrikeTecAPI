@@ -103,7 +103,7 @@ class UserAchievements extends Model
                     $resultData['awarded'] = (boolean) $userData['awarded'];
                     $resultData['count'] = $userData['count'];
                     $resultData['shared'] = (boolean) $userData['shared'];
-                }
+                    }
                 if ($resultData)
                     $result[] = $resultData;
             }
