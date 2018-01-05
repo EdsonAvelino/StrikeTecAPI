@@ -220,6 +220,10 @@ class AchievementController extends Controller
     public function getAchievementList(Request $request)
     {
         $userId = \Auth::user()->id;
+        $gender = \Auth::user()->gender;
+        if ($gender == NULL) {
+            $gender = 'male';
+        }
         $achievements = Achievements::with('achievementType')->orderBy('sequence')->get();
         $userAchievements = UserAchievements::where('user_id', $userId)->get()->keyBy('achievement_type_id')->toArray();
 
@@ -230,6 +234,11 @@ class AchievementController extends Controller
             $resultFinalData['achievement_name'] = $checkData['name'];
             $resultFinalData['badges'] = [];
             foreach ($achievementType as $data) {
+                if ($checkData['id'] == 12) {
+                    if ($data['gender'] != $gender) {
+                        continue;
+                    }
+                }
                 $count = 0;
                 $userBadgeValue = $data['config'];
                 $shared = FALSE;
@@ -247,7 +256,7 @@ class AchievementController extends Controller
                 $resultData['achievement_name'] = $checkData['name'];
                 $resultData['badge_name'] = $data['name'];
                 $resultData['description'] = $data['description'];
-                $resultData['image'] = env('APP_URL') . '/storage/badges/' .$data['image'];
+                $resultData['image'] = env('APP_URL') . '/storage/badges/' . $data['image'];
                 $resultData['badge_value'] = $userBadgeValue;
                 $resultData['min'] = $data['min'];
                 $resultData['max'] = $data['max'];
