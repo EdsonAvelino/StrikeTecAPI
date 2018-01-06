@@ -199,7 +199,7 @@ class FeedController extends Controller
         $posts = [];
         // Feed-Posts from DB
         $_posts = Posts::with(['user' => function($q) {
-                                $q->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
+                                $q->select(['id', 'first_name', 'last_name', 'photo_url', 'gender', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
                             }])
                                 ->whereRaw('user_id IN (SELECT follow_user_id as "user_id" FROM user_connections WHERE user_id = ?)', [\Auth::user()->id])
                                 ->orWhere('user_id', \Auth::user()->id)
