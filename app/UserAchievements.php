@@ -74,10 +74,6 @@ class UserAchievements extends Model
                 ->get()
                 ->keyBy('achievement_id')
                 ->toArray();
-
-        print_r($userAchievements);
-        die();
-
         $belts = Achievements::with('achievementType')->find(1)->toArray();
         $result = [];
         if ($userAchievements) {

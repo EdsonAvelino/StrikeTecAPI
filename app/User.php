@@ -216,6 +216,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                     'first_name',
                     'last_name',
                     'photo_url',
+                    'gender',
                     \DB::raw('id as user_following'),
                     \DB::raw('id as user_follower'),
                     \DB::raw('id as points')
