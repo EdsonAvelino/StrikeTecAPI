@@ -67,13 +67,17 @@ class UserAchievements extends Model
     public static function getUsersAchievements($userId)
     {
         $achievements = Achievements::orderBy('sequence')->get()->keyBy('id');
-        $userAchievements = UserAchievements::select('achievement_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared')->with('achievementType')
+        $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared')->with('achievementType')
                 ->where('user_id', $userId)
                 ->groupBy('achievement_id')
                 ->orderBy('achievement_id', 'desc')
                 ->get()
                 ->keyBy('achievement_id')
                 ->toArray();
+
+        print_r($userAchievements);
+        die();
+
         $belts = Achievements::with('achievementType')->find(1)->toArray();
         $result = [];
         if ($userAchievements) {
