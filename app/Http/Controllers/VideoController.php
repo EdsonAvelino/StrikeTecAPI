@@ -10,6 +10,7 @@ use App\VideoCategory;
 
 class VideoController extends Controller
 {
+
     /**
      * @api {get} /videos Get videos by category
      * @apiGroup Videos
@@ -19,11 +20,13 @@ class VideoController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials 
+     * @apiParam {String} [filter_id] Filter Ids separated by comma for eg:1,2,3 or 1
      * @apiParam {String} [tag_id] Tag Ids separated by comma for eg:1,2,3 or 1
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
+     *      "filter_id": 1,
      *      "tag_id": 1,
      *      "category_id": 1,
      *      "start": 0,
@@ -76,21 +79,29 @@ class VideoController extends Controller
     {
         $categoryId = (int) $request->get('category_id') ? $request->get('category_id') : 0;
         $tagId = $request->get('tag_id');
+        $filterId = $request->get('filter_id');
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
-        if ($tagId) {
+        $tags = $filters = [];
+        if ($tagId)
             $tags = explode(',', $tagId);
-            $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
-                            ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
-                            ->join('tags', 'tags.id', '=', 'tagged_videos.tag_id')
-                            ->whereIn('tagged_videos.tag_id', $tags)
-                            ->where('videos.category_id', $categoryId)->groupBy('videos.id')
-                            ->offset($offset)->limit($limit)->get();
-        } else {
-            $_videos = Videos::select(['*', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
-                            ->where('category_id', $categoryId)
-                            ->offset($offset)->limit($limit)->get();
-        }
+
+        if ($filterId)
+            $filters = explode(',', $filterId);
+
+        $_videos = Videos::select(['videos.id', 'title', 'file', 'thumbnail', 'view_counts', 'duration', 'author_name', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
+                        ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
+                        ->where(function($query) use ($filters, $tags) {
+                            if (count($filters) > 0) {
+                                $query->whereIn('tagged_videos.filter_id', $filters);
+                            }
+                            if (count($tags) > 0) {
+                                $query->whereIn('tagged_videos.tag_id', $tags);
+                            }
+                        })
+                        ->where('videos.category_id', $categoryId)->groupBy('videos.id')
+                        ->offset($offset)->limit($limit)->get();
+
         $videos = [];
 
         foreach ($_videos as $video) {
