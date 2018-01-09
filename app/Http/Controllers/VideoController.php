@@ -49,9 +49,17 @@ class VideoController extends Controller
      *              "view_counts": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
-     *              "user_favourited": true,
      *              "thumb_width": 342,
      *              "thumb_height": 185
+     *              "tags": [
+     *                     {
+     *                         "tag_id": 2,
+     *                         "filters": [
+     *                             1
+     *                         ]
+     *                     }
+     *                 ],
+     *                 "user_favourited": false
      *          },
      *          {
      *              "id": 2,
@@ -64,6 +72,15 @@ class VideoController extends Controller
      *              "user_favourited": false,
      *              "thumb_width": 342,
      *              "thumb_height": 185
+     *              "tags": [
+     *                     {
+     *                         "tag_id": 2,
+     *                         "filters": [
+     *                             1
+     *                         ]
+     *                     }
+     *                 ],
+     *                 "user_favourited": false
      *          },
      *      ]
      *    }
@@ -79,24 +96,17 @@ class VideoController extends Controller
     {
         $categoryId = (int) $request->get('category_id') ? $request->get('category_id') : 0;
         $tagId = $request->get('tag_id');
-        $filterId = $request->get('filter_id');
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
         $tags = $filters = [];
         if ($tagId)
             $tags = explode(',', $tagId);
 
-        if ($filterId)
-            $filters = explode(',', $filterId);
-
-        $_videos = Videos::select(['videos.id', 'title', 'file', 'thumbnail', 'view_counts', 'duration', 'author_name', 'thumbnail as thumb_width', 'thumbnail as thumb_height'])
+        $_videos = Videos::select(['videos.id', 'title', 'file', 'thumbnail', 'view_counts', 'duration', 'author_name', 'thumbnail as thumb_width', 'thumbnail as thumb_height', \DB::raw('videos.id as tags')])
                         ->join('tagged_videos', 'videos.id', '=', 'tagged_videos.video_id')
-                        ->where(function($query) use ($filters, $tags) {
+                        ->where(function($query) use ($tags) {
                             if (count($tags) > 0) {
                                 $query->whereIn('tagged_videos.tag_id', $tags);
-                            }
-                            if (count($filters) > 0) {
-                                $query->whereIn('tagged_videos.filter_id', $filters);
                             }
                         })
                         ->where('videos.category_id', $categoryId)->groupBy('videos.id')
@@ -111,7 +121,6 @@ class VideoController extends Controller
 
             $videos[] = $video;
         }
-
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 
