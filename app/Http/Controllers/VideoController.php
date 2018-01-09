@@ -21,14 +21,12 @@ class VideoController extends Controller
      *     }
      * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials 
      * @apiParam {String} [tag_id] Tag Ids separated by comma for eg:1,2,3 or 1
-     * @apiParam {String} [filter_id] Filter Ids separated by comma for eg:1,2,3 or 1
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
      *      "category_id": 1,
      *      "tag_id": 1,
-     *      "filter_id": 1,
      *      "start": 0,
      *      "limit": 10
      *    }
