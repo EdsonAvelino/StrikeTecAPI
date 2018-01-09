@@ -77,26 +77,4 @@ class Videos extends Model
         return $this->belongsTo('App\Videos', 'video_id');
     }
 
-    public function getTagsAttribute($videoId)
-    {
-        $videoId = (int) $videoId;
-
-        if (empty($videoId)) {
-            return null;
-        }
-
-        $tagFilters = [];
-        $tags = \DB::table('tagged_videos')->select('tag_id', 'filter_id')->where('video_id', $videoId)->get();
-        foreach ($tags as $tag) {
-            $tagFilters[$tag->tag_id]['tag_id'] = $tag->tag_id;
-            if ($tag->filter_id > 0) {
-                $tagFilters[$tag->tag_id]['filters'][] = $tag->filter_id;
-            }else{
-                $tagFilters[$tag->tag_id]['filters'] = $tag->filter_id; 
-            }
-        }
-
-        return array_values($tagFilters);
-    }
-
 }
