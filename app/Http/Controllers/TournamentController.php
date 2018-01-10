@@ -279,7 +279,7 @@ class TournamentController extends Controller
         try {
             $userId = \Auth::user()->id;
             $eventID = $request->get('event_id');
-            $event = Event::select('id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', 'image', 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status', \DB::raw('id as users_count'))
+            $event = Event::select('id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status', \DB::raw('id as users_count'))
                             ->where('id', $eventID)
                             ->get()->first();
             return response()->json([
