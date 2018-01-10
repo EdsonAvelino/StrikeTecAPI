@@ -5,11 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Event;
 use App\EventUser;
-use App\FanActivity;
-use App\EventFanActivity;
-use App\EventSession;
-use Validator;
-use DB;
 
 class TournamentController extends Controller
 {
