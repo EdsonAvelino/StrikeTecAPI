@@ -379,5 +379,5 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/tournament', 'TournamentController@getEventDetail');
     
     // registration of user in tournaments
-    $app->post('/tournaments/register', 'TournamentController@registerUser');
+    $app->post('/tournament/register', 'TournamentController@registerUser');
 });

@@ -182,7 +182,7 @@ class TournamentController extends Controller
     }
 
     /**
-     * @api {post} /tournaments/register register user to tournament
+     * @api {post} /tournament/register register user to tournament
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:

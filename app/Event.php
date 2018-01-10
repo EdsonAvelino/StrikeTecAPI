@@ -14,7 +14,7 @@ class Event extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'user_id', 'location_id', 'company_id', 'event_title', 'description', 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status'
+        'id', 'user_id', 'location_id', 'company_id', 'event_title', 'description', 'image', 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status'
     ];
     protected $hidden = [
         'created_at',
