@@ -326,7 +326,7 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
     
     // get fan activity list
-    $app->get('/fan/activities','FanActivityController@getActivityList');
+    $app->get('/fan/activities', 'FanActivityController@getActivityList');
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
@@ -363,4 +363,21 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
      
     //remove participant
     $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
+});
+
+// Tournaments APIs
+
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+
+    // list of all tournaments
+    $app->get('/tournaments/all', 'TournamentController@getTournamentList');
+    
+    // list of user tournaments
+    $app->get('/tournaments/user', 'TournamentController@getUserTournaments');
+    
+    // information of tournament
+    $app->get('/tournament', 'TournamentController@getEventDetail');
+    
+    // registration of user in tournaments
+    $app->post('/tournament/register', 'TournamentController@registerUser');
 });
