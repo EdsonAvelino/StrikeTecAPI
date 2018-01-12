@@ -39,12 +39,12 @@ class TournamentController extends Controller
      *                "location": "San Francisco ",
      *                "description": "q",
      *                "image": null,
-     *                "to_date": "2017-11-30",
-     *                "to_time": "23:42:00",
-     *                "from_date": "2017-11-30",
-     *                "from_time": "23:42:00",
+     *                "start_date": 1514532000,
+     *                "end_date": 1514532000,
      *                "all_day": false,
      *                "status": true,
+     *                "user_registered": false,
+     *                "joined": false,
      *                "users_count": 2
      *            },
      *            {
@@ -54,12 +54,12 @@ class TournamentController extends Controller
      *                "location": "Las Vegas, Nevada",
      *                "description": "qwdxz",
      *                "image": "http://striketec.dev/storage/fanuser/event/ac-1515508592.jpeg",
-     *                "to_date": "2017-11-12",
-     *                "to_time": "20:30:00",
-     *                "from_date": "2018-12-12",
-     *                "from_time": "20:00:00",
+     *                "start_date": 1514532000,
+     *                "end_date": 1514532000,
      *                "all_day": false,
      *                "status": true,
+     *                "user_registered": false,
+     *                "joined": false,
      *                "users_count": 2
      *            }
      *       ]
@@ -79,10 +79,10 @@ class TournamentController extends Controller
             $offset = (int) ($request->get('start') ? $request->get('start') : 0);
             $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
-            $eventList = Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'events.status', \DB::raw('events.id as users_count'))
-                    ->whereHas('eventUser', function($q) use($userId) {
-                        $q->where('user_id', '!=', $userId);
-                    })->where('events.status', 1)
+            $eventList = Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(concat(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(concat(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
+                    ->where('events.status', 1)
                     ->orderBy('from_date', 'desc')
                     ->offset($offset)->limit($limit)
                     ->get();
@@ -126,12 +126,12 @@ class TournamentController extends Controller
      *                "location": "San Francisco ",
      *                "description": "q",
      *                "image": null,
-     *                "to_date": "2017-11-30",
-     *                "to_time": "23:42:00",
-     *                "from_date": "2017-11-30",
-     *                "from_time": "23:42:00",
+     *                "start_date": 1514532000,
+     *                "end_date": 1514532000,
      *                "all_day": false,
      *                "status": true,
+     *                "user_registered": false,
+     *                "joined": false,
      *                "users_count": 2
      *            },
      *            {
@@ -141,12 +141,12 @@ class TournamentController extends Controller
      *                "location": "Las Vegas, Nevada",
      *                "description": "qwdxz",
      *                "image": "http://striketec.dev/storage/fanuser/event/ac-1515508592.jpeg",
-     *                "to_date": "2017-11-12",
-     *                "to_time": "20:30:00",
-     *                "from_date": "2018-12-12",
-     *                "from_time": "20:00:00",
+     *                "start_date": 1514532000,
+     *                "end_date": 1514532000,
      *                "all_day": false,
      *                "status": true,
+     *                "user_registered": false,
+     *                "joined": false,
      *                "users_count": 2
      *            }
      *       ]
@@ -165,7 +165,9 @@ class TournamentController extends Controller
             $userId = \Auth::user()->id;
             $offset = (int) ($request->get('start') ? $request->get('start') : 0);
             $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-            $eventList = Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'events.status', \DB::raw('events.id as users_count'))
+            $eventList =  Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(concat(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(concat(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
                     ->whereHas('eventUser', function($q) use($userId) {
                         $q->where('user_id', '=', $userId);
                     })->where('events.status', 1)
@@ -182,7 +184,7 @@ class TournamentController extends Controller
     }
 
     /**
-     * @api {post} /tournament/register register user to tournament
+     * @api {post} /tournament/register Register user to tournament
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -231,7 +233,7 @@ class TournamentController extends Controller
     }
 
     /**
-     * @api {get} /tournament get tournament details
+     * @api {get} /tournament Get tournament details
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -245,7 +247,7 @@ class TournamentController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data All events list information
+     * @apiSuccess {Object} data Tournament information
      * @apiSuccessExample {json} Success
      * {
      *       "error": "false",
@@ -257,12 +259,12 @@ class TournamentController extends Controller
      *                "location": "Las Vegas, Nevada",
      *                "description": "qwdxz",
      *                "image": "http://striketec.dev/storage/fanuser/event/ac-1515508592.jpeg",
-     *                "to_date": "2017-11-12",
-     *                "to_time": "20:30:00",
-     *                "from_date": "2018-12-12",
-     *                "from_time": "20:00:00",
+     *                "start_date": 1514532000,
+     *                "end_date": 1514532000,
      *                "all_day": false,
      *                "status": true,
+     *                "user_registered": false,
+     *                "joined": false,
      *                "users_count": 2
      *            }
      *   }
@@ -279,9 +281,11 @@ class TournamentController extends Controller
         try {
             $userId = \Auth::user()->id;
             $eventID = $request->get('event_id');
-            $event = Event::select('id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status', \DB::raw('id as users_count'))
-                            ->where('id', $eventID)
-                            ->get()->first();
+            $event =  Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(concat(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(concat(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
+                    ->where('id', $eventID)
+                    ->get()->first();
             return response()->json([
                         'error' => 'false',
                         'message' => '',

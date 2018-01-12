@@ -45,6 +45,24 @@ class Event extends Model
     {
         return (bool) $value;
     }
+    
+    public function getUserRegisteredAttribute($eventId)
+    {
+        $registered = EventUser::where('event_id', $eventId)
+                        ->where('user_id', \Auth::user()->id)->exists();
+         return (bool) $registered;
+    }
+    
+    public function getJoinedAttribute($eventId)
+    {
+        $eventUser = EventUser::select('status')->where('event_id', $eventId)
+                        ->where('user_id', \Auth::user()->id)->first();
+
+        if($eventUser){
+            return (bool) $eventUser->status;
+        }
+        return FALSE;
+    }
 
     /**
      * Function for get event and users list information
