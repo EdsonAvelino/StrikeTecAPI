@@ -80,7 +80,7 @@ class TournamentController extends Controller
             $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
             $eventList = Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
-                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), 'all_day', 'events.status', 
                     \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
                     ->where('events.status', 1)
                     ->orderBy('from_date', 'desc')
@@ -166,7 +166,7 @@ class TournamentController extends Controller
             $offset = (int) ($request->get('start') ? $request->get('start') : 0);
             $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
             $eventList =  Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
-                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), 'all_day', 'events.status', 
                     \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
                     ->whereHas('eventUser', function($q) use($userId) {
                         $q->where('user_id', '=', $userId);
@@ -282,7 +282,7 @@ class TournamentController extends Controller
             $userId = \Auth::user()->id;
             $eventID = $request->get('event_id');
             $event =  Event::select('events.id', \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), 
-                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS INT) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS INT) as end_date'), 'all_day', 'events.status', 
+                    \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), 'all_day', 'events.status', 
                     \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('events.id as users_count'))
                     ->where('id', $eventID)
                     ->get()->first();
