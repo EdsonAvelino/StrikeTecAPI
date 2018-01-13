@@ -371,13 +371,19 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // list of all tournaments
     $app->get('/tournaments/all', 'TournamentController@getTournamentList');
-    
-    // list of user tournaments
-    $app->get('/tournaments/user', 'TournamentController@getUserTournaments');
-    
+      
     // information of tournament
     $app->get('/tournament', 'TournamentController@getEventDetail');
     
     // registration of user in tournaments
     $app->post('/tournament/register', 'TournamentController@registerUser');
+    
+    // get user's finished tournaments
+    $app->get('/finished/tournaments', 'TournamentController@getUserFinishedTournaments');
+    
+    // get user's finished tournaments
+    $app->get('/joined/tournaments', 'TournamentController@getUserStartedTournaments');
+    
+    // get user's tournament connections
+    $app->get('/tournament/user/connections', 'TournamentController@getTournamentConnections');
 });

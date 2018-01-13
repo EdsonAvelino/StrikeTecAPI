@@ -26,6 +26,11 @@ class Event extends Model
         return $this->hasMany('App\EventUser', 'event_id');
     }
 
+    public function eventSessions()
+    {
+        return $this->hasMany('App\EventSession', 'event_id');
+    }
+
     public function eventActivity()
     {
         return $this->hasMany('App\EventFanActivity', 'event_id');
@@ -45,23 +50,76 @@ class Event extends Model
     {
         return (bool) $value;
     }
-    
+
     public function getUserRegisteredAttribute($eventId)
     {
         $registered = EventUser::where('event_id', $eventId)
                         ->where('user_id', \Auth::user()->id)->exists();
-         return (bool) $registered;
+        return (bool) $registered;
     }
-    
+
     public function getJoinedAttribute($eventId)
     {
         $eventUser = EventUser::select('status')->where('event_id', $eventId)
                         ->where('user_id', \Auth::user()->id)->first();
 
-        if($eventUser){
+        if ($eventUser) {
             return (bool) $eventUser->status;
         }
         return FALSE;
+    }
+
+    public function getEventTypeAttribute($eventId)
+    {
+        $activityId = EventFanActivity::select('activity_id')->where('event_id', $eventId)
+                        ->where('status', 0)->first();
+        if ($activityId) {
+            return (int) $activityId->activity_id;
+        }
+    }
+
+    public function getUserDoneAttribute($eventId)
+    {
+        $eventTypeId = $this->getEventTypeAttribute($eventId);
+        $session = FALSE;
+        if ($eventTypeId) {
+            $session = EventSession::where('event_id', $eventId)
+                            ->where('activity_id', $eventTypeId)->where('participant_id', \Auth::user()->id)->exists();
+        }
+        return (bool) $session;
+    }
+
+    public function getEventStartedAttribute($eventId)
+    {
+        $event = self::where('id', $eventId)
+                        ->where('from_date', '<=', date('Y-m-d'))->exists();
+
+        return (bool) $event;
+    }
+
+    public function getUserScoreAttribute($eventId)
+    {
+        $eventTypeId = $this->getEventTypeAttribute($eventId);
+        $score = 0;
+        if ($eventTypeId) {
+            $session = EventSession::where('event_id', $eventId)
+                            ->where('activity_id', $eventTypeId)->where('participant_id', \Auth::user()->id)->first();
+            if ($session) {
+                //get revord for speed
+                if ($eventTypeId == 1) {
+                    $score = $session->avg_speed;
+                }
+                //get revord for power
+                elseif ($eventTypeId == 2) {
+                    $score = $session->avg_force;
+                }
+                //get revord for endurance
+                elseif ($eventTypeId == 3) {
+                    $score = $session->avg_speed;
+                }
+            }
+        }
+        return $score;
     }
 
     /**
