@@ -404,7 +404,7 @@ class TournamentController extends Controller
 
     /**
      * @api {get} /tournament/user/connections Get user's connections
-     * @apiGroup Social
+     * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
