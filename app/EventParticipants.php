@@ -3,20 +3,30 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use DB;
 
-Class EventUser extends Model
+class EventParticipants extends Model
 {
+    protected $fillable = ['user_id', 'event_id', 'joined_via', 'status'];
 
-    protected $fillable = ['user_id', 'event_id', 'register_via', 'status'];
-    protected $hidden = [
-        'created_at',
-        'updated_at'
-    ];
+    public $timestamps = false;
+
+    public function setJoinedViaAttribute($via)
+    {
+        $this->attributes['joined_via'] = strtoupper($via);
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->joined_at = $model->freshTimestamp();
+        });
+    }
 
     public function events()
     {
-        return $this->belongsTo('App\Event', 'id');
+        return $this->belongsTo('App\Events', 'id');
     }
 
     public function users()
@@ -33,8 +43,8 @@ Class EventUser extends Model
     public function getUsersInfo($eventID)
     {
         $table = 'event_users';
-        // echo '<pre>'; print($eventID); die;
-        return DB::table($table)
+        
+        return \DB::table($table)
                         ->Join('users', $table . '.user_id', '=', 'users.id')
                         ->leftJoin('countries', 'users.country_id', '=', 'countries.id')
                         ->leftJoin('states', 'users.state_id', '=', 'states.id')
@@ -54,7 +64,8 @@ Class EventUser extends Model
     public function getUsersList($userID)
     {
         $table = 'event_users';
-        return DB::table($table)
+        
+        return \DB::table($table)
                         ->Join('users', $table . '.user_id', '=', 'users.id')
                         ->leftJoin('countries', 'users.country_id', '=', 'countries.id')
                         ->leftJoin('states', 'users.state_id', '=', 'states.id')
@@ -76,7 +87,8 @@ Class EventUser extends Model
     public function myEventUsersInfo($eventID)
     {
         $table = 'event_users';
-        return DB::table($table)
+
+        return \DB::table($table)
                         ->Join('users', $table . '.user_id', '=', 'users.id')
                         ->leftJoin('countries', 'users.country_id', '=', 'countries.id')
                         ->leftJoin('states', 'users.state_id', '=', 'states.id')
@@ -86,5 +98,4 @@ Class EventUser extends Model
                         ->where($table . '.status', 1)
                         ->get();
     }
-
 }

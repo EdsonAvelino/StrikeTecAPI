@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Event;
-use App\EventUser;
+use App\Events;
+use App\EventActivities;
+use App\EventParticipants;
 use App\User;
 use App\UserConnections;
 
 class TournamentController extends Controller
 {
-
     /**
-     * @api {get} /tournaments/all Get all active tournaments
+     * @api {get} /tournaments Get tournaments user did have not joined
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -80,32 +80,43 @@ class TournamentController extends Controller
      */
     public function getTournamentList(request $request)
     {
-        try {
-            $userId = \Auth::user()->id;
-            $offset = (int) ($request->get('start') ? $request->get('start') : 0);
-            $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        $userId = \Auth::user()->id;
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
+        $eventActivities = EventActivities::with(['event' => function($query) {
+            $query->where('end_date', '>=', date('Y-m-d'));
+        }])->select([
+            '*',
+            \DB::raw('id as user_joined'),
+            \DB::raw('id as activity_started'),
+            \DB::raw('id as user_counts'),
+            \DB::raw('id as user_score'),
+        ])->where('status', 1)->offset($offset)->limit($limit)->get();
 
-            $eventList = Event::select('events.id', \DB::raw('id as event_type'), \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), \DB::raw('id as user_score'), 'events.status', \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('id as event_started'), \DB::raw('events.id as users_count'))
-                    ->whereHas('eventActivity', function($q) {
-                        $q->where('status', 0);
-                    })->where('events.status', 1)
-                    ->where('to_date', '>=', date('Y-m-d'))
-                    ->orderBy('from_date', 'desc')
-                    ->offset($offset)->limit($limit)
-                    ->get();
+        $eventsList = [];
 
-            return response()->json(['error' => 'false', 'message' => '', 'data' => $eventList]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
+        foreach ($eventActivities as $eventActivity) {
+            $_eventActivity = [];
+            $_eventActivity['id'] = $eventActivity->id;
+            $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
+            $_eventActivity['event_title'] = $eventActivity->event->title;
+            $_eventActivity['description'] = $eventActivity->event->description;
+            $_eventActivity['image'] = $eventActivity->event->image;
+            $_eventActivity['user_joined'] = $eventActivity->user_joined;
+            $_eventActivity['activity_started'] = $eventActivity->activity_started;
+            $_eventActivity['user_counts'] = $eventActivity->user_counts;
+            $_eventActivity['user_done'] = null;
+            $_eventActivity['user_score'] = $eventActivity->user_score;
+
+            $eventsList[] = $_eventActivity;
         }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventsList]);
     }
 
     /**
-     * @api {post} /tournament/register Register user to tournament
+     * @api {post} /user/tournaments/join Register user to the tournament
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -115,7 +126,7 @@ class TournamentController extends Controller
      * @apiParam {int} event_id id of tournament
      * @apiParamExample {json} Input
      *    {
-     *      "event_id": 1,
+     *      "event_activity_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
@@ -124,7 +135,7 @@ class TournamentController extends Controller
      * {
      *   {
      *       "error": "false",
-     *       "message":"Registration Successfully done.!!"
+     *       "message":"Registration completed"
      *   }
      * }
      * @apiErrorExample {json} Error response
@@ -135,26 +146,25 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function registerUser(request $request)
+    public function userJoinTournament(request $request)
     {
-        try {
-            $userId = \Auth::user()->id;
-            $eventId = $request->get('event_id');
-            EventUser::firstOrCreate(['event_id' => $eventId, 'user_id' => $userId], ['status' => 0, 'register_via' => 'm']);
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Registration Successfully done.!!'
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
+        $eventActivityId = $request->get('event_activity_id');
+        
+        EventParticipants::Create([
+            'event_activity_id' => $eventActivityId,
+            'user_id' => \Auth::id(),
+            'status' => true,
+            'joined_via' => 'M'
+        ]);
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Registration completed'
+        ]);
     }
 
     /**
-     * @api {get} /tournament Get tournament details
+     * @api {get} /tournaments/<event_activity_id> Get tournament activity details
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -199,29 +209,29 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getEventDetail(request $request)
-    {
-        try {
-            $userId = \Auth::user()->id;
-            $eventID = $request->get('event_id');
-            $event = Event::select('events.id', \DB::raw('id as event_type'), \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), \DB::raw('id as user_score'), 'events.status', \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('id as event_started'), \DB::raw('events.id as users_count'))
-                            ->where('id', $eventID)
-                            ->get()->first();
-            return response()->json([
-                        'error' => 'false',
-                        'message' => '',
-                        'data' => $event
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
-    }
+    // public function getEventDetail(request $request)
+    // {
+    //     try {
+    //         $userId = \Auth::user()->id;
+    //         $eventID = $request->get('event_id');
+    //         $event = Event::select('events.id', \DB::raw('id as event_type'), \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), \DB::raw('id as user_score'), 'events.status', \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('id as event_started'), \DB::raw('events.id as users_count'))
+    //                         ->where('id', $eventID)
+    //                         ->get()->first();
+    //         return response()->json([
+    //                     'error' => 'false',
+    //                     'message' => '',
+    //                     'data' => $event
+    //         ]);
+    //     } catch (Exception $e) {
+    //         return response()->json([
+    //                     'error' => 'true',
+    //                     'message' => 'Invalid request',
+    //         ]);
+    //     }
+    // }
 
     /**
-     * @api {get} /finished/tournaments Get user's finished tournaments
+     * @api {get} /user/tournaments/finished Get all finished tournaments that user joined
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -289,30 +299,38 @@ class TournamentController extends Controller
      */
     public function getUserFinishedTournaments(request $request)
     {
-        try {
-            $userId = \Auth::user()->id;
-            $offset = (int) ($request->get('start') ? $request->get('start') : 0);
-            $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-            $eventList = Event::select('events.id', \DB::raw('id as event_type'), \DB::raw('company_id as company_name'), 'event_title', \DB::raw('location_id as location'), 'description', \DB::raw('image as image'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'), \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'), \DB::raw('id as user_score'), 'events.status', \DB::raw('id as user_registered'), \DB::raw('id as joined'), \DB::raw('id as event_started'), \DB::raw('events.id as users_count'))
-                    ->whereHas('eventActivity', function($q) {
-                        $q->where('status', 0);
-                    })->whereHas('eventUser', function($q) use($userId) {
-                        $q->where('user_id', $userId)->where('user_finished', 1);
-                    })->where('events.status', 1)
-                    ->orderBy('from_date', 'desc')
-                    ->offset($offset)->limit($limit)
-                    ->get();
-            return response()->json(['error' => 'false', 'message' => '', 'data' => $eventList]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
+        $userId = \Auth::user()->id;
+
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+
+        $eventList = Event::select('events.id',
+            \DB::raw('id as event_type'), \DB::raw('company_id as company_name'),
+            'event_title',
+            \DB::raw('location_id as location'),
+            'description',
+            \DB::raw('image as image'),
+            \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(from_date," ",from_time)) AS UNSIGNED) as start_date'),
+            \DB::raw('CAST(UNIX_TIMESTAMP(CONCAT(to_date," ",to_time)) AS UNSIGNED) as end_date'),
+            \DB::raw('id as user_score'), 'events.status',
+            \DB::raw('id as user_registered'),
+            \DB::raw('id as joined'),
+            \DB::raw('id as event_started'),
+            \DB::raw('events.id as users_count')
+        )->whereHas('eventActivity', function($q) {
+            $q->where('status', 0);
+        })->whereHas('eventUser', function($q) use($userId) {
+            $q->where('user_id', $userId)->where('user_finished', 1);
+        })->where('events.status', 1)
+        ->orderBy('from_date', 'desc')
+        ->offset($offset)->limit($limit)
+        ->get();
+        
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventList]);
     }
 
     /**
-     * @api {get} /joined/tournaments Get user's joined tournaments
+     * @api {get} /user/tournaments Get user's joined tournaments
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -471,7 +489,7 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getTournamentConnections(Request $request)
+    public function getUserTournamentConnections(Request $request)
     {
         $userId = \Auth::user()->id;
         $eventId = (int) ($request->get('event_id') ?? 0);

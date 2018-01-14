@@ -4,9 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EventSession extends Model
+class EventSessions extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -27,10 +26,16 @@ class EventSession extends Model
         'best_time',
     ];
 
-     public function user() 
+    public function user()
     {
-        return $this->hasOne('App\User', 'id', 'participant_id')->select('id', 'first_name', 'last_name', \DB::raw("CONCAT(COALESCE(`first_name`, ''), ' ',COALESCE(`last_name`, '')) as name"), 'photo_url');
-    }
-    
-    
+        return $this->hasOne('App\User', 'id', 'participant_id')
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                \DB::raw("CONCAT(`first_name`, ' ', `last_name`) as name"),
+                'photo_url',
+                'gender'
+            ]);
+    }    
 }

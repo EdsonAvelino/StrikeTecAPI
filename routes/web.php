@@ -366,24 +366,22 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 });
 
 // Tournaments APIs
-
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
-
-    // list of all tournaments
-    $app->get('/tournaments/all', 'TournamentController@getTournamentList');
+    // Get all new tournament apis user didn't join
+    $app->get('/tournaments', 'TournamentController@getTournamentList');
       
-    // information of tournament
-    $app->get('/tournament', 'TournamentController@getEventDetail');
+    // Get tournament detail
+    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventDetail');
     
-    // registration of user in tournaments
-    $app->post('/tournament/register', 'TournamentController@registerUser');
+    // User Join the tournament
+    $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
     
-    // get user's finished tournaments
-    $app->get('/finished/tournaments', 'TournamentController@getUserFinishedTournaments');
+    // Get all finished tournaments that user joined
+    $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
     
-    // get user's finished tournaments
-    $app->get('/joined/tournaments', 'TournamentController@getUserStartedTournaments');
+    // Get all tournaments that user joined
+    $app->get('/user/tournaments', 'TournamentController@getUserStartedTournaments');
     
     // get user's tournament connections
-    $app->get('/tournament/user/connections', 'TournamentController@getTournamentConnections');
+    $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
 });

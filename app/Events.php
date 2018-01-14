@@ -5,7 +5,7 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use DB;
 
-class Event extends Model
+class Events extends Model
 {
 
     /**
@@ -14,8 +14,20 @@ class Event extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'user_id', 'location_id', 'company_id', 'event_title', 'description', 'image', 'to_date', 'to_time', 'from_date', 'from_time', 'all_day', 'status'
+        'id',
+        'company_id',
+        'location_id',
+        'title',
+        'description',
+        'image',
+        'start_date',
+        'start_time',
+        'end_date',
+        'end_time',
+        'all_day',
+        'status'
     ];
+
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -51,12 +63,7 @@ class Event extends Model
         return (bool) $value;
     }
 
-    public function getUserRegisteredAttribute($eventId)
-    {
-        $registered = EventUser::where('event_id', $eventId)
-                        ->where('user_id', \Auth::user()->id)->exists();
-        return (bool) $registered;
-    }
+    
 
     public function getJoinedAttribute($eventId)
     {
@@ -89,38 +96,7 @@ class Event extends Model
         return (bool) $session;
     }
 
-    public function getEventStartedAttribute($eventId)
-    {
-        $event = self::where('id', $eventId)
-                        ->where('from_date', '<=', date('Y-m-d'))->exists();
-
-        return (bool) $event;
-    }
-
-    public function getUserScoreAttribute($eventId)
-    {
-        $eventTypeId = $this->getEventTypeAttribute($eventId);
-        $score = 0;
-        if ($eventTypeId) {
-            $session = EventSession::where('event_id', $eventId)
-                            ->where('activity_id', $eventTypeId)->where('participant_id', \Auth::user()->id)->first();
-            if ($session) {
-                //get revord for speed
-                if ($eventTypeId == 1) {
-                    $score = $session->avg_speed;
-                }
-                //get revord for power
-                elseif ($eventTypeId == 2) {
-                    $score = $session->avg_force;
-                }
-                //get revord for endurance
-                elseif ($eventTypeId == 3) {
-                    $score = $session->avg_speed;
-                }
-            }
-        }
-        return $score;
-    }
+    
 
     /**
      * Function for get event and users list information
@@ -183,25 +159,20 @@ class Event extends Model
                         ->where($table . '.id', $eventID)->get();
     }
 
-    public function getUsersCountAttribute($eventId)
-    {
-        return EventUser::where('event_id', $eventId)->where('status', 1)->get()->count();
-    }
-
     public function getCompanyNameAttribute($companyId)
     {
-        return Companies::where('id', $companyId)->get()->first()->company_name;
+        return \App\Companies::where('id', $companyId)->get()->first()->company_name;
     }
 
     public function getLocationAttribute($locationId)
     {
-        return Location::where('id', $locationId)->get()->first()->name;
+        return \App\Location::where('id', $locationId)->get()->first()->name;
     }
 
     public function getImageAttribute($value)
     {
         if ($value) {
-            return env('APP_URL') . '/storage/fanuser/event/' . $value;
+            return env('APP_URL') . '/storage/events/' . $value;
         }
     }
 
