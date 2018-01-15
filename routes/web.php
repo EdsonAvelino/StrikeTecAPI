@@ -293,15 +293,12 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 
     //add event for fan API
     $app->post('/fan/event', 'EventController@addEvent');
-
-    //get event list for fan API
-    $app->get('/fan/events', 'EventController@getEventList');
     
     //remove event for fan APP API'
     $app->post('/fan/event/remove', 'EventController@eventRemove');
     
     //get users list by country id for fan APP 
-    $app->get('/fan/users/event/list', 'EventController@userEventList');
+    $app->get('/fan/users/events', 'EventController@userEvents');
     
     //get all events list for fan APP APIs
     $app->get('/fan/all/events', 'EventController@allEventsUsersList');
@@ -314,14 +311,10 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     
     //add event for fan API
     $app->get('/fan/locations', 'LocationController@getLocationList');
-
-    // get user list for fan API
-    $app->get('/fan/users/list', 'EventController@getUsersList');
     
     //register fan userto add db
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
 
-    
     // register activity into event for Fan API
     $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
     
@@ -363,6 +356,12 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
      
     //remove participant
     $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
+    
+    // get pending for approval users list by event id
+    $app->get('/fan/event/users/pending/{event_id}', 'EventController@eventPendingUsersList');
+    
+     // update status of user approval or not by event id
+    $app->post('/fan/event/users/status', 'EventController@eventUsersStatus');
 });
 
 // Tournaments APIs
@@ -381,4 +380,5 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     
     // Get user's tournament connections who haven not joined yet
     $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
+
 });

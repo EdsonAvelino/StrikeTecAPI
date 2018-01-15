@@ -33,6 +33,11 @@ class Events extends Model
         'updated_at'
     ];
 
+    public function eventUser()
+    {
+        return $this->hasMany('App\EventUser', 'event_id');
+    }
+
     public function eventSessions()
     {
         return $this->hasMany('App\EventSession', 'event_id');
@@ -91,7 +96,55 @@ class Events extends Model
         return (bool) $session;
     }
 
-    
+    public function getFromDateAttribute()
+    {
+        return date('m/d/Y', strtotime($this->attributes['from_date']));
+    }
+
+    public function getToDateAttribute($value)
+    {
+        return date('m/d/Y', strtotime($value));
+    }
+
+    public function getUsersCountAttribute($eventId)
+    {
+        return EventUser::where('event_id', $eventId)->where('status', 1)->get()->count();
+    }
+
+    public function getLocationNameAttribute($locationId)
+    {
+        if ($locationId) {
+            return Location::where('id', $locationId)->get()->first()->name;
+        }
+        return NULL;
+    }
+
+    public function getIsActiveAttribute($eventId)
+    {
+        $eventActivityStatus = EventFanActivity::where('event_id', $eventId)
+                ->where('status', 0)
+                ->first();
+        if ($eventActivityStatus) {
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    public function getFinalizedAtAttribute($eventId)
+    {
+        $event = $this->getIsActiveAttribute($eventId);
+        $concludedDate = NULL;
+        if (!$event) {
+            $eventActivityStatus = EventFanActivity::where('event_id', $eventId)
+                    ->where('status', 1)
+                    ->orderBy('concluded_at', 'desc')
+                    ->first();
+            if ($eventActivityStatus) {
+                $concludedDate = date('m/d/Y', strtotime($eventActivityStatus->concluded_at));
+            }
+        }
+        return $concludedDate;
+    }
 
     /**
      * Function for get event and users list information
@@ -102,29 +155,8 @@ class Events extends Model
      */
     public function eventsList($company_id)
     {
-        $table = 'events';
-        return DB::table($table)
-                        ->leftJoin('locations', $table . '.location_id', '=', 'locations.id')
-                        ->leftJoin('companies', $table . '.company_id', '=', 'companies.id')
-                        ->select($table . '.*', 'locations.name as location_name', 'companies.company_name')
-                        ->where($table . '.company_id', $company_id)->get();
-    }
-
-    /**
-     * Function for get users list information
-     * 
-     * @param integer $company_id company id
-     * @return type object of users list
-     */
-    public function usersList($company_id)
-    {
-        $table = 'events';
-        return DB::table($table)
-                        ->Join('event_users', $table . '.id', '=', 'event_users.event_id')
-                        ->leftJoin('companies', $table . '.company_id', '=', 'companies.id')
-                        ->select(DB::raw('group_concat(event_users.event_id) as events'), 'event_users.user_id')
-                        ->groupBy('event_users.user_id')
-                        ->where($table . '.company_id', $company_id)->get();
+        return Self::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
+                        ->where('company_id', $company_id)->get();
     }
 
     /**
@@ -169,6 +201,11 @@ class Events extends Model
         if ($value) {
             return env('APP_URL') . '/storage/events/' . $value;
         }
+    }
+
+    public function getCountUsersWaitingApprovalAttribute($eventId)
+    {
+        return EventUser::where('event_id', $eventId)->where('status', 0)->where('is_cancelled', 0)->count();
     }
 
 }

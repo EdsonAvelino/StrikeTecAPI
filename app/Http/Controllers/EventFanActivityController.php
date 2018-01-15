@@ -8,8 +8,8 @@ use DB;
 
 Class EventFanActivityController extends Controller {
     /**
-     * @api {post} fan/event/activity/add add activity to event
-     * @apiGroup event
+     * @api {post} /fan/event/activity/add Add activity to event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -59,8 +59,8 @@ Class EventFanActivityController extends Controller {
     } 
     
     /**
-     * @api {post} /fan/activity/remove remove activity
-     * @apiGroup event
+     * @api {post} /fan/activity/remove Remove activity
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
