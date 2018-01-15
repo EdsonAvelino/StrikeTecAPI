@@ -298,7 +298,7 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     $app->post('/fan/event/remove', 'EventController@eventRemove');
     
     //get users list by country id for fan APP 
-    $app->get('/fan/users/event', 'EventController@userEvents');
+    $app->get('/fan/users/events', 'EventController@userEvents');
     
     //get all events list for fan APP APIs
     $app->get('/fan/all/events', 'EventController@allEventsUsersList');
@@ -311,9 +311,6 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     
     //add event for fan API
     $app->get('/fan/locations', 'LocationController@getLocationList');
-
-    // get user list for fan API
-    $app->get('/fan/users/list', 'EventController@getUsersList');
     
     //register fan userto add db
     $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
