@@ -8,6 +8,8 @@ use App\EventActivities;
 use App\EventParticipants;
 use App\User;
 use App\UserConnections;
+use App\Helpers\Push;
+use App\Helpers\PushTypes;
 
 class TournamentController extends Controller
 {
@@ -169,6 +171,11 @@ class TournamentController extends Controller
                 'is_finished' => null,
                 'joined_via' => 'M'
             ]);
+
+            $userNotification = \App\UserNotifications::where('notification_type_id', \App\UserNotifications::TOURNAMENT_ACTIVITY_INVITE)->where('user_id', \Auth::id())->where('data_id', $eventActivityId)->first();
+            $userNotification->is_read = true;
+            $userNotification->read_at = $userNotification->freshTimestamp();
+            $userNotification->save();
         }
 
         return response()->json([
@@ -472,6 +479,58 @@ class TournamentController extends Controller
             'error' => 'false',
             'message' => '',
             'data' => $connections
+        ]);
+    }
+
+    /**
+     * @api {post} /user/tournaments/invite Invite connection for tournament activity
+     * @apiGroup Tournaments
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} event_activity_id Event's ID
+     * @apiParam {Number} user_id User connection ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": 7,
+     *      "user_id": 7
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Invitation sent",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid data"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUserTournamentInvite(Request $request)
+    {
+        $userId = \Auth::user()->id;
+        
+        $eventActivityId = (int) $request->get('event_activity_id');
+        $opponentUserId = (int) $request->get('user_id');
+
+        // Send Push Notification
+        $pushMessage = \Auth::user()->first_name . ' ' . \Auth::user()->last_name . ' has invited you to event activity';
+
+        Push::send(PushTypes::TOURNAMENT_ACTIVITY_INVITE, $opponentUserId, \Auth::user()->id, $pushMessage, ['event_activity_id' => $eventActivityId]);
+
+        // Generates new notification for user
+        \App\UserNotifications::generate(\App\UserNotifications::TOURNAMENT_ACTIVITY_INVITE, $opponentUserId, \Auth::id(), $eventActivityId);
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Invitation sent'
         ]);
     }
 }

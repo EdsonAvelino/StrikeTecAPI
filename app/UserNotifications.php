@@ -27,13 +27,15 @@ class UserNotifications extends Model
     const BATTLE_FINISHED = 3;
     const FEED_POST_LIKE = 4;
     const FEED_POST_COMMENT = 5;
+    const TOURNAMENT_ACTIVITY_INVITE = 6;
     
     protected static $textTemplates = [
         1 => '_USER1_ is now following you',
         2 => '_USER1_ has challenged you for battle',
         3 => '_USER1_ has finished battle',
         4 => '_USER1_ likes your post',
-        5 => '_USER1_ has commented on your post'
+        5 => '_USER1_ has commented on your post',
+        6 => '_USER1_ has invited you to event activity'
     ];
 
     public static function boot()

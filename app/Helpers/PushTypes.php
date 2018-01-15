@@ -15,6 +15,8 @@ class PushTypes
     const CHAT_READ_MESSAGE = 7;
 
     const BATTLE_FINISHED = 8;
+    
+    const TOURNAMENT_ACTIVITY_INVITE = 9;
 
     public static function getSilentPushListForIOS()
     {

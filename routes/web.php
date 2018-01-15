@@ -380,4 +380,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     
     // Get user's tournament connections who haven not joined yet
     $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
+
+    // Invite connection for tournament 
+    $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
 });

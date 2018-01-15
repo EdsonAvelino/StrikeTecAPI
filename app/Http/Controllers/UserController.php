@@ -1714,11 +1714,34 @@ class UserController extends Controller
                     }])->where('user_id', \Auth::user()->id)
                     ->where(function($q) {
                         $q->whereNull('is_read')->orWhere('is_read', 0);
-                    })->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
+                    })
+                    ->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
+                    ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
+
+        $_tournamentInviteNotifications = UserNotifications::with(['opponentUser' => function ($query) {
+                        $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
+                    }])->where('user_id', \Auth::user()->id)
+                    ->where(function($q) {
+                        $q->whereNull('is_read')->orWhere('is_read', 0);
+                    })
+                    ->where('notification_type_id', '=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
+                    ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
         $notifications[] = ['percentage' => (int) $percentage];
 
+        // Tournament invite notifications
+        foreach ($_tournamentInviteNotifications as $notification) {
+            $temp = $notification->toArray();
+            $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
+
+            $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+            $temp['event_activity_id'] = $notification->data_id;
+
+            $notifications[] = $temp;
+        }
+
+        // Rest of all notifications
         foreach ($_notifications as $notification) {
             $temp = $notification->toArray();
             $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
@@ -1795,11 +1818,13 @@ class UserController extends Controller
             $_notifications = UserNotifications::where('user_id', \Auth::id());
         }
 
+        // Gotta make sure that no any tournament activity notifications marked as read
+        $_notifications->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE);
         $_notifications->update(['is_read' => 1, 'read_at' => date('Y-m-d H:i:s')]);
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'Marked notifications read'
+            'error' => 'false',
+            'message' => 'Marked notifications read'
         ]);
     }
     
@@ -1925,6 +1950,4 @@ class UserController extends Controller
             return response()->json(['error' => 'true']);
         }
     }
-
 }
-        
