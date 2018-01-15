@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventParticipants extends Model
 {
-    protected $fillable = ['user_id', 'event_id', 'joined_via', 'status'];
+    protected $fillable = ['user_id', 'event_activity_id', 'joined_via', 'status'];
 
     public $timestamps = false;
 
@@ -34,9 +34,10 @@ class EventParticipants extends Model
         return $this->belongsTo('App\User', 'user_id', 'id')->select('id', 'first_name', 'last_name', \DB::raw("CONCAT(COALESCE(`first_name`, ''), ' ',COALESCE(`last_name`, '')) as name"), 'photo_url', 'email');
     }
     
-    public function getUserEventsAttribute($userId) {
+    public function getUserEventsAttribute($userId)
+    {
         $events = self::select('event_id')->where('user_id', $userId)->where('event_id', '>', 0)->get()->toArray();
+        
         return array_column($events, 'event_id');
-    }
-  
+    } 
 }

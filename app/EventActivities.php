@@ -30,7 +30,7 @@ Class EventActivities extends Model
     public function getUserJoinedAttribute($eventActivityId)
     {
         return (bool) \App\EventParticipants::where('event_activity_id', $eventActivityId)
-            ->where('user_id', \Auth::user()->id)->exists();
+            ->where('user_id', \Auth::id())->exists();
     }
 
     public function getActivityStartedAttribute($eventActivityId)
