@@ -17,14 +17,14 @@ Class EventActivities extends Model
         return $this->hasOne('App\Events', 'id', 'event_id');
     }
 
-    public function eventSessions()
+    public function participant()
     {
-        return $this->hasMany('App\EventSessions', 'event_id', 'event_id');
+        return $this->hasMany('App\EventParticipants', 'event_activity_id');
     }
 
-    public function activities()
+    public function sessions()
     {
-        return $this->hasMany('\App\EventSession', 'activity_id', 'activity_id');
+        return $this->hasMany('App\EventSessions', 'event_id', 'event_id');
     }
 
     public function getUserJoinedAttribute($eventActivityId)
@@ -40,9 +40,9 @@ Class EventActivities extends Model
         return (bool) (strtotime($event->start_date) < time());
     }
 
-    public function getUsersCountsAttribute($eventActivityId)
+    public function getUserCountsAttribute($eventActivityId)
     {
-        return \App\EventParticipants::where('event_activity_id', $eventActivityId)->where('status', 1)->count();
+        return \App\EventParticipants::where('event_activity_id', $eventActivityId)->count();
     }
 
     public function getUserScoreAttribute($eventActivityId)

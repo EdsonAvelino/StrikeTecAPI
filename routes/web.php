@@ -96,10 +96,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get round and its punches
     $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
 
-    // Save Training sessoins' rounds data to db
+    // Save Training sessions' rounds data to db
     $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
 
-    // Save Training sessoins' rounds' punches data to db
+    // Save Training sessions' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 
     //get Tips data
@@ -368,20 +368,17 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 // Tournaments APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get all new tournament apis user didn't join
-    $app->get('/tournaments', 'TournamentController@getTournamentList');
+    $app->get('/tournaments', 'TournamentController@getEventsList');
       
-    // Get tournament detail
-    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventDetail');
-    
     // User Join the tournament
     $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
     
+    // Get all tournaments that user joined
+    $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
+
     // Get all finished tournaments that user joined
     $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
     
-    // Get all tournaments that user joined
-    $app->get('/user/tournaments', 'TournamentController@getUserStartedTournaments');
-    
-    // get user's tournament connections
+    // Get user's tournament connections who haven not joined yet
     $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
 });

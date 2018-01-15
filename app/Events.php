@@ -33,11 +33,6 @@ class Events extends Model
         'updated_at'
     ];
 
-    public function eventUser()
-    {
-        return $this->hasMany('App\EventUser', 'event_id');
-    }
-
     public function eventSessions()
     {
         return $this->hasMany('App\EventSession', 'event_id');

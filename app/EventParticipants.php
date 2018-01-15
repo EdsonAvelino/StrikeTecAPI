@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventParticipants extends Model
 {
-    protected $fillable = ['user_id', 'event_id', 'joined_via', 'status'];
+    protected $fillable = ['user_id', 'event_activity_id', 'joined_via', 'status'];
 
     public $timestamps = false;
 
