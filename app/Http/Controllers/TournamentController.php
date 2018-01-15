@@ -133,7 +133,7 @@ class TournamentController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
      *       "Content-Type": "application/x-www-form-urlencoded",
      *     }
-     * @apiParam {int} event_id id of tournament
+     * @apiParam {int} event_activity_id Dd of tournament activity
      * @apiParamExample {json} Input
      *    {
      *      "event_activity_id": 1,
@@ -382,7 +382,7 @@ class TournamentController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} event_id Event's Id
+     * @apiParam {Number} event_activity_id Event's Id
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
      * @apiParamExample {json} Input
