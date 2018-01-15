@@ -8,8 +8,8 @@ use App\FanActivity;
 class FanActivityController extends Controller
 {
     /**
-     * @api {get} /fan/activities get fan Activity details information
-     * @apiGroup event
+     * @api {get} /fan/activities Get fan activity info
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:

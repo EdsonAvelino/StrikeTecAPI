@@ -38,4 +38,10 @@ class EventSessions extends Model
                 'gender'
             ]);
     }    
+ 
+    public function eventActivity()
+    {
+        return $this->hasMany('\App\FanActivity', 'id', 'activity_id');
+    }
+    
 }

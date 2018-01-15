@@ -255,7 +255,7 @@ class EventTrainingController extends Controller
     }
    
     /**
-     * @api {delete} /fan/event/participant/remove remove participant
+     * @api {delete} /fan/event/participant/remove Remove participant
      * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
