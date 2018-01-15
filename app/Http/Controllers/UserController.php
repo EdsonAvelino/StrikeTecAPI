@@ -1804,8 +1804,8 @@ class UserController extends Controller
     }
     
     /**
-     * @api {get} /users/list get user list by searching
-     * @apiGroup event
+     * @api {get} /fan/users/search Get user list by searching
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:

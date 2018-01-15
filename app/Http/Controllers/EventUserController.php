@@ -61,7 +61,7 @@ Class EventUserController extends Controller
 
     /**
      * @api {post} /fan/event/users/remove remove users from event
-     * @apiGroup event
+     * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
