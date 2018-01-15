@@ -101,6 +101,7 @@ class TournamentController extends Controller
             \DB::raw('id as activity_started'),
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
+            \DB::raw('id as user_done'),
         ])->whereNotIn('id', $alreadyJoined)->where('status', 1)->offset($offset)->limit($limit)->get();
 
         $eventsList = [];
@@ -114,9 +115,9 @@ class TournamentController extends Controller
             $_eventActivity['image'] = $eventActivity->event->image;
             $_eventActivity['user_joined'] = $eventActivity->user_joined;
             $_eventActivity['activity_started'] = $eventActivity->activity_started;
-            $_eventActivity['activity_finished'] = null;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
             $_eventActivity['user_counts'] = $eventActivity->user_counts;
-            $_eventActivity['user_done'] = null;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
             $_eventActivity['user_score'] = $eventActivity->user_score;
 
             $eventsList[] = $_eventActivity;
@@ -215,7 +216,7 @@ class TournamentController extends Controller
      *              "image": null,
      *              "user_joined": true,
      *              "activity_started": false,
-     *              "activity_finished": null,
+     *              "c": null,
      *              "user_counts": 100,
      *              "user_done": null,
      *              "user_score": 26
@@ -228,7 +229,7 @@ class TournamentController extends Controller
      *              "image": null,
      *              "user_joined": true,
      *              "activity_started": false,
-     *              "activity_finished": null,
+     *              "activity_finished": true,
      *              "user_counts": 120,
      *              "user_done": false,
      *              "user_score": 39
@@ -254,6 +255,7 @@ class TournamentController extends Controller
             \DB::raw('id as activity_started'),
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
+            \DB::raw('id as user_done')
         ])->where('status', 1)
         ->whereHas('participant', function ($query) {
             $query->where('user_id', \Auth::id())->where(function($q) {
@@ -272,9 +274,9 @@ class TournamentController extends Controller
             $_eventActivity['image'] = $eventActivity->event->image;
             $_eventActivity['user_joined'] = $eventActivity->user_joined;
             $_eventActivity['activity_started'] = $eventActivity->activity_started;
-            $_eventActivity['activity_finished'] = null;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
             $_eventActivity['user_counts'] = $eventActivity->user_counts;
-            $_eventActivity['user_done'] = null;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
             $_eventActivity['user_score'] = $eventActivity->user_score;
 
             $eventsList[] = $_eventActivity;
@@ -355,6 +357,7 @@ class TournamentController extends Controller
             \DB::raw('id as activity_started'),
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
+            \DB::raw('id as user_done')
         ])->where('status', 1)->whereHas('participant', function ($query) {
             $query->where('user_id', \Auth::id())->where('is_finished', 1);
         })->offset($offset)->limit($limit)->get();
@@ -370,9 +373,9 @@ class TournamentController extends Controller
             $_eventActivity['image'] = $eventActivity->event->image;
             $_eventActivity['user_joined'] = $eventActivity->user_joined;
             $_eventActivity['activity_started'] = $eventActivity->activity_started;
-            $_eventActivity['activity_finished'] = null;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
             $_eventActivity['user_counts'] = $eventActivity->user_counts;
-            $_eventActivity['user_done'] = null;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
             $_eventActivity['user_score'] = $eventActivity->user_score;
 
             $eventsList[] = $_eventActivity;

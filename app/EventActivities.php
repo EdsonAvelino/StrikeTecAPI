@@ -72,4 +72,10 @@ Class EventActivities extends Model
 
         return 0;
     }
+
+    public function getUserDoneAttribute($eventActivityId)
+    {
+        return (bool) \App\EventSessions::where('event_activity_id', $eventActivityId)
+            ->where('participant_id', \Auth::id())->exists();
+    }
 }
