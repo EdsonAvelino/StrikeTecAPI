@@ -10,7 +10,7 @@ class CompanyController extends Controller
 
     /**
      * @api {get}/companies Get list of Companies
-     * @apiGroup FAN APP Users
+     * @apiGroup FAN User
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
      *     {
