@@ -261,7 +261,7 @@ class TournamentController extends Controller
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done')
         ])->where(function($query) {
-            $query->whereNull('status')->orWhere('status', 1);
+            $query->whereNull('status')->orWhere('status', 0);
         })->whereHas('participant', function ($query) {
             $query->where('user_id', \Auth::id())->where(function($q) {
                 $q->whereNull('is_finished')->orWhere('is_finished', 0);
