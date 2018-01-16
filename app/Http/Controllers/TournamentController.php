@@ -130,6 +130,77 @@ class TournamentController extends Controller
     }
 
     /**
+     * @api {get} /tournaments/<event_activity_id> Get tournament's activity details
+     * @apiGroup Tournaments
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} event_activity_id Tournament activity ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": 20,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Tournament activity details
+     * @apiSuccessExample {json} Success
+     * {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {
+     *          "id": 20,
+     *          "event_activity_type_id": 2,
+     *          "event_title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
+     *          "description": "Sapien ultrices, quis convallis tortor varius vest",
+     *          "image": null,
+     *          "user_joined": true,
+     *          "activity_started": false,
+     *          "activity_finished": false,
+     *          "user_counts": 100,
+     *          "user_done": true,
+     *          "user_score": 31
+     *      }
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getEventActivityDetails(Request $request, $eventActivityId)
+    {
+        $userId = \Auth::user()->id;
+
+        $eventActivity = EventActivities::with('event')->select([
+            '*',
+            \DB::raw('id as user_joined'),
+            \DB::raw('id as activity_started'),
+            \DB::raw('id as user_counts'),
+            \DB::raw('id as user_score'),
+            \DB::raw('id as user_done'),
+        ])->where('id', $eventActivityId)->first();
+
+        $_eventActivity = [];
+        $_eventActivity['id'] = $eventActivity->id;
+        $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
+        $_eventActivity['event_title'] = $eventActivity->event->title;
+        $_eventActivity['description'] = $eventActivity->event->description;
+        $_eventActivity['image'] = $eventActivity->event->image;
+        $_eventActivity['user_joined'] = $eventActivity->user_joined;
+        $_eventActivity['activity_started'] = $eventActivity->activity_started;
+        $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
+        $_eventActivity['user_counts'] = $eventActivity->user_counts;
+        $_eventActivity['user_done'] = $eventActivity->user_done;
+        $_eventActivity['user_score'] = $eventActivity->user_score;
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $_eventActivity]);
+    }
+
+    /**
      * @api {post} /user/tournaments/join Register user to the tournament
      * @apiGroup Tournaments
      * @apiHeader {String} Authorization Authorization value

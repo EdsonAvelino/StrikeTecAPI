@@ -368,6 +368,9 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get all new tournament apis user didn't join
     $app->get('/tournaments', 'TournamentController@getEventsList');
+
+    // Tournament activity details
+    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
       
     // User Join the tournament
     $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
