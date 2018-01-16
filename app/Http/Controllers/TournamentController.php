@@ -44,7 +44,6 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
-     *               "activity_finished": false,
      *               "user_counts": 100,
      *               "user_done": true,
      *               "user_score": 31
@@ -57,7 +56,6 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
-     *               "activity_finished": false,
      *               "user_counts": 200,
      *               "user_done": false,
      *               "user_score": 25
@@ -70,7 +68,6 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
-     *               "activity_finished": false,
      *               "user_counts": 150,
      *               "user_done": true,
      *               "user_score": 29
@@ -115,7 +112,6 @@ class TournamentController extends Controller
             $_eventActivity['image'] = $eventActivity->event->image;
             $_eventActivity['user_joined'] = $eventActivity->user_joined;
             $_eventActivity['activity_started'] = $eventActivity->activity_started;
-            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
             $_eventActivity['user_counts'] = $eventActivity->user_counts;
             $_eventActivity['user_done'] = $eventActivity->user_done;
             $_eventActivity['user_score'] = $eventActivity->user_score;
