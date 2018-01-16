@@ -44,6 +44,7 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
+     *               "activity_finished": false,
      *               "user_counts": 100,
      *               "user_done": true,
      *               "user_score": 31
@@ -56,6 +57,7 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
+     *               "activity_finished": false,
      *               "user_counts": 200,
      *               "user_done": false,
      *               "user_score": 25
@@ -68,6 +70,7 @@ class TournamentController extends Controller
      *               "image": null,
      *               "user_joined": false,
      *               "activity_started": false,
+     *               "activity_finished": false,
      *               "user_counts": 150,
      *               "user_done": true,
      *               "user_score": 29
@@ -82,6 +85,7 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
+    // new tournaments : user didn't join, activity is not finished
     public function getEventsList(Request $request)
     {
         $userId = \Auth::user()->id;
@@ -99,7 +103,9 @@ class TournamentController extends Controller
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done'),
-        ])->whereNotIn('id', $alreadyJoined)->where('status', 1)->offset($offset)->limit($limit)->get();
+        ])->whereNotIn('id', $alreadyJoined)->where(function($q) {
+            $q->whereNull('status')->orWhere('status', 0);
+        })->offset($offset)->limit($limit)->get();
 
         $eventsList = [];
 
@@ -112,6 +118,7 @@ class TournamentController extends Controller
             $_eventActivity['image'] = $eventActivity->event->image;
             $_eventActivity['user_joined'] = $eventActivity->user_joined;
             $_eventActivity['activity_started'] = $eventActivity->activity_started;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
             $_eventActivity['user_counts'] = $eventActivity->user_counts;
             $_eventActivity['user_done'] = $eventActivity->user_done;
             $_eventActivity['user_score'] = $eventActivity->user_score;
@@ -240,6 +247,7 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
+    // joined tournaments : user joined, activity is not finished
     public function getUserJoinedTournaments(Request $request)
     {       
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
@@ -252,8 +260,9 @@ class TournamentController extends Controller
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done')
-        ])->where('status', 1)
-        ->whereHas('participant', function ($query) {
+        ])->where(function($query) {
+            $q->whereNull('status')->orWhere('status', 1);
+        })->whereHas('participant', function ($query) {
             $query->where('user_id', \Auth::id())->where(function($q) {
                 $q->whereNull('is_finished')->orWhere('is_finished', 0);
             });
@@ -340,6 +349,7 @@ class TournamentController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
+    // finished tournament : user joined, activity is finished
     public function getUserFinishedTournaments(Request $request)
     {
         $userId = \Auth::user()->id;
