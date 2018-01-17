@@ -248,9 +248,12 @@ class TournamentController extends Controller
             ]);
 
             $userNotification = \App\UserNotifications::where('notification_type_id', \App\UserNotifications::TOURNAMENT_ACTIVITY_INVITE)->where('user_id', \Auth::id())->where('data_id', $eventActivityId)->first();
-            $userNotification->is_read = true;
-            $userNotification->read_at = $userNotification->freshTimestamp();
-            $userNotification->save();
+
+            if ($userNotification) {
+                $userNotification->is_read = true;
+                $userNotification->read_at = $userNotification->freshTimestamp();
+                $userNotification->save();
+            }
         }
 
         return response()->json([
