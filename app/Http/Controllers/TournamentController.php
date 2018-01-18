@@ -229,56 +229,30 @@ class TournamentController extends Controller
      *            "id": 1,
      *            "event_id": 2,
      *            "event_activity_type_id": 3,
-     *            "sessions": [
-     *                {
-     *                    "id": 13,
-     *                    "participant_id": 71,
-     *                    "event_activity_id": 1,
-     *                    "start_time": 2147483647,
-     *                    "end_time": 2147483647,
-     *                    "plan_id": 0,
-     *                    "avg_speed": 20.83,
-     *                    "avg_force": 401.68,
-     *                    "punches_count": 59,
-     *                    "max_speed": 34,
-     *                    "max_force": 584,
-     *                    "best_time": "0",
-     *                    "participant": {
-     *                        "id": 71,
-     *                        "first_name": "Dale",
-     *                        "last_name": null,
-     *                        "photo_url": null,
-     *                        "gender": "male",
-     *                        "user_following": false,
-     *                        "user_follower": false,
-     *                        "points": 0
-     *                    }
-     *                },
-     *                {
-     *                    "id": 10,
-     *                    "participant_id": 67,
-     *                    "event_activity_id": 1,
-     *                    "start_time": 2147483647,
-     *                    "end_time": 0,
-     *                    "plan_id": 0,
-     *                    "avg_speed": 21.13,
-     *                    "avg_force": 355.9,
-     *                    "punches_count": 31,
-     *                    "max_speed": 33,
-     *                    "max_force": 585,
-     *                    "best_time": "0",
-     *                    "participant": {
-     *                        "id": 67,
-     *                        "first_name": "Sukhbir singh",
-     *                        "last_name": null,
-     *                        "photo_url": "http://example.com/images/user_pic-1514578748.jpg",
-     *                        "gender": "male",
-     *                        "user_following": false,
-     *                        "user_follower": false,
-     *                        "points": 0
-     *                    }
-     *                }
-     *            ]
+     *            "participants": [
+     *                 {
+     *                     "id": 1,
+     *                     "first_name": "John",
+     *                     "last_name": "Smith",
+     *                     "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                     "gender": "male",
+     *                     "user_following": true,
+     *                     "user_follower": true,
+     *                     "points": 220,
+     *                     "user_score": 25
+     *                 },
+     *                 {
+     *                     "id": 7,
+     *                     "first_name": "Jack",
+     *                     "last_name": "Li",
+     *                     "photo_url": "https://graph.facebook.com/12345483564/picture?type=large",
+     *                     "gender": "male",
+     *                     "user_following": false,
+     *                     "user_follower": false,
+     *                     "points": 3812,
+     *                     "user_score": 35
+     *                 }
+     *             ]
      *        }
      *   }
      * @apiErrorExample {json} Error response
