@@ -46,5 +46,12 @@ class EventParticipants extends Model
         $events = self::select('event_id')->where('user_id', $userId)->where('event_id', '>', 0)->get()->toArray();
         
         return array_column($events, 'event_id');
-    } 
+    }
+
+    public function getUserScoreAttribute($participantId)
+    {
+        $participant = self::find($participantId);
+        
+        return \App\EventActivities::getUserScore($participant->user_id, $participant->event_activity_id);
+    }
 }

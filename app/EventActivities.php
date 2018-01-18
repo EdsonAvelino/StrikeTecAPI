@@ -47,13 +47,7 @@ Class EventActivities extends Model
 
     public function getUserScoreAttribute($eventActivityId)
     {
-        $eventActivityTypeId = self::find($eventActivityId)->event->event_activity_type_id;
-
-        if ($eventActivityTypeId) {
-            return self::getUserScore(\Auth::id(), $eventActivityId);
-        }
-
-        return 0;
+        return self::getUserScore(\Auth::id(), $eventActivityId);
     }
 
     public function getUserDoneAttribute($eventActivityId)
@@ -78,11 +72,18 @@ Class EventActivities extends Model
                 'event_id',
                 'event_activity_type_id'
             ])->with(['participants' => function($query) use ($offset, $limit) {
-                $query->select('user_id', 'event_activity_id')->offset($offset)->limit($limit);
+                $query->select(
+                    'user_id',
+                    'event_activity_id',
+                    \DB::raw('id as user_score')
+                )->where(function($query) {
+                    $query->where('is_finished', 1)->orWhere('user_id', \Auth::id());
+                })->orderBy('user_score', 'desc')->offset($offset)->limit($limit);
             }])->first();
         
         $leaderboardData = $eventActivityParticipants->toArray();
         $participants = [];
+
         foreach ( $leaderboardData['participants'] as $idx => $participant ) {
             $userId = $participant['user_id'];
             $user = \App\User::get($userId)->toArray();
@@ -99,7 +100,9 @@ Class EventActivities extends Model
     public static function getUserScore($userId, $eventActivityId)
     {
         $eventActivityTypeId = self::find($eventActivityId)->event_activity_type_id;
-        
+
+        if (!$eventActivityTypeId) return 0;
+
         $session = \App\EventSessions::where('event_activity_id', $eventActivityId)
             ->where('participant_id', $userId)->first();
 

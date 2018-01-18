@@ -107,7 +107,6 @@ class TournamentController extends Controller
             $q->whereNull('status')->orWhere('status', 0);
         })->offset($offset)->limit($limit)->get();
 
-
         $eventsList = [];
 
         foreach ($eventActivities as $eventActivity) {
