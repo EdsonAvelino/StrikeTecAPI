@@ -371,6 +371,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Tournament activity details
     $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
+
+    // Tournament activity leaderboard
+    $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
       
     // User Join the tournament
     $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');

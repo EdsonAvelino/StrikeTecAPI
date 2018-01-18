@@ -3,14 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\EventSession;
+use App\EventSessions;
 use App\EventSessionPunches;
-use Validator;
-use DB;
 
 class EventTrainingController extends Controller
 {
-
     /**
      * @api {post} /fan/event/training/sessions upload event session and punches
      * @apiGroup Event
@@ -139,7 +136,6 @@ class EventTrainingController extends Controller
         }
     }
     
-    
     /**
      * @api {get} /fan/event/leaderboard Get leaderboard 
      * @apiGroup Event
@@ -223,33 +219,27 @@ class EventTrainingController extends Controller
      */
     public function getLeaderboardByEventActivity(Request $request)
     {   
-        try{
-            $eventID = $request->get('event_id');
-            $activityID = $request->get('activity_id');
-            $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
-                if($activityID == 1) {
-                    $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                }
-                if($activityID == 2) {
-                    $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
-                }
-                if($activityID == 3) {
-                    $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                }
-            }])
-                    ->where('event_id', $eventID)
-                    ->where('activity_id', $activityID)->first();
-        if (!empty($leaderBoardDetails)) {
-                return response()->json([
-                            'error' => 'false',
-                            'message' => 'Leaderboard information',
-                            'data' => $leaderBoardDetails,
-                ]);
+        $eventID = $request->get('event_id');
+
+        $activityID = $request->get('activity_id');
+
+        $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
+            if($activityID == 1) {
+                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
             }
-        } catch(Exception $e) {
+            if($activityID == 2) {
+                $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
+            }
+            if($activityID == 3) {
+                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+            }
+        }])->where('event_id', $eventID)->where('activity_id', $activityID)->first();
+        
+        if (!empty($leaderBoardDetails)) {
             return response()->json([
-                'error' => 'true',
-                'message' => 'Invalid request',
+                        'error' => 'false',
+                        'message' => 'Leaderboard information',
+                        'data' => $leaderBoardDetails,
             ]);
         }
     }
@@ -291,22 +281,24 @@ class EventTrainingController extends Controller
     */
     public function eventParticipantsRemove(Request $request)
     {   
-        $validator = Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
             'participant_id' => 'required|exists:event_sessions',
         ]);
+
         if ($validator->fails()) { 
             $errors = $validator->errors();
             return response()->json(['error' => 'true', 'message' =>  $errors->first('participant_id')]);
         }
+        
         try {
             $eventID = $request->get('event_id');
             $activitytID = $request->get('activity_id');
             $participantID = $request->get('participant_id');
-            DB::beginTransaction();
+            \DB::beginTransaction();
             $participentDetails = EventSession::where('event_id', $eventID)
                         ->where('activity_id', $activitytID)
                         ->where('participant_id', $participantID)->delete();
-            DB::commit();
+            \DB::commit();
             if($participentDetails) {
                 return response()->json([
                     'error' => 'false',
@@ -318,7 +310,7 @@ class EventTrainingController extends Controller
                     'message' => 'Participent not removed successfully please try again!'
                 ]);
         } catch (Exception $e) {
-            DB::rollBack();
+            \DB::rollBack();
             return response()->json([
                     'error' => 'true',
                     'message' => 'Invalid request',

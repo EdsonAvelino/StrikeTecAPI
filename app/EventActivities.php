@@ -24,7 +24,7 @@ Class EventActivities extends Model
 
     public function sessions()
     {
-        return $this->hasMany('App\EventSessions', 'event_id', 'event_id');
+        return $this->hasMany('App\EventSessions', 'event_activity_id');
     }
 
     public function getUserJoinedAttribute($eventActivityId)
@@ -55,12 +55,12 @@ Class EventActivities extends Model
             if ($session) {
                 // Score based on Speed
                 if ($eventActivityTypeId == 1) {
-                    return (int) $session->avg_speed;
+                    return (int) $session->max_speed;
                 }
                 
                 // Score based on Power
                 elseif ($eventActivityTypeId == 2) {
-                    return (int) $session->avg_force;
+                    return (int) $session->max_force;
                 }
 
                 // Score based on Endurance
@@ -77,5 +77,30 @@ Class EventActivities extends Model
     {
         return (bool) \App\EventSessions::where('event_activity_id', $eventActivityId)
             ->where('participant_id', \Auth::id())->exists();
+    }
+
+    public static function getLeaderboardData($eventActivityId, $offset = 0, $limit = 20)
+    {
+        $eventActivityId = (int) $eventActivityId;
+        $eventActivityTypeId = (int) self::select('event_activity_type_id')->find($eventActivityId)->event_activity_type_id;
+
+        if (!$eventActivityId || !$eventActivityTypeId) return null;
+
+        $leaderboardData = self::select('id', 'event_id', 'event_activity_type_id')
+            ->with(['sessions.participant', 'sessions' => function($query) use ($eventActivityId, $eventActivityTypeId, $offset, $limit) {
+                $query->select();
+                if ($eventActivityTypeId == 1) {
+                    $query->orderBy('max_speed', 'desc');
+                }
+                if ($eventActivityTypeId == 2) {
+                    $query->orderBy('max_force', 'desc');
+                }
+                if ($eventActivityTypeId == 3) {
+                    $query->orderBy('punches_count', 'desc');
+                }
+                $query->offset($offset)->limit($limit);
+            }])->where('id', $eventActivityId)->first();
+        
+        return $leaderboardData;
     }
 }

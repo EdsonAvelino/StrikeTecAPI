@@ -13,8 +13,7 @@ class EventSessions extends Model
      */
     protected $fillable = [
         'participant_id',
-        'event_id',
-        'activity_id',
+        'event_activity_id',
         'start_time',
         'end_time',
         'plan_id',
@@ -26,16 +25,20 @@ class EventSessions extends Model
         'best_time',
     ];
 
-    public function user()
+    protected $hidden = ['created_at', 'updated_at'];
+
+    public function participant()
     {
         return $this->hasOne('App\User', 'id', 'participant_id')
             ->select([
                 'id',
                 'first_name',
                 'last_name',
-                \DB::raw("CONCAT(`first_name`, ' ', `last_name`) as name"),
                 'photo_url',
-                'gender'
+                'gender',
+                \DB::raw('id as user_following'),
+                \DB::raw('id as user_follower'),
+                \DB::raw('id as points')
             ]);
     }    
  

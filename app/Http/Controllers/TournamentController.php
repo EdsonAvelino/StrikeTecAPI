@@ -201,6 +201,108 @@ class TournamentController extends Controller
     }
 
     /**
+     * @api {get} /tournaments/<event_activity_id>/leaderboard Get tournament's activity leaderboard
+     * @apiGroup Tournaments
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} event_activity_id Tournament activity ID
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": 20,
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Tournament activity leaderboard
+     * @apiSuccessExample {json} Success
+     * {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {
+     *            "id": 1,
+     *            "event_id": 2,
+     *            "event_activity_type_id": 3,
+     *            "sessions": [
+     *                {
+     *                    "id": 13,
+     *                    "participant_id": 71,
+     *                    "event_activity_id": 1,
+     *                    "start_time": 2147483647,
+     *                    "end_time": 2147483647,
+     *                    "plan_id": 0,
+     *                    "avg_speed": 20.83,
+     *                    "avg_force": 401.68,
+     *                    "punches_count": 59,
+     *                    "max_speed": 34,
+     *                    "max_force": 584,
+     *                    "best_time": "0",
+     *                    "participant": {
+     *                        "id": 71,
+     *                        "first_name": "Dale",
+     *                        "last_name": null,
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 0
+     *                    }
+     *                },
+     *                {
+     *                    "id": 10,
+     *                    "participant_id": 67,
+     *                    "event_activity_id": 1,
+     *                    "start_time": 2147483647,
+     *                    "end_time": 0,
+     *                    "plan_id": 0,
+     *                    "avg_speed": 21.13,
+     *                    "avg_force": 355.9,
+     *                    "punches_count": 31,
+     *                    "max_speed": 33,
+     *                    "max_force": 585,
+     *                    "best_time": "0",
+     *                    "participant": {
+     *                        "id": 67,
+     *                        "first_name": "Sukhbir singh",
+     *                        "last_name": null,
+     *                        "photo_url": "http://example.com/images/user_pic-1514578748.jpg",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 0
+     *                    }
+     *                }
+     *            ]
+     *        }
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getEventActivityLeaderboard(Request $request, $eventActivityId)
+    {
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+
+        $data = EventActivities::getLeaderboardData($eventActivityId, $offset, $limit);
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'data' => $data
+        ]);
+    }
+
+    /**
      * @api {post} /user/tournaments/join Register user to the tournament
      * @apiGroup Tournaments
      * @apiHeader {String} Authorization Authorization value
