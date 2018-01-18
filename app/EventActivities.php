@@ -14,10 +14,10 @@ Class EventActivities extends Model
     
     public function event()
     {
-        return $this->hasOne('App\Events', 'id', 'event_id');
+        return $this->belongsTo('App\Events', 'event_id');
     }
 
-    public function participant()
+    public function participants()
     {
         return $this->hasMany('App\EventParticipants', 'event_activity_id');
     }
@@ -50,24 +50,7 @@ Class EventActivities extends Model
         $eventActivityTypeId = self::find($eventActivityId)->event->event_activity_type_id;
 
         if ($eventActivityTypeId) {
-            $session = \App\EventSessions::where('event_activity_id', $eventActivityId)
-                            ->where('participant_id', \Auth::id())->first();
-            if ($session) {
-                // Score based on Speed
-                if ($eventActivityTypeId == 1) {
-                    return (int) $session->max_speed;
-                }
-                
-                // Score based on Power
-                elseif ($eventActivityTypeId == 2) {
-                    return (int) $session->max_force;
-                }
-
-                // Score based on Endurance
-                elseif ($eventActivityTypeId == 3) {
-                    return (int) $session->punches_count;
-                }
-            }
+            return self::getUserScore(\Auth::id(), $eventActivityId);
         }
 
         return 0;
@@ -82,25 +65,59 @@ Class EventActivities extends Model
     public static function getLeaderboardData($eventActivityId, $offset = 0, $limit = 20)
     {
         $eventActivityId = (int) $eventActivityId;
+        
+        $eventActivity = self::find($eventActivityId);
+
+        // Null return in case of activity not found
+        if (!$eventActivityId || !$eventActivity) return null;
+
         $eventActivityTypeId = (int) self::select('event_activity_type_id')->find($eventActivityId)->event_activity_type_id;
 
-        if (!$eventActivityId || !$eventActivityTypeId) return null;
-
-        $leaderboardData = self::select('id', 'event_id', 'event_activity_type_id')
-            ->with(['sessions.participant', 'sessions' => function($query) use ($eventActivityId, $eventActivityTypeId, $offset, $limit) {
-                $query->select();
-                if ($eventActivityTypeId == 1) {
-                    $query->orderBy('max_speed', 'desc');
-                }
-                if ($eventActivityTypeId == 2) {
-                    $query->orderBy('max_force', 'desc');
-                }
-                if ($eventActivityTypeId == 3) {
-                    $query->orderBy('punches_count', 'desc');
-                }
-                $query->offset($offset)->limit($limit);
-            }])->where('id', $eventActivityId)->first();
+        $eventActivityParticipants = self::select([
+                'id',
+                'event_id',
+                'event_activity_type_id'
+            ])->with(['participants' => function($query) use ($offset, $limit) {
+                $query->select('user_id', 'event_activity_id')->offset($offset)->limit($limit);
+            }])->first();
         
+        $leaderboardData = $eventActivityParticipants->toArray();
+        $participants = [];
+        foreach ( $leaderboardData['participants'] as $idx => $participant ) {
+            $userId = $participant['user_id'];
+            $user = \App\User::get($userId)->toArray();
+            $user['user_score'] = self::getUserScore($userId, $eventActivityId);
+
+            $participants[] = $user;
+        }
+
+        $leaderboardData['participants'] = $participants;
+
         return $leaderboardData;
+    }
+
+    public static function getUserScore($userId, $eventActivityId)
+    {
+        $eventActivityTypeId = self::find($eventActivityId)->event_activity_type_id;
+        
+        $session = \App\EventSessions::where('event_activity_id', $eventActivityId)
+            ->where('participant_id', $userId)->first();
+
+        if ($session) {
+            // Score based on Speed
+            if ($eventActivityTypeId == 1) {
+                return (int) $session->max_speed;
+            }
+            
+            // Score based on Power
+            elseif ($eventActivityTypeId == 2) {
+                return (int) $session->max_force;
+            }
+
+            // Score based on Endurance
+            elseif ($eventActivityTypeId == 3) {
+                return (int) $session->punches_count;
+            }
+        }
     }
 }

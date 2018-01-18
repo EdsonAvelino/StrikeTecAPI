@@ -10,6 +10,8 @@ class EventParticipants extends Model
 
     public $timestamps = false;
 
+    protected $hidden = ['joined_via', 'joined_at'];
+
     public function setJoinedViaAttribute($via)
     {
         $this->attributes['joined_via'] = strtoupper($via);
@@ -23,15 +25,20 @@ class EventParticipants extends Model
             $model->joined_at = $model->freshTimestamp();
         });
     }
-
-    public function events()
+    
+    public function user()
     {
-        return $this->belongsTo('App\Events', 'id');
-    }
-
-    public function users()
-    {
-        return $this->belongsTo('App\User', 'user_id', 'id')->select('id', 'first_name', 'last_name', \DB::raw("CONCAT(COALESCE(`first_name`, ''), ' ',COALESCE(`last_name`, '')) as name"), 'photo_url', 'email');
+        return $this->belongsTo('App\User', 'user_id', 'id')
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'photo_url',
+                'gender',
+                \DB::raw('id as user_following'),
+                \DB::raw('id as user_follower'),
+                \DB::raw('id as points')
+            ]);
     }
     
     public function getUserEventsAttribute($userId)

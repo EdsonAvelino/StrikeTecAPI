@@ -107,6 +107,7 @@ class TournamentController extends Controller
             $q->whereNull('status')->orWhere('status', 0);
         })->offset($offset)->limit($limit)->get();
 
+
         $eventsList = [];
 
         foreach ($eventActivities as $eventActivity) {
@@ -438,7 +439,7 @@ class TournamentController extends Controller
             \DB::raw('id as user_done')
         ])->where(function($query) {
             $query->whereNull('status')->orWhere('status', 0);
-        })->whereHas('participant', function ($query) {
+        })->whereHas('participants', function ($query) {
             $query->where('user_id', \Auth::id())->where(function($q) {
                 $q->whereNull('is_finished')->orWhere('is_finished', 0);
             });
@@ -540,7 +541,7 @@ class TournamentController extends Controller
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done')
-        ])->where('status', 1)->whereHas('participant', function ($query) {
+        ])->where('status', 1)->whereHas('participants', function ($query) {
             $query->where('user_id', \Auth::id())->where('is_finished', 1);
         })->offset($offset)->limit($limit)->get();
 
