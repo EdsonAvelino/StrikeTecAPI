@@ -14,7 +14,7 @@ Class EventActivities extends Model
     
     public function event()
     {
-        return $this->belongsTo('App\Events', 'event_id');
+        return $this->belongsTo('App\Events');
     }
 
     public function participants()
@@ -77,7 +77,8 @@ Class EventActivities extends Model
                     'event_activity_id',
                     \DB::raw('id as user_score')
                 )->where(function($query) {
-                    $query->where('is_finished', 1)->orWhere('user_id', \Auth::id());
+                    // $query->where('is_finished', 1)->orWhere('user_id', \Auth::id());
+                    $query->where('is_finished', 1);
                 })->orderBy('user_score', 'desc')->offset($offset)->limit($limit);
             }])->first();
         
