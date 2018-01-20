@@ -21,13 +21,6 @@ class TournamentController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50
-     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
      * @apiSuccess {Object} data Get all tournaments
@@ -35,9 +28,183 @@ class TournamentController extends Controller
      * {
      *      "error": "false",
      *      "message": "",
-     *      "data": [
-     *          {
-     *       ]
+     *      "data": {
+     *          "new": [
+     *                {
+     *                    "id": 13,
+     *                    "event_activity_type_id": 1,
+     *                    "event_title": "UFC 220 MIOCIC VS NGANNOU",
+     *                    "description": "Praesent ornare posuere volutpat. Sed eu bibendum ",
+     *                    "image": null,
+     *                    "user_joined": false,
+     *                    "activity_started": false,
+     *                    "activity_finished": false,
+     *                    "user_counts": 0,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 14,
+     *                    "event_activity_type_id": 2,
+     *                    "event_title": "UFC FIGHT NIGHT TBA VS TBD",
+     *                    "description": "Sapien ultrices, quis convallis tortor varius vest",
+     *                    "image": null,
+     *                    "user_joined": false,
+     *                    "activity_started": false,
+     *                    "activity_finished": false,
+     *                    "user_counts": 0,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 15,
+     *                    "event_activity_type_id": 3,
+     *                    "event_title": "UFC 223 CHRIS VS CHOI",
+     *                    "description": "Diam id posuere consectetur, odio magna porta mixm",
+     *                    "image": null,
+     *                    "user_joined": false,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 0,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 16,
+     *                    "event_activity_type_id": 2,
+     *                    "event_title": "UFC 221 ROCKHOLD VS ROMERO",
+     *                    "description": "Vestibulum eleifend, diam id posuere consecteturs ",
+     *                    "image": null,
+     *                    "user_joined": false,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 0,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 18,
+     *                    "event_activity_type_id": 3,
+     *                    "event_title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
+     *                    "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
+     *                    "image": null,
+     *                    "user_joined": false,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 0,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                }
+     *            ],
+     *            "joined": [
+     *                {
+     *                    "id": 1,
+     *                    "event_activity_type_id": 3,
+     *                    "event_title": "UFC 220 MIOCIC VS NGANNOU",
+     *                    "description": "Praesent ornare posuere volutpat. Sed eu bibendum ",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": false,
+     *                    "activity_finished": false,
+     *                    "user_counts": 3,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 2,
+     *                    "event_activity_type_id": 1,
+     *                    "event_title": "UFC FIGHT NIGHT CERRONE VS MEDEIROS",
+     *                    "description": "Donec in pulvinar lectus, et mollis metus nullafe",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 2,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 3,
+     *                    "event_activity_type_id": 2,
+     *                    "event_title": "UFC 229 HELLBOY VS TIM",
+     *                    "description": "Aliquam ipsum id, ullamcorper lorem. Curabitur met",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 7,
+     *                    "event_activity_type_id": 3,
+     *                    "event_title": "UFC 220 MIOCIC VS NGANNOU",
+     *                    "description": "Praesent ornare posuere volutpat. Sed eu bibendum ",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": false,
+     *                    "activity_finished": false,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 8,
+     *                    "event_activity_type_id": 1,
+     *                    "event_title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
+     *                    "description": "Mauris porta tincidunt lectus, sed congue odio lac",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": false,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                }
+     *            ],
+     *            "finished": [
+     *                {
+     *                    "id": 4,
+     *                    "event_activity_type_id": 2,
+     *                    "event_title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
+     *                    "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": true,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 5,
+     *                    "event_activity_type_id": 3,
+     *                    "event_title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
+     *                    "description": "Mauris porta tincidunt lectus, sed congue odio lac",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": true,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                },
+     *                {
+     *                    "id": 6,
+     *                    "event_activity_type_id": 2,
+     *                    "event_title": "UFC 223 CHRIS VS CHOI",
+     *                    "description": "Diam id posuere consectetur, odio magna porta mixm",
+     *                    "image": null,
+     *                    "user_joined": true,
+     *                    "activity_started": true,
+     *                    "activity_finished": true,
+     *                    "user_counts": 1,
+     *                    "user_done": false,
+     *                    "user_score": null
+     *                }
+     *            ]
+     *       }
      *   }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
