@@ -17,8 +17,8 @@ class ChangeGuard
     public function handle($request, Closure $next)
     { 
         if($request->is('fan/*')) {
-            Config::set('jwt.user', 'App\FanUser'); 
-            Config::set('auth.providers.users.model', \App\FanUser::class);
+            Config::set('jwt.user', '\App\AdminUsers'); 
+            Config::set('auth.providers.users.model', \App\AdminUsers::class);
         }
         return $next($request);
     }

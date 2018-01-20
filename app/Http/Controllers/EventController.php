@@ -3,19 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Event;
-use App\EventUser;
-use App\FanActivity;
-use App\EventFanActivity;
-use App\EventSession;
-use Validator;
-use DB;
+use App\Events;
+use App\EventParticipants;
+use App\EventActivities;
+use App\EventSessions;
 
 class EventController extends Controller
 {
-
     /**
-     * @api {post} /fan/event create/update event
+     * @api {post} /fan/events Create new event
      * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -24,28 +20,27 @@ class EventController extends Controller
      *       "Content-Type": "multipart/form-data",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {String} event_title event title
-     * @apiParam {int} location_id id of location
-     * @apiParam {String} [description] description
-     * @apiParam {String} to_date To date
-     * @apiParam {String} to_time To time
-     * @apiParam {String} from_date From date
-     * @apiParam {String} from_time From time
-     * @apiParam {int} activity_id id of activity
-     * @apiParam {Boolean} [all_day] it could be 0 or 1
-     * @apiParam {file} [event_image] image to be uploaded
+     * @apiParam {String} [event_id] Existing Event ID in case of update event
+     * @apiParam {String} title Event title
+     * @apiParam {int} location_id ID of location
+     * @apiParam {String} [description] Description
+     * @apiParam {String} start_date Starting date of event, format MM/DD/YYYY 
+     * @apiParam {String} start_time Starting time, format HH:II e.g. 15:00
+     * @apiParam {String} end_date Ending date of event format MM/DD/YYYY 
+     * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
+     * @apiParam {Boolean} [all_day] Event is all day
+     * @apiParam {file} [image] Image to be uploaded
      * @apiParamExample {json} Input
      *    {
-     *      "event_title": "annual event",
+     *      "title": "EFD fight night",
      *      "location_id": "2",
      *      "description": "",
-     *      "to_date": "12-11-2017",
-     *      "to_time": "20:30",
-     *      "from_date": "12-12-2018",
-     *      "from_time": "20:00",
-     *      "activity_id": "1",
+     *      "start_date": "01/21/2018",
+     *      "start_time": "12:00",
+     *      "end_date": "01/22/2018",
+     *      "end_time": "20:30",
      *      "all_day": "0",
-     *      "event_image": "img.jpeg",
+     *      "image": "img.jpeg",
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
@@ -57,7 +52,7 @@ class EventController extends Controller
      *       "error": "false",
      *       "message": "Event has been created successfully",
      *       "data": {
-     *               "id": 1
+     *               "event_id": 1
      *           }
      *       }
      *   }
@@ -69,79 +64,153 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function addEvent(Request $request)
+    public function postEvent(Request $request)
     {
-        try {
-            $company_id = \Auth::user()->company_id;
-            $eventImage = '';
-            $imagePath = 'storage/fanuser/event';
-            $validator = Validator::make($request->all(), [
-                        'event_image' => 'mimes:jpeg,jpg,png'
-            ]);
-            if ($validator->fails()) {
-                $errors = $validator->errors();
-                return response()->json(['error' => 'true', 'message' => $errors]);
-            }
-            if ($request->hasFile('event_image')) {
-                $eventInput = $request->file('event_image');
-                $eventInformation = $eventInput->getClientOriginalName();
-                $profilePicName = pathinfo($eventInformation, PATHINFO_FILENAME);
-                $profilePicEXT = pathinfo($eventInformation, PATHINFO_EXTENSION);
-                $eventInformation = $profilePicName . '-' . time() . '.' . $profilePicEXT;
-                $eventInput->move($imagePath, $eventInformation);
-                $eventImage = $eventInformation;
-            }
-            if (!empty($request->get('event_id'))) {
-                $event = Event::where('id', $request->get('event_id'))->first();
-                $event->event_title = !empty($request->get('event_title')) ? $request->get('event_title') : $event->event_title;
-                $event->location_id = !empty($request->get('location_id')) ? $request->get('location_id') : $event->location_id;
-                $event->description = !empty($request->get('description')) ? $request->get('description') : $event->description;
-                $event->to_date = !empty($request->get('to_date')) ? date('Y-m-d', strtotime($request->get('to_date'))) : $event->to_date;
-                $event->to_time = !empty($request->get('to_time')) ? $request->get('to_time') : $event->to_time;
-                $event->from_date = !empty($request->get('from_date')) ? date('Y-m-d', strtotime($request->get('from_date'))) : $event->from_date;
-                $event->from_time = !empty($request->get('from_time')) ? $request->get('from_time') : $event->from_time;
-                $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
-                if (!empty($eventImage)) {
-                    $url = env('APP_URL') . 'storage/fanuser/event';
-                    $pathToFile = str_replace($url, storage_path(), $event->image);
-                    if (file_exists($pathToFile)) {
-                        unlink($pathToFile); //delete earlier image
-                    }
-                    $event->image = $eventImage;
-                }
-                $event->save();
-                if ((int) $request->get('activity_id') > 0) {
-                    EventFanActivity::firstOrCreate(['event_id' => $request->get('event_id'), 'activity_id' => $request->get('activity_id')]);
-                }
+        $companyId = \Auth::user()->company_id;
+        $imageStoragePath = '/storage/events';
+        $validator = \Validator::make($request->all(), ['image' => 'mimes:jpeg,jpg,png']);
 
-
-                return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => $event]);
-            } else {
-                $event_detail = Event::create([
-                            'event_title' => $request->get('event_title'),
-                            'user_id' => \Auth::user()->id,
-                            'location_id' => (int) $request->get('location_id'),
-                            'company_id' => $company_id,
-                            'description' => !empty($request->get('description')) ? $request->get('description') : '',
-                            'to_date' => date('Y-m-d', strtotime($request->get('to_date'))),
-                            'to_time' => $request->get('to_time'),
-                            'from_date' => date('Y-m-d', strtotime($request->get('from_date'))),
-                            'from_time' => $request->get('from_time'),
-                            'all_day' => $request->get('all_day'),
-                            'image' => $eventImage
-                        ])->id;
-                if ((int) $request->get('activity_id') > 0) {
-                    EventFanActivity::firstOrCreate(['event_id' => $event_detail, 'activity_id' => $request->get('activity_id')]);
-                }
-                $data = ['id' => $event_detail];
-                return response()->json(['error' => 'false', 'message' => 'Event has been created successfully', 'data' => $data]);
-            }
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
         }
+
+        if ($request->hasFile('image')) {
+            $eventInput = $request->file('image');
+            $eventImageOrigName = $eventInput->getClientOriginalName();
+            $eventImageFileName = pathinfo($eventImageOrigName, PATHINFO_FILENAME);
+            $eventImageFileNameExt = pathinfo($eventImageOrigName, PATHINFO_EXTENSION);
+            $eventImageName = $eventImageFileName . '-' . time() . '.' . $eventImageFileNameExt;
+            $eventInput->move($imageStoragePath, $eventImageName);
+            $eventImage = $eventImageName;
+        }
+
+        $eventId = Events::create([
+            'title' => $request->get('title'),
+            'location_id' => (int) $request->get('location_id'),
+            'company_id' => $companyId,
+            'description' => !empty($request->get('description')) ? $request->get('description') : null,
+            'start_date' => date('Y-m-d', strtotime($request->get('start_date'))),
+            'start_time' => $request->get('start_time'),
+            'end_date' => date('Y-m-d', strtotime($request->get('end_date'))),
+            'end_time' => $request->get('end_time'),
+            'all_day' => $request->get('all_day'),
+            'image' => $eventImage ?? null
+        ])->id;
+
+        $data = ['event_id' => $eventId];
+
+        return response()->json(['error' => 'false', 'message' => 'Event has been created successfully', 'data' => $data]);
+    }
+
+    /**
+     * @api {post} /fan/events/<event_id> Update existing event
+     * @apiGroup Event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "multipart/form-data",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} [event_id] Existing Event ID in case of update event
+     * @apiParam {String} title Event title
+     * @apiParam {int} location_id ID of location
+     * @apiParam {String} [description] Description
+     * @apiParam {String} start_date Starting date of event, format MM/DD/YYYY 
+     * @apiParam {String} start_time Starting time, format HH:II e.g. 15:00
+     * @apiParam {String} end_date Ending date of event format MM/DD/YYYY 
+     * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
+     * @apiParam {Boolean} [all_day] Event is all day
+     * @apiParam {file} [image] Image to be uploaded
+     * @apiParamExample {json} Input
+     *    {
+     *      "title": "EFD fight night",
+     *      "location_id": "2",
+     *      "description": "",
+     *      "start_date": "01/21/2018",
+     *      "start_time": "12:00",
+     *      "end_date": "01/22/2018",
+     *      "end_time": "20:30",
+     *      "all_day": "0",
+     *      "image": "img.jpeg",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Event has been created successfully",
+     *       "data": {
+     *               "event_id": 1
+     *           }
+     *       }
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function postUpdateEvent(Request $request, $eventId)
+    {
+        $companyId = \Auth::user()->company_id;
+        $eventId = (int) $eventId;
+        $eventImage = '';
+        $imageStoragePath = '/storage/events';
+        $validator = \Validator::make($request->all(), ['image' => 'mimes:jpeg,jpg,png']);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
+
+        if ($request->hasFile('image')) {
+            $eventInput = $request->file('image');
+            $eventImageOrigName = $eventInput->getClientOriginalName();
+            $eventImageFileName = pathinfo($eventImageOrigName, PATHINFO_FILENAME);
+            $eventImageFileNameExt = pathinfo($eventImageOrigName, PATHINFO_EXTENSION);
+            $eventImageName = $eventImageFileName . '-' . time() . '.' . $eventImageFileNameExt;
+            $eventInput->move($imageStoragePath, $eventImageName);
+            $eventImage = $eventImageName;
+        }
+
+        $event = Events::find($eventId);
+
+        if (!$event) {
+            return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
+        }
+
+        $event->company_id = $companyId;
+        $event->title = !empty($request->get('title')) ? $request->get('title') : $event->title;
+        $event->location_id = !empty($request->get('location_id')) ? $request->get('location_id') : $event->location_id;
+        $event->description = !empty($request->get('description')) ? $request->get('description') : $event->description;
+        $event->start_date = !empty($request->get('start_date')) ? date('Y-m-d', strtotime($request->get('start_date'))) : $event->start_date;
+        $event->start_time = !empty($request->get('start_time')) ? $request->get('start_time') : $event->start_time;
+        $event->end_date = !empty($request->get('end_date')) ? date('Y-m-d', strtotime($request->get('end_date'))) : $event->end_date;
+        $event->end_time = !empty($request->get('end_time')) ? $request->get('end_date') : $event->end_date;
+        
+        $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
+
+        if (!empty($eventImage)) {
+            $url = env('APP_URL') . $imageStoragePath;
+            $pathToFile = str_replace($url, storage_path(), $event->image);
+            
+            if (file_exists($pathToFile)) {
+                unlink($pathToFile); // Delete existing image
+            }
+
+            $event->image = $eventImage;
+        }
+
+        $event->save();
+
+        return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => ['event_id' => $eventId]]);
     }
 
     /**
@@ -200,11 +269,11 @@ class EventController extends Controller
             $eventStorage = array();
             $eventInfo = array();
             $users = array();
-            $company_id = \Auth::user()->company_id;
-            $events = Event::select('id')->where('company_id', $company_id)->get()->toArray();
+            $companyId = \Auth::user()->company_id;
+            $events = Events::select('id')->where('company_id', $companyId)->get()->toArray();
             $eventIds = array_column($events, 'id');
 
-            $eventUsers = EventUser::select('*', DB::raw('user_id as user_events'))->whereIn('event_id', $eventIds)->groupBy('user_id')->get();
+            $eventUsers = EventUser::select('*', \DB::raw('user_id as user_events'))->whereIn('event_id', $eventIds)->groupBy('user_id')->get();
 
             $count = 0;
             foreach ($eventUsers as $eventUser) {
@@ -342,8 +411,8 @@ class EventController extends Controller
     public function myEventsUsersList()
     {
         try {
-            $userID = \Auth::user()->id;
-            $_eventList = Event::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
+            $userID = \Auth::id();
+            $_eventList = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
                            ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }])->where('user_id', $userID)->get()->toArray();
 
             $eventStorage = [];
@@ -509,7 +578,7 @@ class EventController extends Controller
     public function allEventsUsersList()
     {
         try {
-            $_eventList = Event::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
+            $_eventList = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
                             ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }])->where('company_id', \Auth::user()->company_id)->get()->toArray();
             $eventStorage = [];
             foreach ($_eventList as $events) {
@@ -564,7 +633,7 @@ class EventController extends Controller
      */
     public function eventRemove(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
                     'id' => 'required|exists:events',
         ]);
         if ($validator->fails()) {
@@ -573,16 +642,16 @@ class EventController extends Controller
         }
         try {
             $eventID = $request->get('id');
-            DB::beginTransaction();
-            Event::find($eventID)->delete();
+            \DB::beginTransaction();
+            Events::find($eventID)->delete();
             EventUser::where('event_id', $eventID)->delete();
-            DB::commit();
+            \DB::commit();
             return response()->json([
                         'error' => 'false',
                         'message' => 'Event has been removed successfully'
             ]);
         } catch (Exception $e) {
-            DB::rollBack();
+            \DB::rollBack();
             return response()->json([
                         'error' => 'true',
                         'message' => 'Invalid request',
@@ -709,12 +778,12 @@ class EventController extends Controller
                 'id' => 'required|exists:events',
             ];
             $input = array('id' => $event_id);
-            $validator = Validator::make($input, $rules);
+            $validator = \Validator::make($input, $rules);
             if ($validator->fails()) {
                 $errors = $validator->errors();
                 return response()->json(['error' => 'true', 'message' => $errors->first('id')]);
             }
-            $event = Event::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
+            $event = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
                            ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }, 'eventActivity.activity.eventSessions' => function($query) use($event_id) {
                             $query->where('event_id', $event_id);
                         }])->find($event_id)->toArray(); //return $event;
@@ -814,7 +883,7 @@ class EventController extends Controller
             $eventStorage = array();
             $eventInfo = array();
             $loggedUserID = \Auth::user()->id;
-            $eventDetails = Event::where('user_id', $loggedUserID)
+            $eventDetails = Events::where('user_id', $loggedUserID)
                             ->where('status', 1)->get();
             return response()->json(['error' => 'false', 'message' => 'Active Event list information', 'data' => $eventDetails]);
         } catch (Exception $e) {
@@ -863,7 +932,7 @@ class EventController extends Controller
      */
     function statusChangeActivity(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
                     'activity_id' => 'required|exists:event_fan_activities',
                     'event_id' => 'required|exists:event_fan_activities',
                     'status' => 'required',
@@ -916,7 +985,7 @@ class EventController extends Controller
                 ]);
             }
         } catch (Exception $e) {
-            DB::rollBack();
+            \DB::rollBack();
             return response()->json([
                         'error' => 'true',
                         'message' => 'Invalid request',
@@ -1005,7 +1074,7 @@ class EventController extends Controller
     public function eventPendingUsersList($eventID)
     {
         try {
-            $_event = Event::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
+            $_event = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
                             ->with(['eventUser.users', 'eventUser' => function($q) use ($eventID) {
                                 $q->where('status', 0);
                                 $q->where('is_cancelled', 0);

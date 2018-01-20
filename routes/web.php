@@ -276,25 +276,54 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/chat', 'ChatController@chats');
 });
 
+// Tournaments APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get all new tournament apis user didn't join
+    $app->get('/tournaments', 'TournamentController@getEventsList');
+
+    // Tournament activity details
+    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
+
+    // Tournament activity leaderboard
+    $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
+      
+    // User Join the tournament
+    $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
+    
+    // Get all tournaments that user joined
+    $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
+
+    // Get all finished tournaments that user joined
+    $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
+    
+    // Get user's tournament connections who haven not joined yet
+    $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
+
+    // Invite connection for tournament 
+    $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
+});
+
 // Fan App APIs routes
 // This API does not need auth  
 /* ~~~~~~~~~~~~~~~~~~~~~ FAN APP API ROUTES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 //get user list for fan APP
 $app->get('/fan/companies', 'CompanyController@getCompanyList');
 
-// register user for fan APP API
-$app->post('fan/user/register', 'FanUserController@registerFan');
+// FAN App admin register
+$app->post('/fan/user/register', 'FanUserController@registerFanAdmin');
 
-// login for fan APP user
-$app->post('/fan/login/auth', 'FanUserController@authenticate');
+// FAN App admin login
+$app->post('/fan/auth/login', 'FanUserController@authenticate');
 
-//fan app authentication
-$app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
+// FAN App APIs
+$app->group(['middleware' => 'auth:fan'], function() use ($app) {
+    // New Event
+    $app->post('/fan/events', 'EventController@postEvent');
 
-    //add event for fan API
-    $app->post('/fan/event', 'EventController@addEvent');
+    // New Event
+    $app->post('/fan/events/{eventId}', 'EventController@postUpdateEvent');
     
-    //remove event for fan APP API'
+    // remove event for fan APP API'
     $app->post('/fan/event/remove', 'EventController@eventRemove');
     
     //get users list by country id for fan APP 
@@ -362,31 +391,4 @@ $app->group(['middleware' => 'auth:fanuser'], function() use ($app) {
     
      // update status of user approval or not by event id
     $app->post('/fan/event/users/status', 'EventController@eventUsersStatus');
-});
-
-// Tournaments APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get all new tournament apis user didn't join
-    $app->get('/tournaments', 'TournamentController@getEventsList');
-
-    // Tournament activity details
-    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
-
-    // Tournament activity leaderboard
-    $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
-      
-    // User Join the tournament
-    $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
-    
-    // Get all tournaments that user joined
-    $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
-
-    // Get all finished tournaments that user joined
-    $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
-    
-    // Get user's tournament connections who haven not joined yet
-    $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
-
-    // Invite connection for tournament 
-    $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
 });

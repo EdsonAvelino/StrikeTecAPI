@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Validator;
-use App\FanUser;
+use App\AdminUsers;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -24,7 +23,7 @@ class FanUserController extends Controller
     }
 
     /**
-     * @api {post} /fan/user/register/ Register a new FAN App user
+     * @api {post} /fan/user/register/ Register new FAN admin
      * @apiGroup Fan User
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
@@ -38,7 +37,6 @@ class FanUserController extends Controller
      * @apiParamExample {json} Input
      *    {
      *      "company_id": "3",
-     *      "name": "Jhon"
      *      "email": "john@smith.com",
      *      "password": "Something123"
      *    }
@@ -75,23 +73,26 @@ class FanUserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function registerFan(Request $request)
+    public function registerFanAdmin(Request $request)
     {         
-        $validator = Validator::make($request->all(), [
-                    'email' => 'required|max:64|unique:fan_users',
-                 // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+        $validator = \Validator::make($request->all(), [
+            'email' => 'required|max:64|unique:admin_users',
         ]);
+
         if ($validator->fails()) {
             $errors = $validator->errors();
 
             return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
         }
-        $user = FanUser::create([
-                    'company_id' => $request->get('company_id'),
-                    'name'  => $request->get('name'),
-                    'email' => $request->get('email'),
-                    'password' => app('hash')->make($request->get('password')),
+
+        $user = AdminUsers::create([
+            'company_id' => $request->get('company_id'),
+            'email' => $request->get('email'),
+            'password' => app('hash')->make($request->get('password')),
+            'is_web_admin' => null,
+            'is_fan_app_admin' => true,
         ]);
+
         try {
             if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid request']);
@@ -104,13 +105,13 @@ class FanUserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = FanUser::with('company')->find(\Auth::id());
+        $user = AdminUsers::with('company')->find(\Auth::id());
 
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'data' => $user]);
     }
     
     /**
-     * @api {post} /fan/login/auth Login For fan user
+     * @api {post} /fan/auth/login Login FAN admin user
      * @apiGroup Fan User
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
@@ -161,7 +162,7 @@ class FanUserController extends Controller
      */
     public function authenticate(Request $request)
     {   
-        $validator = Validator::make($request->all(), [
+        $validator = \Validator::make($request->all(), [
             'email'    => 'required|email|max:255',
             'password' => 'required'
         ]);
@@ -182,7 +183,9 @@ class FanUserController extends Controller
         } catch (JWTException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
-        $user = FanUser::with('company')->find(\Auth::id());
+
+        $user = AdminUsers::with('company')->find(\Auth::id());
+
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'data' => $user]);
     }
     
@@ -231,13 +234,13 @@ class FanUserController extends Controller
             $user->where('id', $user->id)->update(['password' => app('hash')->make($request->get('password'))]);
 
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'Password changed successfully'
+                'error' => 'false',
+                'message' => 'Password changed successfully'
             ]);
         } else {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid old password'
+                'error' => 'true',
+                'message' => 'Invalid old password'
             ]);
         }
     }

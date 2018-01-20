@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
-class FanUser extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
+class AdminUsers extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
 {
 
     use Authenticatable,
@@ -25,6 +25,8 @@ class FanUser extends Model implements AuthenticatableContract, AuthenticatableU
         'name',
         'email',
         'password',
+        'is_web_admin',
+        'is_fan_app_admin',
     ];
 
     /**
@@ -34,6 +36,10 @@ class FanUser extends Model implements AuthenticatableContract, AuthenticatableU
      */
     protected $hidden = [
         'password',
+        'is_web_admin',
+        'is_fan_app_admin',
+        'created_at',
+        'updated_at'
     ];
 
     /**
