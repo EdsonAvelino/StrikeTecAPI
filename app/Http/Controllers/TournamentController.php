@@ -14,6 +14,132 @@ use App\Helpers\PushTypes;
 class TournamentController extends Controller
 {
     /**
+     * @api {get} /tournaments/all Get new/joined/finished tournaments
+     * @apiGroup Tournaments
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Get all tournaments
+     * @apiSuccessExample {json} Success
+     * {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *          {
+     *       ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getAllEventsList(Request $request)
+    {
+        $userId = \Auth::user()->id;
+        $limit = 5;
+
+        $alreadyJoined = EventParticipants::select('event_activity_id')->where('user_id', \Auth::id());
+
+        // New Events
+        $newEventActivities = EventActivities::with(['event' => function($query) {
+            $query->where('end_date', '>=', date('Y-m-d'));
+        }])->select([
+            '*',
+            \DB::raw('id as user_joined'),
+            \DB::raw('id as activity_started'),
+            \DB::raw('id as user_counts'),
+            \DB::raw('id as user_score'),
+            \DB::raw('id as user_done'),
+        ])->whereNotIn('id', $alreadyJoined)->where(function($q) {
+            $q->whereNull('status')->orWhere('status', 0);
+        })->limit($limit)->get();
+
+        $eventsList = ['new' => [], 'joined' => [], 'finished' => []];
+
+        foreach ($newEventActivities as $eventActivity) {
+            $_eventActivity = [];
+            $_eventActivity['id'] = $eventActivity->id;
+            $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
+            $_eventActivity['event_title'] = $eventActivity->event->title;
+            $_eventActivity['description'] = $eventActivity->event->description;
+            $_eventActivity['image'] = $eventActivity->event->image;
+            $_eventActivity['user_joined'] = $eventActivity->user_joined;
+            $_eventActivity['activity_started'] = $eventActivity->activity_started;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
+            $_eventActivity['user_counts'] = $eventActivity->user_counts;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
+            $_eventActivity['user_score'] = $eventActivity->user_score;
+
+            $eventsList['new'][] = $_eventActivity;
+        }
+
+        // User Joined Events
+        $joinedEventActivities = $this->_getEventActivitiesQuery()->where(function($query) {
+                $query->whereNull('status')->orWhere('status', 0);
+            })->whereHas('participants', function ($query) {
+                $query->where('user_id', \Auth::id())->where(function($q) {
+                    $q->whereNull('is_finished')->orWhere('is_finished', 0);
+                });
+            })->limit($limit)->get();
+
+        foreach ($joinedEventActivities as $eventActivity) {
+            $_eventActivity = [];
+            $_eventActivity['id'] = $eventActivity->id;
+            $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
+            $_eventActivity['event_title'] = $eventActivity->event->title;
+            $_eventActivity['description'] = $eventActivity->event->description;
+            $_eventActivity['image'] = $eventActivity->event->image;
+            $_eventActivity['user_joined'] = $eventActivity->user_joined;
+            $_eventActivity['activity_started'] = $eventActivity->activity_started;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
+            $_eventActivity['user_counts'] = $eventActivity->user_counts;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
+            $_eventActivity['user_score'] = $eventActivity->user_score;
+
+            $eventsList['joined'][] = $_eventActivity;
+        }
+
+        // User Finished Events
+        $finishedEventActivities = $this->_getEventActivitiesQuery()->where('status', 1)
+            ->whereHas('participants', function ($query) {
+                $query->where('user_id', \Auth::id())->where('is_finished', 1);
+            })->limit($limit)->get();
+
+        foreach ($finishedEventActivities as $eventActivity) {
+            $_eventActivity = [];
+            $_eventActivity['id'] = $eventActivity->id;
+            $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
+            $_eventActivity['event_title'] = $eventActivity->event->title;
+            $_eventActivity['description'] = $eventActivity->event->description;
+            $_eventActivity['image'] = $eventActivity->event->image;
+            $_eventActivity['user_joined'] = $eventActivity->user_joined;
+            $_eventActivity['activity_started'] = $eventActivity->activity_started;
+            $_eventActivity['activity_finished'] = (bool) $eventActivity->status;
+            $_eventActivity['user_counts'] = $eventActivity->user_counts;
+            $_eventActivity['user_done'] = $eventActivity->user_done;
+            $_eventActivity['user_score'] = $eventActivity->user_score;
+
+            $eventsList['finished'][] = $_eventActivity;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventsList]);
+    }
+
+    /**
      * @api {get} /tournaments Get tournaments user did have not joined
      * @apiGroup Tournaments
      * @apiHeader {String} authorization Authorization value
@@ -183,6 +309,10 @@ class TournamentController extends Controller
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done'),
         ])->where('id', $eventActivityId)->first();
+
+        if (!$eventActivity) {
+            return response()->json(['error' => 'true', 'message' => 'Event activity does not exists']);
+        }
 
         $_eventActivity = [];
         $_eventActivity['id'] = $eventActivity->id;
@@ -690,6 +820,18 @@ class TournamentController extends Controller
         return response()->json([
             'error' => 'false',
             'message' => 'Invitation sent'
+        ]);
+    }
+
+    private function _getEventActivitiesQuery()
+    {
+        return EventActivities::with('event')->select([
+            '*',
+            \DB::raw('id as user_joined'),
+            \DB::raw('id as activity_started'),
+            \DB::raw('id as user_counts'),
+            \DB::raw('id as user_score'),
+            \DB::raw('id as user_done')
         ]);
     }
 }

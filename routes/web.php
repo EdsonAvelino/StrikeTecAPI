@@ -278,7 +278,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Tournaments APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get all new tournament apis user didn't join
+    // Get all new / joined / finished tournaments
+    $app->get('/tournaments/all', 'TournamentController@getAllEventsList');
+
+    // Get all new tournaments user didn't join
     $app->get('/tournaments', 'TournamentController@getEventsList');
 
     // Tournament activity details
