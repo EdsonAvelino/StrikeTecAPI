@@ -214,7 +214,431 @@ class EventController extends Controller
     }
 
     /**
-     * @api {get} /fan/users/event Get users with events
+     * @api {get} /fan/activities Get main event activities (Types)
+     * @apiGroup Event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data list of Event Types 
+     * @apiSuccessExample {json} Success
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *          {
+     *              "id": 1,
+     *              "name": "Speed",
+     *              "image_url": "",
+     *          },
+     *          {
+     *              "id": 2,
+     *              "name": "Power",
+     *              "image_url": "",
+     *          },
+     *          {
+     *              "id": 3,
+     *              "name": "Endurance",
+     *              "image_url": "",
+     *          }
+     *      ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function getEventActivityTypes()
+    {
+        $activityTypes = EventActivityTypes::select('id', 'name', 'description', 'image_url')->get();
+        
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $activityTypes]);
+    }
+
+    /**
+     * @api {get} /fan/events Get all my events list
+     * @apiGroup Event
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data All my events list
+     * @apiSuccessExample {json} Success
+     * {
+     *       "error": "false",
+     *       "message": "",
+     *       "data": [
+     *           {
+     *                "id": 3,
+     *                "company_id": 2,
+     *                "location_id": 3,
+     *                "title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
+     *                "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
+     *                "image": null,
+     *                "start_date": "2018-01-20",
+     *                "start_time": "23:07:00",
+     *                "end_date": "2018-01-23",
+     *                "end_time": "23:07:00",
+     *                "all_day": false,
+     *                "status": true,
+     *                "company_name": "Monster Energy",
+     *                "location_name": "San Francisco ",
+     *                "participants_count": 8,
+     *                "participants": [
+     *                    {
+     *                        "id": 10,
+     *                        "first_name": "Kim",
+     *                        "last_name": "Zion",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 220
+     *                    },
+     *                    {
+     *                        "id": 7,
+     *                        "first_name": "Qiang",
+     *                        "last_name": "Hu",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 31,
+     *                        "first_name": "Mia",
+     *                        "last_name": "Carleef",
+     *                        "photo_url": "",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 8836
+     *                    },
+     *                    {
+     *                        "id": 20,
+     *                        "first_name": "Da",
+     *                        "last_name": "Mistri",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 810
+     *                    },
+     *                    {
+     *                        "id": 25,
+     *                        "first_name": "Rack",
+     *                        "last_name": "Zukasor",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 809
+     *                    },
+     *                    {
+     *                        "id": 14,
+     *                        "first_name": "Jack",
+     *                        "last_name": "Ma",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 19,
+     *                        "first_name": "Naiba",
+     *                        "last_name": "Puroti",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 220
+     *                    },
+     *                    {
+     *                        "id": 21,
+     *                        "first_name": "Jim",
+     *                        "last_name": "Kong",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 810
+     *                    }
+     *                ]
+     *            },
+     *            {
+     *                "id": 4,
+     *                "company_id": 2,
+     *                "location_id": 2,
+     *                "title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
+     *                "description": "Mauris porta tincidunt lectus, sed congue odio lac",
+     *                "image": null,
+     *                "start_date": "2018-01-19",
+     *                "start_time": "23:25:00",
+     *                "end_date": "2018-01-24",
+     *                "end_time": "23:25:00",
+     *                "all_day": false,
+     *                "status": true,
+     *                "company_name": "Monster Energy",
+     *                "location_name": "Manhattan, New York",
+     *                "participants_count": 2,
+     *                "participants": [
+     *                    {
+     *                        "id": 7,
+     *                        "first_name": "Qiang",
+     *                        "last_name": "Hu",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 9,
+     *                        "first_name": "Jin",
+     *                        "last_name": "Xion",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    }
+     *                ]
+     *            }
+     *      ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getMyEventsList()
+    {
+        $_eventsList = Events::select(
+            '*',
+            \DB::raw('company_id as company_name'),
+            \DB::raw('location_id as location_name')
+        )->withCount('participants')->where('company_id', \Auth::user()->company_id)->get();
+        
+        $eventsList = [];
+
+        foreach ($_eventsList as $event) {
+            $_event = $event->toArray();
+            $_event['participants'] = [];
+            foreach ($event->participants as $participant) {
+                $_event['participants'][] = $participant->user;
+            }
+
+            $eventsList[] = $_event;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventsList]);
+    }
+
+    /**
+     * @api {get} /fan/events/all Get list of all of the events
+     * @apiGroup Event
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data All events list
+     * @apiSuccessExample {json} Success
+     * {
+     *       "error": "false",
+     *       "message": "",
+     *       "data": [
+     *           {
+     *                "id": 3,
+     *                "company_id": 2,
+     *                "location_id": 3,
+     *                "title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
+     *                "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
+     *                "image": null,
+     *                "start_date": "2018-01-20",
+     *                "start_time": "23:07:00",
+     *                "end_date": "2018-01-23",
+     *                "end_time": "23:07:00",
+     *                "all_day": false,
+     *                "status": true,
+     *                "company_name": "Monster Energy",
+     *                "location_name": "San Francisco ",
+     *                "participants_count": 8,
+     *                "participants": [
+     *                    {
+     *                        "id": 10,
+     *                        "first_name": "Kim",
+     *                        "last_name": "Zion",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 220
+     *                    },
+     *                    {
+     *                        "id": 7,
+     *                        "first_name": "Qiang",
+     *                        "last_name": "Hu",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 31,
+     *                        "first_name": "Mia",
+     *                        "last_name": "Carleef",
+     *                        "photo_url": "",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 8836
+     *                    },
+     *                    {
+     *                        "id": 20,
+     *                        "first_name": "Da",
+     *                        "last_name": "Mistri",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 810
+     *                    },
+     *                    {
+     *                        "id": 25,
+     *                        "first_name": "Rack",
+     *                        "last_name": "Zukasor",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 809
+     *                    },
+     *                    {
+     *                        "id": 14,
+     *                        "first_name": "Jack",
+     *                        "last_name": "Ma",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 19,
+     *                        "first_name": "Naiba",
+     *                        "last_name": "Puroti",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 220
+     *                    },
+     *                    {
+     *                        "id": 21,
+     *                        "first_name": "Jim",
+     *                        "last_name": "Kong",
+     *                        "photo_url": null,
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 810
+     *                    }
+     *                ]
+     *            },
+     *            {
+     *                "id": 4,
+     *                "company_id": 2,
+     *                "location_id": 2,
+     *                "title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
+     *                "description": "Mauris porta tincidunt lectus, sed congue odio lac",
+     *                "image": null,
+     *                "start_date": "2018-01-19",
+     *                "start_time": "23:25:00",
+     *                "end_date": "2018-01-24",
+     *                "end_time": "23:25:00",
+     *                "all_day": false,
+     *                "status": true,
+     *                "company_name": "Monster Energy",
+     *                "location_name": "Manhattan, New York",
+     *                "participants_count": 2,
+     *                "participants": [
+     *                    {
+     *                        "id": 7,
+     *                        "first_name": "Qiang",
+     *                        "last_name": "Hu",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    },
+     *                    {
+     *                        "id": 9,
+     *                        "first_name": "Jin",
+     *                        "last_name": "Xion",
+     *                        "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                        "gender": "male",
+     *                        "user_following": false,
+     *                        "user_follower": false,
+     *                        "points": 3812
+     *                    }
+     *                ]
+     *            }
+     *      ]
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getAllEventsList()
+    {
+        $_eventsList = Events::select(
+            '*',
+            \DB::raw('company_id as company_name'),
+            \DB::raw('location_id as location_name')
+        )->withCount('participants')->get();
+        
+        $eventsList = [];
+
+        foreach ($_eventsList as $event) {
+            $_event = $event->toArray();
+            $_event['participants'] = [];
+            foreach ($event->participants as $participant) {
+                $_event['participants'][] = $participant->user;
+            }
+
+            $eventsList[] = $_event;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventsList]);
+    }
+
+    /**
+     * @api {get} /fan/user/events Get users with events
      * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -263,31 +687,25 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    function userEvents()
+    public function userEvents()
     {
-        try {
-            $eventStorage = array();
-            $eventInfo = array();
-            $users = array();
-            $companyId = \Auth::user()->company_id;
-            $events = Events::select('id')->where('company_id', $companyId)->get()->toArray();
-            $eventIds = array_column($events, 'id');
+        $eventStorage = array();
+        $eventInfo = array();
+        $users = array();
+        $companyId = \Auth::user()->company_id;
+        $events = Events::select('id')->where('company_id', $companyId)->get()->toArray();
+        $eventIds = array_column($events, 'id');
 
-            $eventUsers = EventUser::select('*', \DB::raw('user_id as user_events'))->whereIn('event_id', $eventIds)->groupBy('user_id')->get();
+        $eventUsers = EventUser::select('*', \DB::raw('user_id as user_events'))->whereIn('event_id', $eventIds)->groupBy('user_id')->get();
 
-            $count = 0;
-            foreach ($eventUsers as $eventUser) {
-                $users[$count] = $eventUser->users;
-                $users[$count]->events = $eventUser->user_events;
-                $count++;
-            }
-            return response()->json(['error' => 'false', 'message' => 'Users list information', 'data' => $users]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
+        $count = 0;
+        foreach ($eventUsers as $eventUser) {
+            $users[$count] = $eventUser->users;
+            $users[$count]->events = $eventUser->user_events;
+            $count++;
         }
+
+        return response()->json(['error' => 'false', 'message' => 'Users list information', 'data' => $users]);
     }
 
     /**
@@ -424,171 +842,6 @@ class EventController extends Controller
                 $eventStorage[] = $events;
             }
             return response()->json(['error' => 'false', 'message' => 'My events list information', 'data' => $eventStorage]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
-    }
-
-    /**
-     * @api {get} /fan/all/events Get all events info
-     * @apiGroup Event
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data All events list information
-     * @apiSuccessExample {json} Success
-     * {
-     *       "error": "false",
-     *       "message": "Event list information",
-     *       "data": [
-     *           {
-     *               "id": 1,
-     *               "user_id": 1,
-     *               "company_id": 1,
-     *               "event_title": "yearly tournament edit",
-     *               "location_id": 2,
-     *               "description": "hii this is descripiton",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2018-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": 0,
-     *               "type_of_activity": "power",
-     *               "created_at": "2017-11-28 16:28:37",
-     *               "updated_at": "2017-12-01 19:02:44",
-     *               "location_name": "Manhattan, New York",
-     *               "company_name": "Normal",
-     *               "is_active": false,
-     *               "count_users_waiting_approval": 1,
-     *               "finalized_at": "12/28/2017",
-     *               "users": [
-     *                   {
-     *                       "id": 7,
-     *                       "first_name": "Qiang",
-     *                       "last_name": "Hu",
-     *                       "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
-     *                       "birthday": "1990-06-10",
-     *                       "gender": "male",
-     *                       "height": 57,
-     *                       "weight": 200,
-     *                       "email": "toniorasma@yahoo.com",
-     *                       "state_name": "Texas",
-     *                       "country_name": "United States",
-     *                       "city_name": null
-     *                   },
-     *                   {
-     *                       "id": 12,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "birthday": null,
-     *                       "gender": null,
-     *                       "height": null,
-     *                       "weight": null,
-     *                       "email": "anchal@gupta.com",
-     *                       "state_name": null,
-     *                       "country_name": null,
-     *                       "city_name": null
-     *                   },
-     *                   {
-     *                       "id": 13,
-     *                       "first_name": "John",
-     *                       "last_name": "Smith",
-     *                       "photo_url": null,
-     *                       "birthday": "1989-07-04",
-     *                       "gender": "male",
-     *                       "height": null,
-     *                       "weight": 201,
-     *                       "email": "test001@smith.com",
-     *                       "state_name": null,
-     *                       "country_name": null,
-     *                       "city_name": null
-     *                   }
-     *               ]
-     *           },
-     *           {
-     *               "id": 2,
-     *               "user_id": 1,
-     *               "company_id": 1,
-     *               "event_title": "yearly tournament 2 edit",
-     *               "location_id": 1,
-     *               "description": "",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2019-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": 0,
-     *               "type_of_activity": "",
-     *               "created_at": "2017-11-28 16:39:44",
-     *               "updated_at": "2017-12-01 19:02:48",
-     *               "location_name": "Las Vegas, Nevada",
-     *               "company_name": "Normal",
-     *               "is_active": false,
-     *               "finalized_at": "12/28/2017",
-     *               "users": [
-     *                   {
-     *                       "id": 7,
-     *                       "first_name": "Qiang",
-     *                       "last_name": "Hu",
-     *                       "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
-     *                       "birthday": "1990-06-10",
-     *                       "gender": "male",
-     *                       "height": 57,
-     *                       "weight": 200,
-     *                       "email": "toniorasma@yahoo.com",
-     *                       "state_name": "Texas",
-     *                       "country_name": "United States",
-     *                       "city_name": null
-     *                   },
-     *                   {
-     *                       "id": 12,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "birthday": null,
-     *                       "gender": null,
-     *                       "height": null,
-     *                       "weight": null,
-     *                       "email": "anchal@gupta.com",
-     *                       "state_name": null,
-     *                       "country_name": null,
-     *                       "city_name": null
-     *                   }
-     *               ]
-     *           }
-     *      ]
-     *   }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function allEventsUsersList()
-    {
-        try {
-            $_eventList = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
-                            ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }])->where('company_id', \Auth::user()->company_id)->get()->toArray();
-            $eventStorage = [];
-            foreach ($_eventList as $events) {
-                foreach ($events['event_user'] as $val) {
-                    $events['users'][] = $val['users'];
-                }
-                unset($events['event_user']);
-                $eventStorage[] = $events;
-            }
-            return response()->json(['error' => 'false', 'message' => 'All events list information', 'data' => $eventStorage]);
         } catch (Exception $e) {
             return response()->json([
                         'error' => 'true',

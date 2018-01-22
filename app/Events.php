@@ -33,6 +33,11 @@ class Events extends Model
         'updated_at'
     ];
 
+    public function participants()
+    {
+        return $this->hasManyThrough('App\EventParticipants', 'App\EventActivities', 'event_id', 'event_activity_id')->limit(9);
+    }
+
     public function eventUser()
     {
         return $this->hasMany('App\EventUser', 'event_id');
@@ -62,8 +67,6 @@ class Events extends Model
     {
         return (bool) $value;
     }
-
-    
 
     public function getJoinedAttribute($eventId)
     {
@@ -121,30 +124,33 @@ class Events extends Model
 
     public function getIsActiveAttribute($eventId)
     {
-        $eventActivityStatus = EventFanActivity::where('event_id', $eventId)
-                ->where('status', 0)
-                ->first();
+        $eventActivityStatus = EventActivities::where('event_id', $eventId)->where('status', 0)->first();
+
         if ($eventActivityStatus) {
             return TRUE;
         }
+
         return FALSE;
     }
 
-    public function getFinalizedAtAttribute($eventId)
-    {
-        $event = $this->getIsActiveAttribute($eventId);
-        $concludedDate = NULL;
-        if (!$event) {
-            $eventActivityStatus = EventFanActivity::where('event_id', $eventId)
-                    ->where('status', 1)
-                    ->orderBy('concluded_at', 'desc')
-                    ->first();
-            if ($eventActivityStatus) {
-                $concludedDate = date('m/d/Y', strtotime($eventActivityStatus->concluded_at));
-            }
-        }
-        return $concludedDate;
-    }
+    // public function getFinalizedAtAttribute($eventId)
+    // {
+    //     $eventIsActive = $this->getIsActiveAttribute($eventId);
+
+    //     $concludedDate = NULL;
+
+    //     if (!$eventIsActive) {
+    //         $eventActivityStatus = EventActivities::where('event_id', $eventId)
+    //                 ->where('status', 1)
+    //                 ->orderBy('concluded_at', 'desc')
+    //                 ->first();
+    //         if ($eventActivityStatus) {
+    //             $concludedDate = date('m/d/Y', strtotime($eventActivityStatus->concluded_at));
+    //         }
+    //     }
+
+    //     return $concludedDate;
+    // }
 
     /**
      * Function for get event and users list information
@@ -188,12 +194,12 @@ class Events extends Model
 
     public function getCompanyNameAttribute($companyId)
     {
-        return \App\Companies::where('id', $companyId)->get()->first()->company_name;
+        return \App\Companies::where('id', $companyId)->first()->company_name;
     }
 
     public function getLocationAttribute($locationId)
     {
-        return \App\Location::where('id', $locationId)->get()->first()->name;
+        return \App\Location::where('id', $locationId)->first()->name;
     }
 
     public function getImageAttribute($value)

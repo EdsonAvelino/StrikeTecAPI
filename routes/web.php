@@ -320,23 +320,29 @@ $app->post('/fan/auth/login', 'FanUserController@authenticate');
 
 // FAN App APIs
 $app->group(['middleware' => 'auth:fan'], function() use ($app) {
+    // Get my events list
+    $app->get('/fan/events', 'EventController@getMyEventsList');
+
+    //get all events list for fan APP APIs
+    $app->get('/fan/events/all', 'EventController@getAllEventsList');
+    
     // New Event
     $app->post('/fan/events', 'EventController@postEvent');
 
     // New Event
     $app->post('/fan/events/{eventId}', 'EventController@postUpdateEvent');
     
-    // remove event for fan APP API'
-    $app->post('/fan/event/remove', 'EventController@eventRemove');
+    // Remove event
+    $app->delete('/fan/events/remove', 'EventController@deleteEvent');
     
-    //get users list by country id for fan APP 
-    $app->get('/fan/users/events', 'EventController@userEvents');
-    
-    //get all events list for fan APP APIs
-    $app->get('/fan/all/events', 'EventController@allEventsUsersList');
+    // Get fan activity types
+    $app->get('/fan/activities', 'EventController@getEventActivityTypes');
+
+    // Get user's event list by country id for fan APP 
+    $app->get('/fan/user/events', 'EventController@userEvents');
     
     //get my events list for fan APP API
-    $app->get('/fan/my/events', 'EventController@myEventsUsersList');
+    // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
     
     //add event for fan API
     $app->post('/fan/event/users/add', 'EventUserController@usersAddEvent');
@@ -350,8 +356,7 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // register activity into event for Fan API
     $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
     
-    // get fan activity list
-    $app->get('/fan/activities', 'FanActivityController@getActivityList');
+    
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
