@@ -851,23 +851,21 @@ class EventController extends Controller
     }
 
     /**
-     * @api {post} /fan/event/remove Remove event
+     * @api {delete} /fan/events/<event_id> Remove event
      * @apiGroup Event
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {int} id id of event
+     * @apiParam {int} event_id ID of event which is to delete
      * @apiParamExample {json} Input
      *    {
-     *      "id": 1,
+     *      "event_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event create successfully
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      * {
@@ -884,32 +882,18 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function eventRemove(Request $request)
+    public function deleteEvent(Request $request, $eventId)
     {
-        $validator = \Validator::make($request->all(), [
-                    'id' => 'required|exists:events',
+        if (!Events::where('id', $eventId)->exists()) {
+            return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
+        }
+
+        Events::find($eventId)->delete();
+        
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Event has been deleted successfully'
         ]);
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' => $errors->first('id')]);
-        }
-        try {
-            $eventID = $request->get('id');
-            \DB::beginTransaction();
-            Events::find($eventID)->delete();
-            EventUser::where('event_id', $eventID)->delete();
-            \DB::commit();
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Event has been removed successfully'
-            ]);
-        } catch (Exception $e) {
-            \DB::rollBack();
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
     }
 
     /**

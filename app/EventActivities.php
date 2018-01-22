@@ -7,6 +7,15 @@ Class EventActivities extends Model
 {
     protected $fillable = ['event_id', 'event_activity_type_id', 'status'];  
     
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($eventActivity) {
+            EventParticipants::where('event_activity_id', $eventActivity->id)->delete();
+        });
+    }
+
     public function getStatusAttribute($value)
     {
         return (bool) $value;

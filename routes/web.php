@@ -323,17 +323,17 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Get my events list
     $app->get('/fan/events', 'EventController@getMyEventsList');
 
-    //get all events list for fan APP APIs
+    // Get list of all of the events
     $app->get('/fan/events/all', 'EventController@getAllEventsList');
-    
+
     // New Event
     $app->post('/fan/events', 'EventController@postEvent');
 
-    // New Event
+    // Update an Event
     $app->post('/fan/events/{eventId}', 'EventController@postUpdateEvent');
     
-    // Remove event
-    $app->delete('/fan/events/remove', 'EventController@deleteEvent');
+    // Delete an event
+    $app->delete('/fan/events/{eventId}', 'EventController@deleteEvent');
     
     // Get fan activity types
     $app->get('/fan/activities', 'EventController@getEventActivityTypes');

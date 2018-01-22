@@ -33,6 +33,21 @@ class Events extends Model
         'updated_at'
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($event) {
+            $event->participants()->delete();
+            $event->activities()->delete();
+        });
+    }
+
+    public function activities()
+    {
+        return $this->hasMany('App\EventActivities', 'event_id');
+    }
+
     public function participants()
     {
         return $this->hasManyThrough('App\EventParticipants', 'App\EventActivities', 'event_id', 'event_activity_id')->limit(9);
@@ -46,11 +61,6 @@ class Events extends Model
     public function eventSessions()
     {
         return $this->hasMany('App\EventSession', 'event_id');
-    }
-
-    public function eventActivity()
-    {
-        return $this->hasMany('App\EventFanActivity', 'event_id');
     }
 
     public function eventLocation()
