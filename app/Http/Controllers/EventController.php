@@ -853,7 +853,6 @@ class EventController extends Controller
     /**
      * @api {delete} /fan/events/<event_id> Remove event
      * @apiGroup Event
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
