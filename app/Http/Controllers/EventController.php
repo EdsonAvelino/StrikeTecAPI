@@ -257,7 +257,7 @@ class EventController extends Controller
     */
     public function getEventActivityTypes()
     {
-        $activityTypes = EventActivityTypes::select('id', 'name', 'description', 'image_url')->get();
+        $activityTypes = \App\EventActivityTypes::select('id', 'name', 'description', 'image_url')->get();
         
         return response()->json(['error' => 'false', 'message' => '', 'data' => $activityTypes]);
     }
