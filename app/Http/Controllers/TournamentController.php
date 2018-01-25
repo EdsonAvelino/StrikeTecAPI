@@ -222,24 +222,24 @@ class TournamentController extends Controller
         $alreadyJoined = EventParticipants::select('event_activity_id')->where('user_id', \Auth::id());
 
         // New Events
-        $newEventActivities = EventActivities::with(['event' => function($query) {
-            $query->where('end_date', '>=', date('Y-m-d'));
-        }])->select([
+        $newEventActivities = EventActivities::with('event')->select([
             '*',
             \DB::raw('id as user_joined'),
             \DB::raw('id as activity_started'),
             \DB::raw('id as user_counts'),
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done'),
-        ])->whereNotIn('id', $alreadyJoined)->where(function($q) {
-            $q->whereNull('status')->orWhere('status', 0);
+        ])->whereHas('event', function($query){
+            $query->where('end_date', '>=', date('Y-m-d'));
+        })->whereNotIn('id', $alreadyJoined)->where(function($query) {
+            $query->whereNull('status')->orWhere('status', 0);
         })->limit($limit)->get();
 
         $eventsList = ['new' => [], 'joined' => [], 'finished' => []];
 
         foreach ($newEventActivities as $eventActivity) {
             $_eventActivity = [];
-            $_eventActivity['id'] = $eventActivity->id;
+            echo "\n".$_eventActivity['id'] = $eventActivity->id;
             $_eventActivity['event_activity_type_id'] = $eventActivity->event_activity_type_id;
             $_eventActivity['event_title'] = $eventActivity->event->title;
             $_eventActivity['description'] = $eventActivity->event->description;

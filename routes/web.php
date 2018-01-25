@@ -355,8 +355,6 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
 
     // register activity into event for Fan API
     $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
-    
-    
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
