@@ -17,4 +17,8 @@ class Companies extends Model
         'company_name', 'company_logo'
     ];
 
+    public function getCompanyLogoAttribute($logo)
+    {
+    	return env('APP_URL') . '/storage/fanuser/companylogo/' . $logo;
+    }
 }
