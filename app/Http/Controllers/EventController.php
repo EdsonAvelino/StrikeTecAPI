@@ -920,9 +920,83 @@ class EventController extends Controller
      * {
      *   "error": "false",
      *   "message": "",
-     *   "data": {
-     *      []
-     *   }
+     *   "data": [
+     *      {
+     *         "id": 7,
+     *         "company_id": 4,
+     *         "location_id": 2,
+     *         "title": "UFC FIGHT NIGHT TBA VS TBD",
+     *         "description": "Sapien ultrices, quis convallis tortor varius vest",
+     *         "image": null,
+     *         "start_date": "2018-01-17",
+     *         "start_time": "23:46:00",
+     *         "end_date": "2018-01-24",
+     *         "end_time": "23:46:00",
+     *         "all_day": false,
+     *         "status": true,
+     *         "company_name": "Bellator MMA",
+     *         "location_name": "Manhattan, New York",
+     *         "participants_count": 1,
+     *         "activities": [
+     *             {
+     *                 "id": 12,
+     *                 "event_id": 7,
+     *                 "event_activity_type_id": 2,
+     *                 "status": false,
+     *                 "created_at": "2017-12-26 12:30:33",
+     *                 "updated_at": "2018-01-14 21:28:39",
+     *                 "type_name": "Power",
+     *                 "participants": [
+     *                     {
+     *                         "id": 15,
+     *                         "user_id": 7,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     },
+     *                     {
+     *                         "id": 16,
+     *                         "user_id": 8,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     },
+     *                     {
+     *                         "id": 17,
+     *                         "user_id": 9,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     }
+     *                 ]
+     *             },
+     *             {
+     *                 "id": 14,
+     *                 "event_id": 7,
+     *                 "event_activity_type_id": 2,
+     *                 "status": false,
+     *                 "created_at": "2017-12-29 16:28:17",
+     *                 "updated_at": "2018-01-14 21:28:39",
+     *                 "type_name": "Power",
+     *                 "participants": [
+     *                     {
+     *                         "id": 25,
+     *                         "user_id": 17,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     },
+     *                     {
+     *                         "id": 26,
+     *                         "user_id": 18,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     },
+     *                     {
+     *                         "id": 27,
+     *                         "user_id": 19,
+     *                         "event_activity_id": 12,
+     *                         "is_finished": null
+     *                     }
+     *                  ]
+     *             }
+     *      ]
      * }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
