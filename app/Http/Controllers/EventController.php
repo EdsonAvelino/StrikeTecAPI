@@ -12,7 +12,7 @@ class EventController extends Controller
 {
     /**
      * @api {post} /fan/events Create new event
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -105,7 +105,7 @@ class EventController extends Controller
 
     /**
      * @api {post} /fan/events/<event_id> Update existing event
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -215,7 +215,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/activities Get main event activities (Types)
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -264,7 +264,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/events Get all my events list
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -452,7 +452,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/events/all Get list of all of the events
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -638,25 +638,32 @@ class EventController extends Controller
     }
 
     /**
-     * @api {get} /fan/user/events Get users with events
-     * @apiGroup Event
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @api {get} /fan/users Get list of users (Users Database)
+     * @apiGroup Events
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParam {String} [query] Search users by name
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 0,
+     *      "limit": 30,
+     *      "query": "jack"
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
      * @apiSuccess {Object} data Event list information
      * @apiSuccessExample {json} Success
      * {
      *       "error": "false",
-     *       "message": "Users list information",
+     *       "message": "",
      *       "data": [
      *           {
-     *                "id": 7,
+     *               "id": 7,
      *               "first_name": "test",
      *               "last_name": "test",
      *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1513164799.jpg",
@@ -687,30 +694,33 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function userEvents()
+    public function getUsersList(Request $request)
     {
-        $eventStorage = array();
-        $eventInfo = array();
-        $users = array();
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        
+        $query = trim($request->get('query') ?? null);
+
         $companyId = \Auth::user()->company_id;
-        $events = Events::select('id')->where('company_id', $companyId)->get()->toArray();
-        $eventIds = array_column($events, 'id');
+        
+        $_users = \App\User::select('id', 'first_name', 'last_name', 'email', 'photo_url');
 
-        $eventUsers = EventUser::select('*', \DB::raw('user_id as user_events'))->whereIn('event_id', $eventIds)->groupBy('user_id')->get();
-
-        $count = 0;
-        foreach ($eventUsers as $eventUser) {
-            $users[$count] = $eventUser->users;
-            $users[$count]->events = $eventUser->user_events;
-            $count++;
+        if ($query) {
+            $_users->where(function ($q) use ($query) {
+                $q->where('first_name', 'LIKE', "%$query%")
+                    ->orWhere('last_name', 'LIKE', "%$query%")
+                    ->orWhere('email', 'LIKE', "%$query%");
+            });
         }
+        
+        $users = $_users->offset($offset)->limit($limit)->get();
 
-        return response()->json(['error' => 'false', 'message' => 'Users list information', 'data' => $users]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $users]);
     }
 
     /**
      * @api {get} /fan/my/events Get my events info
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -852,7 +862,7 @@ class EventController extends Controller
 
     /**
      * @api {delete} /fan/events/<event_id> Remove event
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -897,7 +907,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/event/users/activities/<event_id> Get event users, activities and session info
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1055,7 +1065,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/events/logged/user get active event details information by logged user id
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1132,7 +1142,7 @@ class EventController extends Controller
 
     /**
      * @api {post} /fan/event/activity/status Activity status update
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1231,7 +1241,7 @@ class EventController extends Controller
 
     /**
      * @api {get} /fan/event/pending/users/<event_id> Get event pending users info
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -1336,7 +1346,7 @@ class EventController extends Controller
     
     /**
      * @api {post} /fan/event/users/status users accept or decline
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:

@@ -339,7 +339,7 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     $app->get('/fan/activities', 'EventController@getEventActivityTypes');
 
     // Get user's event list by country id for fan APP 
-    $app->get('/fan/user/events', 'EventController@userEvents');
+    $app->get('/fan/users', 'EventController@getUsersList');
     
     //get my events list for fan APP API
     // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
