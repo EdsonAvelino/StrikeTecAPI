@@ -938,7 +938,7 @@ class EventController extends Controller
             '*',
             \DB::raw('company_id as company_name'),
             \DB::raw('location_id as location_name')
-        )->withCount('participants')->with(['activities' => function($query) {
+        )->where('id', $eventId)->withCount('participants')->with(['activities' => function($query) {
             $query->select('*', \DB::raw('event_activity_type_id as type_name'));
         }, 'activities.participants' => function($query) {
             $query->limit(5);
