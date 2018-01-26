@@ -920,8 +920,7 @@ class EventController extends Controller
      * {
      *   "error": "false",
      *   "message": "",
-     *   "data": [
-     *      {
+     *   "data": {
      *         "id": 7,
      *         "company_id": 4,
      *         "location_id": 2,
@@ -996,7 +995,6 @@ class EventController extends Controller
      *                     }
      *                  ]
      *             }
-     *      ]
      * }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
