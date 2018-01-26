@@ -934,6 +934,12 @@ class EventController extends Controller
      */
     public function getEventActivities(Request $request, $eventId)
     {
+        $eventId = (int) $eventId;
+        
+        if (!$eventId || !($event = Events::where('id', $eventId)->exists())) {
+            return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
+        }
+
         $eventsList = Events::select(
             '*',
             \DB::raw('company_id as company_name'),
