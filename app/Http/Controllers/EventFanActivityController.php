@@ -6,10 +6,11 @@ use App\EventFanActivity;
 use Validator;
 use DB;
 
-Class EventFanActivityController extends Controller {
+Class EventFanActivityController extends Controller
+{
     /**
      * @api {post} /fan/event/activity/add Add activity to event
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -60,7 +61,7 @@ Class EventFanActivityController extends Controller {
     
     /**
      * @api {post} /fan/activity/remove Remove activity
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
