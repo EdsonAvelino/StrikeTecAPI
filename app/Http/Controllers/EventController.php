@@ -1014,7 +1014,7 @@ class EventController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
         }
 
-        $event = Events::select(
+        $eventWithActivities = Events::select(
             '*',
             \DB::raw('company_id as company_name'),
             \DB::raw('location_id as location_name')
@@ -1022,9 +1022,9 @@ class EventController extends Controller
             $query->select('*', \DB::raw('event_activity_type_id as type_name'));
         }, 'activities.participants' => function($query) {
             $query->limit(5);
-        }])->get();
+        }])->first();
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $event->activities]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventWithActivities]);
     }
 
     /**
