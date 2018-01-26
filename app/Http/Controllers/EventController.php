@@ -647,7 +647,7 @@ class EventController extends Controller
      *     }
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
-     * @apiParam {String} [query] Search users by name
+     * @apiParam {String} [query] Search users by name or email
      * @apiParamExample {json} Input
      *    {
      *      "start": 0,
@@ -663,27 +663,26 @@ class EventController extends Controller
      *       "message": "",
      *       "data": [
      *           {
-     *               "id": 7,
-     *               "first_name": "test",
-     *               "last_name": "test",
-     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1513164799.jpg",
-     *               "email": "toniorasma@yahoo.com",
-     *               "events": [
-     *                   1
-     *               ]
+     *               "id": 1,
+     *               "first_name": "Jack",
+     *               "last_name": "Xeing",
+     *               "photo_url": "http://example.com/users/user_pic-1513164799.jpg",
+     *               "email": "jackx@example.com",
      *           },
      *           {
-     *               "id": 7,
-     *               "first_name": "test",
-     *               "last_name": "test",
-     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1513164799.jpg",
-     *               "email": "toniorasma@yahoo.com",
-     *               "events": [
-     *                   2,
-     *                   1
-     *               ]
+     *               "id": 2,
+     *               "first_name": "Mel",
+     *               "last_name": "Sultana",
+     *               "photo_url": "http://example.com/users/user_pic-1513164799.jpg",
+     *               "email": "mels@example.com",
      *           },
-     *           
+     *           {
+     *               "id": 3,
+     *               "first_name": "Karl",
+     *               "last_name": "Lobster",
+     *               "photo_url": "http://example.com/users/user_pic-1513164799.jpg",
+     *               "email": "karls@example.com",
+     *           }
      *       ]
      *   }
      * @apiErrorExample {json} Error response
