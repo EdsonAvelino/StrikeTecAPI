@@ -907,7 +907,6 @@ class EventController extends Controller
     /**
      * @api {get} /fan/events/<event_id>/activities Get list of event activities with users
      * @apiGroup Events
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
