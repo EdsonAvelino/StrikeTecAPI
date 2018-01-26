@@ -26,6 +26,11 @@ Class EventActivities extends Model
         return $this->belongsTo('App\Events');
     }
 
+    public function type()
+    {
+        return $this->belongsTo('App\EventActivityTypes', 'event_activity_type_id')->select('id', 'name');
+    }
+
     public function participants()
     {
         return $this->hasMany('App\EventParticipants', 'event_activity_id');
@@ -34,6 +39,11 @@ Class EventActivities extends Model
     public function sessions()
     {
         return $this->hasMany('App\EventSessions', 'event_activity_id');
+    }
+
+    public function getTypeNameAttribute($eventActivityTypeId)
+    {
+        return \App\EventActivityTypes::find($eventActivityTypeId)->name;
     }
 
     public function getUserJoinedAttribute($eventActivityId)

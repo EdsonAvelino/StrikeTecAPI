@@ -7,7 +7,6 @@ use DB;
 
 class Events extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *

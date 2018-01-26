@@ -13,6 +13,7 @@ Class Locationcontroller extends Controller
         $location = Location::create([
             'name' => $request->name
         ])->id;
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $location]);
     }
     
@@ -53,11 +54,11 @@ Class Locationcontroller extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getLocationList() 
+    public function getLocationsList() 
     {   
-        $location_list = array();
-        $location_list = Location::all();
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $location_list]);
+        $locations = Location::all();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $locations]);
     }
 }
 

@@ -905,13 +905,12 @@ class EventController extends Controller
     }
 
     /**
-     * @api {get} /fan/event/users/activities/<event_id> Get event users, activities and session info
+     * @api {get} /fan/events/<event_id>/activities Get list of event activities with users
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiSuccess {Boolean} error Error flag 
@@ -920,92 +919,9 @@ class EventController extends Controller
      *    HTTP/1.1 200 OK
      * {
      *   "error": "false",
-     *   "message": "Event users activity details",
+     *   "message": "",
      *   "data": {
-     *      "id": 8,
-     *      "user_id": "66",
-     *      "company_id": "3",
-     *      "event_title": "chetu event",
-     *      "location_id": "1",
-     *      "description": "desc",
-     *      "to_date": "2017-12-22",
-     *      "to_time": "07:21:00",
-     *      "from_date": "2017-12-04",
-     *      "from_time": "07:21:00",
-     *      "all_day": "0",
-     *      "type_of_activity": "Endurance",
-     *      "count_users_waiting_approval": 1,
-     *      "created_at": "2017-12-04 13:50:46",
-     *      "updated_at": "2017-12-04 09:07:35",
-     *       "users": [
-     *           {
-     *               "id": "67",
-     *               "first_name": "jk3",
-     *               "last_name": null,
-     *               "name": "a",
-     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395499.jpg",
-     *               "birthday": "2017-12-04",
-     *               "email": "q@test.com",
-     *           },
-     *           {
-     *               "id": "68",
-     *               "first_name": "jk3",
-     *               "last_name": null,
-     *               "name": "w",
-     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395560.jpg",
-     *               "birthday": "2017-12-04",
-     *               "gender": "female",
-     *               "email": "w@test.com",
-     *           },
-     *           {
-     *               "id": "69",
-     *               "first_name": "jk3",
-     *               "last_name": null,
-     *               "name": "e",
-     *               "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512395662.jpg",
-     *               "birthday": "2017-09-30",
-     *               "gender": "female",
-     *               "email": "e@test.com",
-     *           }
-     *       ],
-     *      "activities": [
-     *       {
-     *           "id": 1,
-     *           "name": "Speed",
-     *           "description": "Proin ut quam eros. Donecsed lobortis diam. Nulla necodio lacus.",
-     *           "image_url": "http://192.168.14.253/storage/fanuser/activityicon/activity_icon_speed.png",
-     *           "created_at": "2017-12-15 05:40:20",
-     *           "updated_at": "2017-12-15 11:10:38"
-     *           "status": true,
-     *           "concluded_at":"12/28/2017"
-     *           "sessionUsers": [
-     *               {
-     *                   "id": 149,
-     *                   "first_name": "jk3",
-     *                   "last_name": null,
-     *                   "name": "jk3 ",
-     *                   "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1513786995.jpg"
-     *               },
-     *               {
-     *                   "id": 145,
-     *                   "first_name": "jiii",
-     *                   "last_name": null,
-     *                   "name": "jiii ",
-     *                   "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1513779707.jpg"
-     *               },
-     *          ],
-     *       }
-     *       {
-     *           "id": 2,
-     *           "name": "Power",
-     *           "description": "Proin ut quam eros. Donecsed lobortis diam. Nulla necodio lacus.",
-     *           "image_url": "http://192.168.14.253/storage/fanuser/activityicon/activity_icon_power.png",
-     *           "created_at": "2017-12-15 05:40:20",
-     *           "updated_at": "2017-12-15 11:10:38"
-     *           "status": "false",
-     *           "concluded_at":"12/28/2017"
-     *       }
-     *       ],
+     *      []
      *   }
      * }
      * @apiErrorExample {json} Error response
@@ -1016,50 +932,19 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getUsersActivitiesInfoByEvent($event_id)
+    public function getEventActivities(Request $request, $eventId)
     {
-        try {
-            $rules = [
-                'id' => 'required|exists:events',
-            ];
-            $input = array('id' => $event_id);
-            $validator = \Validator::make($input, $rules);
-            if ($validator->fails()) {
-                $errors = $validator->errors();
-                return response()->json(['error' => 'true', 'message' => $errors->first('id')]);
-            }
-            $event = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('location_id as location_name'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
-                           ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }, 'eventActivity.activity.eventSessions' => function($query) use($event_id) {
-                            $query->where('event_id', $event_id);
-                        }])->find($event_id)->toArray(); //return $event;
-            //Get users list
-            foreach ($event['event_user'] as $val) {
-                $event['users'][] = $val['users'];
-            }
-            unset($event['event_user']);
-            //Get activities details and users information
-            foreach ($event['event_activity'] as $activities) {
-                //Get session users information
-                $activities['activity']['status'] = $activities['status'];
-                $activities['activity']['concluded_at'] = $activities['concluded_at'];
+        $eventsList = Events::select(
+            '*',
+            \DB::raw('company_id as company_name'),
+            \DB::raw('location_id as location_name')
+        )->withCount('participants')->with(['activities' => function($query) {
+            $query->select('*', \DB::raw('event_activity_type_id as type_name'));
+        }, 'activities.participants' => function($query) {
+            $query->limit(5);
+        }])->get();
 
-                foreach ($activities['activity']['event_sessions'] as $sessions) {
-                    if ($sessions['participant_id'] > 0) {
-                        $activities['activity']['sessionUsers'][] = \App\User::select('id', 'first_name', 'last_name', \DB::raw("CONCAT(COALESCE(`first_name`, ''), ' ',COALESCE(`last_name`, '')) as name"), 'photo_url')
-                                ->find($sessions['participant_id']);
-                    }
-                }
-                unset($activities['activity']['event_sessions']);
-                $event['activities'][] = $activities['activity'];
-            }
-            unset($event['event_activity']);
-            return response()->json(['error' => 'false', 'message' => 'Event users activity details', 'data' => $event]);
-        } catch (Exception $ex) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request'
-            ]);
-        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventsList]);
     }
 
     /**
