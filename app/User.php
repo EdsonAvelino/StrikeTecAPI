@@ -130,7 +130,8 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'show_achivements' => true,
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
-                'badge_notification' => true
+                'badge_notification' => true,
+                'show_tutorial' => true
             ]);
 
             Settings::create([

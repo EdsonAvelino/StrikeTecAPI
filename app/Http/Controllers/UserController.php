@@ -632,6 +632,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_training_stats] Show training statistics on to public profile or not
      * @apiParam {Boolean} [show_challenges_history] Show challenges history on to public profile or not
      * @apiParam {Boolean} [badge_notification] Badge notification
+     * @apiParam {Boolean} [show_tutorial] Show Tutorials
      * @apiParamExample {json} Input
      *    {
      *      "public_profile": true,
@@ -675,11 +676,14 @@ class UserController extends Controller
         $badgeNotification = filter_var($request->get('badge_notification'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->badge_notification = $request->get('badge_notification') ? $badgeNotification : $userPreferences->badge_notification;
 
+        $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
+        $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
+        
         $userPreferences->save();
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'Preferences have been saved',
+            'error' => 'false',
+            'message' => 'Preferences have been saved',
         ]);
     }
 
