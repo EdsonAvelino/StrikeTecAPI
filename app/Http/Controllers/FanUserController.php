@@ -90,7 +90,7 @@ class FanUserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password')),
             'is_web_admin' => null,
-            'is_fan_app_admin' => true,
+            'is_fan_app_admin' => null,
         ]);
 
         try {
