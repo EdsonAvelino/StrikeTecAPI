@@ -215,7 +215,6 @@ class EventController extends Controller
 
         $event->save();
 
-        
         return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => ['event_id' => $eventId]]);
     }
 
@@ -439,7 +438,8 @@ class EventController extends Controller
             '*',
             \DB::raw('company_id as company_name'),
             \DB::raw('location_id as location_name')
-        )->withCount('participants')->where('company_id', \Auth::user()->company_id)->get();
+        )->withCount('participants')
+        ->where('company_id', \Auth::user()->company_id)->where('admin_user_id', \Auth::id())->get();
         
         $eventsList = [];
 
@@ -622,12 +622,17 @@ class EventController extends Controller
      */
     public function getAllEventsList()
     {
-        $_eventsList = Events::select(
+        $_eventsListQuery = Events::select(
             '*',
             \DB::raw('company_id as company_name'),
             \DB::raw('location_id as location_name')
-        )->withCount('participants')->get();
+        )->withCount('participants')->where('admin_user_id', \Auth::id());
+
+        if (\Auth::user()->is_fan_app_admin) {
+            $_eventsListQuery->where('company_id', \Auth::user()->company_id);
+        }
         
+        $_eventsList = $_eventsListQuery->get();
         $eventsList = [];
 
         foreach ($_eventsList as $event) {
