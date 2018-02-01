@@ -20,7 +20,6 @@ class EventController extends Controller
      *       "Content-Type": "multipart/form-data",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {String} [event_id] Existing Event ID in case of update event
      * @apiParam {String} title Event title
      * @apiParam {int} location_id ID of location
      * @apiParam {String} [description] Description
@@ -67,28 +66,32 @@ class EventController extends Controller
     public function postEvent(Request $request)
     {
         $companyId = \Auth::user()->company_id;
-        $imageStoragePath = '/storage/events';
+        $imageStoragePath = 'storage/events';
         $validator = \Validator::make($request->all(), ['image' => 'mimes:jpeg,jpg,png']);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' => $errors]);
+            return response()->json(['error' => 'true', 'message' => $errors->first('image')]);
         }
 
         if ($request->hasFile('image')) {
-            $eventInput = $request->file('image');
-            $eventImageOrigName = $eventInput->getClientOriginalName();
+            $eventImage = $request->file('image');
+            $eventImageOrigName = $eventImage->getClientOriginalName();
             $eventImageFileName = pathinfo($eventImageOrigName, PATHINFO_FILENAME);
             $eventImageFileNameExt = pathinfo($eventImageOrigName, PATHINFO_EXTENSION);
-            $eventImageName = $eventImageFileName . '-' . time() . '.' . $eventImageFileNameExt;
-            $eventInput->move($imageStoragePath, $eventImageName);
+
+            $eventImageFileName = preg_replace("/[^a-zA-Z]/", "_", $eventImageFileName);
+
+            $eventImageName = 'event_' . md5($eventImageFileName) . '_' . time() . '.' . $eventImageFileNameExt;
+            $eventImage->move($imageStoragePath, $eventImageName);
             $eventImage = $eventImageName;
         }
-
+        
         $eventId = Events::create([
             'title' => $request->get('title'),
             'location_id' => (int) $request->get('location_id'),
             'company_id' => $companyId,
+            'admin_user_id' => \Auth::id(),
             'description' => !empty($request->get('description')) ? $request->get('description') : null,
             'start_date' => date('Y-m-d', strtotime($request->get('start_date'))),
             'start_time' => $request->get('start_time'),
@@ -161,23 +164,12 @@ class EventController extends Controller
     {
         $companyId = \Auth::user()->company_id;
         $eventId = (int) $eventId;
-        $eventImage = '';
-        $imageStoragePath = '/storage/events';
+        $imageStoragePath = 'storage/events';
         $validator = \Validator::make($request->all(), ['image' => 'mimes:jpeg,jpg,png']);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
             return response()->json(['error' => 'true', 'message' => $errors]);
-        }
-
-        if ($request->hasFile('image')) {
-            $eventInput = $request->file('image');
-            $eventImageOrigName = $eventInput->getClientOriginalName();
-            $eventImageFileName = pathinfo($eventImageOrigName, PATHINFO_FILENAME);
-            $eventImageFileNameExt = pathinfo($eventImageOrigName, PATHINFO_EXTENSION);
-            $eventImageName = $eventImageFileName . '-' . time() . '.' . $eventImageFileNameExt;
-            $eventInput->move($imageStoragePath, $eventImageName);
-            $eventImage = $eventImageName;
         }
 
         $event = Events::find($eventId);
@@ -186,7 +178,21 @@ class EventController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
         }
 
+        if ($request->hasFile('image')) {
+            $eventImage = $request->file('image');
+            $eventImageOrigName = $eventImage->getClientOriginalName();
+            $eventImageFileName = pathinfo($eventImageOrigName, PATHINFO_FILENAME);
+            $eventImageFileNameExt = pathinfo($eventImageOrigName, PATHINFO_EXTENSION);
+
+            $eventImageFileName = preg_replace("/[^a-zA-Z]/", "_", $eventImageFileName);
+
+            $eventImageName = 'event_' . md5($eventImageFileName) . '_' . time() . '.' . $eventImageFileNameExt;
+            $eventImage->move($imageStoragePath, $eventImageName);
+            $eventImage = $eventImageName;
+        }
+
         $event->company_id = $companyId;
+        $event->admin_user_id = \Auth::id();
         $event->title = !empty($request->get('title')) ? $request->get('title') : $event->title;
         $event->location_id = !empty($request->get('location_id')) ? $request->get('location_id') : $event->location_id;
         $event->description = !empty($request->get('description')) ? $request->get('description') : $event->description;
@@ -197,10 +203,9 @@ class EventController extends Controller
         
         $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
 
-        if (!empty($eventImage)) {
-            $url = env('APP_URL') . $imageStoragePath;
-            $pathToFile = str_replace($url, storage_path(), $event->image);
-            
+        if (isset($eventImage) && !empty($eventImage)) {
+            $pathToFile = storage_path('events/'.basename($event->image));
+
             if (file_exists($pathToFile)) {
                 unlink($pathToFile); // Delete existing image
             }
@@ -210,6 +215,7 @@ class EventController extends Controller
 
         $event->save();
 
+        
         return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => ['event_id' => $eventId]]);
     }
 

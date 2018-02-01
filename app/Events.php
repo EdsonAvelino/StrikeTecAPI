@@ -15,6 +15,7 @@ class Events extends Model
     protected $fillable = [
         'id',
         'company_id',
+        'admin_user_id',
         'location_id',
         'title',
         'description',
@@ -52,9 +53,9 @@ class Events extends Model
         return $this->hasManyThrough('App\EventParticipants', 'App\EventActivities', 'event_id', 'event_activity_id')->limit(9);
     }
 
-    public function eventUser()
+    public function adminUser()
     {
-        return $this->hasMany('App\EventUser', 'event_id');
+        return $this->hasMany('App\AdminUsers', 'admin_user_id');
     }
 
     public function eventSessions()
