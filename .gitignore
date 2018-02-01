@@ -6,3 +6,4 @@ Homestead.yaml
 .env
 /storage/videos/*
 /storage/badges/*
+/storage/events/*
