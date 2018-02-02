@@ -21,7 +21,7 @@ class EventController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {String} title Event title
-     * @apiParam {int} location_id ID of location
+     * @apiParam {Number} location_id ID of location
      * @apiParam {String} [description] Description
      * @apiParam {String} start_date Starting date of event, format MM/DD/YYYY 
      * @apiParam {String} start_time Starting time, format HH:II e.g. 15:00
@@ -29,7 +29,7 @@ class EventController extends Controller
      * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
      * @apiParam {Boolean} [all_day] Event is all day
      * @apiParam {file} [image] Image to be uploaded
-     * @apiParam {file} activity_type_id Event activity type Id
+     * @apiParam {Number} activity_type_id Event activity type Id
      * @apiParamExample {json} Input
      *    {
      *      "title": "EFD fight night",
