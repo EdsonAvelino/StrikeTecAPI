@@ -29,6 +29,7 @@ class EventController extends Controller
      * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
      * @apiParam {Boolean} [all_day] Event is all day
      * @apiParam {file} [image] Image to be uploaded
+     * @apiParam {file} activity_type_id Event activity type Id
      * @apiParamExample {json} Input
      *    {
      *      "title": "EFD fight night",
@@ -43,7 +44,7 @@ class EventController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccess {Object} data Contains created event-id
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      * {
@@ -101,7 +102,14 @@ class EventController extends Controller
             'image' => $eventImage ?? null
         ])->id;
 
-        $data = ['event_id' => $eventId];
+        // Create new activity for this newly created event
+        $eventActivity = EventActivities::create([
+            'event_id' => $eventId,
+            'event_activity_type_id' => $request->get('activity_type_id'),
+            'status' => 0
+        ]);
+
+        $data = ['event_id' => $eventId, 'event_activity_id' => $eventActivity->id];
 
         return response()->json(['error' => 'false', 'message' => 'Event has been created successfully', 'data' => $data]);
     }
