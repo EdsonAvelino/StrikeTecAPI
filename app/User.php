@@ -170,6 +170,16 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         $this->attributes['last_name'] = ucfirst(strtolower($lastName));
     }
 
+    public function getPhotoUrlAttribute($photo)
+    {
+        if ( (filter_var($photo, FILTER_VALIDATE_URL) === FALSE) ) {
+            return (!empty($photo)) ? env('APP_URL') . '/storage/users/' . $photo : null;
+        }
+
+        // As it can be Facebook graph url
+        return $photo;
+    }
+
     public function getAgeAttribute($birthday)
     {
         return ($birthday) ? \Carbon\Carbon::parse($birthday)->age : null;
@@ -209,7 +219,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
     }
 
     // return minimum fields of user
-    // first_name, last_name, photo_url, user_following, user_follower and points
+    // first_name, last_name, photo_url, user_following, user_follower, points & gender
     public static function get($users)
     {
         $statement = self::select([
@@ -231,5 +241,4 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         return null;
     }
-
 }
