@@ -44,7 +44,7 @@ class EventController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Contains created event-id
+     * @apiSuccess {Object} data Contains created event-id and event-activity-id
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      * {
@@ -52,7 +52,8 @@ class EventController extends Controller
      *       "error": "false",
      *       "message": "Event has been created successfully",
      *       "data": {
-     *               "event_id": 1
+     *               "event_id": 11,
+     *               "event_activity_id": 17,
      *           }
      *       }
      *   }
