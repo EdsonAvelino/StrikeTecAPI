@@ -666,7 +666,7 @@ class TournamentController extends Controller
      *              "image": null,
      *              "user_joined": true,
      *              "activity_started": false,
-     *              "c": null,
+     *              "activity_finished": null,
      *              "user_counts": 100,
      *              "user_done": null,
      *              "user_score": 26

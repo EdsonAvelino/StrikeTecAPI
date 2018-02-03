@@ -348,39 +348,36 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
     
     // TODO Add user to Event Activity
-    $app->post('/fan/event/users/add', 'EventUserController@usersAddEvent');
+    $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
     
     // Get list of event activities with users
     $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
 
+    // TODO Create activity into event
+    $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
+
+    // TODO Remove activity
+    $app->delete('/fan/activity/remove', 'EventFanActivityController@activityRemove');
+
     // List of locations
     $app->get('/fan/locations', 'LocationController@getLocationsList');
-
-    // register activity into event for Fan API
-    $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
     
-    //remove activity
-    $app->post('/fan/activity/remove', 'EventFanActivityController@activityRemove');
-    
-    //remove users from event
-    $app->post('/fan/event/users/remove', 'EventUserController@eventUsersRemove');
-    
-    // //get users list by user name#searching
-    // $app->post('/fan/users/search', 'UserController@getUsersListBySerch');
-    
-    //get active event details by logged user
+    // TODO Remove users from event
+    $app->delete('/fan/event/users/remove', 'EventUserController@eventUsersRemove');
+      
+    // Get active event details by logged user
     $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
     
-      //get leaderboard details by event id and activity id
+    // TODO Get leaderboard details by event id and activity id
     $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
 
-    // Register event training sessoins' rounds' punches data to db
+    // Store event training sessoins' rounds' punches data to db
     $app->post('/fan/event/training/sessions', 'EventTrainingController@storeEventSessions');
     
     // Get leaderboard detials for user

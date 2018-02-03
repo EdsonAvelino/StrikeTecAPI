@@ -966,6 +966,118 @@ class EventController extends Controller
     }
 
     /**
+     * @api {post} /fan/events/activities/users Register users to event activities
+     * @apiGroup Events
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} user_id list of user Ids comma seperated e.g. 1,2,3...n
+     * @apiParam {int} event_activity_id Id of event activity
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": "2",
+     *      "user_id": "1,2,3",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *       "error": "false",
+     *       "message": "User has been added to event activity",
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function postUsersToEventActivity(Request $request)
+    {
+        $eventActivityId = $request->get('event_activity_id');
+        $userIds = explode(',', $request->get('user_id'));
+
+        foreach ($userIds as $userId) {
+            EventParticipants::create([
+                'event_activity_id' => $eventActivityId,
+                'user_id' => $userId,
+                'is_finished' => null,
+                'joined_via' => 'F'
+            ]);
+        }
+
+        return response()->json(['error' => 'false', 'message' => 'User has been added to event activity']);
+    }
+
+    /**
+     * @api {post} /fan/event/users/remove remove users from event
+     * @apiGroup Events
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} event_id id of event
+     * @apiParam {int} user_id id of user
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_id": 1,
+     *      "user_id": 1,2,3
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *       "error": "false",
+     *       "message": "Users has been removed from event successfully",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function eventUsersRemove(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'event_id' => 'required|exists:event_users',
+            'user_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
+
+        $data = $request->input();
+        $userIds = explode(',', $data['user_id']);
+
+        foreach ($userIds as $userId) {
+            if ($userId) {
+                $eventId = $request->get('event_id');
+                EventUser::where('event_id', $eventId)
+                        ->where('user_id', $userId)->delete();
+            }
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Users has been removed'
+        ]);
+    }
+
+    /**
      * @api {get} /fan/events/logged/user get active event details information by logged user id
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
