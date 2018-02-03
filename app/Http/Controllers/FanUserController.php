@@ -338,7 +338,7 @@ class FanUserController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {String} name Name of user
-/    */@apiParam {String} email Email
+     * @apiParam {String} email Email
      * @apiParam {String="male","female"} [gender] Gender
      * @apiParam {Date} [dob] Birthday in MM/DD/YYYY e.g. 09/11/1987
      * @apiParam {Number} [weight] Weight
