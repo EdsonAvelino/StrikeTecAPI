@@ -329,7 +329,7 @@ class FanUserController extends Controller
 
     /**
      * @api {post} /fan/users Add new user to DB
-     * @apiGroup Event
+     * @apiGroup Events
      * @apiHeader {String} Content-Type application/form-data
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
