@@ -7,3 +7,4 @@ Homestead.yaml
 /storage/videos/*
 /storage/badges/*
 /storage/events/*
+/storage/users/*

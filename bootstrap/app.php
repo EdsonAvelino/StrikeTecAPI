@@ -26,7 +26,7 @@ $app = new Laravel\Lumen\Application(
 $app->withFacades();
 
 $app->withEloquent();
-$app->configure('constants');
+$app->configure('striketec');
 
 /*
   |--------------------------------------------------------------------------
@@ -40,11 +40,11 @@ $app->configure('constants');
  */
 
 $app->singleton(
-        Illuminate\Contracts\Debug\ExceptionHandler::class, App\Exceptions\Handler::class
+    Illuminate\Contracts\Debug\ExceptionHandler::class, App\Exceptions\Handler::class
 );
 
 $app->singleton(
-        Illuminate\Contracts\Console\Kernel::class, App\Console\Kernel::class
+    Illuminate\Contracts\Console\Kernel::class, App\Console\Kernel::class
 );
 
 /*
@@ -85,7 +85,6 @@ $app->register(Illuminate\Mail\MailServiceProvider::class);
 
 // Configure mail
 $app->configure('mail');
-
 
 /*
   |--------------------------------------------------------------------------

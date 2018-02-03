@@ -339,9 +339,12 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     $app->get('/fan/activities', 'EventController@getEventActivityTypes');
 
     // Get user's event list by country id for fan APP 
-    $app->get('/fan/users', 'EventController@getUsersList');
+    $app->get('/fan/users', 'FanUserController@getUsersList');
     
-    //get my events list for fan APP API
+    // Register user to db
+    $app->post('/fan/users', 'FanUserController@postUserToDb');
+
+    // Get my events list for fan APP API
     // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
     
     // TODO Add user to Event Activity
@@ -352,9 +355,6 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
 
     // List of locations
     $app->get('/fan/locations', 'LocationController@getLocationsList');
-    
-    // Register fan user to add db
-    $app->post('/fan/event/register/user', 'EventUserController@addUserToDb');
 
     // register activity into event for Fan API
     $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
@@ -368,8 +368,8 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     //remove users from event
     $app->post('/fan/event/users/remove', 'EventUserController@eventUsersRemove');
     
-    //get users list by user name#searching
-    $app->post('/fan/users/search', 'UserController@getUsersListBySerch');
+    // //get users list by user name#searching
+    // $app->post('/fan/users/search', 'UserController@getUsersListBySerch');
     
     //get active event details by logged user
     $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
@@ -380,21 +380,21 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
       //get leaderboard details by event id and activity id
     $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
 
-    // register event training sessoins' rounds' punches data to db
+    // Register event training sessoins' rounds' punches data to db
     $app->post('/fan/event/training/sessions', 'EventTrainingController@storeEventSessions');
     
-    //get leaderboard detials for user
+    // Get leaderboard detials for user
     $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
      
-    //update activity status
+    // Update activity status
     $app->post('/fan/event/activity/status', 'EventController@statusChangeActivity');
      
-    //remove participant
+    // Remove participant
     $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
     
-    // get pending for approval users list by event id
+    // Get pending for approval users list by event id
     $app->get('/fan/event/users/pending/{event_id}', 'EventController@eventPendingUsersList');
     
-     // update status of user approval or not by event id
+    // Update status of user approval or not by event id
     $app->post('/fan/event/users/status', 'EventController@eventUsersStatus');
 });

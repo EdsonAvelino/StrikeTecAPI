@@ -15,37 +15,36 @@ class PasswordGenerateCodeEmail extends Mailable
         SerializesModels;
 
     /**
-     * Subject.
+     * Subject
      *
      * @var sub
      */
     public $sub;
 
     /**
-     * Message.
+     * Password code
      *
-     * @var msg
+     * @var code
      */
     public $code;
 
     /**
-     * Message.
+     * \App\User
      *
-     * @var name
+     * @var user
      */
-    public $name;
+    public $user;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($subject, $code, $name)
+    public function __construct($subject, $user, $code)
     {
-
         $this->sub = $subject;
+        $this->user = $user;
         $this->code = $code;
-        $this->name = $name;
     }
 
     /**
@@ -55,9 +54,8 @@ class PasswordGenerateCodeEmail extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.password')
+        return $this->markdown('emails.welcome')
                         ->subject($this->sub)
-                        ->with(['name' => $this->name, 'code' => $this->code]);
+                        ->with(['user' => $this->user, 'code' => $this->code]);
     }
-
 }

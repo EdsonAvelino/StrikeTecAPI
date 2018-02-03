@@ -1037,7 +1037,7 @@ class TrainingController extends Controller
             $data['missing_punches'] = $missingPunches;
 
             $tag = [];
-            $punchTypeTags = config('constants.tags');
+            $punchTypeTags = config('striketec.recommended_tags');
             if ($sessionType == 1 || $sessionType == 2) {
                 if ($data['current_speed'] < 10) {
                     $tag[] = 1; //speed video
