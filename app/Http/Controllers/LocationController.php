@@ -18,18 +18,16 @@ Class Locationcontroller extends Controller
     }
     
     /**
-     * @api {get} /fan/locations get location list
-     * @apiGroup Event
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @api {get} /fan/locations Get list of locations
+     * @apiGroup Events
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} Data list of location name
+     * @apiSuccess {Object} data Contains list of locations
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -38,11 +36,15 @@ Class Locationcontroller extends Controller
      *   "data":  [
      *           {
      *               "id": 1,
-     *               "name": "noida",
+     *               "name": "Las Vegas, Nevada",
      *           },
      *           {
      *               "id": 2,
-     *               "name": "delhi",
+     *               "name": "Manhattan, New York",
+     *           },
+     *           {
+     *               "id": 2,
+     *               "name": "San Francisco",
      *           }
      *       ]
      *     }
