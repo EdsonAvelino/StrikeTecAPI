@@ -966,7 +966,98 @@ class EventController extends Controller
     }
 
     /**
-     * @api {post} /fan/events/activities/users Register users to event activities
+     * @api {post} /fan/events/{eventId}/activities Add activity to event
+     * @apiGroup Events
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} activity_type_id Type id of activity e.g. 1 = Speed, 2 = Power & 3 = Endurance
+     * @apiParamExample {json} Input
+     *    {
+     *      "activity_type_id": "1",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *       "error": "false",
+     *       "message": "Activity has been added",
+     *   }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function postAddEventActivity(Request $request, $eventId)
+    {
+        $eventActivityId = EventActivities::create([
+            'event_id' => $eventId,
+            'event_activity_type_id' => $request->get('activity_type_id')
+        ])->id;
+        
+        return response()->json([ 'error' => 'false', 'message' => 'Activity has been added', 'data' => ['event_activity_id' => $eventActivityId ]]);
+    } 
+    
+    /**
+     * @api {delete} /fan/events/{eventId}/activities Remove activity from event
+     * @apiGroup Events
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} event_activity_id Id of Event Activity which is to be remove
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id" : 2
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *       "error": "false",
+     *       "message": "Activity has been removed",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+    */
+    public function deleteEventActivity(Request $request, $eventId)
+    {   
+        $validator = \Validator::make($request->all(), [
+            'event_activity_id' => 'required|exists:event_activities,id',
+        ]);
+
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors->first('event_activity_id')]);
+        }
+
+        EventActivities::where('id', $request->get('event_activity_id'))->delete();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Activity has been removed'
+        ]);
+    }
+
+    /**
+     * @api {post} /fan/events/activities/users Register participants to event activities
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value

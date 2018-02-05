@@ -353,11 +353,11 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Get list of event activities with users
     $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
 
-    // TODO Create activity into event
-    $app->post('/fan/event/activity/add', 'EventFanActivityController@activityAddEvent');
+    // Create activity into event
+    $app->post('/fan/events/{eventId}/activities', 'EventController@postAddEventActivity');
 
-    // TODO Remove activity
-    $app->delete('/fan/activity/remove', 'EventFanActivityController@activityRemove');
+    // Remove activity
+    $app->delete('/fan/events/{eventId}/activities', 'EventController@deleteEventActivity');
 
     // List of locations
     $app->get('/fan/locations', 'LocationController@getLocationsList');

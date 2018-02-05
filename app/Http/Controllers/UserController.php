@@ -240,7 +240,7 @@ class UserController extends Controller
     public function registerFacebook(Request $request)
     {
         $validator = Validator::make($request->all(), [
-                    'facebook_id' => 'required|unique:users,facebook_id',
+            'facebook_id' => 'required|unique:users,facebook_id',
         ]);
 
         if ($validator->fails()) {
