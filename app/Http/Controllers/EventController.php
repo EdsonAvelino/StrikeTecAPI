@@ -1015,16 +1015,14 @@ class EventController extends Controller
      *       "error": "false",
      *       "message": "Activity has been added",
      *       "data": {
-     *         "event_activity": {
-     *             "id": 50,
-     *             "event_id": 2,
-     *             "event_activity_type_id": 2,
-     *             "status": false,
-     *             "created_at": "2018-02-06 12:05:17",
-     *             "updated_at": "2018-02-06 12:05:17",
-     *             "type_name": "Power",
-     *             "participants": []
-     *         }
+     *           "id": 50,
+     *           "event_id": 2,
+     *           "event_activity_type_id": 2,
+     *           "status": false,
+     *           "created_at": "2018-02-06 12:05:17",
+     *           "updated_at": "2018-02-06 12:05:17",
+     *           "type_name": "Power",
+     *           "participants": []
      *      }
      *   }
      * @apiErrorExample {json} Error response
@@ -1048,7 +1046,7 @@ class EventController extends Controller
         $eventActivity['type_name'] = $_eventActivity->type->name;
         $eventActivity['participants'] = $_eventActivity->participants;
         
-        return response()->json([ 'error' => 'false', 'message' => 'Activity has been added', 'data' => ['event_activity' => $eventActivity ]]);
+        return response()->json([ 'error' => 'false', 'message' => 'Activity has been added', 'data' => $eventActivity]);
     } 
     
     /**
