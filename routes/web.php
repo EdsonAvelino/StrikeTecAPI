@@ -347,9 +347,6 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Get my events list for fan APP API
     // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
     
-    // TODO Add user to Event Activity
-    $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
-    
     // Get list of event activities with users
     $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
 
@@ -364,6 +361,9 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
 
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
+    
+    // TODO Add user to Event Activity
+    $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
     
     // TODO Remove users from event
     $app->delete('/fan/event/users/remove', 'EventUserController@eventUsersRemove');

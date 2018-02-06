@@ -875,7 +875,7 @@ class EventController extends Controller
      *         "status": true,
      *         "company_name": "Bellator MMA",
      *         "location_name": "Manhattan, New York",
-     *         "participants_count": 1,
+     *         "participants_count": 10,
      *         "activities": [
      *             {
      *                 "id": 12,
@@ -890,19 +890,49 @@ class EventController extends Controller
      *                         "id": 15,
      *                         "user_id": 7,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Xion",
+     *                              "last_name": "King",
+     *                              "photo_url": "https://graph.facebook.com/1234567890/picture?type=large",
+     *                              "gender": "male",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 220
+     *                          }
      *                     },
      *                     {
      *                         "id": 16,
      *                         "user_id": 8,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Jack",
+     *                              "last_name": "Ma",
+     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                              "gender": "male",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 295
+     *                          }
      *                     },
      *                     {
      *                         "id": 17,
      *                         "user_id": 9,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Kely",
+     *                              "last_name": "Flynn",
+     *                              "photo_url": "https://graph.facebook.com/1586933794726097/picture?type=large",
+     *                              "gender": "female",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 351
+     *                          }
      *                     }
      *                 ]
      *             },
@@ -919,19 +949,49 @@ class EventController extends Controller
      *                         "id": 25,
      *                         "user_id": 17,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Sarah",
+     *                              "last_name": "Milong",
+     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                              "gender": "female",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 269
+     *                          }
      *                     },
      *                     {
      *                         "id": 26,
      *                         "user_id": 18,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Zuck",
+     *                              "last_name": "Jack",
+     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                              "gender": "male",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 273
+     *                          }
      *                     },
      *                     {
      *                         "id": 27,
      *                         "user_id": 19,
      *                         "event_activity_id": 12,
-     *                         "is_finished": null
+     *                         "is_finished": null,
+     *                         "user": {
+     *                              "id": 1,
+     *                              "first_name": "Karl",
+     *                              "last_name": "Lobster",
+     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                              "gender": "male",
+     *                              "user_following": false,
+     *                              "user_follower": false,
+     *                              "points": 285
+     *                          }
      *                     }
      *                  ]
      *             }
@@ -958,7 +1018,7 @@ class EventController extends Controller
             \DB::raw('location_id as location_name')
         )->where('id', $eventId)->withCount('participants')->with(['activities' => function($query) {
             $query->select('*', \DB::raw('event_activity_type_id as type_name'));
-        }, 'activities.participants' => function($query) {
+        }, 'activities.participants.user' => function($query) {
             $query->limit(5);
         }])->first();
 
