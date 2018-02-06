@@ -887,52 +887,25 @@ class EventController extends Controller
      *                 "type_name": "Power",
      *                 "participants": [
      *                     {
-     *                         "id": 15,
-     *                         "user_id": 7,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Xion",
-     *                              "last_name": "King",
-     *                              "photo_url": "https://graph.facebook.com/1234567890/picture?type=large",
-     *                              "gender": "male",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 220
-     *                          }
+     *                          "id": 1,
+     *                          "first_name": "Xion",
+     *                          "last_name": "King",
+     *                          "photo_url": "https://graph.facebook.com/1234567890/picture?type=large",
+     *                          "is_finished": false
      *                     },
      *                     {
-     *                         "id": 16,
-     *                         "user_id": 8,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Jack",
-     *                              "last_name": "Ma",
-     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
-     *                              "gender": "male",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 295
-     *                          }
+     *                          "id": 1,
+     *                          "first_name": "Jack",
+     *                          "last_name": "Ma",
+     *                          "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                          "is_finished": true
      *                     },
      *                     {
-     *                         "id": 17,
-     *                         "user_id": 9,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Kely",
-     *                              "last_name": "Flynn",
-     *                              "photo_url": "https://graph.facebook.com/1586933794726097/picture?type=large",
-     *                              "gender": "female",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 351
-     *                          }
+     *                          "id": 1,
+     *                          "first_name": "Kely",
+     *                          "last_name": "Flynn",
+     *                          "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                          "is_finished": false
      *                     }
      *                 ]
      *             },
@@ -946,52 +919,25 @@ class EventController extends Controller
      *                 "type_name": "Power",
      *                 "participants": [
      *                     {
-     *                         "id": 25,
-     *                         "user_id": 17,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Sarah",
-     *                              "last_name": "Milong",
-     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
-     *                              "gender": "female",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 269
-     *                          }
+     *                          "id": 1,
+     *                          "first_name": "Sarah",
+     *                          "last_name": "Milong",
+     *                          "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                          "is_finished": true
      *                     },
      *                     {
-     *                         "id": 26,
-     *                         "user_id": 18,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Zuck",
-     *                              "last_name": "Jack",
-     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
-     *                              "gender": "male",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 273
-     *                          }
+     *                          "id": 2,
+     *                          "first_name": "Zuck",
+     *                          "last_name": "Jack",
+     *                          "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                          "is_finished": false
      *                     },
      *                     {
-     *                         "id": 27,
-     *                         "user_id": 19,
-     *                         "event_activity_id": 12,
-     *                         "is_finished": null,
-     *                         "user": {
-     *                              "id": 1,
-     *                              "first_name": "Karl",
-     *                              "last_name": "Lobster",
-     *                              "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
-     *                              "gender": "male",
-     *                              "user_following": false,
-     *                              "user_follower": false,
-     *                              "points": 285
-     *                          }
+     *                           "id": 1,
+     *                           "first_name": "Karl",
+     *                           "last_name": "Lobster",
+     *                           "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                           "is_finished": false
      *                     }
      *                  ]
      *             }
