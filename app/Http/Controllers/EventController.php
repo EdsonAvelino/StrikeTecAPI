@@ -1012,15 +1012,36 @@ class EventController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Event does not exists']);
         }
 
-        $eventWithActivities = Events::select(
+        $event = Events::select(
             '*',
             \DB::raw('company_id as company_name'),
             \DB::raw('location_id as location_name')
-        )->where('id', $eventId)->withCount('participants')->with(['activities' => function($query) {
-            $query->select('*', \DB::raw('event_activity_type_id as type_name'));
-        }, 'activities.participants.user' => function($query) {
-            $query->limit(5);
-        }])->first();
+        )->where('id', $eventId)->withCount('participants')->first();
+
+        $eventWithActivities = $event->toArray();
+        $eventActivities = [];
+
+        foreach ($event->activities as $eventActivity) {
+            $_eventActivity = $eventActivity->toArray();
+            $_eventActivity['type_name'] = $eventActivity->type->name;
+
+            $participants = [];
+
+            foreach ($eventActivity->participants->take(5) as $participant) {
+                $_participant['id'] = $participant->user->id;
+                $_participant['first_name'] = $participant->user->first_name;
+                $_participant['last_name'] = $participant->user->last_name;
+                $_participant['photo_url'] = $participant->user->photo_url;
+                $_participant['is_finished'] = (bool) $participant->user->is_finished;
+
+                $participants[] = $_participant;
+            }
+
+            $_eventActivity['participants'] = $participants;
+            $eventActivities[] = $_eventActivity;
+        }
+
+        $eventWithActivities['activities'] = $eventActivities;
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $eventWithActivities]);
     }
@@ -1167,7 +1188,7 @@ class EventController extends Controller
     }
 
     /**
-     * @api {post} /fan/event/users/remove remove users from event
+     * @api {post} /fan/events/activities/users Remove participants from event activities
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -1176,12 +1197,12 @@ class EventController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {int} event_id id of event
-     * @apiParam {int} user_id id of user
+     * @apiParam {int} event_activity_id Id of event activity
+     * @apiParam {int} user_id list of user Ids comma seperated e.g. 1,2,3...n
      * @apiParamExample {json} Input
      *    {
-     *      "event_id": 1,
-     *      "user_id": 1,2,3
+     *      "event_activity_id": "2",
+     *      "user_id": "1,2,3",
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
@@ -1189,7 +1210,7 @@ class EventController extends Controller
      *    HTTP/1.1 200 OK
      *    {
      *       "error": "false",
-     *       "message": "Users has been removed from event successfully",
+     *       "message": "Users has been removed from event activity",
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK

@@ -362,11 +362,11 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Change password
     $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
     
-    // TODO Add user to Event Activity
+    // Add user to Event Activity
     $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
     
-    // TODO Remove users from event
-    $app->delete('/fan/event/users/remove', 'EventUserController@eventUsersRemove');
+    // Remove users from event
+    $app->delete('/fan/events/activities/users', 'EventController@eventUsersRemove');
       
     // Get active event details by logged user
     $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
