@@ -933,11 +933,11 @@ class EventController extends Controller
      *                          "is_finished": false
      *                     },
      *                     {
-     *                           "id": 1,
-     *                           "first_name": "Karl",
-     *                           "last_name": "Lobster",
-     *                           "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
-     *                           "is_finished": false
+     *                          "id": 1,
+     *                          "first_name": "Karl",
+     *                          "last_name": "Lobster",
+     *                          "photo_url": "https://graph.facebook.com/123456789/picture?type=large",
+     *                          "is_finished": false
      *                     }
      *                  ]
      *             }
@@ -1030,7 +1030,13 @@ class EventController extends Controller
             'event_activity_type_id' => $request->get('activity_type_id')
         ])->id;
         
-        return response()->json([ 'error' => 'false', 'message' => 'Activity has been added', 'data' => ['event_activity_id' => $eventActivityId ]]);
+        $_eventActivity = EventActivities::where('id', $eventActivityId)->first();
+
+        $eventActivity = $_eventActivity->toArray();
+        $eventActivity['type_name'] = $_eventActivity->type->name;
+        $eventActivity['participants'] = $_eventActivity->participants;
+        
+        return response()->json([ 'error' => 'false', 'message' => 'Activity has been added', 'data' => ['event_activity' => $eventActivity ]]);
     } 
     
     /**

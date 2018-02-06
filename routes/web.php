@@ -307,8 +307,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 });
 
 // Fan App APIs routes
-// This API does not need auth  
-/* ~~~~~~~~~~~~~~~~~~~~~ FAN APP API ROUTES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+// These API does not need auth
 //get user list for fan APP
 $app->get('/fan/companies', 'CompanyController@getCompanyList');
 
