@@ -62,4 +62,11 @@ class AdminUsers extends Model implements AuthenticatableContract, Authenticatab
     {
         return $this->hasOne('App\Companies', 'id', 'company_id');
     }
+
+    public function getRoleAttribute($adminUserId)
+    {
+        $adminUser = self::find($adminUserId);
+
+        return ($adminUser->is_fan_app_admin) ? 'admin' : 'ambassador';
+    }
 }
