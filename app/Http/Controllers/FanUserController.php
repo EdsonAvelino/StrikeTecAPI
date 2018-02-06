@@ -26,7 +26,7 @@ class FanUserController extends Controller
     }
 
     /**
-     * @api {post} /fan/user/register/ Register new FAN admin
+     * @api {post} /fan/user/register Register new FAN Ambassador
      * @apiGroup Fan User
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
@@ -60,6 +60,7 @@ class FanUserController extends Controller
      *           "email": "john@smith.com",
      *           "created_at": "2017-12-06 11:21:01",
      *           "updated_at": "2017-12-06 17:10:56",
+     *           "role": "ambassador",
      *           "company": {
      *               "id": 3,
      *               "company_name": "Direct Tv",
@@ -114,7 +115,7 @@ class FanUserController extends Controller
     }
     
     /**
-     * @api {post} /fan/auth/login Login FAN admin user
+     * @api {post} /fan/auth/login Login FAN admin/ambassador user
      * @apiGroup Fan User
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
@@ -147,6 +148,7 @@ class FanUserController extends Controller
      *           "email": "john@smith.com",
      *           "created_at": "2017-12-06 11:21:01",
      *           "updated_at": "2017-12-06 17:10:56",
+     *           "role": "admin",
      *           "company": {
      *               "id": 3,
      *               "company_name": "Direct Tv",
