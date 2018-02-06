@@ -1014,6 +1014,18 @@ class EventController extends Controller
      *   {
      *       "error": "false",
      *       "message": "Activity has been added",
+     *       "data": {
+     *         "event_activity": {
+     *             "id": 50,
+     *             "event_id": 2,
+     *             "event_activity_type_id": 2,
+     *             "status": false,
+     *             "created_at": "2018-02-06 12:05:17",
+     *             "updated_at": "2018-02-06 12:05:17",
+     *             "type_name": "Power",
+     *             "participants": []
+     *         }
+     *      }
      *   }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
