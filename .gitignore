@@ -4,7 +4,9 @@
 Homestead.json
 Homestead.yaml
 .env
-/storage/videos/*
-/storage/badges/*
-/storage/events/*
-/storage/users/*
+/storage/videos
+/storage/badges
+/storage/events
+/storage/users
+/storage/companies
+/storage/comboAudio
