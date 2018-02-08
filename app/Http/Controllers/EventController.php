@@ -1019,8 +1019,8 @@ class EventController extends Controller
      *           "event_id": 2,
      *           "event_activity_type_id": 2,
      *           "status": false,
-     *           "created_at": "2018-02-06 12:05:17",
-     *           "updated_at": "2018-02-06 12:05:17",
+     *           "created_at": "1517915117",
+     *           "updated_at": "1517915117",
      *           "type_name": "Power",
      *           "participants": []
      *      }
@@ -1150,7 +1150,7 @@ class EventController extends Controller
     }
 
     /**
-     * @api {post} /fan/events/activities/users Remove participants from event activities
+     * @api {delete} /fan/events/activities/users Remove participants from event activities
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -1172,7 +1172,7 @@ class EventController extends Controller
      *    HTTP/1.1 200 OK
      *    {
      *       "error": "false",
-     *       "message": "Users has been removed from event activity",
+     *       "message": "Users haave been removed",
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -1182,52 +1182,38 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function eventUsersRemove(Request $request)
+    public function deleteUsersFromEventActivity(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
-            'event_id' => 'required|exists:event_users',
-            'user_id' => 'required'
-        ]);
-
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' => $errors]);
-        }
-
-        $data = $request->input();
-        $userIds = explode(',', $data['user_id']);
+        $eventActivityId = $request->get('event_activity_id');
+        $userIds = explode(',', $request->get('user_id'));
 
         foreach ($userIds as $userId) {
             if ($userId) {
-                $eventId = $request->get('event_id');
-                EventUser::where('event_id', $eventId)
-                        ->where('user_id', $userId)->delete();
+                EventParticipants::where('event_activity_id', $eventActivityId)->where('user_id', $userId)->delete();
             }
         }
 
         return response()->json([
             'error' => 'false',
-            'message' => 'Users has been removed'
+            'message' => 'Users have been removed'
         ]);
     }
 
     /**
      * @api {get} /fan/events/logged/user get active event details information by logged user id
      * @apiGroup Events
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Active event list information
+     * @apiSuccess {Object} data Active event information
      * @apiSuccessExample {json} Success
      * {
      * "error": "false",
-     * "message": "Active event list information",
+     * "message": "",
      * "data": [
      *           {
      *               "id": 1,
@@ -1239,9 +1225,9 @@ class EventController extends Controller
      *               "from_date": "2018-12-12",
      *               "from_time": "20:45",
      *               "all_day": 0,
-     *               "created_at": "2017-11-28 16:28:37",
-     *               "updated_at": "2017-11-28 16:33:23",
-     *               "location_name": "delhi",
+     *               "created_at": "1511882917",
+     *               "updated_at": "1511882917",
+     *               "location_name": "Delhi",
      *               "company_name": "Normal",
      *               "status": true
      *           },
@@ -1255,9 +1241,9 @@ class EventController extends Controller
      *               "from_date": "2018-12-12",
      *               "from_time": "20:45",
      *               "all_day": 0,
-     *               "created_at": "2017-11-28 16:39:44",
-     *               "updated_at": "2017-11-28 16:39:44",
-     *               "location_name": "noida",
+     *               "created_at": "1511883584",
+     *               "updated_at": "1511883584",
+     *               "location_name": "Noida",
      *               "company_name": "Normal",
      *               "status": true
      *           }
@@ -1273,19 +1259,12 @@ class EventController extends Controller
      */
     public function getuserActiveEventsList($id = false)
     {
-        try {
-            $eventStorage = array();
-            $eventInfo = array();
-            $loggedUserID = \Auth::user()->id;
-            $eventDetails = Events::where('user_id', $loggedUserID)
-                            ->where('status', 1)->get();
-            return response()->json(['error' => 'false', 'message' => 'Active Event list information', 'data' => $eventDetails]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
+        $eventStorage = array();
+        $eventInfo = array();
+        $loggedUserID = \Auth::user()->id;
+        $eventDetails = Events::where('user_id', $loggedUserID)->where('status', 1)->get();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventDetails]);
     }
 
     /**
@@ -1331,10 +1310,12 @@ class EventController extends Controller
                     'event_id' => 'required|exists:event_fan_activities',
                     'status' => 'required',
         ]);
+
         if ($validator->fails()) {
             $errors = $validator->errors();
             return response()->json(['error' => 'true', 'message' => $errors]);
         }
+
         try {
             $eventID = $request->get('event_id');
             $activityID = $request->get('activity_id');

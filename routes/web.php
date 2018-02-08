@@ -308,7 +308,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Fan App APIs routes
 // These API does not need auth
-//get user list for fan APP
+
+// Get list of Fan APP Companies
 $app->get('/fan/companies', 'CompanyController@getCompanyList');
 
 // FAN App admin register
@@ -342,9 +343,6 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     
     // Register user to db
     $app->post('/fan/users', 'FanUserController@postUserToDb');
-
-    // Get my events list for fan APP API
-    // $app->get('/fan/my/events', 'EventController@myEventsUsersList');
     
     // Get list of event activities with users
     $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
@@ -364,15 +362,12 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Add user to Event Activity
     $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
     
-    // Remove users from event
-    $app->delete('/fan/events/activities/users', 'EventController@eventUsersRemove');
+    // Remove user from Event Activity
+    $app->delete('/fan/events/activities/users', 'EventController@deleteUsersFromEventActivity');
       
     // Get active event details by logged user
     $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
-
-    // Change password
-    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
-    
+  
     // TODO Get leaderboard details by event id and activity id
     $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
 
@@ -386,7 +381,7 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     $app->post('/fan/event/activity/status', 'EventController@statusChangeActivity');
      
     // Remove participant
-    $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
+    // $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
     
     // Get pending for approval users list by event id
     $app->get('/fan/event/users/pending/{event_id}', 'EventController@eventPendingUsersList');

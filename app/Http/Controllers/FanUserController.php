@@ -212,7 +212,7 @@ class FanUserController extends Controller
     *      "password": "NewPassword123",
     *    }
     * @apiSuccess {Boolean} error Error flag 
-    * @apiSuccess {String} message Error message
+    * @apiSuccess {String} message Error / Success message
     * @apiSuccessExample {json} Success
     *    HTTP/1.1 200 OK
     *      {
