@@ -1200,74 +1200,6 @@ class EventController extends Controller
     }
 
     /**
-     * @api {get} /fan/events/logged/user get active event details information by logged user id
-     * @apiGroup Events
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Active event information
-     * @apiSuccessExample {json} Success
-     * {
-     * "error": "false",
-     * "message": "",
-     * "data": [
-     *           {
-     *               "id": 1,
-     *               "event_title": "yearly tournament edit",
-     *               "location_id": 2,
-     *               "description": "hii this is descripiton",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2018-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": 0,
-     *               "created_at": "1511882917",
-     *               "updated_at": "1511882917",
-     *               "location_name": "Delhi",
-     *               "company_name": "Normal",
-     *               "status": true
-     *           },
-     *           {
-     *               "id": 4,
-     *               "event_title": "yearly tournament 2",
-     *               "location_id": 1,
-     *               "description": "",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2018-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": 0,
-     *               "created_at": "1511883584",
-     *               "updated_at": "1511883584",
-     *               "location_name": "Noida",
-     *               "company_name": "Normal",
-     *               "status": true
-     *           }
-     *       ]
-     * }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function getuserActiveEventsList($id = false)
-    {
-        $eventStorage = array();
-        $eventInfo = array();
-        $loggedUserID = \Auth::user()->id;
-        $eventDetails = Events::where('user_id', $loggedUserID)->where('status', 1)->get();
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $eventDetails]);
-    }
-
-    /**
      * @api {post} /fan/event/activity/status Activity status update
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -1303,7 +1235,7 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    function statusChangeActivity(Request $request)
+    function postStatusUpdateEventActivity(Request $request)
     {
         $validator = \Validator::make($request->all(), [
                     'activity_id' => 'required|exists:event_fan_activities',
@@ -1316,193 +1248,124 @@ class EventController extends Controller
             return response()->json(['error' => 'true', 'message' => $errors]);
         }
 
-        try {
-            $eventID = $request->get('event_id');
-            $activityID = $request->get('activity_id');
-            if ($request->get('status') == 0) {
-                $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
-                        ->where('event_id', $eventID)
-                        ->first();
-                if ($eventFanActivityStatus->status == 0) {
-                    return response()->json([
-                                'error' => 'false',
-                                'message' => 'Activity already is Inprogress'
-                    ]);
-                }
-                EventFanActivity::where('activity_id', $activityID)
-                        ->where('event_id', $eventID)
-                        ->update(['status' => 0]);
+        $eventID = $request->get('event_id');
+        $activityID = $request->get('activity_id');
+        if ($request->get('status') == 0) {
+            $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
+                    ->where('event_id', $eventID)
+                    ->first();
+            if ($eventFanActivityStatus->status == 0) {
                 return response()->json([
                             'error' => 'false',
-                            'message' => 'Activity status is Inprogress'
-                ]);
-            } else {
-                EventFanActivity::where('activity_id', $activityID)
-                        ->where('event_id', $eventID)
-                        ->update(['status' => 1, 'concluded_at' => date('Y-m-d H:i:s')]);
-                $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
-                                        if ($activityID == 1) {
-                                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                                        }
-                                        if ($activityID == 2) {
-                                            $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
-                                        }
-                                        if ($activityID == 3) {
-                                            $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                                        }
-                                    }])
-                                ->where('event_id', $eventID)
-                                ->where('activity_id', $activityID)->first();
-                return response()->json([
-                            'error' => 'false',
-                            'message' => 'Activity status change successfully',
-                            'data' => $leaderBoardDetails
+                            'message' => 'Activity already is Inprogress'
                 ]);
             }
-        } catch (Exception $e) {
-            \DB::rollBack();
+            EventFanActivity::where('activity_id', $activityID)
+                    ->where('event_id', $eventID)
+                    ->update(['status' => 0]);
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
+                        'error' => 'false',
+                        'message' => 'Activity status is Inprogress'
+            ]);
+        } else {
+            EventFanActivity::where('activity_id', $activityID)
+                    ->where('event_id', $eventID)
+                    ->update(['status' => 1, 'concluded_at' => date('Y-m-d H:i:s')]);
+            $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
+                                    if ($activityID == 1) {
+                                        $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                                    }
+                                    if ($activityID == 2) {
+                                        $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
+                                    }
+                                    if ($activityID == 3) {
+                                        $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+                                    }
+                                }])
+                            ->where('event_id', $eventID)
+                            ->where('activity_id', $activityID)->first();
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'Activity status change successfully',
+                        'data' => $leaderBoardDetails
             ]);
         }
     }
 
     /**
-     * @api {get} /fan/event/pending/users/<event_id> Get event pending users info
+     * @api {post} /fan/events/activities/sessions Upload event-activity's punches
      * @apiGroup Events
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} content-type Content-Type set to "application/json"
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "application/json"
      *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event list information
-     * @apiSuccessExample {json} Success
-     * {
-     *       "error": "false",
-     *       "message": "Events pending users list information",
-     *       "data": [
-     *           {
-     *               "id": 1,
-     *               "user_id": 1,
-     *               "company_id": 1,
-     *               "event_title": "yearly tournament edit",
-     *               "location_id": 2,
-     *               "description": "hii this is descripiton",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2018-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": false,
-     *               "type_of_activity": "power",
-     *               "created_at": "2017-11-28 16:28:37",
-     *               "updated_at": "2017-12-01 19:02:44",
-     *               "location_name": "Manhattan, New York",
-     *               "company_name": "Normal",
-     *               "count_users_waiting_approval": 3,
-     *               "is_active": false,
-     *               "finalized_at": "12/28/2017",
-     *               "users": [
-     *                   {
-     *                       "id": 7,
-     *                       "first_name": "Qiang",
-     *                       "last_name": "Hu",
-     *                       "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512069189.jpg",
-     *                       "birthday": "1990-06-10",
-     *                       "gender": "male",
-     *                       "email": "toniorasma@yahoo.com"
-     *                   },
-     *                   {
-     *                       "id": 12,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "birthday": null,
-     *                       "gender": null,
-     *                       "email": "anchal@gupta.com"
-     *                   },
-     *                   {
-     *                       "id": 13,
-     *                       "first_name": "John",
-     *                       "last_name": "Smith",
-     *                       "photo_url": null,
-     *                       "birthday": "1989-07-04",
-     *                       "gender": "male",
-     *                       "email": "test001@smith.com"
-     *                   }
-     *               ]
-     *           }
-     *      ]
-     *   }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function eventPendingUsersList($eventID)
-    {
-        try {
-            $_event = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
-                            ->with(['eventUser.users', 'eventUser' => function($q) use ($eventID) {
-                                $q->where('status', 0);
-                                $q->where('is_cancelled', 0);
-                                $q->where('event_id', $eventID);
-                            }])->where('id', $eventID)->get()->toArray();
-            $eventStorage = [];
-            foreach ($_event as $events) {
-                $events['users'] = NULL;
-                foreach ($events['event_user'] as $val) {
-                    $events['users'][] = $val['users'];
-                }
-                unset($events['event_user']);
-                $eventStorage = $events;
-            }
-            return response()->json(['error' => 'false', 'message' => 'Events pending users list information', 'data' => $eventStorage]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
-    }
-    
-    /**
-     * @api {post} /fan/event/users/status users accept or decline
-     * @apiGroup Events
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "multipart/form-data",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {int} event_id id of event
-     * @apiParam {String} user_id ids of user with comma separate like 1,2 
-     * @apiParam {int} is_accept 0 for approve 1 for cancel
+     * @apiParam {json} data Json formatted sessions data
      * @apiParamExample {json} Input
-     *    {
-     *      "event_id": 1,
-     *      "user_id": "2,4,5",
-     *      "is_accept": 0
-     *    }
+     * {
+     * "data": [
+     *      {
+     *    "participant_data": {
+     *      "activity_id": 2,
+     *      "activity_time": 0,
+     *      "end_time": 0,
+     *      "event_id": 68,
+     *      "gloves_weight": 0,
+     *      "participant_id": 109,
+     *      "prepare_time": "30",
+     *      "start_time": 1513955976946,
+     *      "sync": 0,
+     *      "warning_time": "30",
+     *      "weight": 200,
+     *      "rowId": 3
+     *    },
+     *    "participant_stats_data": {
+     *      "avg_force": 404.4237288135593,
+     *      "avg_speed": 21.305084745762713,
+     *      "finished": 0.0,
+     *      "best_time": 0.0,
+     *      "max_force": 593.0,
+     *      "max_speed": 34.0,
+     *      "participant_fk": 0.0,
+     *      "punches_count": 59,
+     *      "sync": 0.0
+     *    },
+     *    "participant_punch_data": [
+     *      {
+     *        "force": 306,
+     *        "hand": "R",
+     *        "punch_duration": 0.5,
+     *        "punch_time": "1513955976999",
+     *        "punch_type": "U",
+     *        "speed": 6,
+     *        "sync": 0
+     *      },
+     *      {
+     *        "force": 356,
+     *        "hand": "L",
+     *        "punch_duration": 0.5,
+     *        "punch_time": "1513955977984",
+     *        "punch_type": "H",
+     *        "speed": 6,
+     *        "sync": 0
+     *      },
+     *    ]
+     *  }
+     *  ]
+     * }
      * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {String} message Error message
      * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
+     * HTTP/1.1 200 OK
      * {
      *   {
      *       "error": "false",
-     *       "message": "Users status is updated successfully"
+     *       "message": "Data stored successfully",
      *   }
      * }
-     * @apiErrorExample {json} Error response
+     * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "true",
@@ -1510,31 +1373,150 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
     */
-    public function eventUsersStatus(Request $request)
-    {
-        try{
-            $userIDs = explode(',', $request->get('user_id'));
-            if($request->get('is_accept') == 1) {
-                $updateArray = [
-                            'is_cancelled' => 1,
-                            'status' => 0
-                           ];
-            } else {
-                $updateArray = [
-                            'status' => 1,
-                            'is_cancelled' => 0
-                           ];
-            } 
-            foreach ($userIDs as $userID) {
-                    EventUser::where('event_id', $request->get('event_id'))
-                        ->where('user_id', $userID)
-                        ->update($updateArray);   
+    public function storeEventSessions(Request $request)
+    {  
+        $participantData = $request->get('participant_data');
+        $paricipantSessionData = $request->get('participant_stats_data');
+        $paricipantPunchData = $request->get('participant_punch_data');
+
+        // Creates session
+        $_session = EventSession::create([
+            'participant_id' => $participantData['participant_id'],
+            'event_id' => $participantData['event_id'],
+            'activity_id' => $participantData['activity_id'],
+            'start_time' => $participantData['start_time'],
+            'end_time' => ($participantData['end_time']) ? $participantData['end_time'] : '',
+            'plan_id' => !empty($participantData['plan_id']) ? $participantData['plan_id'] : '',
+            'avg_speed' => $paricipantSessionData['avg_speed'],
+            'avg_force' => $paricipantSessionData['avg_force'],
+            'punches_count' => $paricipantSessionData['punches_count'],
+            'max_force' => $paricipantSessionData['max_force'],
+            'max_speed' => $paricipantSessionData['max_speed'],
+            'best_time' => $paricipantSessionData['best_time']
+        ]);
+        
+        // Store Punchases
+        foreach ($paricipantPunchData as $val) {
+            $_punch = EventSessionPunches::create([
+                'event_session_id' =>  $_session->id,
+                'punch_time' => $val['punch_time'],
+                'punch_duration' => $val['punch_duration'],
+                'force' => $val['force'],
+                'speed' => $val['speed'],
+                'punch_type' => strtoupper($val['punch_type']),
+                'hand' => strtoupper($val['hand']),
+            ]);
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Data stored successfully',
+        ]);
+    }
+    
+    /**
+     * @api {get} /fan/events/activities/<event_activity_id>/leaderboard Get leaderboard of event activity
+     * @apiGroup Events
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} session Sessions information
+     * @apiSuccessExample {json} Success 
+     * {
+     * "error": "false",
+     * "message": "Leaderboard information",
+     * "data": [
+     *   {
+     *       "event_id": 68,
+     *       "activity_id": 3,
+     *       "status": true,
+     *        "event_sessions": [
+     *       {
+     *           "id": 3,
+     *           "participant_id": 12,
+     *           "event_id": 2,
+     *           "activity_id": 3,
+     *           "start_time": 1513955976946,
+     *           "end_time": 0,
+     *           "plan_id": 0,
+     *           "avg_speed": 21.305084745763,
+     *           "avg_force": 404.42372881356,
+     *           "punches_count": 59,
+     *           "max_speed": 137,
+     *           "max_force": 593,
+     *           "best_time": "0",
+     *           "created_at": "2017-12-22 15:19:36",
+     *           "updated_at": "2017-12-26 20:11:01",
+     *           "user": {
+     *               "id": 12,
+     *               "first_name": "Anchal",
+     *               "last_name": "Gupta",
+     *               "name": "Anchal Gupta",
+     *               "photo_url": null
+     *           }
+     *       },
+     *       {
+     *           "id": 2,
+     *           "participant_id": 7,
+     *           "event_id": 2,
+     *           "activity_id": 3,
+     *           "start_time": 1513955976946,
+     *           "end_time": 0,
+     *           "plan_id": 0,
+     *           "avg_speed": 21.305084745763,
+     *           "avg_force": 404.42372881356,
+     *           "punches_count": 59,
+     *           "max_speed": 38,
+     *           "max_force": 593,
+     *           "best_time": "0",
+     *           "created_at": "2017-12-22 15:19:36",
+     *           "updated_at": "2017-12-26 20:10:59",
+     *           "user": {
+     *               "id": 7,
+     *               "first_name": "Qiang",
+     *               "last_name": "Hu",
+     *               "name": "Qiang Hu",
+     *               "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png"
+     *           }
+     *       }
+     *   ]
+     *     }
+     *   ]
+     *  }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getLeaderboardByEventActivity(Request $request)
+    {   
+        $eventID = $request->get('event_id');
+        $activityID = $request->get('activity_id');
+
+        $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
+            if($activityID == 1) {
+                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
             }
-            return response()->json(['error' => 'false', 'message' => 'Users status is updated successfully']);
-        } catch (Exception $ex) {
+            if($activityID == 2) {
+                $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
+            }
+            if($activityID == 3) {
+                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
+            }
+        }])->where('event_id', $eventID)->where('activity_id', $activityID)->first();
+        
+        if (!empty($leaderBoardDetails)) {
             return response()->json([
-               'error' => 'true',
-                'message' => 'Invalid request',
+                        'error' => 'false',
+                        'message' => 'Leaderboard information',
+                        'data' => $leaderBoardDetails,
             ]);
         }
     }

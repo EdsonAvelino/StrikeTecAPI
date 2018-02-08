@@ -364,28 +364,13 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     
     // Remove user from Event Activity
     $app->delete('/fan/events/activities/users', 'EventController@deleteUsersFromEventActivity');
-      
-    // Get active event details by logged user
-    $app->get('/fan/events/logged/user', 'EventController@getuserActiveEventsList');
-  
-    // TODO Get leaderboard details by event id and activity id
-    $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
 
-    // Store event training sessoins' rounds' punches data to db
-    $app->post('/fan/event/training/sessions', 'EventTrainingController@storeEventSessions');
+    // Store event activity sessoins' punches data
+    $app->post('/fan/events/activities/sessions', 'EventController@storeEventSessions');
     
-    // Get leaderboard detials for user
-    $app->get('/fan/event/leaderboard', 'EventTrainingController@getLeaderboardByEventActivity');
+    // Get event activity leaderboard 
+    $app->get('/fan/events/activities/{eventActivityId}/leaderboard', 'EventController@getLeaderboardByEventActivity');
      
     // Update activity status
-    $app->post('/fan/event/activity/status', 'EventController@statusChangeActivity');
-     
-    // Remove participant
-    // $app->delete('/fan/event/participant/remove', 'EventTrainingController@eventParticipantsRemove');
-    
-    // Get pending for approval users list by event id
-    $app->get('/fan/event/users/pending/{event_id}', 'EventController@eventPendingUsersList');
-    
-    // Update status of user approval or not by event id
-    $app->post('/fan/event/users/status', 'EventController@eventUsersStatus');
+    $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
 });
