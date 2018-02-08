@@ -75,6 +75,16 @@ Class EventActivities extends Model
             ->where('participant_id', \Auth::id())->exists();
     }
 
+    public function getCreatedAtAttribute($createdAt)
+    {
+        return strtotime($createdAt);
+    }
+
+    public function getUpdatedAtAttribute($updatedAt)
+    {
+        return strtotime($updatedAt);
+    }
+
     public static function getLeaderboardData($eventActivityId, $offset = 0, $limit = 20)
     {
         $eventActivityId = (int) $eventActivityId;

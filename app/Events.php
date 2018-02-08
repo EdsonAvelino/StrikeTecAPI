@@ -143,6 +143,16 @@ class Events extends Model
         return FALSE;
     }
 
+    public function getCreatedAtAttribute($createdAt)
+    {
+        return strtotime($createdAt);
+    }
+
+    public function getUpdatedAtAttribute($updatedAt)
+    {
+        return strtotime($updatedAt);
+    }
+    
     // public function getFinalizedAtAttribute($eventId)
     // {
     //     $eventIsActive = $this->getIsActiveAttribute($eventId);
