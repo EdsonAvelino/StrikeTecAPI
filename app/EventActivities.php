@@ -15,11 +15,6 @@ Class EventActivities extends Model
             EventParticipants::where('event_activity_id', $eventActivity->id)->delete();
         });
     }
-
-    public function getStatusAttribute($value)
-    {
-        return (bool) $value;
-    }
     
     public function event()
     {

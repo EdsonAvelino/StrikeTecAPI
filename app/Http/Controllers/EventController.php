@@ -1218,7 +1218,6 @@ class EventController extends Controller
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event create successfully
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      * {
