@@ -1200,7 +1200,7 @@ class EventController extends Controller
     }
 
     /**
-     * @api {post} /fan/event/activity/status Activity status update
+     * @api {post} /fan/events/activities/status Update status of event-activity
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} authorization Authorization value
@@ -1209,11 +1209,11 @@ class EventController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {int} id id of event
+     * @apiParam {int} event_activity_id Id of event-activity
+     * @apiParam {int=1,2,3} status Status of event-activity. status = 1 > activated / running now, status = 2 > paused, status = 3 > finished
      * @apiParamExample {json} Input
      *    {
-     *      "event_id": 74,
-     *      "activity_id": 1,
+     *      "event_activity_id": 1,
      *      "status": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -1224,7 +1224,7 @@ class EventController extends Controller
      * {
      *   {
      *       "error": "false",
-     *       "message": "Activity status is Inprogress",
+     *       "message": "Activity status updated",
      *   }
      * }
      * @apiErrorExample {json} Error response
@@ -1238,58 +1238,28 @@ class EventController extends Controller
     function postStatusUpdateEventActivity(Request $request)
     {
         $validator = \Validator::make($request->all(), [
-                    'activity_id' => 'required|exists:event_fan_activities',
-                    'event_id' => 'required|exists:event_fan_activities',
-                    'status' => 'required',
+            'event_activity_id' => 'required|exists:event_activities,id',
+            'status' => 'required|in:1,2,3',
         ]);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' => $errors]);
+
+            if ($errors->first('event_activity_id'))
+                return response()->json(['error' => 'true', 'message' => $errors->first('event_activity_id')]);
+            else
+                return response()->json(['error' => 'true', 'message' => $errors->first('status')]);
         }
 
-        $eventID = $request->get('event_id');
-        $activityID = $request->get('activity_id');
-        if ($request->get('status') == 0) {
-            $eventFanActivityStatus = EventFanActivity::where('activity_id', $activityID)
-                    ->where('event_id', $eventID)
-                    ->first();
-            if ($eventFanActivityStatus->status == 0) {
-                return response()->json([
-                            'error' => 'false',
-                            'message' => 'Activity already is Inprogress'
-                ]);
-            }
-            EventFanActivity::where('activity_id', $activityID)
-                    ->where('event_id', $eventID)
-                    ->update(['status' => 0]);
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Activity status is Inprogress'
-            ]);
-        } else {
-            EventFanActivity::where('activity_id', $activityID)
-                    ->where('event_id', $eventID)
-                    ->update(['status' => 1, 'concluded_at' => date('Y-m-d H:i:s')]);
-            $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
-                                    if ($activityID == 1) {
-                                        $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                                    }
-                                    if ($activityID == 2) {
-                                        $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
-                                    }
-                                    if ($activityID == 3) {
-                                        $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-                                    }
-                                }])
-                            ->where('event_id', $eventID)
-                            ->where('activity_id', $activityID)->first();
-            return response()->json([
-                        'error' => 'false',
-                        'message' => 'Activity status change successfully',
-                        'data' => $leaderBoardDetails
-            ]);
-        }
+        $eventActivityId = $request->get('event_activity_id');
+
+        EventActivities::where('id', $eventActivityId)
+            ->update(['status' => $request->get('status'), 'concluded_at' => date('Y-m-d H:i:s')]);
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Activity status updated',
+        ]);
     }
 
     /**
