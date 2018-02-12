@@ -70,6 +70,11 @@ Class EventActivities extends Model
             ->where('participant_id', \Auth::id())->exists();
     }
 
+    public function getConcludedAtAttribute($concludedAt)
+    {
+        return strtotime($concludedAt);
+    }
+
     public function getCreatedAtAttribute($createdAt)
     {
         return strtotime($createdAt);

@@ -23,10 +23,8 @@ class EventController extends Controller
      * @apiParam {String} title Event title
      * @apiParam {Number} location_id ID of location
      * @apiParam {String} [description] Description
-     * @apiParam {String} start_date Starting date of event, format MM/DD/YYYY 
-     * @apiParam {String} start_time Starting time, format HH:II e.g. 15:00
-     * @apiParam {String} end_date Ending date of event format MM/DD/YYYY 
-     * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
+     * @apiParam {Number} starting_at Starting date of event, format Unix timestamp
+     * @apiParam {Number} ending_at Ending date of event format Unix timestamp
      * @apiParam {Boolean} [all_day] Event is all day
      * @apiParam {file} [image] Image to be uploaded
      * @apiParam {Number} activity_type_id Event activity type Id
@@ -35,11 +33,9 @@ class EventController extends Controller
      *      "title": "EFD fight night",
      *      "location_id": "2",
      *      "description": "",
-     *      "start_date": "01/21/2018",
-     *      "start_time": "12:00",
-     *      "end_date": "01/22/2018",
-     *      "end_time": "20:30",
-     *      "all_day": "0",
+     *      "start_date": 1516201200,
+     *      "end_date": 1516044900,
+     *      "all_day": false,
      *      "image": "img.jpeg",
      *    }
      * @apiSuccess {Boolean} error Error flag 
@@ -50,7 +46,7 @@ class EventController extends Controller
      * {
      *   {
      *       "error": "false",
-     *       "message": "Event has been created successfully",
+     *       "message": "Event has been created",
      *       "data": {
      *               "event_id": 11,
      *               "event_activity_id": 17,
@@ -95,11 +91,9 @@ class EventController extends Controller
             'company_id' => $companyId,
             'admin_user_id' => \Auth::id(),
             'description' => !empty($request->get('description')) ? $request->get('description') : null,
-            'start_date' => date('Y-m-d', strtotime($request->get('start_date'))),
-            'start_time' => $request->get('start_time'),
-            'end_date' => date('Y-m-d', strtotime($request->get('end_date'))),
-            'end_time' => $request->get('end_time'),
-            'all_day' => $request->get('all_day'),
+            'starting_at' => date('Y-m-d H:i:s', ((int) $request->get('starting_at'))),
+            'ending_at' => date('Y-m-d H:i:s', ((int) $request->get('ending_at'))),
+            'all_day' => filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN),
             'image' => $eventImage ?? null
         ])->id;
 
@@ -112,7 +106,7 @@ class EventController extends Controller
 
         $data = ['event_id' => $eventId, 'event_activity_id' => $eventActivity->id];
 
-        return response()->json(['error' => 'false', 'message' => 'Event has been created successfully', 'data' => $data]);
+        return response()->json(['error' => 'false', 'message' => 'Event has been created', 'data' => $data]);
     }
 
     /**
@@ -125,37 +119,30 @@ class EventController extends Controller
      *       "Content-Type": "multipart/form-data",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {String} [event_id] Existing Event ID in case of update event
-     * @apiParam {String} title Event title
-     * @apiParam {int} location_id ID of location
+     * @apiParam {String} [title] Event title
+     * @apiParam {int} [location_id] ID of location
      * @apiParam {String} [description] Description
-     * @apiParam {String} start_date Starting date of event, format MM/DD/YYYY 
-     * @apiParam {String} start_time Starting time, format HH:II e.g. 15:00
-     * @apiParam {String} end_date Ending date of event format MM/DD/YYYY 
-     * @apiParam {String} end_time Ending time of event HH:II e.g. 19:00
+     * @apiParam {Number} [starting_at] Starting date of event. Format Unix timestamp
+     * @apiParam {Number} [ending_at] Ending date of event. Format Unix timestamp
      * @apiParam {Boolean} [all_day] Event is all day
      * @apiParam {file} [image] Image to be uploaded
      * @apiParamExample {json} Input
      *    {
      *      "title": "EFD fight night",
-     *      "location_id": "2",
-     *      "description": "",
-     *      "start_date": "01/21/2018",
-     *      "start_time": "12:00",
-     *      "end_date": "01/22/2018",
-     *      "end_time": "20:30",
-     *      "all_day": "0",
-     *      "image": "img.jpeg",
+     *      "location_id": 3,
+     *      "starting_at": 1516043340,
+     *      "ending_at": 1516861800,
+     *      "all_day": true,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event create successfully
+     * @apiSuccess {Object} data Contains updated event's id
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      * {
      *   {
      *       "error": "false",
-     *       "message": "Event has been created successfully",
+     *       "message": "Event has been updated",
      *       "data": {
      *               "event_id": 1
      *           }
@@ -200,15 +187,11 @@ class EventController extends Controller
             $eventImage = $eventImageName;
         }
 
-        $event->company_id = $companyId;
-        $event->admin_user_id = \Auth::id();
         $event->title = !empty($request->get('title')) ? $request->get('title') : $event->title;
         $event->location_id = !empty($request->get('location_id')) ? $request->get('location_id') : $event->location_id;
         $event->description = !empty($request->get('description')) ? $request->get('description') : $event->description;
-        $event->start_date = !empty($request->get('start_date')) ? date('Y-m-d', strtotime($request->get('start_date'))) : $event->start_date;
-        $event->start_time = !empty($request->get('start_time')) ? $request->get('start_time') : $event->start_time;
-        $event->end_date = !empty($request->get('end_date')) ? date('Y-m-d', strtotime($request->get('end_date'))) : $event->end_date;
-        $event->end_time = !empty($request->get('end_time')) ? $request->get('end_date') : $event->end_date;
+        $event->starting_at = !empty($request->get('starting_at')) ? date('Y-m-d H:i:s', $request->get('starting_at')) : $event->starting_at;
+        $event->ending_at = !empty($request->get('ending_at')) ? date('Y-m-d H:i:s', $request->get('ending_at')) : $event->ending_at;
         
         $event->all_day = !empty($request->get('all_day')) ? filter_var($request->get('all_day'), FILTER_VALIDATE_BOOLEAN) : $event->all_day;
 
@@ -224,7 +207,7 @@ class EventController extends Controller
 
         $event->save();
 
-        return response()->json(['error' => 'false', 'message' => 'Event has been updated successfully', 'data' => ['event_id' => $eventId]]);
+        return response()->json(['error' => 'false', 'message' => 'Event has been updated', 'data' => ['event_id' => $eventId]]);
     }
 
     /**
@@ -300,12 +283,10 @@ class EventController extends Controller
      *                "title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
      *                "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
      *                "image": null,
-     *                "start_date": "2018-01-20",
-     *                "start_time": "23:07:00",
-     *                "end_date": "2018-01-23",
-     *                "end_time": "23:07:00",
+     *                "starting_at": 1518577200,
+     *                "ending_at": 1518674400,
      *                "all_day": false,
-     *                "status": true,
+     *                "status": ture,
      *                "company_name": "Monster Energy",
      *                "location_name": "San Francisco ",
      *                "participants_count": 8,
@@ -399,10 +380,8 @@ class EventController extends Controller
      *                "title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
      *                "description": "Mauris porta tincidunt lectus, sed congue odio lac",
      *                "image": null,
-     *                "start_date": "2018-01-19",
-     *                "start_time": "23:25:00",
-     *                "end_date": "2018-01-24",
-     *                "end_time": "23:25:00",
+     *                "starting_at": 1517650200,
+     *                "ending_at": 1517650200,
      *                "all_day": false,
      *                "status": true,
      *                "company_name": "Monster Energy",
@@ -488,10 +467,8 @@ class EventController extends Controller
      *                "title": "UFC FIGHT NIGHT JACARE VS BRUNSON 2",
      *                "description": "Maecenas nulla lacus, pretium pretium nibh quis, g",
      *                "image": null,
-     *                "start_date": "2018-01-20",
-     *                "start_time": "23:07:00",
-     *                "end_date": "2018-01-23",
-     *                "end_time": "23:07:00",
+     *                "starting_at": 1516126440,
+     *                "ending_at": 1516469820,
      *                "all_day": false,
      *                "status": true,
      *                "company_name": "Monster Energy",
@@ -587,10 +564,8 @@ class EventController extends Controller
      *                "title": "UFC FIGHT NIGHT MACHIDA VAN ANDERS",
      *                "description": "Mauris porta tincidunt lectus, sed congue odio lac",
      *                "image": null,
-     *                "start_date": "2018-01-19",
-     *                "start_time": "23:25:00",
-     *                "end_date": "2018-01-24",
-     *                "end_time": "23:25:00",
+     *                "starting_at": 1516043580,
+     *                "end_date": 1516095780,
      *                "all_day": false,
      *                "status": true,
      *                "company_name": "Monster Energy",
@@ -658,148 +633,6 @@ class EventController extends Controller
     }
 
     /**
-     * @api {get} /fan/my/events Get my events info
-     * @apiGroup Events
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message / Success message
-     * @apiSuccess {Object} data Event list information
-     * @apiSuccessExample {json} Success
-     * {
-     *       "error": "false",
-     *       "message": "Events list information",
-     *       "data": [
-     *           {
-     *               "id": 1,
-     *               "user_id": 1,
-     *               "company_id": 1,
-     *               "event_title": "yearly tournament edit",
-     *               "location_id": 2,
-     *               "description": "hii this is descripiton",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2018-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": false,
-     *               "type_of_activity": "power",
-     *               "created_at": "2017-11-28 16:28:37",
-     *               "updated_at": "2017-12-01 19:02:44",
-     *               "location_name": "Manhattan, New York",
-     *               "company_name": "Normal",
-     *               "count_users_waiting_approval": 1,
-     *               "is_active": false,
-     *               "finalized_at": "12/28/2017",
-     *               "users": [
-     *                   {
-     *                       "id": 7,
-     *                       "first_name": "Qiang",
-     *                       "last_name": "Hu",
-     *                       "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512069189.jpg",
-     *                       "birthday": "1990-06-10",
-     *                       "gender": "male",
-     *                       "email": "toniorasma@yahoo.com"
-     *                   },
-     *                   {
-     *                       "id": 12,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "birthday": null,
-     *                       "gender": null,
-     *                       "email": "anchal@gupta.com"
-     *                   },
-     *                   {
-     *                       "id": 13,
-     *                       "first_name": "John",
-     *                       "last_name": "Smith",
-     *                       "photo_url": null,
-     *                       "birthday": "1989-07-04",
-     *                       "gender": "male",
-     *                       "email": "test001@smith.com"
-     *                   }
-     *               ]
-     *           },
-     *           {
-     *               "id": 2,
-     *               "user_id": 1,
-     *               "company_id": 1,
-     *               "event_title": "yearly tournament 2 edit",
-     *               "location_id": 1,
-     *               "description": "",
-     *               "to_date": "2018-12-12",
-     *               "to_time": "20:00",
-     *               "from_date": "2019-12-12",
-     *               "from_time": "20:45",
-     *               "all_day": false,
-     *               "type_of_activity": "",
-     *               "created_at": "2017-11-28 16:39:44",
-     *               "updated_at": "2017-12-01 19:02:48",
-     *               "location_name": "Las Vegas, Nevada",
-     *               "company_name": "Normal",
-     *               "is_active": false,
-     *               "finalized_at": "12/28/2017",
-     *               "users": [
-     *                   {
-     *                       "id": 7,
-     *                       "first_name": "Qiang",
-     *                       "last_name": "Hu",
-     *                       "photo_url": "http://192.168.14.253/storage/fanuser/profilepic/user_pic-1512069189.jpg",
-     *                       "birthday": "1990-06-10",
-     *                       "gender": "male",
-     *                       "email": "toniorasma@yahoo.com"
-     *                   },
-     *                   {
-     *                       "id": 12,
-     *                       "first_name": "Anchal",
-     *                       "last_name": "Gupta",
-     *                       "photo_url": null,
-     *                       "birthday": null,
-     *                       "gender": null,
-     *                       "email": "anchal@gupta.com"
-     *                   }
-     *               ]
-     *           }
-     *      ]
-     *   }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function myEventsUsersList()
-    {
-        try {
-            $userID = \Auth::id();
-            $_eventList = Events::select('*', \DB::raw('company_id as company_name'), \DB::raw('location_id as location_name'), \DB::raw('id as count_users_waiting_approval'), \DB::raw('id as is_active'), \DB::raw('id as finalized_at'))
-                           ->with(['eventUser.users', 'eventUser'=> function($q){ $q->where('status', 1); }])->where('user_id', $userID)->get()->toArray();
-
-            $eventStorage = [];
-            foreach ($_eventList as $events) {
-                foreach ($events['event_user'] as $val) {
-                    $events['users'][] = $val['users'];
-                }
-                unset($events['event_user']);
-                $eventStorage[] = $events;
-            }
-            return response()->json(['error' => 'false', 'message' => 'My events list information', 'data' => $eventStorage]);
-        } catch (Exception $e) {
-            return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
-            ]);
-        }
-    }
-
-    /**
      * @api {delete} /fan/events/<event_id> Remove event
      * @apiGroup Events
      * @apiHeader {String} authorization Authorization value
@@ -819,7 +652,7 @@ class EventController extends Controller
      * {
      *   {
      *       "error": "false",
-     *       "message": "Event has been removed successfully",
+     *       "message": "Event has been deleted",
      *   }
      * }
      * @apiErrorExample {json} Error response
@@ -840,7 +673,7 @@ class EventController extends Controller
         
         return response()->json([
             'error' => 'false',
-            'message' => 'Event has been deleted successfully'
+            'message' => 'Event has been deleted'
         ]);
     }
 
@@ -867,10 +700,8 @@ class EventController extends Controller
      *         "title": "UFC FIGHT NIGHT TBA VS TBD",
      *         "description": "Sapien ultrices, quis convallis tortor varius vest",
      *         "image": null,
-     *         "start_date": "2018-01-17",
-     *         "start_time": "23:46:00",
-     *         "end_date": "2018-01-24",
-     *         "end_time": "23:46:00",
+     *         "starting_at": 1516043580,
+     *         "ending_at": 1516063380,
      *         "all_day": false,
      *         "status": true,
      *         "company_name": "Bellator MMA",
@@ -881,9 +712,10 @@ class EventController extends Controller
      *                 "id": 12,
      *                 "event_id": 7,
      *                 "event_activity_type_id": 2,
-     *                 "status": false,
-     *                 "created_at": "2017-12-26 12:30:33",
-     *                 "updated_at": "2018-01-14 21:28:39",
+     *                 "status": 2,
+     *                 "concluded_at": 1513954966,
+     *                 "created_at": 1513954966,
+     *                 "updated_at": 1513962824,
      *                 "type_name": "Power",
      *                 "participants": [
      *                     {
@@ -913,9 +745,10 @@ class EventController extends Controller
      *                 "id": 14,
      *                 "event_id": 7,
      *                 "event_activity_type_id": 2,
-     *                 "status": false,
-     *                 "created_at": "2017-12-29 16:28:17",
-     *                 "updated_at": "2018-01-14 21:28:39",
+     *                 "status": 2,
+     *                 "concluded_at": 1514182122,
+     *                 "created_at": 1514182122,
+     *                 "updated_at": 1514182164,
      *                 "type_name": "Power",
      *                 "participants": [
      *                     {
@@ -1019,8 +852,8 @@ class EventController extends Controller
      *           "event_id": 2,
      *           "event_activity_type_id": 2,
      *           "status": false,
-     *           "created_at": "1517915117",
-     *           "updated_at": "1517915117",
+     *           "created_at": 1517915117,
+     *           "updated_at": 1517915117,
      *           "type_name": "Power",
      *           "participants": []
      *      }
@@ -1397,7 +1230,7 @@ class EventController extends Controller
      * @apiSuccessExample {json} Success 
      * {
      * "error": "false",
-     * "message": "Leaderboard information",
+     * "message": "",
      * "data": [
      *   {
      *       "event_id": 68,
@@ -1483,9 +1316,9 @@ class EventController extends Controller
         
         if (!empty($leaderBoardDetails)) {
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'Leaderboard information',
-                        'data' => $leaderBoardDetails,
+                'error' => 'false',
+                'message' => '',
+                'data' => $leaderBoardDetails,
             ]);
         }
     }

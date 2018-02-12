@@ -20,10 +20,8 @@ class Events extends Model
         'title',
         'description',
         'image',
-        'start_date',
-        'start_time',
-        'end_date',
-        'end_time',
+        'starting_at',
+        'ending_at',
         'all_day',
         'status'
     ];
@@ -71,6 +69,16 @@ class Events extends Model
     public function getStatusAttribute($value)
     {
         return (bool) $value;
+    }
+
+    public function getStartingAtAttribute($startingAt)
+    {
+        return strtotime($startingAt);
+    }
+
+    public function getEndingAtAttribute($endingAt)
+    {
+        return strtotime($endingAt);
     }
 
     public function getAllDayAttribute($value)
