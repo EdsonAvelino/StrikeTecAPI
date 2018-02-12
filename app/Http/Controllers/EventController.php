@@ -8,6 +8,9 @@ use App\EventParticipants;
 use App\EventActivities;
 use App\EventSessions;
 
+use App\Mail\SendAuthCodeEmail;
+use Illuminate\Support\Facades\Mail;
+
 class EventController extends Controller
 {
     /**
@@ -955,7 +958,7 @@ class EventController extends Controller
      *    HTTP/1.1 200 OK
      *   {
      *       "error": "false",
-     *       "message": "User has been added to event activity",
+     *       "message": "Users have been added to event activity",
      *   }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -971,15 +974,19 @@ class EventController extends Controller
         $userIds = explode(',', $request->get('user_id'));
 
         foreach ($userIds as $userId) {
-            EventParticipants::create([
-                'event_activity_id' => $eventActivityId,
-                'user_id' => $userId,
-                'is_finished' => null,
-                'joined_via' => 'F'
-            ]);
+            $exists = EventParticipants::where('event_activity_id', $eventActivityId)->where('user_id', $userId)->exists();
+        
+            if (!$exists) {
+                EventParticipants::create([
+                    'event_activity_id' => $eventActivityId,
+                    'user_id' => $userId,
+                    'is_finished' => null,
+                    'joined_via' => 'F'
+                ]);
+            }
         }
 
-        return response()->json(['error' => 'false', 'message' => 'User has been added to event activity']);
+        return response()->json(['error' => 'false', 'message' => 'Users have been added to event activity']);
     }
 
     /**
@@ -1086,12 +1093,16 @@ class EventController extends Controller
         $eventActivityId = $request->get('event_activity_id');
         $userId = $request->get('user_id');
 
-        die();
-        // TODO email
-        // Mail::to($request->get('email'))->send(new PasswordGenerateCodeEmail($subject, $user, $password));
+        $user = \App\User::find($userId);
 
-        // TODO Response
-        // return response()->json(['error' => 'false', 'message' => 'User has been added to DB', 'data' => ['user_id' => $user->id]]);
+        $authCode = substr(hash('sha256', $eventActivityId + $userId), 0, 9);
+        EventParticipants::where('event_activity_id', $eventActivityId)->where('user_id', $userId)
+            ->update(['auth_code' => $authCode]);
+
+        // Mail to user their auth
+        Mail::to($user->email)->send(new SendAuthCodeEmail($user, $authCode));
+
+        return response()->json(['error' => 'false', 'message' => 'Authorization requested for user', 'data' => ['user_id' => $user->id, 'event_activity_id' => $eventActivityId, 'auth_code' => $authCode]]);
     }
 
     /**
