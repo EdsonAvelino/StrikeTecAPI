@@ -1064,7 +1064,11 @@ class EventController extends Controller
      *    {
      *       "error": "false",
      *       "message": "Processed",
-     *       "data": "",
+     *       "data": {
+     *          "user_id": 7,
+     *          "event_activity_id": 2,
+     *          "auth_code": "d4735e3a2"
+     *        },
      *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -1102,7 +1106,7 @@ class EventController extends Controller
         // Mail to user their auth
         Mail::to($user->email)->send(new SendAuthCodeEmail($user, $authCode));
 
-        return response()->json(['error' => 'false', 'message' => 'Authorization requested for user', 'data' => ['user_id' => $user->id, 'event_activity_id' => $eventActivityId, 'auth_code' => $authCode]]);
+        return response()->json(['error' => 'false', 'message' => 'Authorization requested for user', 'data' => ['user_id' => $user->id, 'event_activity_id' => (int) $eventActivityId, 'auth_code' => $authCode]]);
     }
 
     /**
