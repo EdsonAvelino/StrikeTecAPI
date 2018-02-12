@@ -1033,6 +1033,68 @@ class EventController extends Controller
     }
 
     /**
+     * @api {post} /fan/events/activities/users/authorize Authorize participant for event activities
+     * @apiGroup Events
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} event_activity_id Id of event activity
+     * @apiParam {int} user_id ID of user who needs to authorize
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": "2",
+     *      "user_id": "7",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccess {Object} data Contains generated authorization code for user
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *       "error": "false",
+     *       "message": "Processed",
+     *       "data": "",
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function authorizeUserForEventActivity(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'event_activity_id' => 'required|exists:event_activities,id',
+            'user_id' => 'required|exists:event_participants,user_id',
+        ]);
+
+        if ($validator->fails()) { 
+            $errors = $validator->errors();
+
+            if ($errors->first('event_activity_id'))
+                return response()->json(['error' => 'true', 'message' =>  $errors->first('event_activity_id')]);
+            elseif ($errors->first('user_id'))
+                return response()->json(['error' => 'true', 'message' =>  $errors->first('user_id')]);
+        }
+
+        $eventActivityId = $request->get('event_activity_id');
+        $userId = $request->get('user_id');
+
+        die();
+        // TODO email
+        // Mail::to($request->get('email'))->send(new PasswordGenerateCodeEmail($subject, $user, $password));
+
+        // TODO Response
+        // return response()->json(['error' => 'false', 'message' => 'User has been added to DB', 'data' => ['user_id' => $user->id]]);
+    }
+
+    /**
      * @api {post} /fan/events/activities/status Update status of event-activity
      * @apiGroup Events
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded

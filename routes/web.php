@@ -365,6 +365,9 @@ $app->group(['middleware' => 'auth:fan'], function() use ($app) {
     // Remove user from Event Activity
     $app->delete('/fan/events/activities/users', 'EventController@deleteUsersFromEventActivity');
 
+    // Authorize user for Event Activity
+    $app->post('/fan/events/activities/users/authorize', 'EventController@authorizeUserForEventActivity');
+
     // Store event activity sessoins' punches data
     $app->post('/fan/events/activities/sessions', 'EventController@storeEventSessions');
     

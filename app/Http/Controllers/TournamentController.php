@@ -230,7 +230,7 @@ class TournamentController extends Controller
             \DB::raw('id as user_score'),
             \DB::raw('id as user_done'),
         ])->whereHas('event', function($query){
-            $query->where('end_date', '>=', date('Y-m-d'));
+            $query->where(\DB::raw('DATE(ending_at) >= ' . date('Y-m-d')));
         })->whereNotIn('id', $alreadyJoined)->where(function($query) {
             $query->whereNull('status')->orWhere('status', 0);
         })->limit($limit)->get();
@@ -388,7 +388,7 @@ class TournamentController extends Controller
         $alreadyJoined = EventParticipants::select('event_activity_id')->where('user_id', \Auth::id());
 
         $eventActivities = EventActivities::with(['event' => function($query) {
-            $query->where('end_date', '>=', date('Y-m-d'));
+            $query->where(\DB::raw('DATE(ending_at) >= ' . date('Y-m-d')));
         }])->select([
             '*',
             \DB::raw('id as user_joined'),
