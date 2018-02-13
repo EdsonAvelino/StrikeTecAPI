@@ -109,9 +109,10 @@ Class EventActivities extends Model
                     // $query->where('is_finished', 1)->orWhere('user_id', \Auth::id());
                     $query->where('is_finished', 1);
                 })->orderBy('user_score', 'desc')->offset($offset)->limit($limit);
-            }])->first();
+            }])->where('id', $eventActivityId)->first();
         
         $leaderboardData = $eventActivityParticipants->toArray();
+        
         $participants = [];
 
         foreach ( $leaderboardData['participants'] as $idx => $participant ) {

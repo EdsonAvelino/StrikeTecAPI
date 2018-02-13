@@ -1099,7 +1099,7 @@ class EventController extends Controller
 
         $user = \App\User::find($userId);
 
-        $authCode = substr(hash('sha256', $eventActivityId + $userId), 0, 9);
+        $authCode = str_pad((mt_rand(1,999999)), 6, 0, STR_PAD_LEFT);
         EventParticipants::where('event_activity_id', $eventActivityId)->where('user_id', $userId)
             ->update(['auth_code' => $authCode]);
 
@@ -1301,71 +1301,65 @@ class EventController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} event_activity_id Tournament activity ID
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "event_activity_id": 20,
+     *      "start": 0,
+     *      "limit": 20
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} session Sessions information
+     * @apiSuccess {Object} data Event activity leaderboard
      * @apiSuccessExample {json} Success 
-     * {
-     * "error": "false",
-     * "message": "",
-     * "data": [
-     *   {
-     *       "event_id": 68,
-     *       "activity_id": 3,
-     *       "status": true,
-     *        "event_sessions": [
-     *       {
-     *           "id": 3,
-     *           "participant_id": 12,
-     *           "event_id": 2,
-     *           "activity_id": 3,
-     *           "start_time": 1513955976946,
-     *           "end_time": 0,
-     *           "plan_id": 0,
-     *           "avg_speed": 21.305084745763,
-     *           "avg_force": 404.42372881356,
-     *           "punches_count": 59,
-     *           "max_speed": 137,
-     *           "max_force": 593,
-     *           "best_time": "0",
-     *           "created_at": "2017-12-22 15:19:36",
-     *           "updated_at": "2017-12-26 20:11:01",
-     *           "user": {
-     *               "id": 12,
-     *               "first_name": "Anchal",
-     *               "last_name": "Gupta",
-     *               "name": "Anchal Gupta",
-     *               "photo_url": null
-     *           }
-     *       },
-     *       {
-     *           "id": 2,
-     *           "participant_id": 7,
-     *           "event_id": 2,
-     *           "activity_id": 3,
-     *           "start_time": 1513955976946,
-     *           "end_time": 0,
-     *           "plan_id": 0,
-     *           "avg_speed": 21.305084745763,
-     *           "avg_force": 404.42372881356,
-     *           "punches_count": 59,
-     *           "max_speed": 38,
-     *           "max_force": 593,
-     *           "best_time": "0",
-     *           "created_at": "2017-12-22 15:19:36",
-     *           "updated_at": "2017-12-26 20:10:59",
-     *           "user": {
-     *               "id": 7,
-     *               "first_name": "Qiang",
-     *               "last_name": "Hu",
-     *               "name": "Qiang Hu",
-     *               "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png"
-     *           }
-     *       }
-     *   ]
-     *     }
-     *   ]
-     *  }
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": [
+     *              {
+     *                  "event_activity_id": 20,
+     *                  "event_id": 3,
+     *                  "event_activity_type_id": 2,
+     *                  "participants": [
+     *                      {
+     *                           "id": 31,
+     *                           "first_name": "Jimmy",
+     *                           "last_name": "Hoston",
+     *                           "photo_url": null,
+     *                           "gender": "male",
+     *                           "user_following": false,
+     *                           "user_follower": false,
+     *                           "points": 10075,
+     *                           "user_score": 99
+     *                       },
+     *                       {
+     *                           "id": 30,
+     *                           "first_name": "Ami",
+     *                           "last_name": "Suhil",
+     *                           "photo_url": "http://graph.facebook.com/123456789/picture?type=large",
+     *                           "gender": "female",
+     *                           "user_following": false,
+     *                           "user_follower": false,
+     *                           "points": 2999,
+     *                           "user_score": 97
+     *                       },
+     *                       {
+     *                           "id": 29,
+     *                           "first_name": "Wink",
+     *                           "last_name": "Messi",
+     *                           "photo_url": "http://graph.facebook.com/123456789/picture?type=large",
+     *                           "gender": "male",
+     *                           "user_following": false,
+     *                           "user_follower": false,
+     *                           "points": 0,
+     *                           "user_score": 95
+     *                       }
+     *                  ]
+     *              }
+     *      }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
      *      {
@@ -1374,29 +1368,21 @@ class EventController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getLeaderboardByEventActivity(Request $request)
-    {   
-        $eventID = $request->get('event_id');
-        $activityID = $request->get('activity_id');
+    public function getLeaderboardByEventActivity(Request $request, $eventActivityId)
+    {
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
-        $leaderBoardDetails = \App\EventFanActivity::select('event_id', 'activity_id')->with(['eventSessions.user', 'eventSessions' => function($q) use ($activityID) {
-            if($activityID == 1) {
-                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-            }
-            if($activityID == 2) {
-                $q->where('activity_id', $activityID)->orderBy('max_force', 'desc');
-            }
-            if($activityID == 3) {
-                $q->where('activity_id', $activityID)->orderBy('max_speed', 'desc');
-            }
-        }])->where('event_id', $eventID)->where('activity_id', $activityID)->first();
+        $data = EventActivities::getLeaderboardData($eventActivityId, $offset, $limit);
         
-        if (!empty($leaderBoardDetails)) {
-            return response()->json([
-                'error' => 'false',
-                'message' => '',
-                'data' => $leaderBoardDetails,
-            ]);
-        }
+        // Manipulation
+        unset($data['id']);
+        $data = (['event_activity_id' => $eventActivityId]) + $data;
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'data' => $data
+        ]);
     }
 }
