@@ -1067,7 +1067,7 @@ class EventController extends Controller
      *       "data": {
      *          "user_id": 7,
      *          "event_activity_id": 2,
-     *          "auth_code": "d4735e3a2"
+     *          "auth_code": "947532"
      *        },
      *    }
      * @apiErrorExample {json} Error response
