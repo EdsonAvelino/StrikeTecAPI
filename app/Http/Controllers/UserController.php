@@ -241,6 +241,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'facebook_id' => 'required|unique:users,facebook_id',
+            'email' => 'required|unique:users,email',
         ]);
 
         if ($validator->fails()) {
@@ -248,15 +249,17 @@ class UserController extends Controller
 
             if ($errors->get('facebook_id'))
                 return response()->json(['error' => 'true', 'message' => 'User already registered']);
+            elseif ($errors->get('email'))
+                return response()->json(['error' => 'true', 'message' => 'Email already registered']);
         }
 
         $user = User::create(['facebook_id' => $request->get('facebook_id'),
-                    'first_name' => $request->get('first_name'),
-                    'last_name' => $request->get('last_name'),
-                    'email' => $request->get('email'),
-                    'password' => app('hash')->make(strrev($request->get('facebook_id'))),
-                    'show_tip' => 1,
-                    'is_spectator' => 0
+            'first_name' => $request->get('first_name'),
+            'last_name' => $request->get('last_name'),
+            'email' => $request->get('email'),
+            'password' => app('hash')->make(strrev($request->get('facebook_id'))),
+            'show_tip' => 1,
+            'is_spectator' => 0
         ]);
 
         try {
