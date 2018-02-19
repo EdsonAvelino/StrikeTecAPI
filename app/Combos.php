@@ -15,6 +15,7 @@ class Combos extends Model
     protected $fillable = [
         'name',
     ];
+
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -63,5 +64,4 @@ class Combos extends Model
     {
         return $this->hasOne('App\ComboVideos', 'combo_id');
     }
-
 }

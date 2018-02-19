@@ -8,9 +8,11 @@ return [
       |--------------------------------------------------------------------------
      */
     'storage' => [
-    	'users' => 'storage/users',
-	    'events' => 'storage/events',
-	    'companies' => 'storage/companies',
+    	'users' => '/storage/users/',
+	    'events' => '/storage/events/',
+	    'companies' => '/storage/companies/',
+        'videos' => '/storage/videos/',
+        'videos_thumb' => '/storage/videos/thumbnails/',
     ],
 
     /*

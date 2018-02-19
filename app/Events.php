@@ -233,7 +233,7 @@ class Events extends Model
     public function getImageAttribute($value)
     {
         if ($value) {
-            return env('APP_URL') . '/storage/events/' . $value;
+            return env('STORAGE_URL') . config('striketec.storage.events') . $value;
         }
     }
 

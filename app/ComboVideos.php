@@ -20,6 +20,7 @@ class ComboVideos extends Model
         'duration',
         'author_name'
     ];
+
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -49,13 +50,13 @@ class ComboVideos extends Model
                 }
             }
         } else {
-            return env('APP_URL') . '/storage/videos/' . $value;
+            return env('STORAGE_URL') . config('striketec.storage.videos') . $value;
         }
     }
 
     public function getThumbnailAttribute($value)
     {
-        return env('APP_URL') . '/storage/videos/thumbnails/' . $value;
+        return env('STORAGE_URL') . config('striketec.storage.videos_thumb') . $value;
     }
 
     public function getThumbWidthAttribute($thumb)
@@ -71,5 +72,4 @@ class ComboVideos extends Model
 
         return $height;
     }
-
 }

@@ -19,6 +19,6 @@ class Companies extends Model
 
     public function getCompanyLogoAttribute($logo)
     {
-    	return ($logo) ? (env('APP_URL') . '/storage/companies/' . $logo) : null;
+    	return ($logo) ? (env('STORAGE_URL') . config('striketec.storage.companies') . $logo) : null;
     }
 }
