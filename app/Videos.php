@@ -61,14 +61,14 @@ class Videos extends Model
 
     public function getThumbWidthAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path('../../'.(config('striketec.storage.videos_thumb')).$thumb));
+        list($width, $height, $type, $attr) = getimagesize(base_path('../../storage'.(config('striketec.storage.videos_thumb')).$thumb));
 
         return $width;
     }
 
     public function getThumbHeightAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path('../../'.(config('striketec.storage.videos_thumb')).$thumb));
+        list($width, $height, $type, $attr) = getimagesize(base_path('../../storage'.(config('striketec.storage.videos_thumb')).$thumb));
 
         return $height;
     }
