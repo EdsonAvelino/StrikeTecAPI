@@ -8,6 +8,7 @@ return [
       |--------------------------------------------------------------------------
      */
     'storage' => [
+        'badges' => '/storage/badges/',
     	'users' => '/storage/users/',
 	    'events' => '/storage/events/',
 	    'companies' => '/storage/companies/',

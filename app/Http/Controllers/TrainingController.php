@@ -154,9 +154,9 @@ class TrainingController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'sessions' => $sessions
+            'error' => 'false',
+            'message' => '',
+            'sessions' => $sessions
         ]);
     }
 

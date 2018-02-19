@@ -22,8 +22,8 @@ class AchievementTypes extends Model
         'min',
         'max'
     ];
-    protected $hidden = [
 
+    protected $hidden = [
         'created_at',
         'updated_at'
     ];
@@ -33,4 +33,8 @@ class AchievementTypes extends Model
         return $this->hasOne('App\Achievements','id');
     }
 
+    public function getImageAttribute($image)
+    {
+        return ($image) ? (env('STORAGE_URL') . config('striketec.storage.badges') . $image) : null;
+    }
 }
