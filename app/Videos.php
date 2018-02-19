@@ -20,6 +20,7 @@ class Videos extends Model
         'duration',
         'author_name'
     ];
+    
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -60,14 +61,14 @@ class Videos extends Model
 
     public function getThumbWidthAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path("../../videos/thumbnails/{$thumb}"));
+        list($width, $height, $type, $attr) = getimagesize(base_path('../../'.(config('striketec.storage.videos_thumb')).{$thumb}));
 
         return $width;
     }
 
     public function getThumbHeightAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path("../../videos/thumbnails/{$thumb}"));
+        list($width, $height, $type, $attr) = getimagesize(base_path('../../'.(config('striketec.storage.videos_thumb')).{$thumb}));
 
         return $height;
     }

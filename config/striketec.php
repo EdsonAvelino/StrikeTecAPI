@@ -8,12 +8,12 @@ return [
       |--------------------------------------------------------------------------
      */
     'storage' => [
-        'badges' => '/storage/badges/',
-    	'users' => '/storage/users/',
-	    'events' => '/storage/events/',
-	    'companies' => '/storage/companies/',
-        'videos' => '/storage/videos/',
-        'videos_thumb' => '/storage/videos/thumbnails/',
+        'badges' => '/badges/',
+    	'users' => '/users/',
+	    'events' => '/events/',
+	    'companies' => '/companies/',
+        'videos' => '/videos/',
+        'videos_thumb' => '/videos/thumbnails/',
     ],
 
     /*
