@@ -340,8 +340,8 @@ class UserController extends Controller
     public function update(Request $request)
     {
         $this->validate($request, [
-            'gender' => 'in:male,female',
-            'birthday' => 'date',
+            'gender' => 'nullable|in:male,female',
+            'birthday' => 'nullable|date',
         ]);
 
         try {
@@ -386,8 +386,8 @@ class UserController extends Controller
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                        'error' => 'true',
-                        'message' => $e->getMessage()
+                'error' => 'true',
+                'message' => $e->getMessage()
             ]);
         }
     }
