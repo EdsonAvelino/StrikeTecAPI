@@ -42,7 +42,7 @@ return [
     |
     */
 
-    'port' => env('MAIL_PORT', 25),
+    'port' => env('MAIL_PORT', 465),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'app@striketec.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'info@striketec.com'),
         'name' => env('MAIL_FROM_NAME', 'StrikeTec'),
     ],
 
@@ -71,7 +71,7 @@ return [
     |
     */
 
-    'encryption' => env('MAIL_ENCRYPTION', 'tls'),
+    'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
 
     /*
     |--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('MAIL_USERNAME', 'app@striketec.com'),
+    'username' => env('MAIL_USERNAME', 'info@striketec.com'),
 
     /*
     |--------------------------------------------------------------------------
