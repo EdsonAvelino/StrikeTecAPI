@@ -29,7 +29,7 @@ return [
     |
     */
 
-    'host' => env('MAIL_HOST', 'smtp.gmail.com'),
+    'host' => env('MAIL_HOST', 'smtpout.secureserver.net'),
 
     /*
     |--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ return [
     |
     */
 
-    'port' => env('MAIL_PORT', 587),
+    'port' => env('MAIL_PORT', 25),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'info.striketec@gmail.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'app@striketec.com'),
         'name' => env('MAIL_FROM_NAME', 'StrikeTec'),
     ],
 
@@ -84,7 +84,7 @@ return [
     |
     */
 
-    'username' => env('MAIL_USERNAME', 'info.striketec@gmail.com'),
+    'username' => env('MAIL_USERNAME', 'app@striketec.com'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ return [
     |
     */
 
-    'password' => env('MAIL_PASSWORD', '~StrIk3Tec!&17'),
+    'password' => env('MAIL_PASSWORD', 'admin2018!!'),
 
     /*
     |--------------------------------------------------------------------------
