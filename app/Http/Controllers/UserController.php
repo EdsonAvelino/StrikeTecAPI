@@ -21,7 +21,6 @@ use Tymon\JWTAuth\JWTAuth;
 
 class UserController extends Controller
 {
-
     /**
      * @var \Tymon\JWTAuth\JWTAuth
      */
@@ -79,7 +78,7 @@ class UserController extends Controller
      *          "stance": null,
      *          "show_tip": 1,
      *          "skill_level": "PRO",
-     *          "photo_url": "http://example.com/profile/pic.jpg",
+     *          "photo_url": "http://image.example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -128,12 +127,12 @@ class UserController extends Controller
 
         // Creates a new user
         $user = User::create([
-                    'first_name' => $request->get('first_name'),
-                    'last_name' => $request->get('last_name'),
-                    'email' => $request->get('email'),
-                    'password' => app('hash')->make($request->get('password')),
-                    'show_tip' => 1,
-                    'is_spectator' => 0
+            'first_name' => $request->get('first_name'),
+            'last_name' => $request->get('last_name'),
+            'email' => $request->get('email'),
+            'password' => app('hash')->make($request->get('password')),
+            'show_tip' => 1,
+            'is_spectator' => 0
         ]);
 
         try {
@@ -203,7 +202,7 @@ class UserController extends Controller
      *          "stance": null,
      *          "show_tip": 1,
      *          "skill_level": "PRO",
-     *          "photo_url": "http://example.com/profile/pic.jpg",
+     *          "photo_url": "http://image.example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -304,10 +303,6 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_tip] Show tips true / false
      * @apiParam {String} [skill_level] Skill level of user
      * @apiParam {String} [photo_url] User profile photo-url
-     * @apiParam {String} [left_hand_sensor] Left Hand Sensor
-     * @apiParam {String} [right_hand_sensor] Right Hand Sensor
-     * @apiParam {String} [left_kick_sensor] Left Kick Sensor
-     * @apiParam {String} [right_kick_sensor] Right Kick Sensor
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
@@ -359,11 +354,6 @@ class UserController extends Controller
             $user->weight = $request->get('weight') ?? $user->weight;
             $user->height = $request->get('height') ?? $user->height;
 
-            $user->left_hand_sensor = $request->get('left_hand_sensor') ?? $user->left_hand_sensor;
-            $user->right_hand_sensor = $request->get('right_hand_sensor') ?? $user->right_hand_sensor;
-            $user->left_kick_sensor = $request->get('left_kick_sensor') ?? $user->left_kick_sensor;
-            $user->right_kick_sensor = $request->get('right_kick_sensor') ?? $user->right_kick_sensor;
-
             $isSpectator = filter_var($request->get('is_spectator'), FILTER_VALIDATE_BOOLEAN);
             $user->is_spectator = $request->get('is_spectator') ? $isSpectator : $user->is_spectator;
 
@@ -383,6 +373,84 @@ class UserController extends Controller
             return response()->json([
                         'error' => 'false',
                         'message' => 'User details have been updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'true',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * @api {post} /users/sensors Update user's sensor
+     * @apiGroup Users
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} [left_hand_sensor] Left hand sensor
+     * @apiParam {String} [right_hand_sensor] Right hand sensor
+     * @apiParam {String} [left_kick_sensor] Left kick sensor
+     * @apiParam {String} [right_kick_sensor] Right kick sensor
+
+     * @apiParamExample {json} Input
+     *    {
+     *      "left_hand_sensor": 54:6C:0E:15:17:C5,
+     *      "right_hand_sensor": 54:6C:0E:03:F3:ED,
+     *    }
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Updated successfully"
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function updateSensors(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+                    'left_hand_sensor' => 'nullable|unique:users,left_hand_sensor,'.\Auth::id(),
+                    'right_hand_sensor' => 'nullable|unique:users,right_hand_sensor,'.\Auth::id(),
+                    'left_kick_sensor' => 'nullable|unique:users,left_kick_sensor,'.\Auth::id(),
+                    'right_kick_sensor' => 'nullable|unique:users,right_kick_sensor,'.\Auth::id(),
+                ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            if ($errors->get('left_hand_sensor'))
+                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LHS']);
+            elseif ($errors->get('right_hand_sensor'))
+                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RHS']);
+            elseif ($errors->get('left_kick_sensor'))
+                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LKS']);
+            elseif ($errors->get('right_kick_sensor'))
+                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RKS']);
+        }
+
+        try {
+            $user = \Auth::user();
+
+            $user->left_hand_sensor = ($request->get('left_hand_sensor')) ?? $user->left_hand_sensor;
+            $user->right_hand_sensor = ($request->get('right_hand_sensor')) ?? $user->right_hand_sensor;
+            $user->left_kick_sensor = ($request->get('left_kick_sensor')) ?? $user->left_kick_sensor;
+            $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
+
+            $user->save();
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Updated successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -432,7 +500,7 @@ class UserController extends Controller
      *              "stance": null,
      *              "show_tip": 1,
      *              "skill_level": null,
-     *              "photo_url": "http://example.com/profile/pic.jpg",
+     *              "photo_url": "http://image.example.com/profile/pic.jpg",
      *              "updated_at": "2016-02-10 15:46:51",
      *              "created_at": "2016-02-10 15:46:51",
      *              "followers_count": 0,
@@ -486,7 +554,7 @@ class UserController extends Controller
      *                         "id": 7,
      *                         "first_name": "Qiang",
      *                         "last_name": "Hu",
-     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "photo_url": "http://image.example.com/profileImages/sub-1509460359.png",
      *                         "user_following": false,
      *                         "user_follower": false,
      *                         "points": 5854
@@ -499,7 +567,7 @@ class UserController extends Controller
      *                         "id": 7,
      *                         "first_name": "Qiang",
      *                         "last_name": "Hu",
-     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "photo_url": "http://image.example.com/profileImages/sub-1509460359.png",
      *                         "user_following": false,
      *                         "user_follower": false,
      *                         "points": 5854
@@ -513,7 +581,7 @@ class UserController extends Controller
      *                         "id": 7,
      *                         "first_name": "Qiang",
      *                         "last_name": "Hu",
-     *                         "photo_url": "http://172.16.11.45/storage/profileImages/sub-1509460359.png",
+     *                         "photo_url": "http://image.example.com/profile/sub-1509460359.png",
      *                         "user_following": false,
      *                         "user_follower": false,
      *                         "points": 5854
@@ -536,7 +604,7 @@ class UserController extends Controller
      *              "achievement_name": "belt",
      *              "badge_name": "belt",
      *              "description": "belt",
-     *              "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
+     *              "image": "http://image.example.com/badges/Punch_Count_5000.png",
      *              "badge_value": 1,
      *              "awarded": true,
      *              "count": 1,
@@ -547,7 +615,7 @@ class UserController extends Controller
      *              "achievement_name": "Iron First",
      *              "name": "Gold",
      *              "description": "Iron First",
-     *              "image": "http://54.233.233.189/storage/badges/Iron_First.png",
+     *              "image": "http://image.example.com/badges/Iron_First.png",
      *              "badge_value": 1,
      *              "awarded": true,
      *              "count": 1,
@@ -739,8 +807,8 @@ class UserController extends Controller
             $followUser = User::find($userId);
 
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
+                'error' => 'false',
+                'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
             ]);
         }
     }
@@ -819,7 +887,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": true,
      *              "points": 125,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u9384393030.jpg"
      *          },
      *          {
      *              "id": 6,
@@ -828,7 +896,7 @@ class UserController extends Controller
      *              "user_following": false,
      *              "user_follower": false,
      *              "points": 130,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u93393989020.jpg"
      *          },
      *          {
      *              "id": 8,
@@ -837,7 +905,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 150,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u03948474839.jpg"
      *          },
      *          {
      *              "id": 9,
@@ -846,7 +914,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 120,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u204948474839.jpg"
      *          }
      *          ]
      *      }
@@ -889,9 +957,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $_followers
+            'error' => 'false',
+            'message' => '',
+            'data' => $_followers
         ]);
     }
 
@@ -926,7 +994,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": true,
      *              "points": 125,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u3874393848.jpg"
      *          },
      *          {
      *              "id": 6,
@@ -935,7 +1003,7 @@ class UserController extends Controller
      *              "user_following": false,
      *              "user_follower": false,
      *              "points": 130,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u94835748390.jpg"
      *          },
      *          {
      *              "id": 8,
@@ -944,7 +1012,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 150,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u8847574839039.jpg"
      *          },
      *          {
      *              "id": 9,
@@ -953,7 +1021,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 120,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u93847475849.jpg"
      *          }
      *          ]
      *      }
@@ -996,9 +1064,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $_followers
+            'error' => 'false',
+            'message' => '',
+            'data' => $_followers
         ]);
     }
 
@@ -1033,7 +1101,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 125,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u485758494.jpg"
      *          },
      *          {
      *              "id": 6,
@@ -1042,7 +1110,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 135,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u3955849404.jpg"
      *          },
      *          {
      *              "id": 8,
@@ -1051,7 +1119,7 @@ class UserController extends Controller
      *              "user_following": false,
      *              "user_follower": true,
      *              "points": 140,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u9855748939.jpg"
      *          }
      *          ]
      *      }
@@ -1094,9 +1162,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $_following
+            'error' => 'false',
+            'message' => '',
+            'data' => $_following
         ]);
     }
 
@@ -1131,7 +1199,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 125,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u98457449495.jpg"
      *          },
      *          {
      *              "id": 6,
@@ -1140,7 +1208,7 @@ class UserController extends Controller
      *              "user_following": true,
      *              "user_follower": false,
      *              "points": 135,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u9293833939.jpg"
      *          },
      *          {
      *              "id": 8,
@@ -1149,7 +1217,7 @@ class UserController extends Controller
      *              "user_following": false,
      *              "user_follower": true,
      *              "points": 140,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u9498585940.jpg"
      *          }
      *          ]
      *      }
@@ -1172,8 +1240,8 @@ class UserController extends Controller
 
         foreach ($following as $follower) {
             $user = User::select(
-                                    \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points'))
-                            ->where('id', $follower->follow_user_id)->first();
+                    \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')
+                )->where('id', $follower->follow_user_id)->first();
 
             $_following[] = [
                 'id' => $follower->follow_user_id,
@@ -1187,9 +1255,9 @@ class UserController extends Controller
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $_following
+            'error' => 'false',
+            'message' => '',
+            'data' => $_following
         ]);
     }
 
@@ -1221,21 +1289,21 @@ class UserController extends Controller
      *              "id": 5,
      *              "first_name": "Max",
      *              "last_name": "Zuck",
-     *              "photo_url": "http://example.com/image.jpg",
+     *              "photo_url": "http://image.example.com/u85747383990.jpg",
      *              "points": 125
      *          },
      *          {
      *              "id": 6,
      *              "first_name": "Elena",
      *              "last_name": "Jaz",
-     *              "photo_url": "http://example.com/image.jpg",
+     *              "photo_url": "http://image.example.com/u4875748399.jpg",
      *              "points": 135
      *          },
      *          {
      *              "id": 8,
      *              "first_name": "Carl",
      *              "last_name": "Lobstor",
-     *              "photo_url": "http://example.com/image.jpg",
+     *              "photo_url": "http://image.example.com/u84757883939.jpg",
      *              "points": 140
      *          }
      *          ]
@@ -1280,9 +1348,9 @@ class UserController extends Controller
         $users = User::get($suggestedUsersIds);
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $users
+            'error' => 'false',
+            'message' => '',
+            'data' => $users
         ]);
     }
 
@@ -1319,7 +1387,7 @@ class UserController extends Controller
      *              "points": 125,
      *              "user_following": true,
      *              "user_follower": false,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u948474758.jpg"
      *          },
      *          {
      *              "id": 6,
@@ -1328,7 +1396,7 @@ class UserController extends Controller
      *              "points": 135,
      *              "user_following": true,
      *              "user_follower": true,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u9983857579.jpg"
      *          },
      *          {
      *              "id": 8,
@@ -1337,7 +1405,7 @@ class UserController extends Controller
      *              "points": 140,
      *              "user_following": false,
      *              "user_follower": true,
-     *              "photo_url": "http://example.com/image.jpg"
+     *              "photo_url": "http://image.example.com/u5878494948.jpg"
      *          }
      *          ]
      *      }
@@ -1419,13 +1487,13 @@ class UserController extends Controller
             $user->where('id', $user->id)->update(['password' => app('hash')->make($request->get('password'))]);
 
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'Password changed successfully'
+                'error' => 'false',
+                'message' => 'Password changed successfully'
             ]);
         } else {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid old password'
+                'error' => 'true',
+                'message' => 'Invalid old password'
             ]);
         }
     }
@@ -1591,7 +1659,7 @@ class UserController extends Controller
      *                     "id": 31,
      *                     "first_name": "Tia",
      *                     "last_name": "Maria",
-     *                     "photo_url": "http://example.com/image.jpg",
+     *                     "photo_url": "http://image.example.com/u838574839.jpg",
      *                     "user_following": false,
      *                     "user_follower": true,
      *                     "points": 2367
@@ -1662,7 +1730,7 @@ class UserController extends Controller
      *                     "id": 7,
      *                     "first_name": "De",
      *                     "last_name": "Soza",
-     *                     "photo_url": "http://example.com/image.jpg",
+     *                     "photo_url": "http://image.example.com/u3847748339.jpg",
      *                     "user_following": true,
      *                     "user_follower": true,
      *                     "points": 3270

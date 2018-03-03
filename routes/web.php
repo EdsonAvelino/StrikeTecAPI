@@ -47,6 +47,9 @@ $app->get('/tags', 'BattleController@getTags');
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's profile data
     $app->post('/users', 'UserController@update');
+    
+    // Update user's sensor data
+    $app->post('/users/sensors', 'UserController@updateSensors');
 
     // Update user's preferences
     $app->post('/users/preferences', 'UserController@updatePreferences');
