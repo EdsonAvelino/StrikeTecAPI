@@ -258,7 +258,7 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
-            'is_spectator' => 0
+            'is_spectator' => 1
         ]);
 
         try {
@@ -419,10 +419,10 @@ class UserController extends Controller
     public function updateSensors(Request $request)
     {
         $validator = Validator::make($request->all(), [
-                    'left_hand_sensor' => 'nullable|unique:users,left_hand_sensor,'.\Auth::id(),
-                    'right_hand_sensor' => 'nullable|unique:users,right_hand_sensor,'.\Auth::id(),
-                    'left_kick_sensor' => 'nullable|unique:users,left_kick_sensor,'.\Auth::id(),
-                    'right_kick_sensor' => 'nullable|unique:users,right_kick_sensor,'.\Auth::id(),
+                    'left_hand_sensor' => 'nullable|unique:users,left_hand_sensor,'.\Auth::id().'|unique:users,right_hand_sensor',
+                    'right_hand_sensor' => 'nullable|unique:users,right_hand_sensor,'.\Auth::id().'|unique:users,left_hand_sensor',
+                    'left_kick_sensor' => 'nullable|unique:users,left_kick_sensor,'.\Auth::id().'|unique:users,right_kick_sensor',
+                    'right_kick_sensor' => 'nullable|unique:users,right_kick_sensor,'.\Auth::id().'|unique:users,left_kick_sensor',
                 ]);
 
         if ($validator->fails()) {
@@ -445,6 +445,8 @@ class UserController extends Controller
             $user->right_hand_sensor = ($request->get('right_hand_sensor')) ?? $user->right_hand_sensor;
             $user->left_kick_sensor = ($request->get('left_kick_sensor')) ?? $user->left_kick_sensor;
             $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
+            
+            $user->is_spectator = 0;
 
             $user->save();
 
