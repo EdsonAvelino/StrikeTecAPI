@@ -1079,16 +1079,18 @@ class TrainingController extends Controller
 
     public function achievements($sessionId, $battleId)
     {
-
         $userId = \Auth::user()->id;
         $goalId = Goals::getCurrentGoal($userId);
+        
         $achievements = Achievements::orderBy('sequence')->get();
         $mostPowefulPunch = $mostPowefulSpeed = 0;
         $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
+        
         if ($mostPoweful) {
             $mostPowefulPunch = $mostPoweful->max_force;
             $mostPowefulSpeed = $mostPoweful->max_speed;
         }
+        
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
                 case 1:
