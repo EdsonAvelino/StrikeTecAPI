@@ -1367,7 +1367,7 @@ class UserController extends Controller
      * @apiParam {Number} user_id User's Id
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
-     * @apiParam {Boolean="true","false"} spectator Include Spectator users or not
+     * @apiParam {Boolean="true","false"} [spectator] Include Spectator users or not
      * @apiParamExample {json} Input
      *    {
      *      "user_id": 7,
