@@ -26,7 +26,7 @@ class UserAchievements extends Model
         'session_id',
         'goal_id'
     ];
-    
+
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -58,7 +58,7 @@ class UserAchievements extends Model
             $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];
             $resultData['description'] = $achievements['achievement_type']['description'];
-            $resultData['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $achievements['achievement_type']['image'];
+            $resultData['image'] =  $achievements['achievement_type']['image'];
             $resultData['badge_value'] = $achievements['metric_value'];
             $resultData['count'] = $achievements['count'];
             $resultData['shared'] = (boolean) $achievements['shared'];
@@ -89,7 +89,7 @@ class UserAchievements extends Model
                     $beltBadge = $belts['achievement_type'][0];
                     $resultData['badge_name'] = $beltBadge['name'];
                     $resultData['description'] = $beltBadge['description'];
-                    $resultData['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $beltBadge['image'];
+                    $resultData['image'] = $beltBadge['image'];
                     $resultData['badge_value'] = 0;
                     $resultData['awarded'] = false;
                     $resultData['count'] = 0;
@@ -102,7 +102,7 @@ class UserAchievements extends Model
                     $badge = $userData['achievement_type'];
                     $resultData['badge_name'] = $badge['name'];
                     $resultData['description'] = $badge['description'];
-                    $resultData['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $badge['image'];
+                    $resultData['image'] =  $badge['image'];
                     $resultData['badge_value'] = $userData['metric_value'];
                     $resultData['awarded'] = (boolean) $userData['awarded'];
                     $resultData['count'] = $userData['count'];
@@ -117,7 +117,7 @@ class UserAchievements extends Model
             $beltBadge = $belts['achievement_type'][0];
             $resultData['badge_name'] = $beltBadge['name'];
             $resultData['description'] = $beltBadge['description'];
-            $resultData['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $beltBadge['image'];
+            $resultData['image'] =  $beltBadge['image'];
             $resultData['badge_value'] = 0;
             $resultData['awarded'] = false;
             $resultData['count'] = 0;
@@ -367,7 +367,7 @@ class UserAchievements extends Model
         $achievement['badge_name'] = $_achievementType->name;
         $achievement['shared'] = (boolean) $userAchievement->shared;
         $achievement['description'] = $_achievementType->description;
-        $achievement['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $_achievementType->image;
+        $achievement['image'] =  $_achievementType->image;
 
         return $achievement;
     }
@@ -397,7 +397,7 @@ class UserAchievements extends Model
             $resultData['achievement_name'] = $achievements['achievement']['name'];
             $resultData['badge_name'] = $achievements['achievement_type']['name'];
             $resultData['description'] = $achievements['achievement_type']['description'];
-            $resultData['image'] = env('STORAGE_URL') . config('striketec.storage.badges') . $achievements['achievement_type']['image'];
+            $resultData['image'] =  $achievements['achievement_type']['image'];
             $resultData['badge_value'] = $achievements['metric_value'];
             $resultData['count'] = $achievements['count'];
             $resultData['shared'] = (boolean) $achievements['shared'];
