@@ -18,7 +18,8 @@ class UserPreferences extends Model
         'show_achivements',
         'show_training_stats',
         'show_challenges_history',
-        'badge_notification'
+        'badge_notification',
+        'show_tutorial'
     ];
 
     protected $hidden = [

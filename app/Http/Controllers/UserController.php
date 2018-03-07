@@ -132,7 +132,7 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
-            'is_spectator' => 0
+            'is_spectator' => 1
         ]);
 
         try {
