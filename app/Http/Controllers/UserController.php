@@ -1648,7 +1648,8 @@ class UserController extends Controller
      *          "error": "false",
      *          "message": "",
      *          "data": [ {
-     *                "percentage": 1
+     *                "percentage": 1,
+     *                "hide": true/false
      *              },
      *              {
      *                 "id": 4,
@@ -1805,7 +1806,11 @@ class UserController extends Controller
                     ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
         $notifications = [];
-        $notifications[] = ['percentage' => (int) $percentage];
+
+        // If user is spectator, or didn't do any training, then app has to hide percentage part
+        // by having additional boolean flag in reponse
+        $hide = (\Auth::user()->is_spectator) ? true : false;
+        $notifications[] = ['percentage' => (int) $percentage, 'hide' => (bool) $hide];
 
         // Tournament invite notifications
         foreach ($_tournamentInviteNotifications as $notification) {
