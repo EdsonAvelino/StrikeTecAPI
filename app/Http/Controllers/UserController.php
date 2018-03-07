@@ -1367,11 +1367,13 @@ class UserController extends Controller
      * @apiParam {Number} user_id User's Id
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of records
+     * @apiParam {Boolean="true","false"} spectator Include Spectator users or not
      * @apiParamExample {json} Input
      *    {
      *      "user_id": 7,
      *      "start": 20,
      *      "limit": 50
+     *      "spectator": true
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -1426,22 +1428,30 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
+        $includeSpectators = filter_var($request->get('spectator'), FILTER_VALIDATE_BOOLEAN);
+
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
 
         $connections = [];
 
         $_connections = UserConnections::where('follow_user_id', $userId)
-                        ->whereRaw("user_id IN ($userFollowing)", [$userId])
-                        ->offset($offset)->limit($limit)->get();
+                        ->whereRaw("user_id IN ($userFollowing)", [$userId]);
+        
+        if (!$includeSpectators) {
+            $_connections->join('users', 'users.id', '=', 'user_connections.user_id');
+            $_connections->where('users.is_spectator', '!=', 1);
+        }
+
+        $_connections = $_connections->offset($offset)->limit($limit)->get();
 
         foreach ($_connections as $connection) {
             $connections[] = User::get($connection->user_id);
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => $connections
+            'error' => 'false',
+            'message' => '',
+            'data' => $connections
         ]);
     }
 
