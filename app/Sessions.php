@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Sessions extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -15,6 +14,7 @@ class Sessions extends Model
     protected $fillable = [
         'user_id',
         'battle_id',
+        'game_id',
         'type_id',
         'start_time',
         'end_time',

@@ -14,14 +14,14 @@ use App\UserAchievements;
 use App\Achievements;
 use App\AchievementTypes;
 use App\GoalAchievements;
-use App\Helpers\Push;
-use App\Helpers\PushTypes;
 use App\GoalSession;
 use App\Goals;
 
+use App\Helpers\Push;
+use App\Helpers\PushTypes;
+
 class TrainingController extends Controller
 {
-
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiGroup Training
@@ -120,8 +120,8 @@ class TrainingController extends Controller
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('type_id');
 
-// $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
-// $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
+        // $startDate = ($startDate) ? date('Y-m-d 00:00:00', (int) $startDate) : null;
+        // $endDate = ($endDate) ? date('Y-m-d 23:59:59', (int) $endDate) : null;
 
         $startDate = ($startDate) ? $startDate * 1000 : null;
         $endDate = ($endDate) ? ($endDate * 1000) - 1 : null;
@@ -133,7 +133,7 @@ class TrainingController extends Controller
         });
 
         if (!empty($startDate) && !empty($endDate)) {
-// $_sessions->whereBetween('created_at', [$startDate, $endDate]);
+            // $_sessions->whereBetween('created_at', [$startDate, $endDate]);
             $_sessions->where('start_time', '>', $startDate);
             $_sessions->where('start_time', '<', $endDate);
         }
@@ -242,18 +242,18 @@ class TrainingController extends Controller
 
         if (empty($session)) {
             return response()->json([
-                        'error' => 'false',
-                        'message' => '',
-                        'session' => null,
-                        'rounds' => null
+                'error' => 'false',
+                'message' => '',
+                'session' => null,
+                'rounds' => null
             ]);
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'session' => $session->toArray(),
-                    'rounds' => $rounds->toArray()
+            'error' => 'false',
+            'message' => '',
+            'session' => $session->toArray(),
+            'rounds' => $rounds->toArray()
         ]);
     }
 
@@ -293,7 +293,7 @@ class TrainingController extends Controller
      *              "achievement_name": "Most Powerful Punch",
      *              "name": "Powerful Punch",
      *              "description": "Most Powerful Punch",
-     *              "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
+     *              "image": "http://badges.example.com/Punch_Count_5000.png",
      *              "badge_value": 1,
      *              "awarded": true,
      *              "count": 1,
@@ -304,7 +304,7 @@ class TrainingController extends Controller
      *              "achievement_name": "Iron First",
      *              "name": "Gold",
      *              "description": "User Participation",
-     *               "image": "http://54.233.233.189/storage/badges/Punch_Count_5000.png",
+     *              "image": "http://badges.example.com/Punch_Count_5000.png",
      *              "badge_value": 1,
      *              "awarded": true,
      *              "count": 1,
@@ -329,22 +329,23 @@ class TrainingController extends Controller
     public function storeSessions(Request $request)
     {
         $data = $request->get('data');
-        $sessions = []; // Will be use for response
+        $sessions = []; //Will be use for response
 
         foreach ($data as $session) {
             $_session = Sessions::create([
-            'user_id' => \Auth::user()->id,
-            'battle_id' => ($session['battle_id']) ?? null,
-            'type_id' => $session['type_id'],
-            'start_time' => $session['start_time'],
-            'end_time' => $session['end_time'],
-            'plan_id' => $session['plan_id'],
-            'avg_speed' => $session['avg_speed'],
-            'avg_force' => $session['avg_force'],
-            'punches_count' => $session['punches_count'],
-            'max_force' => $session['max_force'],
-            'max_speed' => $session['max_speed'],
-            'best_time' => $session['best_time']
+                'user_id' => \Auth::user()->id,
+                'battle_id' => ($session['battle_id']) ?? null,
+                'game_id' => ($session['game_id']) ?? null,
+                'type_id' => $session['type_id'],
+                'start_time' => $session['start_time'],
+                'end_time' => $session['end_time'],
+                'plan_id' => $session['plan_id'],
+                'avg_speed' => $session['avg_speed'],
+                'avg_force' => $session['avg_force'],
+                'punches_count' => $session['punches_count'],
+                'max_force' => $session['max_force'],
+                'max_speed' => $session['max_speed'],
+                'best_time' => $session['best_time']
             ]);
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
@@ -388,6 +389,8 @@ class TrainingController extends Controller
                 \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
 
                 $battle->update();
+            } elseif ($_session->game_id) {
+                // Do game related
             } else {
                 // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
@@ -475,9 +478,9 @@ class TrainingController extends Controller
         $leaderboardStatus->save();
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => 'Training sessions saved successfully',
-                    'data' => $sessions
+            'error' => 'false',
+            'message' => 'Training sessions saved successfully',
+            'data' => $sessions
         ]);
     }
 
@@ -804,7 +807,7 @@ class TrainingController extends Controller
      */
     public function getSessionsRoundsByTrainingType(Request $request)
     {
-// $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
+        // $sessions = \DB::table('sessions')->select('id')->where('type_id', $trainingTypeId)->get();
 
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
@@ -812,8 +815,8 @@ class TrainingController extends Controller
 
         if (!$trainingTypeId) {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
+                'error' => 'true',
+                'message' => 'Invalid type requested',
             ]);
         }
 
@@ -843,13 +846,13 @@ class TrainingController extends Controller
         $rounds = SessionRounds::whereIn('session_id', $sessionIds)->get();
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'rounds' => $rounds
+            'error' => 'false',
+            'message' => '',
+            'rounds' => $rounds
         ]);
     }
 
-//store sessions for goal
+    // Create goal session
     public function storeGoalSession($goalId, $sessionId)
     {
         GoalSession::create([
@@ -903,8 +906,8 @@ class TrainingController extends Controller
      *                  "id": 1,
      *                  "category_id": 2,
      *                  "title": "Intro",
-     *                  "file": "http://54.233.233.189/storage/videos/video_1511358745.mp4",
-     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790678.png",
+     *                  "file": "http://videos.example.com/video_1511358745.mp4",
+     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790678.png",
      *                  "view_counts": 211,
      *                  "duration": "00:00:06",
      *                  "author_name": "Striketec",
@@ -916,8 +919,8 @@ class TrainingController extends Controller
      *                  "id": 4,
      *                  "category_id": 2,
      *                  "title": "The Hook",
-     *                  "file": "http://54.233.233.189/storage/videos/video_1511357565.mp4",
-     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790074.jpg",
+     *                  "file": "http://videos.example.com/video_1511357565.mp4",
+     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790074.jpg",
      *                  "view_counts": 19,
      *                  "duration": "00:00:55",
      *                  "author_name": "Striketec",
@@ -929,8 +932,8 @@ class TrainingController extends Controller
      *                  "id": 5,
      *                  "category_id": 3,
      *                  "title": "Right Handed Boxing Stance",
-     *                  "file": "http://54.233.233.189/storage/videos/video_1511357525.mp4",
-     *                  "thumbnail": "http://54.233.233.189/storage/videos/thumbnails/video_thumb_1511790106.jpg",
+     *                  "file": "http://videos.example.com/video_1511357525.mp4",
+     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790106.jpg",
      *                  "view_counts": 26,
      *                  "duration": "00:00:27",
      *                  "author_name": "Striketec",
@@ -956,19 +959,19 @@ class TrainingController extends Controller
 
         if ($data === false) {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Session or round not found.'
+                'error' => 'true',
+                'message' => 'Session or round not found.'
             ]);
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'data' => (object) $data
+            'error' => 'false',
+            'message' => '',
+            'data' => (object) $data
         ]);
     }
 
-// Get data calculated for tips
+    // Get data calculated for tips
     private function getTipsData($sessionId)
     {
         $session = Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
@@ -1278,7 +1281,4 @@ class TrainingController extends Controller
 
         return UserAchievements::getSessionAchievements($userId, $sessionId);
     }
-
 }
-
-?> 
