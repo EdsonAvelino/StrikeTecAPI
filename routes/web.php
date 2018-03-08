@@ -54,6 +54,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Update user's preferences
     $app->post('/users/preferences', 'UserController@updatePreferences');
 
+    // Search users
+    $app->get('/users/search', 'UserController@searchUsers');
+
     // Get user's information
     $app->get('/users/{userId}', 'UserController@getUser');
 

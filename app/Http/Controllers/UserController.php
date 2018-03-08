@@ -463,6 +463,86 @@ class UserController extends Controller
     }
 
     /**
+     * @api {get} /users/search Search users
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} query Search term e.g. "jo"
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of users
+     * @apiParamExample {json} Input
+     *    {
+     *      "query": "jo",
+     *      "start": 0,
+     *      "limit": 10,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} users List of users followed by search term
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "users": {
+     *          }
+     *     }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Error message what problem is..."
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function searchUsers(Request $request)
+    {
+        $query = trim($request->get('query'));
+        
+        if (!$query) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Nothing requested',
+            ]);
+        }
+
+        $name = str_replace('+', ' ', $request->get('query'));
+
+        $offset = (int) ($request->get('start') ?? 0);
+        $limit = (int) ($request->get('limit') ?? 20);
+
+        @list($firstname, $lastname) = explode(' ', $name);
+        $_users = User::offset($offset)->limit($limit);
+
+        if (!empty($firstname) && !empty($lastname)) {
+            $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
+        } elseif (!empty($name)) {
+            $_users->where(function($query) use ($name) {
+                $query->where('first_name', 'like', "$name%")->orWhere('last_name', 'like', "$name%");
+            });
+        }
+
+        $users = $_users->get(); 
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'users' => $users
+        ]);
+    }
+
+    /**
+     * Alter param
+     */
+    private function alterParam(&$param)
+    {
+        $param = "%$param%";
+    }
+
+    /**
      * @api {get} /users/<user_id> Get user information
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
