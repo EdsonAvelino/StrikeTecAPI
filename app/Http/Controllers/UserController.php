@@ -1323,6 +1323,8 @@ class UserController extends Controller
         // a) suggested users who are following current user
         // b) suggested users who are followed by user whom current user is following. of course, current user is not following returned users.
 
+        // incase of user is newly registered, suggest trending users
+
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
@@ -1336,10 +1338,17 @@ class UserController extends Controller
                 ->whereRaw("follow_user_id NOT IN ($currentUserFollowing)", [\Auth::user()->id])
                 ->union($suggested1);
 
-
-        $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
+        $suggestedUsersCount = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
+                        ->select('user_id')->mergeBindings($suggestedUsersQuery)->count();
+        
+        // TODO need to improve this suggestion of users to follow
+        if ($suggestedUsersCount < 1) {
+            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->get();
+        } else {
+            $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)
                         ->offset($offset)->limit($limit)->get();
+        }
 
         $suggestedUsersIds = [];
 
