@@ -487,8 +487,108 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *          "users": {
-     *          }
+     *           "users": [
+     *              {
+     *                  "id": 163,
+     *                  "first_name": "Domingo",
+     *                  "last_name": "Suthworth",
+     *                  "photo_url": null,
+     *                  "gender": "male",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 470
+     *              },
+     *              {
+     *                  "id": 241,
+     *                  "first_name": "Giraud",
+     *                  "last_name": "Dorrington",
+     *                  "photo_url": null,
+     *                  "gender": "male",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 960
+     *              },
+     *              {
+     *                  "id": 281,
+     *                  "first_name": "Donny",
+     *                  "last_name": "Stanlick",
+     *                  "photo_url": null,
+     *                  "gender": "female",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 950
+     *              },
+     *              {
+     *                  "id": 318,
+     *                  "first_name": "Wilburt",
+     *                  "last_name": "Dorgon",
+     *                  "photo_url": null,
+     *                  "gender": "male",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 980
+     *              },
+     *              {
+     *                  "id": 384,
+     *                  "first_name": "Ricky",
+     *                  "last_name": "Douce",
+     *                  "photo_url": null,
+     *                  "gender": "female",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 590
+     *              },
+     *              {
+     *                  "id": 500,
+     *                  "first_name": "Dotty",
+     *                  "last_name": "Matuska",
+     *                  "photo_url": null,
+     *                  "gender": "female",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 550
+     *              },
+     *              {
+     *                  "id": 654,
+     *                  "first_name": "Sharia",
+     *                  "last_name": "Dooly",
+     *                  "photo_url": null,
+     *                  "gender": "female",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 650
+     *              },
+     *              {
+     *                  "id": 811,
+     *                  "first_name": "Joshia",
+     *                  "last_name": "Dolby",
+     *                  "photo_url": null,
+     *                  "gender": "male",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 580
+     *              },
+     *              {
+     *                  "id": 872,
+     *                  "first_name": "Dorthea",
+     *                  "last_name": "Tidey",
+     *                  "photo_url": null,
+     *                  "gender": "female",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 120
+     *              },
+     *              {
+     *                  "id": 936,
+     *                  "first_name": "Donal",
+     *                  "last_name": "Dallimare",
+     *                  "photo_url": null,
+     *                  "gender": "male",
+     *                  "user_following": false,
+     *                  "user_follower": false,
+     *                  "points": 190
+     *              }
+     *          ]
      *     }
      * @apiErrorExample {json} Error Response
      *    HTTP/1.1 200 OK
@@ -515,7 +615,17 @@ class UserController extends Controller
         $limit = (int) ($request->get('limit') ?? 20);
 
         @list($firstname, $lastname) = explode(' ', $name);
-        $_users = User::offset($offset)->limit($limit);
+
+        $_users = User::select([
+                    'id',
+                    'first_name',
+                    'last_name',
+                    'photo_url',
+                    'gender',
+                    \DB::raw('id as user_following'),
+                    \DB::raw('id as user_follower'),
+                    \DB::raw('id as points')
+                ])->offset($offset)->limit($limit);
 
         if (!empty($firstname) && !empty($lastname)) {
             $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
