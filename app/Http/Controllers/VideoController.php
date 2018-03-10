@@ -10,7 +10,6 @@ use App\VideoCategory;
 
 class VideoController extends Controller
 {
-
     /**
      * @api {get} /videos Get videos by category
      * @apiGroup Videos

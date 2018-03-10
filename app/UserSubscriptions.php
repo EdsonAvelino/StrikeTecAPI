@@ -13,9 +13,29 @@ class UserSubscriptions extends Model {
      */
     protected $table = 'user_subscriptions';
     
-     protected $fillable = [
-        'user_id', 'device_id', 'order_id', 'purchase_token', 'battle_left', 'tutorial_left', 'tournament_left', 'purchase_time', 'is_auto_renewing', 
-        'subscription_id', 'expiry_date', 'is_cancelled'
+    public $timestamps = false;
+    
+    protected $fillable = [
+        'user_id',
+        'app_subscription_plan_id',
+        'device_id',
+        'order_id',
+        'purchase_token',
+        'battles_left',
+        'tutorials_left',
+        'tournaments_left',
+        'is_auto_renewing', 
+        'is_cancelled',
+        'purchased_at',
+        'expiring_at'
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            $model->purchased_at = $model->freshTimestamp();
+        });
+    }
 }

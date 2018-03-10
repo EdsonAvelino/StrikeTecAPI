@@ -57,6 +57,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Search users
     $app->get('/users/search', 'UserController@searchUsers');
 
+    // User's subscriptions
+    $app->post('/users/subscriptions', 'UserController@postUserSubscriptions');
+
     // Get user's information
     $app->get('/users/{userId}', 'UserController@getUser');
 
