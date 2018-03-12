@@ -626,7 +626,7 @@ class UserController extends Controller
                     \DB::raw('id as user_following'),
                     \DB::raw('id as user_follower'),
                     \DB::raw('id as points')
-                ])->where('id' '<>', \Auth::id())->offset($offset)->limit($limit);
+                ])->where('id', '<>', \Auth::id())->offset($offset)->limit($limit);
 
         if (!empty($firstname) && !empty($lastname)) {
             $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
