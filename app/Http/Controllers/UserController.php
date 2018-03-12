@@ -632,7 +632,7 @@ class UserController extends Controller
             $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
         } elseif (!empty($name)) {
             $_users->where(function($query) use ($name) {
-                $query->where('first_name', 'like', "$name%")->orWhere('last_name', 'like', "$name%");
+                $query->where('first_name', 'like', "%$name%")->orWhere('last_name', 'like', "%$name%");
             });
         }
 
