@@ -488,7 +488,7 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *           "users": [
+     *          "data": [
      *              {
      *                  "id": 163,
      *                  "first_name": "Domingo",
@@ -641,7 +641,7 @@ class UserController extends Controller
         return response()->json([
             'error' => 'false',
             'message' => '',
-            'users' => $users
+            'data' => $users
         ]);
     }
 
