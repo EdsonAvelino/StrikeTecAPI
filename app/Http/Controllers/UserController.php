@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Validator;
 use App\User;
 use App\UserConnections;
-use App\UserSubscriptions;
 use App\Faqs;
 use App\Leaderboard;
 use App\Battles;
@@ -651,64 +650,6 @@ class UserController extends Controller
     private function alterParam(&$param)
     {
         $param = "%$param%";
-    }
-
-    /**
-     * @api {post} /users/subscriptions User's app subscription
-     * @apiGroup Users
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *     }
-     * @apiParam {Integer} app_subscription_plan_id App Subscription Plan ID
-     * @apiParam {Integer} device_id Device ID
-     * @apiParam {Integer} order_id Order ID
-     * @apiParam {Integer} product_id Product ID
-     * @apiParam {Integer} purchase_token Token
-     * @apiParamExample {json} Input
-     *    {
-     *      'app_subscription_plan_id': 1,
-     *      'device_id': 1,
-     *      'order_id': 124,
-     *      'purchase_token': B29FAO489P39SU38KIWOPS,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Some data
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "false",
-     *          "message": "",
-     *          "data": []
-     *      }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function postUserSubscriptions(Request $request)
-    {
-        $subscription = UserSubscriptions::create([
-            'user_id' => \Auth::id(),
-            'app_subscription_plan_id' => $request->get('app_subscription_plan_id'),
-            'device_id' => $request->get('device_id'),
-            'order_id' => $request->get('order_id'),
-            'purchase_token' => $request->get('purchase_token'),
-            'battles_left' => 1,
-            'tutorials_left' => 1,
-            'tournaments_left' => 1,
-            'is_auto_renewing' => true, 
-            'is_cancelled' => false
-        ]);
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => ['subscription_id' => $subscription->id]]);
     }
 
     /**

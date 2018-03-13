@@ -57,9 +57,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Search users
     $app->get('/users/search', 'UserController@searchUsers');
 
-    // User's subscriptions
-    $app->post('/users/subscriptions', 'UserController@postUserSubscriptions');
-
     // Get user's information
     $app->get('/users/{userId}', 'UserController@getUser');
 
@@ -313,6 +310,15 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Invite connection for tournament 
     $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
+});
+
+// In-App Purchase APIs
+$app->group(['middleware' => 'auth:api'], function() use ($app) {
+    // Get IAP get list of products
+    $app->get('/iap/products/{platform}', 'IapController@getProducts');
+
+    // Store In-App Purchase receipts
+    $app->post('/iap/receipt', 'IapController@storeReceipt');
 });
 
 // Fan App APIs routes
