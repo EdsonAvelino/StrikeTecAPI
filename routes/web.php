@@ -312,14 +312,12 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
 });
 
-// In-App Purchase APIs
-$app->group(['middleware' => 'auth:api'], function() use ($app) {
-    // Get IAP get list of products
-    $app->get('/iap/products/{platform}', 'IapController@getProducts');
+// In-App Purchase APIs [these APIs don't need authorization]
+// Get IAP get list of products
+$app->get('/iap/products/{platform}', 'IapController@getProducts');
 
-    // Store In-App Purchase receipts
-    $app->post('/iap/receipt', 'IapController@storeReceipt');
-});
+// Store In-App Purchase receipts
+$app->post('/iap/receipt', 'IapController@storeReceipt');
 
 // Fan App APIs routes
 // These API does not need auth
