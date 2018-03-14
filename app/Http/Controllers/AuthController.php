@@ -128,7 +128,13 @@ class AuthController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+        
+        // Subscription details (which iap product user has subscribed)
         $user['subscription'] = User::getSubscription($user['id']);
+
+        // Subscription check flag for app to check user's subscription status on google/appstore 
+        $subscriptionCheck = User::select('id as subscription_check')->where('id', $user['id'])->pluck('subscription_check')->first();
+        $user['subscription_check'] = (bool) $subscriptionCheck;
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
@@ -234,6 +240,13 @@ class AuthController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+        
+        // Subscription details (which iap product user has subscribed)
+        $user['subscription'] = User::getSubscription($user['id']);
+
+        // Subscription check flag for app to check user's subscription status on google/appstore 
+        $subscriptionCheck = User::select('id as subscription_check')->where('id', $user['id'])->pluck('subscription_check')->first();
+        $user['subscription_check'] = (bool) $subscriptionCheck;
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }

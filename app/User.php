@@ -208,6 +208,24 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
     }
 
+    public function getSubscriptionCheckAttribute($userId)
+    {
+        return !(self::isSubscriptionActive($userId));
+    }
+
+    public static function isSubscriptionActive($userId)
+    {
+        // User's subscription
+        $userSubscription = \App\UserSubscriptions::where('user_id', $userId)->first();
+
+        // If not subscribed yet
+        if (!$userSubscription) return false;
+
+        // Check expire_at of subscription is greater than or equal to current date
+        $expireAt = new \Carbon\Carbon($userSubscription->expire_at);
+        return (bool) ( $expireAt->gte(\Carbon\Carbon::now()) );
+    }
+
     public function getNumberOfChallengesAttribute($userId)
     {
         return Battles::where(function ($query) use($userId) {
