@@ -88,7 +88,15 @@ class AuthController extends Controller
      *              "state_id": 286,
      *              "name": "Pettenbach"
      *          },
-     *          "points": 2500
+     *          "points": 2500,
+     *          "subscription": {
+     *              "trainee_monthly ": false,
+     *              "trainee_yearly ": false,
+     *              "coach_monthly ": false,
+     *              "spectator_monthly ": true,
+     *              "spectator_yearly ": false
+     *          },
+     *          "subscription_check": false
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
@@ -203,7 +211,15 @@ class AuthController extends Controller
      *              "state_id": 286,
      *              "name": "Pettenbach"
      *          },
-     *          "points": 2752
+     *          "points": 2752,
+     *          "subscription": {
+     *              "trainee_monthly ": false,
+     *              "trainee_yearly ": false,
+     *              "coach_monthly ": false,
+     *              "spectator_monthly ": true,
+     *              "spectator_yearly ": false
+     *          },
+     *          "subscription_check": false
      *      }
      *    }
      * @apiErrorExample {json} Authentication error
