@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Validator;
 use App\User;
 use App\UserConnections;
+use App\UserSubscriptions;
 use App\Faqs;
 use App\Leaderboard;
 use App\Battles;
@@ -650,6 +651,81 @@ class UserController extends Controller
     private function alterParam(&$param)
     {
         $param = "%$param%";
+    }
+
+    /**
+     * @api {post} /users/subscription Know/Update User's app subscription
+     * @apiGroup In-App Purchases
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *       "Content-Type": "application/x-www-form-urlencoded",
+     *     }
+     * @apiParam {Integer} product_id In-App Product (Subscription) ID
+     * @apiParam {String="IOS","ANDROID"} platform Device ID
+     * @apiParam {Boolean="ture","false"} [is_auto_renewable] Subscription is auto renewable, true/false
+     * @apiParam {Timestamp} [purchased_at] Purchased timestamp
+     * @apiParam {Timestamp} [expire_at] Expire Timestamp
+     * @apiParamExample {json} Input
+     *    {
+     *      'product_id': 1,
+     *      'platform': "IOS",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Some data
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": []
+     *      }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getOrUpdateUserSubscriptions(Request $request)
+    {
+        $subscription = UserSubscriptions::where('user_id', \Auth::id())->first();
+
+        if ( !$subscription ) {
+            // Creates new if not found
+            $subscription = UserSubscriptions::create([
+                'user_id' => \Auth::id(),
+                'iap_product_id' => $request->get('product_id'),
+                'platform' => $request->get('platform'),
+                'is_auto_renewable' => $request->get('is_auto_renewable') ?? null,
+                'purchased_at' => $request->get('purchased_at') ?? null, // Put timestamp here
+                'expire_at' => $request->get('expire_at') ?? null // Put timestamp here
+            ]);
+        } else {
+            // Updates existing subscription
+            $subscription->iap_product_id = $request->get('product_id');
+            $subscription->platform = $request->get('platform');
+            $subscription->is_auto_renewable = $request->get('is_auto_renewable') ?? $subscription->is_auto_renewable;
+            // Put timestamp for purchased_at & expire_at
+            $subscription->purchased_at = $request->get('purchased_at') ?? $subscription->purchased_at;
+            $subscription->expire_at = $request->get('expire_at') ?? $subscription->expire_at;
+
+            $subscription->save();
+        }
+
+        // Fetch products for response
+        $products = \App\IapProducts::select('id', 'product_id')->where('platform', $request->get('platform'))->get();
+        
+        $data = [];
+        foreach ($products as $product) {
+            $data[$product->product_id] = ($product->id == $request->get('product_id')) ? true : false;
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
