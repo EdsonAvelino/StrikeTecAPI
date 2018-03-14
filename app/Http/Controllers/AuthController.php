@@ -128,6 +128,7 @@ class AuthController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+        $user['subscription'] = User::getSubscription($user['id']);
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
