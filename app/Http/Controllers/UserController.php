@@ -663,7 +663,7 @@ class UserController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *       "Content-Type": "application/x-www-form-urlencoded",
      *     }
-     * @apiParam {Integer} product_id In-App Product (Subscription) ID
+     * @apiParam {String} product_id In-App Product (Subscription) ID e.g. trainee_monthly, trainee_yearly
      * @apiParam {String="IOS","ANDROID"} platform Device ID
      * @apiParam {Boolean="ture","false"} [is_auto_renewable] Subscription is auto renewable, true/false
      * @apiParam {Timestamp} [purchased_at] Purchased timestamp
@@ -681,7 +681,13 @@ class UserController extends Controller
      *      {
      *          "error": "false",
      *          "message": "",
-     *          "data": []
+     *          "data": {
+     *             "trainee_monthly": false,
+     *             "trainee_yearly": false,
+     *             "coach_monthly": true,
+     *             "spectator_monthly": false,
+     *             "spectator_yearly": false
+     *          }
      *      }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
