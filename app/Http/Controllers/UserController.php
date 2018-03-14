@@ -693,13 +693,19 @@ class UserController extends Controller
      */
     public function getOrUpdateUserSubscriptions(Request $request)
     {
+        $IAPproduct = \App\IapProducts::where('product_id', $request->get('product_id'))->where('platform', $request->get('platform'))->first();
+        
+        if ( !$IAPproduct ) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid product_id']);
+        }
+
         $subscription = UserSubscriptions::where('user_id', \Auth::id())->first();
 
         if ( !$subscription ) {
             // Creates new if not found
             $subscription = UserSubscriptions::create([
                 'user_id' => \Auth::id(),
-                'iap_product_id' => $request->get('product_id'),
+                'iap_product_id' => $IAPproduct->id,
                 'platform' => $request->get('platform'),
                 'is_auto_renewable' => $request->get('is_auto_renewable') ?? null,
                 'purchased_at' => $request->get('purchased_at') ?? null, // Put timestamp here
@@ -707,7 +713,7 @@ class UserController extends Controller
             ]);
         } else {
             // Updates existing subscription
-            $subscription->iap_product_id = $request->get('product_id');
+            $subscription->iap_product_id = $IAPproduct->id;
             $subscription->platform = $request->get('platform');
             $subscription->is_auto_renewable = $request->get('is_auto_renewable') ?? $subscription->is_auto_renewable;
             // Put timestamp for purchased_at & expire_at
@@ -722,7 +728,7 @@ class UserController extends Controller
         
         $data = [];
         foreach ($products as $product) {
-            $data[$product->product_id] = ($product->id == $request->get('product_id')) ? true : false;
+            $data[$product->product_id] = ($product->id == $IAPproduct->id) ? true : false;
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
