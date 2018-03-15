@@ -20,6 +20,7 @@ class SessionRoundPunches extends Model
         'speed',
         'punch_type',
         'hand',
+        'distance',
     ];
 
     protected $dateFormat = 'Y-m-d\TH:i:s.u';

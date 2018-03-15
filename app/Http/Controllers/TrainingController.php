@@ -523,6 +523,7 @@ class TrainingController extends Controller
      *          "speed": 14,
      *          "punch_type": "H",
      *          "hand": "L",
+     *          "distance": "35.49",
      *          "created_at": "2017-09-13 17:55:00",
      *          "updated_at": "2017-09-13 17:55:00"
      *      },
@@ -535,6 +536,7 @@ class TrainingController extends Controller
      *          "speed": 23,
      *          "punch_type": "H",
      *          "hand": "L",
+     *          "distance": "49.20",
      *          "created_at": "2017-09-13 17:55:01",
      *          "updated_at": "2017-09-13 17:55:01"
      *      },
@@ -547,6 +549,7 @@ class TrainingController extends Controller
      *          "speed": 22,
      *          "punch_type": "J",
      *          "hand": "R",
+     *          "distance": "55.57",
      *          "created_at": "2017-09-13 17:55:02",
      *          "updated_at": "2017-09-13 17:55:02"
      *      }]
@@ -564,7 +567,7 @@ class TrainingController extends Controller
         $round = SessionRounds::where('id', $roundId)->first();
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
-// If round not found, it will return null
+        // If round not found, it will return null
         if (empty($round)) {
             return response()->json([
                         'error' => 'false',
@@ -672,10 +675,10 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left" },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 53.21 },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 43.41 },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 51.27 },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 33.09 },
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -710,7 +713,7 @@ class TrainingController extends Controller
             foreach ($data as $punch) {
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-// Store punches
+                // Store punches
                 $_punch = SessionRoundPunches::create([
                             'session_round_id' => $sessionRound->id,
                             'punch_time' => $punch['punch_time'],
@@ -719,6 +722,7 @@ class TrainingController extends Controller
                             'speed' => $punch['speed'],
                             'punch_type' => strtoupper($punch['punch_type']),
                             'hand' => strtoupper($punch['hand']),
+                            'distance' => $punch['distance'],
                 ]);
 
                 $punches[] = ['start_time' => $_punch->punch_time];
