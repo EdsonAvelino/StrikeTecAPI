@@ -523,7 +523,7 @@ class TrainingController extends Controller
      *          "speed": 14,
      *          "punch_type": "H",
      *          "hand": "L",
-     *          "distance": "35.49",
+     *          "distance": 35.49,
      *          "created_at": "2017-09-13 17:55:00",
      *          "updated_at": "2017-09-13 17:55:00"
      *      },
@@ -536,7 +536,7 @@ class TrainingController extends Controller
      *          "speed": 23,
      *          "punch_type": "H",
      *          "hand": "L",
-     *          "distance": "49.20",
+     *          "distance": 49.20,
      *          "created_at": "2017-09-13 17:55:01",
      *          "updated_at": "2017-09-13 17:55:01"
      *      },
@@ -549,7 +549,7 @@ class TrainingController extends Controller
      *          "speed": 22,
      *          "punch_type": "J",
      *          "hand": "R",
-     *          "distance": "55.57",
+     *          "distance": 55.57,
      *          "created_at": "2017-09-13 17:55:02",
      *          "updated_at": "2017-09-13 17:55:02"
      *      }]
