@@ -390,7 +390,7 @@ class TrainingController extends Controller
 
                 $battle->update();
             } elseif ($_session->game_id) {
-                // Do game related
+                // Do game related stuff
             } else {
                 // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
@@ -405,6 +405,7 @@ class TrainingController extends Controller
                                 'session_id' => $_session->id,
                                 'goal_id' => $goal->id
                             ]);
+                            
                             $goal->done_count = $goal->done_count + 1;
                             $goal->save();
                         }
@@ -413,6 +414,7 @@ class TrainingController extends Controller
                             'session_id' => $_session->id,
                             'goal_id' => $goal->id
                         ]);
+
                         $goal->done_count = $_session->punches_count + $goal->done_count;
                         $goal->save();
                     }
@@ -432,18 +434,14 @@ class TrainingController extends Controller
 
         // Set all old averate data to 0
         $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
+         
+        $oldAvgSpeed = $leaderboardStatus->avg_speed;
+        $oldAvgForce = $leaderboardStatus->avg_force;
+        $oldPunchesCount = $leaderboardStatus->punches_count;
 
-        if (!$leaderboardStatus) {
-            // TODO check for all users' leaderboard entry exists
-        } else {
-            $oldAvgSpeed = $leaderboardStatus->avg_speed;
-            $oldAvgForce = $leaderboardStatus->avg_force;
-            $oldPunchesCount = $leaderboardStatus->punches_count;
-
-            $leaderboardStatus->sessions_count = $sessionsCount;
-            $leaderboardStatus->punches_count = $punchesCount;
-            $leaderboardStatus->save();
-        }
+        $leaderboardStatus->sessions_count = $sessionsCount;
+        $leaderboardStatus->punches_count = $punchesCount;
+        $leaderboardStatus->save();
 
         // Formula
         // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)

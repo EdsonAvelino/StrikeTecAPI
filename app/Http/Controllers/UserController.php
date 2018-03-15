@@ -419,24 +419,44 @@ class UserController extends Controller
      */
     public function updateSensors(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-                    'left_hand_sensor' => 'nullable|unique:users,left_hand_sensor,'.\Auth::id().'|unique:users,right_hand_sensor,'.\Auth::id(),
-                    'right_hand_sensor' => 'nullable|unique:users,right_hand_sensor,'.\Auth::id().'|unique:users,left_hand_sensor,'.\Auth::id(),
-                    'left_kick_sensor' => 'nullable|unique:users,left_kick_sensor,'.\Auth::id().'|unique:users,right_kick_sensor,'.\Auth::id(),
-                    'right_kick_sensor' => 'nullable|unique:users,right_kick_sensor,'.\Auth::id().'|unique:users,left_kick_sensor,'.\Auth::id(),
-                ]);
+        // Find user who have shared his sensors
+        $sensors = [
+            'left_hand_sensor' => $request->get('left_hand_sensor'),
+            'right_hand_sensor' => $request->get('right_hand_sensor'),
+            'left_kick_sensor' => $request->get('left_kick_sensor'),
+            'right_kick_sensor' => $request->get('right_kick_sensor')
+        ];
 
-        if ($validator->fails()) {
-            $errors = $validator->errors();
+        array_filter($sensors);
 
-            if ($errors->get('left_hand_sensor'))
-                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LHS']);
-            elseif ($errors->get('right_hand_sensor'))
-                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RHS']);
-            elseif ($errors->get('left_kick_sensor'))
-                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LKS']);
-            elseif ($errors->get('right_kick_sensor'))
-                return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RKS']);
+        $_user = User::select('id', 'is_sharing_sensors');
+        
+        foreach ($sensors as $field => $value) {
+            $_user->where($field, $value);
+        }
+
+        // In case, user exists with requested mac address of sensors and s/he's not sharing sensors
+        // Validation rules will be apply
+        if ( $_user->exists() && !(($_user = $_user->first())->is_sharing_sensors) ) {
+            $validator = Validator::make($request->all(), [
+                        'left_hand_sensor' => 'nullable|unique:users,left_hand_sensor,'.\Auth::id().'|unique:users,right_hand_sensor,'.\Auth::id(),
+                        'right_hand_sensor' => 'nullable|unique:users,right_hand_sensor,'.\Auth::id().'|unique:users,left_hand_sensor,'.\Auth::id(),
+                        'left_kick_sensor' => 'nullable|unique:users,left_kick_sensor,'.\Auth::id().'|unique:users,right_kick_sensor,'.\Auth::id(),
+                        'right_kick_sensor' => 'nullable|unique:users,right_kick_sensor,'.\Auth::id().'|unique:users,left_kick_sensor,'.\Auth::id(),
+                    ]);
+
+            if ($validator->fails()) {
+                $errors = $validator->errors();
+
+                if ($errors->get('left_hand_sensor'))
+                    return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LHS']);
+                elseif ($errors->get('right_hand_sensor'))
+                    return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RHS']);
+                elseif ($errors->get('left_kick_sensor'))
+                    return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for LKS']);
+                elseif ($errors->get('right_kick_sensor'))
+                    return response()->json(['error' => 'true', 'message' => 'Invalid MAC address for RKS']);
+            }
         }
 
         try {
