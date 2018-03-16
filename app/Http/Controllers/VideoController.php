@@ -103,7 +103,7 @@ class VideoController extends Controller
                             } else {
                                 // In case of user's subscription is not active
                                 // We're only sending beginner videos, 1 is beginner filter-id
-                                $query->whereIn('tagged_videos.tag_filter_id', 1);
+                                $query->where('tagged_videos.tag_filter_id', 1);
                             }
                         })
                         ->where('videos.category_id', $categoryId)->groupBy('videos.id')
@@ -495,7 +495,7 @@ class VideoController extends Controller
 
     /**
      * @api {get} /tags Get list of tags and filters
-     * @apiGroup Battles
+     * @apiGroup Videos
      * @apiParam {Number="1-Videos","2-Combos",'3-Workouts','4-Sets'} [type_id] Type Id
      * @apiParamExample {json} Input
      *    {
