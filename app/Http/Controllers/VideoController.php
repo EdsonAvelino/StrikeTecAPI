@@ -487,10 +487,97 @@ class VideoController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getVideoCat(Request $request)
+    public function getVideoCategories(Request $request)
     {
-        $catList = VideoCategory::all();
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $catList]);
+        $categories = VideoCategory::all();
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $categories]);
     }
 
+    /**
+     * @api {get} /tags Get list of tags and filters
+     * @apiGroup Battles
+     * @apiParam {Number="1-Videos","2-Combos",'3-Workouts','4-Sets'} [type_id] Type Id
+     * @apiParamExample {json} Input
+     *    {
+     *      "type_id": 2
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of tags
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":[
+     *                {
+     *                    "id": 1,
+     *                    "type": 2,
+     *                    "name": "Boxing"
+     *                    "filters":
+     *                      {
+     *                          "id": 1,
+     *                          "name": "Beginner"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "name": "Intermediate"
+     *                      },
+     *                      {
+     *                          "id": 3,
+     *                          "name": "Advanced"
+     *                      }
+     *                 },
+     *                {
+     *                     "id": 2,
+     *                     "type": 2,
+     *                     "name": "Kickboxing"
+     *                     "filters":
+     *                      {
+     *                          "id": 1,
+     *                          "name": "Beginner"
+     *                      },
+     *                      {
+     *                          "id": 2,
+     *                          "name": "Intermediate"
+     *                      },
+     *                      {
+     *                          "id": 3,
+     *                          "name": "Advanced"
+     *                      }
+     *               }
+     *        ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getTags(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'type_id' => 'nullable|in:1,2,3,4',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors->first('type_id')]);
+        }
+
+        $typeId = (int) $request->get('type_id');
+
+        $_tags = Tags::select('*', \DB::raw('1 as filters'));
+
+        if ($typeId) {
+            $_tags->where('type', $typeId);
+        }
+        
+        $tags = $_tags->get();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $tags]);
+    }
 }

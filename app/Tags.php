@@ -17,15 +17,20 @@ class Tags extends Model
         'name'
     ];
 
-    //get tags pass 1 for videos, 2 for combos, 3 for workout
+    // Get tags pass 1 for videos, 2 for combos, 3 for workout
     public static function getTags($typeId)
     {
         return self::where('type', $typeId)->with('filters')->get();
     }
 
-    public function filters()
+    public function getFiltersAttribute($none)
     {
-        return $this->hasMany('App\TagFilters', 'tag_id');
+        return \App\TagFilters::all();
     }
+
+    // public function filters()
+    // {
+    //     return \App\TagFilters::all();
+    // }
 
 }

@@ -40,7 +40,7 @@ $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 $app->get('/faqs', 'UserController@getFaqs');
 
 // get tags
-$app->get('/tags', 'BattleController@getTags');
+$app->get('/tags', 'VideoController@getTags');
 
 // Rest of all APIs are secured with access-token
 // User APIs
@@ -142,7 +142,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/videos/tags', 'VideoController@getVideoTags');
 
     // Get tags
-    $app->get('/videos/category', 'VideoController@getVideoCat');
+    $app->get('/videos/category', 'VideoController@getVideoCategories');
 });
 
 // Leaderboard APIs

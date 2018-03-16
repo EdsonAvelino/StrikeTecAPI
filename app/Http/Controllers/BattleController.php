@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use DB;
 use Illuminate\Http\Request;
 use App\Battles;
-use App\Tags;
 use App\Combos;
 use App\ComboSets;
 use App\Workouts;
@@ -1392,85 +1391,4 @@ class BattleController extends Controller
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
     }
-
-    /**
-     * @api {get}/tags Get list of tags and filters
-     * @apiGroup Battles
-     * @apiParam {Number} [type_id] Type Id eg. 1 for videos, 2 for combos,3 for workouts, 4 for sets
-     * @apiParamExample {json} Input
-     *    {
-     *      "type_id": 1
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                {
-     *                    "id": 1,
-     *                    "type": 2,
-     *                    "name": "Boxing"
-     *                    "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "beginner"
-     *                      },
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "intermediate"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "type": 2,
-     *                          "filter_name": "advanced"
-     *                      }
-     *                 },
-     *                {
-     *                     "id": 2,
-     *                     "type": 2,
-     *                     "name": "Kickboxing"
-     *                     "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "beginner"
-     *                      },
-     *                      {
-     *                          "id": 1,
-     *                          "type": 2,
-     *                          "filter_name": "intermediate"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "type": 2,
-     *                          "filter_name": "advanced"
-     *                      }
-     *               }
-     *        ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function getTags(Request $request)
-    {
-        $typeId = $request->get('type_id');
-        if ($typeId) {
-            $tagList = Tags::getTags($typeId);
-        } else {
-            $tagList = Tags::with('filters')->get();
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
-    }
-
 }
