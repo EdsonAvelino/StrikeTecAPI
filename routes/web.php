@@ -93,6 +93,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get rounds by Training-Type
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
+    // TEST
+    $app->get('/user/testit', 'TrainingController@test');
+
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
 
@@ -166,9 +169,24 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/notification/settings', 'SettingController@getSettings');
 });
 
+// Get list of comobos
+$app->get('/battles/combos', 'BattleController@getCombos');
+
+// Get list of comobo-sets
+$app->get('/battles/combo_sets', 'BattleController@getComboSets');
+
+// Get list of workouts
+$app->get('/battles/workouts', 'BattleController@getWorkouts');
+
+// Not in use for now so commenting (17032018)
+// Upload combo audio
+// $app->post('/combos/audio', 'BattleController@saveAudio');
+
+// list of combos with audios
+// $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
+
 // Battle APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
-
     // Get battle Request
     $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
@@ -192,21 +210,6 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Cancel battle
     $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
-
-    // Get list of comobos
-    $app->get('/battles/combos', 'BattleController@getCombos');
-
-    // upload audio
-    $app->post('/combos/audio', 'BattleController@saveAudio');
-
-    //list of combos with audios
-    $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
-
-    // Get list of comobo-sets
-    $app->get('/battles/combo_sets', 'BattleController@getComboSets');
-
-    // Get list of workouts
-    $app->get('/battles/workouts', 'BattleController@getWorkouts');
 
     // Get details of battle(challenge)
     $app->get('/battles/{battleId}', 'BattleController@getBattle');

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Sessions;
 use Illuminate\Support\Facades\Config;
+
+use App\Sessions;
 use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\Leaderboard;
+use App\GameLeaderboard;
 use App\Battles;
 use App\Videos;
 use App\UserAchievements;
@@ -331,6 +333,8 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $sessions = []; //Will be use for response
 
+        $gameSession = false;
+
         foreach ($data as $session) {
             $_session = Sessions::create([
                 'user_id' => \Auth::user()->id,
@@ -390,7 +394,8 @@ class TrainingController extends Controller
 
                 $battle->update();
             } elseif ($_session->game_id) {
-                // Do game related stuff
+                $gameSession = true;
+                $this->updateGameLeaderboard($_session->game_id);
             } else {
                 // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
@@ -423,6 +428,14 @@ class TrainingController extends Controller
 
             $achievements = $this->achievements($_session->id, $_session->battle_id);
             $sessions[] = ['session_id' => $_session->id, 'start_time' => $_session->start_time, 'achievements' => $achievements];
+        }
+
+        if ($gameSession) {
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Training sessions saved successfully',
+                'data' => $sessions
+            ]);
         }
 
         // User's total sessions count
@@ -1282,5 +1295,117 @@ class TrainingController extends Controller
         }
 
         return UserAchievements::getSessionAchievements($userId, $sessionId);
+    }
+
+    // Calculate & update game leaderboard
+    private function updateGameLeaderboard($gameId)
+    {
+        if (!$gameId || !in_array($gameId, [1, 2, 3, 4]))
+            return null;
+
+        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id());
+        
+        $currentWeekSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentWeekSessionsQuery->toSql()}") .")")->mergeBindings($currentWeekSessionsQuery);
+
+        $score = $speed = $force = $reactionTime = $endurance = $distance = 0;
+
+        switch ($gameId) {
+            // game_id = 1, then you need min value of punch duration through punches of session, and store it leaderboard.
+            case 1: // Reaction
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('min_punch_duration')->first();
+
+                $raw = \DB::table('session_round_punches')->select('*')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                
+                $speed = $raw->speed;
+                $force = $raw->force;
+                $reactionTime = $raw->punch_duration;
+                $distance = $raw->distance;
+            break;
+
+            // game_id = 2, then you can find max_speed from session table, and store it.
+            case 2: // Speed
+                $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_speed) as max_speed"))->pluck('max_speed')->first();
+
+                $raw = $currentWeekSessionsQuery->select('*')->where('max_speed', $scroe)->first();
+
+                $speed = $raw->speed;
+                $force = $raw->force;
+                $reactionTime = $raw->best_time;
+            break;
+
+            // game_id = 3, then calculate ppm according to punch count of session, and time of session (endtime - start time)
+            // ref: SessionRounds -> getMostPunchesPerMinute()
+            case 3: // Endurance
+                $result = $currentWeekSessionRoundsQuery->select(
+                    \DB::raw('SUM(end_time - start_time) AS duration'),
+                    \DB::raw('SUM(punches_count) as punches')
+                )->first();
+
+                $totalPPMOfRounds = $result->punches * 1000 * 60 / $result->duration;
+                $roundsCountsOfSessions = $currentWeekSessionsQuery->count();
+
+                // ppm of round1 + ppm of round2 + .... / round count of session
+                $score = $totalPPMOfRounds / $roundsCountsOfSessions;
+            break;
+
+            // game_id == 4, then max_power will be stored.
+            case 4: // Power
+                $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_force) as max_force"))->pluck('max_force')->first();
+
+                $raw = $currentWeekSessionsQuery->select('*')->where('max_force', $scroe)->first();
+
+                $speed = $raw->max_speed;
+                $force = $raw->max_force;
+                $reactionTime = $raw->best_time;
+            break;
+        }
+
+        $userGameLeaderboard = GameLeaderboard::where('user_id', \Auth::id())->where('game_id', $gameId)->first();
+
+        if ($userGameLeaderboard) {
+            $userGameLeaderboard->score = $score;
+            $userGameLeaderboard->update();
+        } else {
+            GameLeaderboard::create([
+                'user_id' => \Auth::id(),
+                'game_id' => $gameId,
+                'scroe' => $score,
+            ]);
+        }
+
+        return true;
+    }
+
+    // Test for getting game score
+    public function test()
+    {
+        // $gameId = 1;
+
+        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id());
+        
+        $currentWeekSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentWeekSessionsQuery->toSql()}") .")")->mergeBindings($currentWeekSessionsQuery);
+
+        $score = \DB::table('session_round_punches')->select('id', \DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('min_punch_duration')->first();
+
+        $rec = \DB::table('session_round_punches')->select('id')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+
+        print_r($rec);
+
+        // $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_speed) as max_speed"))->pluck('max_speed')->first();
+
+        // $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_force) as max_force"))->pluck('max_force')->first();
+
+        // first calculate ppm for round
+        // like punch count of round / round duration * 60
+        // and calculate avg ppm for session
+        
+        // $result = $currentWeekSessionRoundsQuery->select(
+        //     \DB::raw('SUM(end_time - start_time) AS duration'),
+        //     \DB::raw('SUM(punches_count) as punches')
+        // )->first();
+
+        // $ppmOfRound = $result->punches * 1000 * 60 / $result->duration;
+
+        // $roundCountsOfSession = $currentWeekSessionsQuery->count();
     }
 }

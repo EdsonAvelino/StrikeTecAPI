@@ -492,6 +492,48 @@ class LeaderboardController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
 
+    /**
+     * @api {get} /leaderboard/game Game leaderboard data
+     * @apiGroup Leaderboard
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} [country_id] Filter by country, no country_id will return data across all countries
+     * @apiParam {Number} [state_id] Filter by state
+     * @apiParam {Number} [age] Age range e.g. 25-40
+     * @apiParam {Number} [weight] Weight range e.g. 90-120
+     * @apiParam {String="male","female"} [gender] Gender
+     * @apiParamExample {json} Input
+     *    {
+     *      "country_id": 1,
+     *      "state_id": 25,
+     *      "age": 21-30
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of leaderboard users
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *		"data": [
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getGameLeaderboardData(Request $request)
+    {
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
+    }
     // Get current user's rank in leaderboard
     private function getCurrentUserRank($list)
 	{
