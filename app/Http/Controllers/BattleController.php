@@ -378,11 +378,6 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/combos Get list of available combos
      * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data List of combos
@@ -488,11 +483,6 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/combo_sets Get list of combo-sets
      * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data List of combo-sets
@@ -574,11 +564,6 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/workouts Get list of workouts
      * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data Workouts
