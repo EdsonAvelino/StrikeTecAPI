@@ -515,8 +515,86 @@ class LeaderboardController extends Controller
      *      "error": "false",
      *      "message": "",
      *		"data": [
-     *      ]
-     *    }
+     *			  {
+     *			      "id": 473,
+     *			      "user_id": 473,
+     *			      "game_id": 1,
+     *			      "score": 98.81,
+     *			      "speed": 31,
+     *			      "force": 123,
+     *			      "reaction_time": 0,
+     *			      "endurance": 36,
+     *			      "distance": 19,
+     *			      "user": {
+     *			          "id": 473,
+     *			          "first_name": "Eduard",
+     *			          "last_name": "Logesdale",
+     *			          "skill_level": null,
+     *			          "weight": 147,
+     *			          "age": 28,
+     *			          "user_following": false,
+     *			          "user_follower": false,
+     *			          "photo_url": "https://robohash.org/aliquidautrepudiandae.png?size=50x50&set=set1",
+     *			          "gender": "male",
+     *			          "country": null,
+     *			          "state": null,
+     *			          "city": null
+     *			      }
+     *			  },
+     *			  {
+     *			      "id": 956,
+     *			      "user_id": 956,
+     *			      "game_id": 1,
+     *			      "score": 98.77,
+     *			      "speed": 31,
+     *			      "force": 49,
+     *			      "reaction_time": 0,
+     *			      "endurance": 97,
+     *			      "distance": 15,
+     *			      "user": {
+     *			          "id": 956,
+     *			          "first_name": "Meris",
+     *			          "last_name": "Patrickson",
+     *			          "skill_level": null,
+     *			          "weight": 179,
+     *			          "age": 18,
+     *			          "user_following": false,
+     *			          "user_follower": false,
+     *			          "photo_url": "https://robohash.org/cumquequoddolor.png?size=50x50&set=set1",
+     *			          "gender": "female",
+     *			          "country": null,
+     *			          "state": null,
+     *			          "city": null
+     *			      }
+     *			  },
+     *			  {
+     *			      "id": 958,
+     *			      "user_id": 958,
+     *			      "game_id": 1,
+     *			      "score": 98.41,
+     *			      "speed": 36,
+     *			      "force": 189,
+     *			      "reaction_time": 0,
+     *			      "endurance": 100,
+     *			      "distance": 10,
+     *			      "user": {
+     *			          "id": 958,
+     *			          "first_name": "Shepherd",
+     *			          "last_name": "Oulett",
+     *			          "skill_level": null,
+     *			          "weight": 170,
+     *			          "age": 34,
+     *			          "user_following": false,
+     *			          "user_follower": false,
+     *			          "photo_url": "https://robohash.org/officiavoluptasaccusantium.bmp?size=50x50&set=set1",
+     *			          "gender": "male",
+     *			          "country": null,
+     *			          "state": null,
+     *			          "city": null
+     *			      }
+     *			  }
+     *			]
+     *      }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
      *      {
@@ -528,7 +606,7 @@ class LeaderboardController extends Controller
     public function getGameLeaderboardData(Request $request)
     {
     	$gameId = (int) $request->get('game_id');
-    	$limit = 100;
+    	$limit = 3;
 
     	$data = GameLeaderboard::with(['user' => function ($query) {
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')->with(['country', 'state', 'city']);
