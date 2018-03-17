@@ -155,6 +155,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Trending data
     $app->get('/trending', 'LeaderboardController@getTrendingList');
+
+    // Game leaderboard data
+    $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
 });
 
 // Push notifications APIs

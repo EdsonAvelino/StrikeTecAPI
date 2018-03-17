@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class GameLeaderboard extends Model
 {
 
+    protected $table = 'game_leaderboard';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,4 +24,9 @@ class GameLeaderboard extends Model
         'endurance',
         'distance'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo('App\User');
+    }
 }

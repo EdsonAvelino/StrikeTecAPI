@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Leaderboard;
+use App\GameLeaderboard;
 
 class LeaderboardController extends Controller
 {
@@ -500,16 +501,10 @@ class LeaderboardController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} [country_id] Filter by country, no country_id will return data across all countries
-     * @apiParam {Number} [state_id] Filter by state
-     * @apiParam {Number} [age] Age range e.g. 25-40
-     * @apiParam {Number} [weight] Weight range e.g. 90-120
-     * @apiParam {String="male","female"} [gender] Gender
+     * @apiParam {Number="1=Reaction Time Game", "2=Speed", "3=Endurance", "4=Power Game"} game_id Game Id
      * @apiParamExample {json} Input
      *    {
-     *      "country_id": 1,
-     *      "state_id": 25,
-     *      "age": 21-30
+     *      "game_id": 1,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -532,8 +527,16 @@ class LeaderboardController extends Controller
      */
     public function getGameLeaderboardData(Request $request)
     {
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
+    	$gameId = (int) $request->get('game_id');
+    	$limit = 100;
+
+    	$data = GameLeaderboard::with(['user' => function ($query) {
+                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')->with(['country', 'state', 'city']);
+            }])->where('game_id', $gameId)->orderBy('score', 'desc')->limit($limit)->get();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
+
     // Get current user's rank in leaderboard
     private function getCurrentUserRank($list)
 	{
