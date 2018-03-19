@@ -690,21 +690,13 @@ class UserController extends Controller
      *          "message": "",
      *          "data": {
      *              "1": {
-     *                   "score": 0.5,
-     *                   "speed": 9,
-     *                   "force": 295,
-     *                   "reaction_time": 0.5,
-     *                   "endurance": 0,
-     *                   "distance": 11.1
+     *                   "score": 3,
+     *                   "distance": 24
      *               },
-     *               "2": {
-     *                   "score": 0.49,
-     *                   "speed": 11,
-     *                   "force": 292,
-     *                   "reaction_time": 0.49,
-     *                   "endurance": 0,
-     *                   "distance": 15.58
-     *               }   
+     *              "2": {
+     *                   "score": 28,
+     *                   "distance": 26
+     *              }
      *          }
      *     }
      * @apiErrorExample {json} Error Response

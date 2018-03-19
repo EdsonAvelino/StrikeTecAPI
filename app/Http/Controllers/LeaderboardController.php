@@ -520,10 +520,6 @@ class LeaderboardController extends Controller
      *			      "user_id": 473,
      *			      "game_id": 1,
      *			      "score": 98.81,
-     *			      "speed": 31,
-     *			      "force": 123,
-     *			      "reaction_time": 0,
-     *			      "endurance": 36,
      *			      "distance": 19,
      *			      "user": {
      *			          "id": 473,
@@ -546,10 +542,6 @@ class LeaderboardController extends Controller
      *			      "user_id": 956,
      *			      "game_id": 1,
      *			      "score": 98.77,
-     *			      "speed": 31,
-     *			      "force": 49,
-     *			      "reaction_time": 0,
-     *			      "endurance": 97,
      *			      "distance": 15,
      *			      "user": {
      *			          "id": 956,
@@ -572,10 +564,6 @@ class LeaderboardController extends Controller
      *			      "user_id": 958,
      *			      "game_id": 1,
      *			      "score": 98.41,
-     *			      "speed": 36,
-     *			      "force": 189,
-     *			      "reaction_time": 0,
-     *			      "endurance": 100,
      *			      "distance": 10,
      *			      "user": {
      *			          "id": 958,
