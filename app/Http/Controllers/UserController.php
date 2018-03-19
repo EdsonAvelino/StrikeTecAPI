@@ -709,17 +709,13 @@ class UserController extends Controller
      */
     public function getUsersGameScores(Request $request)
     {
-        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'speed', 'force', 'reaction_time', 'endurance', 'distance')->where('user_id', \Auth::id())->get();
+        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', \Auth::id())->get();
 
         $data = [];
 
         if ($leaderboardData) {
             foreach ($leaderboardData as $raw) {
                  $_data['score'] = $raw->score;
-                 $_data['speed'] = $raw->speed;
-                 $_data['force'] = $raw->force;
-                 $_data['reaction_time'] = $raw->reaction_time;
-                 $_data['endurance'] = $raw->endurance;
                  $_data['distance'] = $raw->distance;
                  $data[$raw->game_id] = $_data;
 
