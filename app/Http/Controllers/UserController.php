@@ -673,6 +673,76 @@ class UserController extends Controller
     }
 
     /**
+     * @api {get} /users/score Get user's score
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} users List of users followed by search term
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": {
+     *              "1": {
+     *                   "score": 0.5,
+     *                   "speed": 9,
+     *                   "force": 295,
+     *                   "reaction_time": 0.5,
+     *                   "endurance": 0,
+     *                   "distance": 11.1
+     *               },
+     *               "2": {
+     *                   "score": 0.49,
+     *                   "speed": 11,
+     *                   "force": 292,
+     *                   "reaction_time": 0.49,
+     *                   "endurance": 0,
+     *                   "distance": 15.58
+     *               }   
+     *          }
+     *     }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invaild request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUsersGameScores(Request $request)
+    {
+        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'speed', 'force', 'reaction_time', 'endurance', 'distance')->where('user_id', \Auth::id())->get();
+
+        $data = [];
+
+        if ($leaderboardData) {
+            foreach ($leaderboardData as $raw) {
+                 $_data['score'] = $raw->score;
+                 $_data['speed'] = $raw->speed;
+                 $_data['force'] = $raw->force;
+                 $_data['reaction_time'] = $raw->reaction_time;
+                 $_data['endurance'] = $raw->endurance;
+                 $_data['distance'] = $raw->distance;
+                 $data[$raw->game_id] = $_data;
+
+                 $_data = [];
+            }
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'data' => $data
+        ]);
+    }
+
+    /**
      * @api {post} /users/subscription Know/Update User's app subscription
      * @apiGroup In-App Purchases
      * @apiHeader {String} authorization Authorization value
