@@ -395,7 +395,7 @@ class TrainingController extends Controller
                 $battle->update();
             } elseif ($_session->game_id) {
                 $gameSession = true;
-                $this->updateGameLeaderboard($_session->game_id);
+                $this->updateGameLeaderboard($_session->game_id, $_session->id);
             } else {
                 // Update goal progress
                 $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
@@ -1298,7 +1298,7 @@ class TrainingController extends Controller
     }
 
     // Calculate & update game leaderboard
-    private function updateGameLeaderboard($gameId)
+    private function updateGameLeaderboard($gameId, $sessionId)
     {
         if (!$gameId || !in_array($gameId, [1, 2, 3, 4]))
             return null;
@@ -1316,30 +1316,20 @@ class TrainingController extends Controller
 
                 $raw = \DB::table('session_round_punches')->select('*')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
                 
-                $speed = $raw->speed;
-                $force = $raw->force;
-                $reactionTime = $raw->punch_duration;
                 $distance = $raw->distance;
             break;
 
             // game_id = 2, then you can find max_speed from session table, and store it.
             case 2: // Speed
-                $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_speed) as max_speed"))->pluck('max_speed')->first();
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(speed) as max_speed'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('max_speed')->first();
 
-                $raw = $currentWeekSessionsQuery->select('*')->where('max_speed', $scroe)->first();
-
-                $speed = $raw->speed;
-                $force = $raw->force;
-                $reactionTime = $raw->best_time;
+                $raw = \DB::table('session_round_punches')->select('*')->where('speed', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                
+                $distance = $raw->distance;
             break;
 
             // game_id = 3, then calculate ppm according to punch count of session, and time of session (endtime - start time)
             // ref: SessionRounds -> getMostPunchesPerMinute()
-            // - calculate avg speed, avg value, avg distance, avg reaction time and store it.
-            // avg speed, avg power can be from session table, or
-            // you can calculate it from punch table.
-            // and avg distance, reaction time, these are same
-            // you can calculate it from punches table
             case 3: // Endurance
                 $result = $currentWeekSessionRoundsQuery->select(
                     \DB::raw('SUM(end_time - start_time) AS duration'),
@@ -1352,22 +1342,19 @@ class TrainingController extends Controller
                 // ppm of round1 + ppm of round2 + .... / round count of session
                 $score = $totalPPMOfRounds / $roundsCountsOfSessions;
 
-                $totalCurrentWeekSessions = $currentWeekSessionsQuery->count();
-                $avgTotals = $currentWeekSessionsQuery->select(\DB::raw('SUM(avg_speed) as total_avg_speed'), \DB::raw('SUM(avg_force) as total_avg_force'))->first();
+                $totalDistance = SessionRoundPunches::select(\DB::raw('SUM(distance) as total_distance'))->whereRaw('session_round_id IN (SELECT id FROM session_rounds WHERE session_id = ?)', $sessionId)->pluck('total_distance')->first();
+                $totalPunches = SessionRoundPunches::whereRaw('session_round_id IN (SELECT id FROM session_rounds WHERE session_id = ?)', $sessionId)->count();
 
-                $speed = $avgTotals->total_avg_speed / $totalCurrentWeekSessions;
-                $force = $avgTotals->total_avg_force / $totalCurrentWeekSessions;
+                $distance = $totalDistance / $totalPunches;
             break;
 
             // game_id == 4, then max_power will be stored.
             case 4: // Power
-                $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_force) as max_force"))->pluck('max_force')->first();
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(`force`) as max_force'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('max_force')->first();
 
-                $raw = $currentWeekSessionsQuery->select('*')->where('max_force', $scroe)->first();
-
-                $speed = $raw->max_speed;
-                $force = $raw->max_force;
-                $reactionTime = $raw->best_time;
+                $raw = \DB::table('session_round_punches')->select('*')->where('force', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                
+                $distance = $raw->distance;
             break;
         }
 
@@ -1375,21 +1362,13 @@ class TrainingController extends Controller
 
         if ($userGameLeaderboard) {
             $userGameLeaderboard->score = $score;
-            $userGameLeaderboard->speed = $speed;
-            $userGameLeaderboard->force = $force;
-            $userGameLeaderboard->reaction_time = $reactionTime;
-            $userGameLeaderboard->endurance = $endurance;
             $userGameLeaderboard->distance = $distance;
             $userGameLeaderboard->update();
         } else {
             GameLeaderboard::create([
                 'user_id' => \Auth::id(),
                 'game_id' => $gameId,
-                'scroe' => $score,
-                'speed' => $speed,
-                'force' => $force,
-                'reaction_time' => $reactionTime,
-                'endurance' => $endurance,
+                'score' => $score,
                 'distance' => $distance,
             ]);
         }

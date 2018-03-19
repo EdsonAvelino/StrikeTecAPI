@@ -18,10 +18,6 @@ class GameLeaderboard extends Model
         'user_id',
         'game_id',
         'score',
-        'speed',
-        'force',
-        'reaction_time',
-        'endurance',
         'distance'
     ];
 
