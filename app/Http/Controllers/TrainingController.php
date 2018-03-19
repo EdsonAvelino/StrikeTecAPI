@@ -1375,12 +1375,22 @@ class TrainingController extends Controller
 
         if ($userGameLeaderboard) {
             $userGameLeaderboard->score = $score;
+            $userGameLeaderboard->speed = $speed;
+            $userGameLeaderboard->force = $force;
+            $userGameLeaderboard->reaction_time = $reactionTime;
+            $userGameLeaderboard->endurance = $endurance;
+            $userGameLeaderboard->distance = $distance;
             $userGameLeaderboard->update();
         } else {
             GameLeaderboard::create([
                 'user_id' => \Auth::id(),
                 'game_id' => $gameId,
                 'scroe' => $score,
+                'speed' => $speed,
+                'force' => $force,
+                'reaction_time' => $reactionTime,
+                'endurance' => $endurance,
+                'distance' => $distance,
             ]);
         }
 
