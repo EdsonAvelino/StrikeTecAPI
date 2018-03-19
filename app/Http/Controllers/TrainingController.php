@@ -1335,6 +1335,11 @@ class TrainingController extends Controller
 
             // game_id = 3, then calculate ppm according to punch count of session, and time of session (endtime - start time)
             // ref: SessionRounds -> getMostPunchesPerMinute()
+            // - calculate avg speed, avg value, avg distance, avg reaction time and store it.
+            // avg speed, avg power can be from session table, or
+            // you can calculate it from punch table.
+            // and avg distance, reaction time, these are same
+            // you can calculate it from punches table
             case 3: // Endurance
                 $result = $currentWeekSessionRoundsQuery->select(
                     \DB::raw('SUM(end_time - start_time) AS duration'),
@@ -1346,6 +1351,12 @@ class TrainingController extends Controller
 
                 // ppm of round1 + ppm of round2 + .... / round count of session
                 $score = $totalPPMOfRounds / $roundsCountsOfSessions;
+
+                $totalCurrentWeekSessions = $currentWeekSessionsQuery->count();
+                $avgTotals = $currentWeekSessionsQuery->select(\DB::raw('SUM(avg_speed) as total_avg_speed'), \DB::raw('SUM(avg_force) as total_avg_force'))->first();
+
+                $speed = $avgTotals->total_avg_speed / $totalCurrentWeekSessions;
+                $force = $avgTotals->total_avg_force / $totalCurrentWeekSessions;
             break;
 
             // game_id == 4, then max_power will be stored.

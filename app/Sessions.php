@@ -61,6 +61,18 @@ class Sessions extends Model
         }
     }
 
+    public function setBattleIdAttribute($battleId)
+    {
+        $battleId = (int) $battleId;
+        $this->attributes['battle_id'] = ($battleId > 0) ?? null;
+    }
+
+    public function setGameIdAttribute($gameId)
+    {
+        $gameId = (int) $gameId;
+        $this->attributes['game_id'] = ($gameId > 0) ?? null;
+    }
+
     public function getSharedAttribute($shared)
     {
         $shared = filter_var($shared, FILTER_VALIDATE_BOOLEAN);
