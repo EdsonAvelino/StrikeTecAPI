@@ -1303,27 +1303,28 @@ class TrainingController extends Controller
         if (!$gameId || !in_array($gameId, [1, 2, 3, 4]))
             return null;
 
-        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id())->where('id', $sessionId);
+        // ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+        $currentSessionQuery = \DB::table('sessions')->select('id')->where('user_id', \Auth::id())->where('id', $sessionId);
         
-        $currentWeekSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentWeekSessionsQuery->toSql()}") .")")->mergeBindings($currentWeekSessionsQuery);
+        $currentSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentSessionQuery->toSql()}") .")")->mergeBindings($currentSessionQuery);
 
-        $score = $speed = $force = $reactionTime = $endurance = $distance = 0;
+        $score = $distance = 0;
 
         switch ($gameId) {
             // game_id = 1, then you need min value of punch duration through punches of session, and store it leaderboard.
             case 1: // Reaction
-                $score = \DB::table('session_round_punches')->select(\DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('min_punch_duration')->first();
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->pluck('min_punch_duration')->first();
 
-                $raw = \DB::table('session_round_punches')->select('*')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                $raw = \DB::table('session_round_punches')->select('*')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->first();
                 
                 $distance = $raw->distance;
             break;
 
             // game_id = 2, then you can find max_speed from session table, and store it.
             case 2: // Speed
-                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(speed) as max_speed'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('max_speed')->first();
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(speed) as max_speed'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->pluck('max_speed')->first();
 
-                $raw = \DB::table('session_round_punches')->select('*')->where('speed', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                $raw = \DB::table('session_round_punches')->select('*')->where('speed', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->first();
                 
                 $distance = $raw->distance;
             break;
@@ -1331,13 +1332,13 @@ class TrainingController extends Controller
             // game_id = 3, then calculate ppm according to punch count of session, and time of session (endtime - start time)
             // ref: SessionRounds -> getMostPunchesPerMinute()
             case 3: // Endurance
-                $result = $currentWeekSessionRoundsQuery->select(
+                $result = $currentSessionRoundsQuery->select(
                     \DB::raw('SUM(end_time - start_time) AS duration'),
                     \DB::raw('SUM(punches_count) as punches')
                 )->first();
 
                 $totalPPMOfRounds = $result->punches * 1000 * 60 / $result->duration;
-                $roundsCountsOfSessions = $currentWeekSessionsQuery->count();
+                $roundsCountsOfSessions = $currentSessionQuery->count();
 
                 // ppm of round1 + ppm of round2 + .... / round count of session
                 $score = $totalPPMOfRounds / $roundsCountsOfSessions;
@@ -1350,9 +1351,9 @@ class TrainingController extends Controller
 
             // game_id == 4, then max_power will be stored.
             case 4: // Power
-                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(`force`) as max_force'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('max_force')->first();
+                $score = \DB::table('session_round_punches')->select(\DB::raw('MAX(`force`) as max_force'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->pluck('max_force')->first();
 
-                $raw = \DB::table('session_round_punches')->select('*')->where('force', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+                $raw = \DB::table('session_round_punches')->select('*')->where('force', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->first();
                 
                 $distance = $raw->distance;
             break;
@@ -1389,35 +1390,35 @@ class TrainingController extends Controller
     }
 
     // Test for getting game score
-    public function test()
-    {
-        // $gameId = 1;
+    // public function test()
+    // {
+    //     // $gameId = 1;
 
-        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id());
+    //     $currentSessionQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id());
         
-        $currentWeekSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentWeekSessionsQuery->toSql()}") .")")->mergeBindings($currentWeekSessionsQuery);
+    //     $currentSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentSessionQuery->toSql()}") .")")->mergeBindings($currentSessionQuery);
 
-        $score = \DB::table('session_round_punches')->select('id', \DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->pluck('min_punch_duration')->first();
+    //     $score = \DB::table('session_round_punches')->select('id', \DB::raw('MIN(punch_duration) as min_punch_duration'))->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->pluck('min_punch_duration')->first();
 
-        $rec = \DB::table('session_round_punches')->select('id')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentWeekSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentWeekSessionRoundsQuery)->first();
+    //     $rec = \DB::table('session_round_punches')->select('id')->where('punch_duration', $score)->whereRaw('session_round_id IN ('. \DB::raw("{$currentSessionRoundsQuery->toSql()}")  .')' )->mergeBindings($currentSessionRoundsQuery)->first();
 
-        print_r($rec);
+    //     print_r($rec);
 
-        // $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_speed) as max_speed"))->pluck('max_speed')->first();
+    //     // $score = $currentSessionQuery->select(\DB::raw("MAX(max_speed) as max_speed"))->pluck('max_speed')->first();
 
-        // $score = $currentWeekSessionsQuery->select(\DB::raw("MAX(max_force) as max_force"))->pluck('max_force')->first();
+    //     // $score = $currentSessionQuery->select(\DB::raw("MAX(max_force) as max_force"))->pluck('max_force')->first();
 
-        // first calculate ppm for round
-        // like punch count of round / round duration * 60
-        // and calculate avg ppm for session
+    //     // first calculate ppm for round
+    //     // like punch count of round / round duration * 60
+    //     // and calculate avg ppm for session
         
-        // $result = $currentWeekSessionRoundsQuery->select(
-        //     \DB::raw('SUM(end_time - start_time) AS duration'),
-        //     \DB::raw('SUM(punches_count) as punches')
-        // )->first();
+    //     // $result = $currentSessionRoundsQuery->select(
+    //     //     \DB::raw('SUM(end_time - start_time) AS duration'),
+    //     //     \DB::raw('SUM(punches_count) as punches')
+    //     // )->first();
 
-        // $ppmOfRound = $result->punches * 1000 * 60 / $result->duration;
+    //     // $ppmOfRound = $result->punches * 1000 * 60 / $result->duration;
 
-        // $roundCountsOfSession = $currentWeekSessionsQuery->count();
-    }
+    //     // $roundCountsOfSession = $currentSessionQuery->count();
+    // }
 }
