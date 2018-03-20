@@ -1359,16 +1359,17 @@ class TrainingController extends Controller
             break;
         }
 
+        $score = (float) $score;
         $userGameLeaderboard = GameLeaderboard::where('user_id', \Auth::id())->where('game_id', $gameId)->first();
 
         if ($userGameLeaderboard) {
             // Reaction game, min value is better score
             $update = false; // Update or not
-
+             
             if ($gameId == 1 && $userGameLeaderboard->score > $score) {
                 $userGameLeaderboard->score = $score;
                 $update = true;
-            } elseif ($userGameLeaderboard->score < $score) {
+            } elseif ($gameId != 1 && $userGameLeaderboard->score < $score) {
                 $userGameLeaderboard->score = $score;
                 $update = true;
             }
