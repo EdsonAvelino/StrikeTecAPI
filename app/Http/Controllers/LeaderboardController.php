@@ -594,11 +594,47 @@ class LeaderboardController extends Controller
     public function getGameLeaderboardData(Request $request)
     {
     	$gameId = (int) $request->get('game_id');
-    	$limit = 3;
+    	$limit = 50;
 
-    	$data = GameLeaderboard::with(['user' => function ($query) {
-                $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')->with(['country', 'state', 'city']);
-            }])->where('game_id', $gameId)->orderBy('score', 'desc')->limit($limit)->get();
+    	\DB::statement(\DB::raw('SET @rank = 0'));
+
+    	$dataStmt = GameLeaderboard::select('*', \DB::raw('@rank:=@rank+1 AS rank'))
+    		->with(['user' => function ($query) {
+                $query->select([
+                	'id',
+                	'first_name',
+                	'last_name',
+                	'skill_level',
+                	'weight',
+                	'city_id',
+                	'state_id',
+                	'country_id',
+                	\DB::raw('birthday as age'),
+                	\DB::raw('id as user_following'),
+                	\DB::raw('id as user_follower'),
+                	'photo_url',
+                	'gender'
+                ])->with(['country', 'state', 'city']);
+            }])->where('game_id', $gameId)->limit($limit);
+
+        if ($gameId == 3) {
+        	$dataStmt->orderBy('score', 'asc');
+        } else {
+        	$dataStmt->orderBy('score', 'desc');
+        }
+
+        $data = $dataStmt->get()->toArray();
+
+        foreach ($data as $i => $raw) {
+        	switch ($gameId) {
+        		case 1: $data[$i]['score'] = (float) number_format($raw['score'], 3); break; // Reaction time
+        		case 2: $data[$i]['score'] = (int) $raw['score']; break;
+        		case 3: $data[$i]['score'] = (int) $raw['score']; break;
+        		case 4: $data[$i]['score'] = (int) $raw['score']; break;
+        	}
+        	
+        	$data[$i]['distance'] = (float) number_format($raw['distance'],1 );
+        }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }

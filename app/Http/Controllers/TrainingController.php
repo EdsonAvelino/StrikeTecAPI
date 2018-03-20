@@ -1303,7 +1303,7 @@ class TrainingController extends Controller
         if (!$gameId || !in_array($gameId, [1, 2, 3, 4]))
             return null;
 
-        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id());
+        $currentWeekSessionsQuery = \DB::table('sessions')->select('id')->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->where('user_id', \Auth::id())->where('id', $sessionId);
         
         $currentWeekSessionRoundsQuery = \DB::table('session_rounds')->select('id')->whereRaw("session_id IN (". \DB::raw("{$currentWeekSessionsQuery->toSql()}") .")")->mergeBindings($currentWeekSessionsQuery);
 
@@ -1361,9 +1361,21 @@ class TrainingController extends Controller
         $userGameLeaderboard = GameLeaderboard::where('user_id', \Auth::id())->where('game_id', $gameId)->first();
 
         if ($userGameLeaderboard) {
-            $userGameLeaderboard->score = $score;
-            $userGameLeaderboard->distance = $distance;
-            $userGameLeaderboard->update();
+            // Reaction game, min value is better score
+            $update = false; // Update or not
+
+            if ($gameId == 1 && $userGameLeaderboard->score > $score) {
+                $userGameLeaderboard->score = $score;
+                $update = true;
+            } elseif ($userGameLeaderboard->score < $score) {
+                $userGameLeaderboard->score = $score;
+                $update = true;
+            }
+
+            if ($update) {
+                $userGameLeaderboard->distance = $distance;
+                $userGameLeaderboard->update();
+            }
         } else {
             GameLeaderboard::create([
                 'user_id' => \Auth::id(),
