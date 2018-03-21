@@ -811,7 +811,7 @@ class UserController extends Controller
         
         $data = [];
         foreach ($products as $product) {
-            $data[$product->product_id] = ($product->id == $IAPproduct->id) ? true : false;
+            $data[$product->key] = ($product->id == $IAPproduct->id) ? true : false;
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
