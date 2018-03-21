@@ -743,8 +743,7 @@ class UserController extends Controller
      * @apiParam {String} product_id In-App Product (Subscription) ID e.g. trainee_monthly, trainee_yearly
      * @apiParam {String="IOS","ANDROID"} platform Device ID
      * @apiParam {Boolean="ture","false"} [is_auto_renewable] Subscription is auto renewable, true/false
-     * @apiParam {Timestamp} [purchased_at] Purchased timestamp
-     * @apiParam {Timestamp} [expire_at] Expire Timestamp
+     * @apiParam {Timestamp} purchased_at Purchased timestamp
      * @apiParamExample {json} Input
      *    {
      *      'product_id': 1,
@@ -793,6 +792,7 @@ class UserController extends Controller
                 'is_auto_renewable' => $request->get('is_auto_renewable') ?? null,
                 'purchased_at' => $request->get('purchased_at') ?? null, // Put timestamp here
                 'expire_at' => $request->get('expire_at') ?? null // Put timestamp here
+                // TODO fix expire_at 
             ]);
         } else {
             // Updates existing subscription
