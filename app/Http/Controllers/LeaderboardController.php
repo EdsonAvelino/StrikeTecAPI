@@ -598,6 +598,19 @@ class LeaderboardController extends Controller
 
     	\DB::statement(\DB::raw('SET @rank = 0'));
 
+    	$dataUserRanks = GameLeaderboard::select('user_id', \DB::raw('@rank:=@rank+1 AS rank'));
+    	
+    	if ($gameId == 1) {
+        	$dataUserRanks->orderBy('score', 'asc')->orderBy('distance', 'desc');
+        } else {
+        	$dataUserRanks->orderBy('score', 'desc');
+        }
+
+        $currentUserRank = $this->getCurrentUserRank($dataUserRanks->get()->toArray());
+
+        // Reset rank to get actual data with rank
+        \DB::statement(\DB::raw('SET @rank = 0'));
+
     	$dataStmt = GameLeaderboard::select('*', \DB::raw('@rank:=@rank+1 AS rank'))
     		->with(['user' => function ($query) {
                 $query->select([
@@ -623,7 +636,14 @@ class LeaderboardController extends Controller
         	$dataStmt->orderBy('score', 'desc');
         }
 
-        $data = $dataStmt->get()->toArray();
+        if ($currentUserRank <= 50) {
+        	$data = $dataStmt->get()->toArray();
+        } else {
+        	$dataListOne = $dataStmt->limit(25)->get()->toArray();
+        	$dataListTwo = $dataStmt->offset(($currentUserRank - 12))->limit(25)->get()->toArray();
+
+        	$data = array_merge($dataListOne, $dataListTwo);
+        }
 
         foreach ($data as $i => $raw) {
         	switch ($gameId) {
