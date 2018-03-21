@@ -618,7 +618,7 @@ class LeaderboardController extends Controller
             }])->where('game_id', $gameId)->limit($limit);
 
         if ($gameId == 1) {
-        	$dataStmt->orderBy('score', 'asc');
+        	$dataStmt->orderBy('score', 'asc')->orderBy('distance', 'desc');
         } else {
         	$dataStmt->orderBy('score', 'desc');
         }

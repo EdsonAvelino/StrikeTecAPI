@@ -336,21 +336,26 @@ class TrainingController extends Controller
         $gameSession = false;
 
         foreach ($data as $session) {
-            $_session = Sessions::create([
-                'user_id' => \Auth::user()->id,
-                'battle_id' => ($session['battle_id']) ?? null,
-                'game_id' => ($session['game_id']) ?? null,
-                'type_id' => $session['type_id'],
-                'start_time' => $session['start_time'],
-                'end_time' => $session['end_time'],
-                'plan_id' => $session['plan_id'],
-                'avg_speed' => $session['avg_speed'],
-                'avg_force' => $session['avg_force'],
-                'punches_count' => $session['punches_count'],
-                'max_force' => $session['max_force'],
-                'max_speed' => $session['max_speed'],
-                'best_time' => $session['best_time']
-            ]);
+            // Checking if session already exists
+            $_session = Sessions::where('start_time', $session['start_time'])->first();
+
+            if (!$_session) {
+                $_session = Sessions::create([
+                    'user_id' => \Auth::user()->id,
+                    'battle_id' => ($session['battle_id']) ?? null,
+                    'game_id' => ($session['game_id']) ?? null,
+                    'type_id' => $session['type_id'],
+                    'start_time' => $session['start_time'],
+                    'end_time' => $session['end_time'],
+                    'plan_id' => $session['plan_id'],
+                    'avg_speed' => $session['avg_speed'],
+                    'avg_force' => $session['avg_force'],
+                    'punches_count' => $session['punches_count'],
+                    'max_force' => $session['max_force'],
+                    'max_speed' => $session['max_speed'],
+                    'best_time' => $session['best_time']
+                ]);
+            }
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
@@ -644,32 +649,37 @@ class TrainingController extends Controller
 
         try {
             foreach ($data as $round) {
-// $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
+                // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
 
-                $_round = SessionRounds::create([
-                            'session_id' => $round['session_start_time'],
-                            'start_time' => $round['start_time'],
-                            'end_time' => $round['end_time'],
-                            'avg_speed' => $round['avg_speed'],
-                            'avg_force' => $round['avg_force'],
-                            'punches_count' => $round['punches_count'],
-                            'max_speed' => $round['max_speed'],
-                            'max_force' => $round['max_force'],
-                            'best_time' => $round['best_time'],
-                ]);
+                // Checking if round already exists
+                $_round = SessionRounds::where('start_time', $round['start_time'])->where('session_id', $round['session_start_time'])->first();
+
+                if (!$_round) {
+                    $_round = SessionRounds::create([
+                        'session_id' => $round['session_start_time'],
+                        'start_time' => $round['start_time'],
+                        'end_time' => $round['end_time'],
+                        'avg_speed' => $round['avg_speed'],
+                        'avg_force' => $round['avg_force'],
+                        'punches_count' => $round['punches_count'],
+                        'max_speed' => $round['max_speed'],
+                        'max_force' => $round['max_force'],
+                        'best_time' => $round['best_time'],
+                    ]);
+                }
 
                 $rounds[] = ['start_time' => $_round->start_time];
             }
 
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'Sessions rounds saved successfully',
-                        'data' => $rounds
+                'error' => 'false',
+                'message' => 'Sessions rounds saved successfully',
+                'data' => $rounds
             ]);
         } catch (Exception $e) {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
+                'error' => 'true',
+                'message' => 'Invalid request',
             ]);
         }
     }
@@ -726,30 +736,34 @@ class TrainingController extends Controller
             foreach ($data as $punch) {
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-                // Store punches
-                $_punch = SessionRoundPunches::create([
-                            'session_round_id' => $sessionRound->id,
-                            'punch_time' => $punch['punch_time'],
-                            'punch_duration' => $punch['punch_duration'],
-                            'force' => $punch['force'],
-                            'speed' => $punch['speed'],
-                            'punch_type' => strtoupper($punch['punch_type']),
-                            'hand' => strtoupper($punch['hand']),
-                            'distance' => $punch['distance'],
-                ]);
+                // Check if punches already exists
+                $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
+
+                if (!$_punch) {
+                    $_punch = SessionRoundPunches::create([
+                        'session_round_id' => $sessionRound->id,
+                        'punch_time' => $punch['punch_time'],
+                        'punch_duration' => $punch['punch_duration'],
+                        'force' => $punch['force'],
+                        'speed' => $punch['speed'],
+                        'punch_type' => strtoupper($punch['punch_type']),
+                        'hand' => strtoupper($punch['hand']),
+                        'distance' => $punch['distance'],
+                    ]);
+                }
 
                 $punches[] = ['start_time' => $_punch->punch_time];
             }
 
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'Rounds punches saved successfully',
-                        'data' => $punches
+                'error' => 'false',
+                'message' => 'Rounds punches saved successfully',
+                'data' => $punches
             ]);
         } catch (Exception $e) {
             return response()->json([
-                        'error' => 'true',
-                        'message' => 'Invalid request',
+                'error' => 'true',
+                'message' => 'Invalid request',
             ]);
         }
     }
