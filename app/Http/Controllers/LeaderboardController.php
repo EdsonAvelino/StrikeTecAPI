@@ -617,7 +617,7 @@ class LeaderboardController extends Controller
                 ])->with(['country', 'state', 'city']);
             }])->where('game_id', $gameId)->limit($limit);
 
-        if ($gameId == 3) {
+        if ($gameId == 1) {
         	$dataStmt->orderBy('score', 'asc');
         } else {
         	$dataStmt->orderBy('score', 'desc');
