@@ -680,6 +680,11 @@ class UserController extends Controller
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Integer} game_id ID of game of which score you want
+     * @apiParamExample {json} Input
+     *    {
+     *      "game_id": 1,
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} users List of users followed by search term
@@ -689,14 +694,8 @@ class UserController extends Controller
      *          "error": "false",
      *          "message": "",
      *          "data": {
-     *              "1": {
-     *                   "score": 3,
-     *                   "distance": 24
-     *               },
-     *              "2": {
-     *                   "score": 28,
-     *                   "distance": 26
-     *              }
+     *              "score": 3,
+     *              "distance": 24
      *          }
      *     }
      * @apiErrorExample {json} Error Response
@@ -709,29 +708,33 @@ class UserController extends Controller
      */
     public function getUsersGameScores(Request $request)
     {
-        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', \Auth::id())->get();
+        $validator = \Validator::make($request->all(), [
+            'game_id'    => 'required|exists:games,id',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' =>  $errors->first('game_id')]);
+        }
+
+        $gameId = (int) $request->get('game_id');
+
+        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', \Auth::id())->where('game_id', $gameId)->first();
 
         $data = [];
 
         if ($leaderboardData) {
-            foreach ($leaderboardData as $raw) {
-                $score = $raw->score;
+            $score = $leaderboardData->score;
 
-                switch ($raw->game_id) {
-                    case 1: $score = (float) number_format($score, 3); break; // Reaction time
-                    case 2: $score = (int) $score; break;
-                    case 3: $score = (int) $score; break;
-                    case 4: $score = (int) $score; break;
-                }
-
-                $_data['score'] = $score;
-                $_data['distance'] = (float) number_format($raw->distance, 1) ;
-                
-                $data[$raw->game_id] = $_data;
-
-                // Reset data
-                $_data = [];
+            switch ($leaderboardData->game_id) {
+                case 1: $score = (float) number_format($score, 3); break; // Reaction time
+                case 2: $score = (int) $score; break;
+                case 3: $score = (int) $score; break;
+                case 4: $score = (int) $score; break;
             }
+
+            $data['score'] = $score;
+            $data['distance'] = (float) number_format($leaderboardData->distance, 1) ;
         }
 
         return response()->json([
@@ -1706,10 +1709,10 @@ class UserController extends Controller
 
         $suggestedUsersCount = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)->count();
-        
+
         // TODO need to improve this suggestion of users to follow
         if ($suggestedUsersCount < 1) {
-            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->get();
+            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->where('id', '!=', \Auth::id())->whereRaw("id NOT IN ($currentUserFollowing)", [\Auth::id()])->offset($offset)->limit($limit)->get();
         } else {
             $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)
