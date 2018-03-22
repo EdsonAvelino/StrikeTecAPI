@@ -742,6 +742,13 @@ class TrainingController extends Controller
                 $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
                 if (!$_punch) {
+                    // To prevent errors on Prod
+                    $isCorrect = null;
+
+                    if (isset($punch['is_correct'])) {
+                        $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+                    }
+
                     $_punch = SessionRoundPunches::create([
                         'session_round_id' => $sessionRound->id,
                         'punch_time' => $punch['punch_time'],
@@ -751,7 +758,7 @@ class TrainingController extends Controller
                         'punch_type' => strtoupper($punch['punch_type']),
                         'hand' => strtoupper($punch['hand']),
                         'distance' => $punch['distance'],
-                        'is_correct' => filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN),
+                        'is_correct' => $isCorrect,
                     ]);
                 }
 
