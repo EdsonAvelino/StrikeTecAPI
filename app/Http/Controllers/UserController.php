@@ -725,8 +725,8 @@ class UserController extends Controller
                 }
 
                 $_data['score'] = $score;
-
                 $_data['distance'] = (float) number_format($raw->distance, 1) ;
+                
                 $data[$raw->game_id] = $_data;
 
                 // Reset data
