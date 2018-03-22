@@ -266,14 +266,20 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         $userSubscription = \App\UserSubscriptions::where('user_id', $userId)->first();
 
         // In case of user has not subscribed to any
-        if (!$userSubscription || !$userId) return null;
+        if (!$userId) return null;
+
+        if (!$userSubscription) {
+            $userSubscription = new \App\UserSubscriptions;
+            $userSubscription->platform = "ANDROID";
+            $userSubscription->iap_product_id = null;
+        }
 
         // Fetch all IAP Products 
-        $products = \App\IapProducts::select('id', 'product_id')->where('platform', $userSubscription->platform)->get();
+        $products = \App\IapProducts::select('id', 'key')->where('platform', $userSubscription->platform)->get();
         
         $data = [];
         foreach ($products as $product) {
-            $data[$product->product_id] = ($product->id == $userSubscription->iap_product_id) ? true : false;
+            $data[$product->key] = ($product->id == $userSubscription->iap_product_id) ? true : false;
         }
 
         return $data;

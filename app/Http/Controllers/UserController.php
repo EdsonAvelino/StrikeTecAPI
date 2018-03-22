@@ -715,11 +715,22 @@ class UserController extends Controller
 
         if ($leaderboardData) {
             foreach ($leaderboardData as $raw) {
-                 $_data['score'] = $raw->score;
-                 $_data['distance'] = $raw->distance;
-                 $data[$raw->game_id] = $_data;
+                $score = $raw->score;
 
-                 $_data = [];
+                switch ($raw->game_id) {
+                    case 1: $score = (float) number_format($score, 3); break; // Reaction time
+                    case 2: $score = (int) $score; break;
+                    case 3: $score = (int) $score; break;
+                    case 4: $score = (int) $score; break;
+                }
+
+                $_data['score'] = $score;
+                $_data['distance'] = (float) number_format($raw->distance, 1) ;
+                
+                $data[$raw->game_id] = $_data;
+
+                // Reset data
+                $_data = [];
             }
         }
 
@@ -743,8 +754,7 @@ class UserController extends Controller
      * @apiParam {String} product_id In-App Product (Subscription) ID e.g. trainee_monthly, trainee_yearly
      * @apiParam {String="IOS","ANDROID"} platform Device ID
      * @apiParam {Boolean="ture","false"} [is_auto_renewable] Subscription is auto renewable, true/false
-     * @apiParam {Timestamp} [purchased_at] Purchased timestamp
-     * @apiParam {Timestamp} [expire_at] Expire Timestamp
+     * @apiParam {Timestamp} purchased_at Purchased timestamp
      * @apiParamExample {json} Input
      *    {
      *      'product_id': 1,
@@ -793,6 +803,7 @@ class UserController extends Controller
                 'is_auto_renewable' => $request->get('is_auto_renewable') ?? null,
                 'purchased_at' => $request->get('purchased_at') ?? null, // Put timestamp here
                 'expire_at' => $request->get('expire_at') ?? null // Put timestamp here
+                // TODO fix expire_at 
             ]);
         } else {
             // Updates existing subscription
@@ -811,7 +822,7 @@ class UserController extends Controller
         
         $data = [];
         foreach ($products as $product) {
-            $data[$product->product_id] = ($product->id == $IAPproduct->id) ? true : false;
+            $data[$product->key] = ($product->id == $IAPproduct->id) ? true : false;
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);

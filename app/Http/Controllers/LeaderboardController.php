@@ -653,7 +653,7 @@ class LeaderboardController extends Controller
         		case 4: $data[$i]['score'] = (int) $raw['score']; break;
         	}
         	
-        	$data[$i]['distance'] = (float) number_format($raw['distance'],1 );
+        	$data[$i]['distance'] = (float) number_format($raw['distance'], 1);
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
