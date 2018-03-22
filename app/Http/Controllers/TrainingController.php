@@ -698,10 +698,10 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 53.21 },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 43.41 },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 51.27 },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 33.09 },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 53.21, "is_correct": true },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 43.41, "is_correct": false },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 51.27, "is_correct": true },
+     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 33.09, "is_correct": false },
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -749,6 +749,7 @@ class TrainingController extends Controller
                         'punch_type' => strtoupper($punch['punch_type']),
                         'hand' => strtoupper($punch['hand']),
                         'distance' => $punch['distance'],
+                        'is_correct' => filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN),
                     ]);
                 }
 
