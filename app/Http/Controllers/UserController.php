@@ -1709,7 +1709,7 @@ class UserController extends Controller
 
         // TODO need to improve this suggestion of users to follow
         if ($suggestedUsersCount < 1) {
-            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->where('id', '!=', \Auth::id())->whereRaw("id NOT IN ($currentUserFollowing)", [\Auth::id()])->get();
+            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->where('id', '!=', \Auth::id())->whereRaw("id NOT IN ($currentUserFollowing)", [\Auth::id()])->offset($offset)->limit($limit)->get();
         } else {
             $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)
