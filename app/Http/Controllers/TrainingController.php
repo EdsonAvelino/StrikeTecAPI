@@ -132,6 +132,8 @@ class TrainingController extends Controller
 
         $_sessions->where(function ($query) {
             $query->whereNull('battle_id')->orWhere('battle_id', '0');
+        })->where(function ($query) {
+            $query->whereNull('game_id')->orWhere('game_id', '0');
         });
 
         if (!empty($startDate) && !empty($endDate)) {

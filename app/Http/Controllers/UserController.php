@@ -715,11 +715,22 @@ class UserController extends Controller
 
         if ($leaderboardData) {
             foreach ($leaderboardData as $raw) {
-                 $_data['score'] = $raw->score;
-                 $_data['distance'] = $raw->distance;
-                 $data[$raw->game_id] = $_data;
+                $score = $raw->score;
 
-                 $_data = [];
+                switch ($raw->game_id) {
+                    case 1: $score = (float) number_format($score, 3); break; // Reaction time
+                    case 2: $score = (int) $score; break;
+                    case 3: $score = (int) $score; break;
+                    case 4: $score = (int) $score; break;
+                }
+
+                $_data['score'] = $score;
+
+                $_data['distance'] = (float) number_format($raw->distance, 1) ;
+                $data[$raw->game_id] = $_data;
+
+                // Reset data
+                $_data = [];
             }
         }
 
