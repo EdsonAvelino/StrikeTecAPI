@@ -1,12 +1,9 @@
+/docs
+/doc
 /vendor
 /apidoc
 /.idea
 Homestead.json
 Homestead.yaml
 .env
-/storage/videos
-/storage/badges
-/storage/events
-/storage/users
-/storage/companies
-/storage/comboAudio
+/storage/*
