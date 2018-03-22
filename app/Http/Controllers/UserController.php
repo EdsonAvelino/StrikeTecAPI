@@ -726,7 +726,7 @@ class UserController extends Controller
 
                 $_data['score'] = $score;
                 $_data['distance'] = (float) number_format($raw->distance, 1) ;
-                
+
                 $data[$raw->game_id] = $_data;
 
                 // Reset data
@@ -1706,10 +1706,10 @@ class UserController extends Controller
 
         $suggestedUsersCount = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)->count();
-        
+
         // TODO need to improve this suggestion of users to follow
         if ($suggestedUsersCount < 1) {
-            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->get();
+            $suggestedUsers = User::select('id as user_id')->where('country_id', \Auth::user()->country_id)->where('id', '!=', \Auth::id())->whereRaw("id NOT IN ($currentUserFollowing)", [\Auth::id()])->get();
         } else {
             $suggestedUsers = \DB::table(\DB::raw("({$suggestedUsersQuery->toSql()}) as raw"))
                         ->select('user_id')->mergeBindings($suggestedUsersQuery)
