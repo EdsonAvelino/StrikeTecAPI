@@ -26,6 +26,11 @@ class Videos extends Model
         'updated_at'
     ];
 
+    public function filters()
+    {
+        return $this->hasMany('App\VideoTagFilters', 'video_id');
+    }
+
     public function getFileAttribute($value)
     {
         if (strpos($value, 'youtube') > 0 || strpos($value, 'youtu.be') > 0) {
@@ -61,21 +66,25 @@ class Videos extends Model
 
     public function getThumbWidthAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path('../../storage'.(config('striketec.storage.videos_thumb')).$thumb));
+        $thumbFilePath = base_path('../storage'.(config('striketec.storage.videos_thumb')).$thumb);
+
+        if (!file_exists($thumbFilePath))
+            return 0;
+
+        list($width, $height, $type, $attr) = getimagesize($thumbFilePath);
 
         return $width;
     }
 
     public function getThumbHeightAttribute($thumb)
     {
-        list($width, $height, $type, $attr) = getimagesize(base_path('../../storage'.(config('striketec.storage.videos_thumb')).$thumb));
+        $thumbFilePath = base_path('../storage'.(config('striketec.storage.videos_thumb')).$thumb);
+
+        if (!file_exists($thumbFilePath))
+            return 0;
+        
+        list($width, $height, $type, $attr) = getimagesize($thumbFilePath);
 
         return $height;
     }
-
-    public function RecommendedVideos()
-    {
-        return $this->belongsTo('App\Videos', 'video_id');
-    }
-
 }
