@@ -70,7 +70,8 @@ class UserController extends Controller
      *          "gender": null,
      *          "birthday": "1975-05-09",
      *          "weight": null,
-     *          "height": null,
+     *          "height_feet": 5,
+     *          "height_inches": 8,
      *          "left_hand_sensor": null,
      *          "right_hand_sensor": null,
      *          "left_kick_sensor": null,
@@ -194,7 +195,8 @@ class UserController extends Controller
      *          "gender": null,
      *          "birthday": "1975-05-09",
      *          "weight": null,
-     *          "height": null,
+     *          "height_feet": 5,
+     *          "height_inches": 11,
      *          "left_hand_sensor": null,
      *          "right_hand_sensor": null,
      *          "left_kick_sensor": null,
@@ -298,7 +300,8 @@ class UserController extends Controller
      * @apiParam {String="male","female"} [gender] Gender
      * @apiParam {Date} [birthday] Birthday in MM-DD-YYYY e.g. 09/11/1987
      * @apiParam {Number} [weight] Weight
-     * @apiParam {Number} [height] Height
+     * @apiParam {Number} [height_feet] Height (Feet Value)
+     * @apiParam {Number} [height_inches] Height (Inches Value)
      * @apiParam {Boolean} [is_spectator] Spectator true / false
      * @apiParam {String} [stance] Stance
      * @apiParam {Boolean} [show_tip] Show tips true / false
@@ -315,7 +318,8 @@ class UserController extends Controller
      *      "gender": "male",
      *      "birthday": "09/11/1987",
      *      "weight": 25,
-     *      "height": 6,
+     *      "height_feet": 5,
+     *      "height_inches": 11,
      *      "is_spectator": true,
      *      "stance": "traditional",
      *    }
@@ -353,7 +357,9 @@ class UserController extends Controller
             $user->birthday = $birthday;
 
             $user->weight = $request->get('weight') ?? $user->weight;
-            $user->height = $request->get('height') ?? $user->height;
+            
+            $user->height_feet = $request->get('height_feet') ?? $user->height_feet;
+            $user->height_inches = $request->get('height_inches') ?? $user->height_inches;
 
             $isSpectator = filter_var($request->get('is_spectator'), FILTER_VALIDATE_BOOLEAN);
             $user->is_spectator = $request->get('is_spectator') ? $isSpectator : $user->is_spectator;
@@ -862,7 +868,8 @@ class UserController extends Controller
      *              "gender": null,
      *              "birthday": "1975-05-09",
      *              "weight": null,
-     *              "height": null,
+     *              "height_feet": 5,
+     *              "height_inches": 11,
      *              "left_hand_sensor": null,
      *              "right_hand_sensor": null,
      *              "left_kick_sensor": null,
