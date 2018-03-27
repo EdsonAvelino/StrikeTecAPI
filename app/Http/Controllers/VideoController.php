@@ -93,9 +93,15 @@ class VideoController extends Controller
                 'author_name',
                 'thumbnail as thumb_width',
                 'thumbnail as thumb_height']
-            )->whereHas('filters', function ($query) use ($filters) {
-                $query->whereIn('tag_filter_id', $filters);
-            })->where('category_id', $categoryId)->offset($offset)->limit($limit)->get();
+            )->where('category_id', $categoryId)->offset($offset)->limit($limit);
+
+        if (count($filters) > 0) {
+            $_videos->whereHas('filters', function ($query) use ($filters) {
+                $query->whereIn('tag_filter_id',$filters);
+            });
+        }
+
+        $_videos = $_videos->get();
 
         $videos = [];
         
