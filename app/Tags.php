@@ -27,10 +27,4 @@ class Tags extends Model
     {
         return \App\TagFilters::all();
     }
-
-    // public function filters()
-    // {
-    //     return \App\TagFilters::all();
-    // }
-
 }

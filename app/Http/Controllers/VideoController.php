@@ -397,7 +397,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @api {get}/videos/tags list of video's tags
+     * @api {get} /videos/tags list of video's tags
      * @apiGroup Videos
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
