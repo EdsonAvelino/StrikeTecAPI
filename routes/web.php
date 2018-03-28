@@ -15,6 +15,9 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
+// Check for app update
+$app->post('/check_update', 'AppController@checkForUpdate');
+
 // Login
 $app->post('/auth/login', 'AuthController@authenticate');
 $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
