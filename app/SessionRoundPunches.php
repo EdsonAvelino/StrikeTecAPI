@@ -48,4 +48,9 @@ class SessionRoundPunches extends Model
             return parent::asDateTime(new \DateTimeImmutable($value));
         }
     }
+
+    public function getIsCorrectAttribute($value)
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
 }

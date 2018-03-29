@@ -6,18 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Battles extends Model
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'user_id',
         'opponent_user_id',
         'plan_id',
         'type_id',
     ];
+
+    private static $result = [];
 
     public function user()
     {
@@ -89,23 +85,23 @@ class Battles extends Model
             $winner = \App\User::get($winnerUserId)->toArray();
 
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
-            $winner['avg_speed'] = $_session->avg_speed;
-            $winner['avg_force'] = $_session->avg_force;
-            $winner['max_speed'] = $_session->max_speed;
-            $winner['max_force'] = $_session->max_force;
+            $winner['avg_speed'] = self::$result[$winnerUserId]['avg_speed'];
+            $winner['avg_force'] = self::$result[$winnerUserId]['avg_force'];
+            $winner['max_speed'] = self::$result[$winnerUserId]['max_speed'];
+            $winner['max_force'] = self::$result[$winnerUserId]['max_force'];
             $winner['best_time'] = $_session->best_time;
-            $winner['punches_count'] = $_session->punches_count;
+            $winner['punches_count'] = self::$result[$winnerUserId]['punches_count'];
 
             // loser
             $loser = \App\User::get($loserUserId)->toArray();
 
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $loserUserId)->first();
-            $loser['avg_speed'] = $_session->avg_speed;
-            $loser['avg_force'] = $_session->avg_force;
-            $loser['max_speed'] = $_session->max_speed;
-            $loser['max_force'] = $_session->max_force;
+            $loser['avg_speed'] = self::$result[$loserUserId]['avg_speed'];
+            $loser['avg_force'] = self::$result[$loserUserId]['avg_force'];
+            $loser['max_speed'] = self::$result[$loserUserId]['max_speed'];
+            $loser['max_force'] = self::$result[$loserUserId]['max_force'];
             $loser['best_time'] = $_session->best_time;
-            $loser['punches_count'] = $_session->punches_count;
+            $loser['punches_count'] = self::$result[$loserUserId]['punches_count'];
         }
 
         return ['winner' => $winner, 'loser' => $loser];
@@ -188,7 +184,7 @@ class Battles extends Model
 
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessions->isEmpty())
-            return Null;
+            return null;
 
         foreach ($sessions as $session) {
             // Battle type combo and combo-set will always have one round
@@ -203,6 +199,11 @@ class Battles extends Model
                 $puchnes[$session->user_id][] = $punch->toArray();
             }
         }
+
+        // Defining first
+        $resultData = ['avg_speed' => 0, 'avg_force' => 0, 'max_speed' => 0, 'max_force' => 0, 'punches_count' => 0];
+        self::$result[$battle->user_id] = $resultData;
+        self::$result[$battle->opponent_user_id] = $resultData;
 
         $userMarks = $opponentMarks = 0;
         $userAvgSpeedOfCorrectPunches = $opponentAvgSpeedOfCorrectPunches = 0;
@@ -222,27 +223,55 @@ class Battles extends Model
             }
         }
 
+        // Total correct punches, currently we're considering total-correct-punches as marks
+        self::$result[$battle->user_id]['punches_count'] = $userMarks;
+        self::$result[$battle->opponent_user_id]['punches_count'] = $opponentMarks;
+
+        // Avg Speed of correct punches
+        $userAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->user_id]) / (float) count($speedOfCorrectPunches[$battle->user_id]);
+
+        $opponentAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->opponent_user_id]) / (float) count($speedOfCorrectPunches[$battle->opponent_user_id]);
+
+        self::$result[$battle->user_id]['avg_speed'] = $userAvgSpeedOfCorrectPunches;
+        self::$result[$battle->opponent_user_id]['avg_speed'] = $opponentAvgSpeedOfCorrectPunches;
+
+        // Avg Force of correct punches
+        $userAvgForceOfCorrectPunches = (float) array_sum($forceOfCorrectPunches[$battle->user_id]) / (float) count($forceOfCorrectPunches[$battle->user_id]);
+
+        $opponentAvgForceOfCorrectPunches = (float) array_sum($forceOfCorrectPunches[$battle->opponent_user_id]) / (float) count($forceOfCorrectPunches[$battle->opponent_user_id]);
+
+        self::$result[$battle->user_id]['avg_force'] = $userAvgForceOfCorrectPunches;
+        self::$result[$battle->opponent_user_id]['avg_force'] = $opponentAvgForceOfCorrectPunches;
+
+        // Max Speed of correct punches
+        $userMaxSpeed = max($speedOfCorrectPunches[$battle->user_id]);
+        $opponentMaxSpeed = max($speedOfCorrectPunches[$battle->opponent_user_id]);
+
+        self::$result[$battle->user_id]['max_speed'] = $userMaxSpeed;
+        self::$result[$battle->opponent_user_id]['max_speed'] = $opponentMaxSpeed;
+
+        // Max Force of correct punches
+        $userMaxForce = max($forceOfCorrectPunches[$battle->user_id]);
+        $opponentMaxForce = max($forceOfCorrectPunches[$battle->opponent_user_id]);
+
+        self::$result[$battle->user_id]['max_force'] = $userMaxForce;
+        self::$result[$battle->opponent_user_id]['max_force'] = $opponentMaxForce;
+
         // If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
         if ($userMarks > 0 && $opponentMarks > 0 && $userMarks == $opponentMarks) {
-            $userAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->user_id]) / (float) count($speedOfCorrectPunches[$battle->user_id]);
-
-            $opponentAvgSpeedOfCorrectPunches = (float) array_sum($speedOfCorrectPunches[$battle->opponent_user_id]) / (float) $speedOfCorrectPunches[$battle->opponent_user_id];
-
             if ($userAvgSpeedOfCorrectPunches > $opponentAvgSpeedOfCorrectPunches) {
                 return $battle->user_id;
-            } else if ($opponentAvgSpeedOfCorrectPunches > $userAvgSpeedOfCorrectPunches) {
+            } elseif ($opponentAvgSpeedOfCorrectPunches > $userAvgSpeedOfCorrectPunches) {
                 return $battle->opponent_user_id;
             }
         }
 
         // If avg speed is also same, then will determine with power of all correct punches, higher power will be winner
-        if ($userAvgSpeedOfCorrectPunches > 0 && $opponentAvgSpeedOfCorrectPunches > 0 && $userAvgSpeedOfCorrectPunches == $opponentAvgSpeedOfCorrectPunches) {
-            $userMaxForce = max($forceOfCorrectPunches[$battle->user_id]);
-            $opponentMaxForce = max($forceOfCorrectPunches[$battle->opponent_user_id]);
-
+        if ($userAvgSpeedOfCorrectPunches > 0 && $opponentAvgSpeedOfCorrectPunches > 0 && $userAvgSpeedOfCorrectPunches == $opponentAvgSpeedOfCorrectPunches)
+        {
             if ($userMaxForce > $opponentMaxForce) {
                 return $battle->user_id;
-            } else if ($opponentMaxForce > $userMaxForce) {
+            } elseif ($opponentMaxForce > $userMaxForce) {
                 return $battle->opponent_user_id;
             }
         }
@@ -254,7 +283,7 @@ class Battles extends Model
 
             if ($userSpeed < $opponentSpeed) {
                 return $battle->user_id;
-            } else if ($opponentSpeed < $userAvg) {
+            } elseif ($opponentSpeed < $userAvg) {
                 return $battle->opponent_user_id;
             }
         } elseif ($userMarks > $opponentMarks) {
