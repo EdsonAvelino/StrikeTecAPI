@@ -85,23 +85,23 @@ class Battles extends Model
             $winner = \App\User::get($winnerUserId)->toArray();
 
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
-            $winner['avg_speed'] = self::$result[$winnerUserId]['avg_speed'];
-            $winner['avg_force'] = self::$result[$winnerUserId]['avg_force'];
-            $winner['max_speed'] = self::$result[$winnerUserId]['max_speed'];
-            $winner['max_force'] = self::$result[$winnerUserId]['max_force'];
+            $winner['avg_speed'] = (int) self::$result[$winnerUserId]['avg_speed'];
+            $winner['avg_force'] = (int) self::$result[$winnerUserId]['avg_force'];
+            $winner['max_speed'] = (float) self::$result[$winnerUserId]['max_speed'];
+            $winner['max_force'] = (float) self::$result[$winnerUserId]['max_force'];
             $winner['best_time'] = $_session->best_time;
-            $winner['punches_count'] = self::$result[$winnerUserId]['punches_count'];
+            $winner['punches_count'] = (int) self::$result[$winnerUserId]['punches_count'];
 
             // loser
             $loser = \App\User::get($loserUserId)->toArray();
 
             $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $loserUserId)->first();
-            $loser['avg_speed'] = self::$result[$loserUserId]['avg_speed'];
-            $loser['avg_force'] = self::$result[$loserUserId]['avg_force'];
-            $loser['max_speed'] = self::$result[$loserUserId]['max_speed'];
-            $loser['max_force'] = self::$result[$loserUserId]['max_force'];
+            $loser['avg_speed'] = (int) self::$result[$loserUserId]['avg_speed'];
+            $loser['avg_force'] = (int) self::$result[$loserUserId]['avg_force'];
+            $loser['max_speed'] = (float) self::$result[$loserUserId]['max_speed'];
+            $loser['max_force'] = (float) self::$result[$loserUserId]['max_force'];
             $loser['best_time'] = $_session->best_time;
-            $loser['punches_count'] = self::$result[$loserUserId]['punches_count'];
+            $loser['punches_count'] = (int) self::$result[$loserUserId]['punches_count'];
         }
 
         return ['winner' => $winner, 'loser' => $loser];
