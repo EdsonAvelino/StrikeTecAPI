@@ -327,6 +327,11 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
 });
 
+// Guidance APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    $app->get('/guidance/home', 'GuidanceController@home');
+});
+
 // In-App Purchase APIs [these APIs don't need authorization]
 // Get IAP get list of products
 $app->get('/iap/products/{platform}', 'IapController@getProducts');

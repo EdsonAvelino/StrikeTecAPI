@@ -30,6 +30,11 @@ class Kernel extends ConsoleKernel
         $schedule->call(function () {
             UserAchievements::achievementsSchedulerRun();
         });
+
+        // Clear game-leaderboard every monday at 00:01 AM
+        $schedule->call(function () {
+            \App\GameLeaderboard::query()->truncate();
+        })->weekly()->mondays()->at('00:01');
     }
 
 }

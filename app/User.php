@@ -11,7 +11,6 @@ use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
 class User extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
 {
-
     use Authenticatable,
         Authorizable;
 
@@ -169,6 +168,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
     public function setLastNameAttribute($lastName)
     {
         $this->attributes['last_name'] = ucfirst(strtolower($lastName));
+    }
+
+    public function setEmailAttribute($email)
+    {
+        $this->attributes['email'] = strtolower($email);
     }
 
     public function getPhotoUrlAttribute($photo)

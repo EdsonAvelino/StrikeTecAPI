@@ -132,11 +132,12 @@ class UserAchievements extends Model
         if ($gender == NULL) {
             $gender = 'male';
         }
+
         $perviousMonday = strtotime('previous monday');
         $achievements = Achievements::orderBy('sequence')->get();
+        
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
-
                 case 7:
                     $userParticpation = Sessions::getUserParticpation($userId, $perviousMonday);
                     if ($userParticpation) {
@@ -374,12 +375,15 @@ class UserAchievements extends Model
 
     public static function achievementsSchedulerRun()
     {
-        $date = date('y-m-d H:i:s');
+        $date = date('Y-m-d H:i:s');
         $users = User::select('id', 'gender')->get();
-        foreach ($users as $userId) {
-            $text = "Achievement has been assigned to user  " . $userId->id;
-            \DB::insert('insert into scheduler_log (log,created_at) values (?,?)', [$text, $date]);
-            UserAchievements::schedulerForAchievements($userId->id, $userId->gender);
+
+        foreach ($users as $user) {
+            $text = "Achievement has been assigned to user #" . $user->id;
+            
+            \DB::insert('INSERT INTO scheduler_log (log, created_at) VALUES (?, ?)', [$text, $date]);
+            
+            UserAchievements::schedulerForAchievements($user->id, $user->gender);
         }
     }
 
