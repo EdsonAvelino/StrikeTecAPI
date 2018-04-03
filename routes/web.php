@@ -329,7 +329,16 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Guidance APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Guidance home screen
     $app->get('/guidance/home', 'GuidanceController@home');
+    
+    // Getting list of combos/set-routines/workouts
+    $app->get('/guidance/combos', 'GuidanceController@getCombos');
+    $app->get('/guidance/combo_sets', 'GuidanceController@getComboSets');
+    $app->get('/guidance/workouts', 'GuidanceController@getWorkouts');
+
+    // Rating
+    $app->post('/guidance/rate', 'GuidanceController@postRating');
 });
 
 // In-App Purchase APIs [these APIs don't need authorization]
