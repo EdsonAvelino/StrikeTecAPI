@@ -87,6 +87,16 @@ class NewVideos extends Model
         return $height;
     }
 
+    public function getUserFavoritedAttribute($videoId)
+    {
+        return (bool) \App\UserFavVideos::where('user_id', \Auth::id())->where('video_id', $videoId)->exists();
+    }
+
+    public function getLikesAttribute($videoId)
+    {
+        return (int) \App\UserFavVideos::where('video_id', $videoId)->count();
+    }
+
     public function getIsFeaturedAttribute($isFeatured)
     {
         return (bool) $isFeatured;

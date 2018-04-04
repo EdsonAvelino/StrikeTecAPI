@@ -40,54 +40,48 @@ class GuidanceController extends Controller
     {
     	$data = [];
 
-    	$_featuredVideos = \DB::table('__videos')->where('is_featured', 1)->limit(5)->get();
+        // Featured videos
+        // TODO order by sort order
+    	$featuredVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('is_featured', 1)->limit(5)->get();
     	
-    	$_video = null;
-    	foreach ($_featuredVideos as $video) {
-    		$_video = $video;
-    		$video->user_favorited = true;
-    		$video->likes = rand(9, $video->views);
-    		$data['featured'][] = json_encode($video);
-    	}
+    	$data['featured'][] = json_encode($featuredVideos);
 
-    	$_combinations = \DB::table('__combos')->limit(5)->get();
+        // Combos
+    	$comboVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::COMBO)->limit(5)->get();
     	
-    	foreach ($_combinations as $combo) {
-    		$combo->key_set = '1-2-SR-2';
-    		$combo->video = $_video;
-    		$combo->user_voted = true;
-    		$combo->rate = mt_rand(1, 4) / 10 + rand(1, 4);
-    		$combo->filters = [1, 3];
+    	foreach ($comboVideos as $comboVideo) {
+    		$combo = \App\NewCombos::get($comboVideo->plan_id);
 
     		$data['combinations'][] = json_encode($combo);
     	}
 
-    	$_sets = \DB::table('__combo_sets')->limit(5)->get();
-    	foreach ($_sets as $set) {
-    		$set->combos = [rand(1, 3), rand(4, 7), rand(8, 9)];
-    		$set->video = $_video;
-    		$set->user_voted = true;
-    		$set->rate = mt_rand(1, 4) / 10 + rand(1, 4);
-    		$set->filters = [1, 3];
+        // Combo-Sets
+    	$comboSetVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)->limit(5)->get();
+    	
+        foreach ($comboSetVideos as $comboSetVideo) {
+            $comboSet = \App\NewComboSets::get($comboSetVideo->plan_id);
 
-    		$data['sets'][] = $set;
+    		$data['sets'][] = json_encode($comboSet);
     	}
 
-    	$_workouts = \DB::table('__workouts')->limit(5)->get();
-    	foreach ($_workouts as $workout) {
-    		$__combos[] = [rand(1, 3), rand(4, 7), rand(8, 9)];
-    		$__combos[] = [rand(1, 3), rand(4, 7), rand(8, 9)];
-    		$__combos[] = [rand(1, 3), rand(4, 7), rand(8, 9)];
+        // Workouts
+    	$workoutVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)->limit(5)->get();
+    	foreach ($workoutVideos as $workoutVideo) {
+    		$workout = \App\NewWorkouts::get($workoutVideo->plan_id);
 
-    		$workout->combos = $__combos;
-    		$workout->video = $_video;
-    		$workout->user_voted = true;
-    		$workout->rate = mt_rand(1, 4) / 10 + rand(1, 4);
-    		$workout->filters = [1, 3];
-
-    		$data['workouts'][] = $workout;
-    		$__combos = null;
+    		$data['workouts'][] = json_encode($workout);
     	}
+
+        // Essentials
+        $essentialVideos = \App\NewVideos::select('id')->where(function($query) {
+            $query->whereNull('type_id')->where('type_id', 0);
+        })->limit(5)->get();
+
+        foreach ($essentialVideos as $essentialVideo) {
+            $essential = \App\NewVideos::get($essentialVideo->id);
+
+            $data['essentials'][] = json_encode($essential);
+        }
 
 	    return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
@@ -129,7 +123,7 @@ class GuidanceController extends Controller
      *                 "type_id": 3,
      *                 "plan_id": 1,
      *                 "title": "Fighter Series 3",
-     *                 "file": "http://videos.example.com/video.mp4",
+     *                 "file": "http://videos.example.com/videos/video.mp4",
      *                 "thumbnail": "http://example.com/videos/thumbnails/thumb.png",
      *                 "duration": "00:00:37",
      *                 "views": 54,
@@ -182,34 +176,14 @@ class GuidanceController extends Controller
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
 
-        $combos = \App\NewCombos::select('*', \DB::raw('id as key_set'))->offset($offset)->limit($limit)->get()->toArray();
+        $combos = \App\NewCombos::select('id')->offset($offset)->limit($limit)->get();
+        $data = [];
 
-        foreach ($combos as $i => $combo) {
-            $combos[$i]['detail'] = explode('-', $combo['key_set']);
-            unset($combos[$i]['key_set']);
-
-            // Video
-            $video = \App\NewVideos::where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
-
-            if ($video) {
-                $video['user_favorited'] = (bool) \App\UserFavVideos::where('user_id', \Auth::id())->where('video_id', $video->id)->exists();
-                $video['likes'] = (int) \App\UserFavVideos::where('video_id', $video->id)->count();
-            }
-
-            $combos[$i]['video'] = $video;
-            
-            // User rated combo
-            $combos[$i]['user_voted'] = (bool) \App\NewRatings::where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->exists();
-            
-            // Combo rating
-            $rating = \App\NewRatings::select(\DB::raw('SUM(rating) as sum_of_ratings'), \DB::raw('COUNT(rating) as total_ratings'))->where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
-            $combos[$i]['rating'] = ($rating->total_ratings > 0) ? $rating->sum_of_ratings / $rating->total_ratings : 0;
-
-            // Skill levels
-            $combos[$i]['filters'] = \App\NewComboTags::select('filter_id')->where('combo_id', $combo['id'])->get()->pluck('filter_id');
+        foreach ($combos as $combo) {
+            $data[] = \App\NewCombos::get($combo->id);
         }
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
@@ -238,6 +212,55 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
+     *          {
+     *            "id": 1,
+     *            "trainer_id": 1,
+     *            "name": "Destroyer #1",
+     *            "description": "Nullam neque nibh pellentesque eu dui sit amet",
+     *            "detail": [ 1, 2, 3, 7, 9, 10 ],
+     *            "video": {
+     *                "id": 27,
+     *                "type_id": 4,
+     *                "plan_id": 1,
+     *                "title": "Set series",
+     *                "file": "http://localhost:8001/videos/",
+     *                "thumbnail": "http://localhost:8001/videos/thumbnails/",
+     *                "duration": null,
+     *                "views": 38,
+     *                "is_featured": true,
+     *                "user_favorited": false,
+     *                "likes": 0
+     *            },
+     *            "user_voted": false,
+     *            "rating": 4,
+     *            "filters": [
+     *                1,
+     *                2
+     *            ]
+     *        },
+     *        {
+     *            "id": 2,
+     *            "trainer_id": 1,
+     *            "name": "Fast Timing",
+     *            "description": "Mauris enim lectus, posuere eget fringilla eu",
+     *            "detail": [ 1, 4, 5 ],
+     *            "video": {
+     *                "id": 6,
+     *                "type_id": 4,
+     *                "plan_id": 2,
+     *                "title": "Fighter Series 4: Louis Smolka at UFC Athlete Summit 2016",
+     *                "file": "http://videos.example.com/videos/video.mp4",
+     *                "thumbnail": "http://example.com/videos/thumbnails/thumb.png",
+     *                "duration": "00:00:36",
+     *                "views": 58,
+     *                "is_featured": true,
+     *                "user_favorited": false,
+     *                "likes": 0
+     *            },
+     *            "user_voted": true,
+     *            "rating": 2.7,
+     *            "filters": []
+     *        }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -250,7 +273,17 @@ class GuidanceController extends Controller
      */
     public function getComboSets(Request $request)
     {
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
 
+        $comboSets = \App\NewComboSets::select('id')->offset($offset)->limit($limit)->get();
+        $data = [];
+
+        foreach ($comboSets as $comboSet) {
+            $data[] = \App\NewComboSets::get($comboSet->id);
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
@@ -279,6 +312,65 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
+     *          {
+     *             "id": 1,
+     *             "trainer_id": 1,
+     *             "name": "Workout-1",
+     *             "description": "Aliquam eu iaculis nisl",
+     *             "round_time": 5,
+     *             "rest_time": 0,
+     *             "prepare_time": 0,
+     *             "warning_time": 5,
+     *             "created_at": null,
+     *             "updated_at": null,
+     *             "detail": [
+     *                 [
+     *                     1,
+     *                     2,
+     *                     3
+     *                 ],
+     *                 [
+     *                     1,
+     *                     4,
+     *                     5
+     *                 ]
+     *             ],
+     *             "video": null,
+     *             "user_voted": false,
+     *             "rating": "0.0",
+     *             "filters": []
+     *         },
+     *         {
+     *             "id": 2,
+     *             "trainer_id": 1,
+     *             "name": "Workout-2",
+     *             "description": "Sed finibus varius massa",
+     *             "round_time": 4,
+     *             "rest_time": 0,
+     *             "prepare_time": 0,
+     *             "warning_time": 4,
+     *             "created_at": null,
+     *             "updated_at": null,
+     *             "detail": [
+     *                 [
+     *                     1,
+     *                     3,
+     *                     5
+     *                 ],
+     *                 [
+     *                     2,
+     *                     3,
+     *                     4
+     *                 ]
+     *             ],
+     *             "video": null,
+     *             "user_voted": false,
+     *             "rating": "0.0",
+     *             "filters": [
+     *                 1,
+     *                 2
+     *             ]
+     *         }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -291,11 +383,21 @@ class GuidanceController extends Controller
      */
     public function getWorkouts(Request $request)
     {
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
 
+        $workouts = \App\NewWorkouts::select('id')->offset($offset)->limit($limit)->get();
+
+        $data = [];
+        foreach ($workouts as $workout) {
+            $data[] = \App\NewWorkouts::get($workout->id);
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
-     * @api {post} /guidance/rate Rate combo/set/workout
+     * @api {post} /guidance/rate Rate combo, set or workout
      * @apiGroup Guidance
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization Token
