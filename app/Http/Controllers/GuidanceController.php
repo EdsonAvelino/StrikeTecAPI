@@ -41,13 +41,33 @@ class GuidanceController extends Controller
     	$data = [];
 
         // Featured videos
-        // TODO order by sort order
-    	$featuredVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('is_featured', 1)->limit(5)->get();
+    	$featuredItems = \App\GuidanceSlider::orderBy('order')->limit(5)->get();
+
+        $featuredData = [];
+
+        foreach ($featuredItems as $item) {
+            $_featured = ['type_id' => $item->type_id, 'data' => null];
+            
+            switch ($item->type_id) {
+                case \App\Types::COMBO:
+                    $_featured['data'] = \App\NewCombos::get($item->plan_id);
+                    break;
+                case \App\Types::COMBO_SET:
+                    $_featured['data'] = \App\NewComboSets::get($item->plan_id);
+                    break;
+                case \App\Types::WORKOUT:
+                    $_featured['data'] = \App\NewWorkouts::get($item->plan_id);
+                    break;
+            }
+
+            $_featured['data'] = json_encode($_featured['data']);
+            $featuredData[] = $_featured;
+        }
     	
-    	$data['featured'][] = json_encode($featuredVideos);
+    	$data['featured'][] = $featuredData;
 
         // Combos
-    	$comboVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::COMBO)->limit(5)->get();
+    	$comboVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::COMBO)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
     	
     	foreach ($comboVideos as $comboVideo) {
     		$combo = \App\NewCombos::get($comboVideo->plan_id);
@@ -56,7 +76,7 @@ class GuidanceController extends Controller
     	}
 
         // Combo-Sets
-    	$comboSetVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)->limit(5)->get();
+    	$comboSetVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
     	
         foreach ($comboSetVideos as $comboSetVideo) {
             $comboSet = \App\NewComboSets::get($comboSetVideo->plan_id);
@@ -65,7 +85,7 @@ class GuidanceController extends Controller
     	}
 
         // Workouts
-    	$workoutVideos = \App\NewVideos::select('plan_id')->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)->limit(5)->get();
+    	$workoutVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
     	foreach ($workoutVideos as $workoutVideo) {
     		$workout = \App\NewWorkouts::get($workoutVideo->plan_id);
 
