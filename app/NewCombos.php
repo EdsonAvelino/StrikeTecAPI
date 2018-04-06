@@ -23,6 +23,8 @@ class NewCombos extends Model
     {
         $combo = self::select('*', \DB::raw('id as key_set'))->where('id', $comboId)->first();
 
+        if (!$combo) return null;
+
         $_combo = $combo->toArray();
 
         $_combo['detail'] = explode('-', $_combo['key_set']);

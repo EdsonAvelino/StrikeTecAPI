@@ -22,6 +22,8 @@ class NewComboSets extends Model
     {
         $comboSet = self::find($comboSetId);
 
+        if (!$comboSet) return null;
+
         $_comboSet = $comboSet->toArray();
             
         // Combos

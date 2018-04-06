@@ -12,6 +12,8 @@ class NewWorkouts extends Model
     {
         $workout = self::find($workoutId);
 
+        if (!$workout) return null;
+        
         $_workout = $workout->toArray();
 
         // Loop thru rounds and get combos of round
