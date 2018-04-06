@@ -94,7 +94,7 @@ class GuidanceController extends Controller
 
         // Essentials
         $essentialVideos = \App\NewVideos::select('id')->where(function($query) {
-            $query->whereNull('type_id')->where('type_id', 0);
+            $query->whereNull('type_id')->orWhere('type_id', 0);
         })->limit(5)->get();
 
         foreach ($essentialVideos as $essentialVideo) {
