@@ -29,6 +29,8 @@ class NewComboSets extends Model
         // Combos
         $_comboSet['detail'] = $comboSet->combos()->pluck('combo_id');
 
+        unset($_comboSet['trainer_id']);
+        
         // Trainer
         $_comboSet['trainer'] = ['id' => $comboSet->trainer->id, 'full_name' => $comboSet->trainer->first_name .' '. $comboSet->trainer->last_name];
 

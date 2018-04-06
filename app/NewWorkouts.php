@@ -13,7 +13,7 @@ class NewWorkouts extends Model
         $workout = self::find($workoutId);
 
         if (!$workout) return null;
-        
+
         $_workout = $workout->toArray();
 
         // Loop thru rounds and get combos of round
@@ -28,6 +28,8 @@ class NewWorkouts extends Model
         
         $_workout['detail'] = $datail;
 
+        unset($_workout['trainer_id']);
+        
         // Trainer
         $_workout['trainer'] = ['id' => $workout->trainer->id, 'full_name' => $workout->trainer->first_name .' '. $workout->trainer->last_name];
 

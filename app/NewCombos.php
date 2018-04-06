@@ -28,7 +28,9 @@ class NewCombos extends Model
         $_combo = $combo->toArray();
 
         $_combo['detail'] = explode('-', $_combo['key_set']);
+        
         unset($_combo['key_set']);
+        unset($_combo['trainer_id']);
 
         // Trainer
         $_combo['trainer'] = ['id' => $combo->trainer->id, 'full_name' => $combo->trainer->first_name .' '. $combo->trainer->last_name];
