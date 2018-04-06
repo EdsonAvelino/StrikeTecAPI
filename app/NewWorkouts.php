@@ -21,7 +21,7 @@ class NewWorkouts extends Model
         foreach ($workout->rounds as $round) {
             $_round = [];
             foreach ($round->combos as $combo) {
-                $_round[] = $combo->combo_id;
+                $_round[] = \App\NewCombos::get($combo->combo_id);
             }
             $datail[] = $_round;
         };

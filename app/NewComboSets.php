@@ -27,7 +27,9 @@ class NewComboSets extends Model
         $_comboSet = $comboSet->toArray();
             
         // Combos
-        $_comboSet['detail'] = $comboSet->combos()->pluck('combo_id');
+        foreach( ($comboSet->combos()->pluck('combo_id')) as $comboId ){
+            $_comboSet['detail'][] = \App\NewCombos::get($comboId);
+        }
 
         unset($_comboSet['trainer_id']);
         
