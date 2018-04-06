@@ -72,7 +72,7 @@ class GuidanceController extends Controller
     	foreach ($comboVideos as $comboVideo) {
     		$combo = \App\NewCombos::get($comboVideo->plan_id);
 
-    		$data['combinations'][] = json_encode($combo);
+    		$data['combinations'][] = ['type_id' => \App\Types::COMBO, 'data' => json_encode($combo)];
     	}
 
         // Combo-Sets
@@ -81,7 +81,7 @@ class GuidanceController extends Controller
         foreach ($comboSetVideos as $comboSetVideo) {
             $comboSet = \App\NewComboSets::get($comboSetVideo->plan_id);
 
-    		$data['sets'][] = json_encode($comboSet);
+    		$data['sets'][] = ['type_id' => \App\Types::COMBO_SET, 'data' => json_encode($comboSet)];
     	}
 
         // Workouts
@@ -89,7 +89,7 @@ class GuidanceController extends Controller
     	foreach ($workoutVideos as $workoutVideo) {
     		$workout = \App\NewWorkouts::get($workoutVideo->plan_id);
 
-    		$data['workouts'][] = json_encode($workout);
+    		$data['workouts'][] = ['type_id' => \App\Types::WORKOUT, 'data' => json_encode($workout)];
     	}
 
         // Essentials

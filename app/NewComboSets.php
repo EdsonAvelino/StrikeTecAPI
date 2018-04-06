@@ -27,6 +27,9 @@ class NewComboSets extends Model
         // Combos
         $_comboSet['detail'] = $comboSet->combos()->pluck('combo_id');
 
+        // Trainer
+        $_comboSet['trainer'] = ['id' => $comboSet->trainer->id, 'full_name' => $comboSet->trainer->first_name .' '. $comboSet->trainer->last_name];
+
         // Video
         $video = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::COMBO_SET)->where('plan_id', $comboSet->id)->first();
 
@@ -48,6 +51,11 @@ class NewComboSets extends Model
     public function combos()
     {
         return $this->hasManyThrough('App\ComboSetCombos', 'App\Combos', 'id', 'combo_set_id');
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo('App\NewTrainers');
     }
 
     public function getKeySetAttribute($comboId)

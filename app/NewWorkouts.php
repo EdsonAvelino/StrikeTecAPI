@@ -26,6 +26,9 @@ class NewWorkouts extends Model
         
         $_workout['detail'] = $datail;
 
+        // Trainer
+        $_workout['trainer'] = ['id' => $workout->trainer->id, 'full_name' => $workout->trainer->first_name .' '. $workout->trainer->last_name];
+
         // Video
         $video = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workout->id)->first();
 
@@ -47,6 +50,11 @@ class NewWorkouts extends Model
     public function rounds()
     {
         return $this->hasMany('App\WorkoutRounds', 'workout_id', 'id');
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo('App\NewTrainers');
     }
 
     public function getRoundTimeAttribute($value)

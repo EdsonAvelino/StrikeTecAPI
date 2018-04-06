@@ -9,8 +9,9 @@ class NewCombos extends Model
     protected $table = '__combos';
 
     protected $fillable = [
+        'trainer_id',
         'name',
-        'description',
+        'description'
     ];
 
     protected $hidden = [
@@ -26,6 +27,9 @@ class NewCombos extends Model
 
         $_combo['detail'] = explode('-', $_combo['key_set']);
         unset($_combo['key_set']);
+
+        // Trainer
+        $_combo['trainer'] = ['id' => $combo->trainer->id, 'full_name' => $combo->trainer->first_name .' '. $combo->trainer->last_name];
 
         // Video
         $video = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::COMBO)->where('plan_id', $comboId)->first();
@@ -43,6 +47,11 @@ class NewCombos extends Model
         $_combo['filters'] = \App\NewComboTags::select('filter_id')->where('combo_id', $comboId)->get()->pluck('filter_id');
 
         return $_combo;
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo('App\NewTrainers');
     }
 
     public function getKeySetAttribute($comboId)
