@@ -93,12 +93,13 @@ class GuidanceController extends Controller
     	}
 
         // Essentials
-        $essentialVideos = \App\NewVideos::select('id')->where(function($query) {
-            $query->whereNull('type_id')->orWhere('type_id', 0);
-        })->limit(5)->get();
+        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+            ->where(function($query) {
+                $query->whereNull('type_id')->orWhere('type_id', 0);
+            })->limit(5)->get();
 
         foreach ($essentialVideos as $essentialVideo) {
-            $essential = \App\NewVideos::get($essentialVideo->id);
+            $essential = $essentialVideo;
 
             $data['essentials'][] = json_encode($essential);
         }
