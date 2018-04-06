@@ -99,9 +99,7 @@ class GuidanceController extends Controller
             })->limit(5)->get();
 
         foreach ($essentialVideos as $essentialVideo) {
-            $essential = $essentialVideo;
-
-            $data['essentials'][] = json_encode($essential);
+            $data['essentials'][] = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
         }
 
 	    return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
