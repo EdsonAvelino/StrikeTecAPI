@@ -422,6 +422,7 @@ class GuidanceController extends Controller
         }
 
         $data = [
+            'type_id' => $video->type_id,
             'plan_id' => $video->plan_id,
             'title' => $plan->name,
             'video_title' => $video->title,
@@ -431,7 +432,7 @@ class GuidanceController extends Controller
             'rating' => $plan->rating
         ];
 
-        return ['type_id' => $video->type_id, 'data' => $data];
+        return $data;
     }
 
     /**
