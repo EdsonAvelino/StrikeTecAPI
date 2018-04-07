@@ -21,7 +21,7 @@ class NewCombos extends Model
 
     public static function get($comboId)
     {
-        $combo = self::select('*', \DB::raw('id as key_set'))->where('id', $comboId)->first();
+        $combo = self::select('*', \DB::raw('id as key_set'), \DB::raw('id as rating'))->where('id', $comboId)->first();
 
         if (!$combo) return null;
 
@@ -44,8 +44,7 @@ class NewCombos extends Model
         $_combo['user_voted'] = (bool) \App\NewRatings::where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)->where('plan_id', $comboId)->exists();
         
         // Combo rating
-        $rating = \App\NewRatings::select(\DB::raw('SUM(rating) as sum_of_ratings'), \DB::raw('COUNT(rating) as total_ratings'))->where('type_id', \App\Types::COMBO)->where('plan_id', $comboId)->first();
-        $_combo['rating'] = number_format( (($rating->total_ratings > 0) ? $rating->sum_of_ratings / $rating->total_ratings : 0), 1 );
+        $_combo['rating'] = $combo->rating;
 
         // Skill levels
         $_combo['filters'] = \App\NewComboTags::select('filter_id')->where('combo_id', $comboId)->get()->pluck('filter_id');
@@ -76,5 +75,17 @@ class NewCombos extends Model
         $_this = new self();
 
         return $_this->getKeySetAttribute($comboId);
+    }
+
+    public function getRatingAttribute($comboId)
+    {
+        $_rating = \App\NewRatings::select(
+            \DB::raw('SUM(rating) as sum_of_ratings'),
+            \DB::raw('COUNT(rating) as total_ratings')
+        )->where('type_id', \App\Types::COMBO)->where('plan_id', $comboId)->first();
+
+        $rating = ($_rating->total_ratings > 0) ? ($_rating->sum_of_ratings / $_rating->total_ratings) : 0;
+        
+        return number_format($rating, 1);
     }
 }

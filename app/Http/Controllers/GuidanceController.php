@@ -25,6 +25,48 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
+    *              "featured": [
+     *                  {
+     *                      "type_id": 3,
+     *                      "data": "{\"plan_id\":1,\"title\":\"Jab-Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Jab-Cross\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523057864.png\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  },
+     *                  {
+     *                      "type_id": 4,
+     *                      "data": "{\"plan_id\":1,\"title\":\"Sample SR-1\",\"video_title\":\"Sample SR-1\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:13\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  },
+     *                  {
+     *                      "type_id": 5,
+     *                      "data": "{\"plan_id\":1,\"title\":\"BR1\",\"video_title\":\"Sample Boxing Routine-11\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  }
+     *              ],
+     *              "combinations": [
+     *                  {
+     *                      "type_id": 3,
+     *                      "data": "{\"plan_id\":3,\"title\":\"Jab-Cross-Left Hook\",\"video_title\":\"Susan Kocab's Jab-Cross-Left Hook (1-2-3)\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523023487.jpg\",\"duration\":\"00:01:05\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  },
+     *                  {
+     *                      "type_id": 3,
+     *                      "data": "{\"plan_id\":2,\"title\":\"Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Cross\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523023401.jpg\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  }
+     *              ],
+     *              "sets": [
+     *                  {
+     *                      "type_id": 4,
+     *                      "data": "{\"plan_id\":1,\"title\":\"Sample SR-1\",\"video_title\":\"Sample SR-1\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:13\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  }
+     *              ],
+     *              "workouts": [
+     *                  {
+     *                      "type_id": 5,
+     *                      "data": "{\"plan_id\":1,\"title\":\"BR1\",\"video_title\":\"Sample Boxing Routine-11\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  }
+     *              ],
+     *              "essentials": [
+     *                  {
+     *                      "type_id": 0,
+     *                      "data": "{\"id\":25,\"type_id\":null,\"plan_id\":null,\"title\":\"Essential Vid-I\",\"file\":\"http:\\/\\/localhost:8001\\/videos\\/video_1511264605.mp4\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"views\":1,\"is_featured\":false,\"user_favorited\":false,\"likes\":0}"
+     *                  }
+     *              ]
      *		],
      *    }
      * @apiErrorExample {json} Error response
@@ -46,50 +88,36 @@ class GuidanceController extends Controller
         $featuredData = [];
 
         foreach ($featuredItems as $item) {
-            $_featured = ['type_id' => $item->type_id, 'data' => null];
+            $video = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $item->type_id)->where('plan_id', $item->plan_id)->first();
             
-            switch ($item->type_id) {
-                case \App\Types::COMBO:
-                    $_featured['data'] = \App\NewCombos::get($item->plan_id);
-                    break;
-                case \App\Types::COMBO_SET:
-                    $_featured['data'] = \App\NewComboSets::get($item->plan_id);
-                    break;
-                case \App\Types::WORKOUT:
-                    $_featured['data'] = \App\NewWorkouts::get($item->plan_id);
-                    break;
-            }
-
-            $_featured['data'] = json_encode($_featured['data']);
-            $featuredData[] = $_featured;
+            $data['featured'][] = $this->getPlanData($video);
         }
-    	
-    	$data['featured'][] = $featuredData;
 
         // Combos
-    	$comboVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::COMBO)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+    	$comboVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+            ->where('is_featured', 1)->where('type_id', \App\Types::COMBO)
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
     	
     	foreach ($comboVideos as $comboVideo) {
-    		$combo = \App\NewCombos::get($comboVideo->plan_id);
-
-    		$data['combinations'][] = ['type_id' => \App\Types::COMBO, 'data' => json_encode($combo)];
+    		$data['combinations'][] = $this->getPlanData($comboVideo);
     	}
 
         // Combo-Sets
-    	$comboSetVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+    	$comboSetVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+            ->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
     	
         foreach ($comboSetVideos as $comboSetVideo) {
-            $comboSet = \App\NewComboSets::get($comboSetVideo->plan_id);
-
-    		$data['sets'][] = ['type_id' => \App\Types::COMBO_SET, 'data' => json_encode($comboSet)];
+    		$data['sets'][] = $this->getPlanData($comboSetVideo);
     	}
 
         // Workouts
-    	$workoutVideos = \App\NewVideos::select('plan_id', \DB::raw('id as likes'))->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
-    	foreach ($workoutVideos as $workoutVideo) {
-    		$workout = \App\NewWorkouts::get($workoutVideo->plan_id);
-
-    		$data['workouts'][] = ['type_id' => \App\Types::WORKOUT, 'data' => json_encode($workout)];
+    	$workoutVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+            ->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+    	
+        foreach ($workoutVideos as $workoutVideo) {
+    		$data['workouts'][] = $this->getPlanData($workoutVideo);
     	}
 
         // Essentials
@@ -106,7 +134,7 @@ class GuidanceController extends Controller
     }
 
     /**
-     * @api {get} /guidance/combos Guidance list of combos
+     * @api {get} /guidance/plans/<type_id> Guidance list of plans
      * @apiGroup Guidance
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization Token
@@ -115,16 +143,18 @@ class GuidanceController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded"
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number="3=combos", "4=combo-sets", "5=workouts"} type_id Type of plan (in url param)
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
+     *      "type_id": 4,
      *      "start": 0,
      *      "limit": 20
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Data object containing list of combos
+     * @apiSuccess {Object} data Data object containing list of plans
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -132,54 +162,13 @@ class GuidanceController extends Controller
      *      "message": "",
      *      "data": [
      *          {
-     *             "id": 1,
-     *             "trainer_id": 1,
-     *             "name": "Combo Nec Ligula",
-     *             "description": "Proin dignissim ante ac leo tempor ",
-     *             "detail": [ "1", "2", "SR", "2", "4" ],
-     *             "video": {
-     *                 "id": 5,
-     *                 "type_id": 3,
-     *                 "plan_id": 1,
-     *                 "title": "Fighter Series 3",
-     *                 "file": "http://videos.example.com/videos/video.mp4",
-     *                 "thumbnail": "http://example.com/videos/thumbnails/thumb.png",
-     *                 "duration": "00:00:37",
-     *                 "views": 54,
-     *                 "is_featured": true,
-     *                 "user_favorited": false,
-     *                 "likes": 1
-     *             },
-     *             "user_voted": false,
-     *             "rating": 2.5,
-     *             "filters": [
-     *                 1,
-     *                 2
-     *             ]
-     *         },
-     *         {
-     *             "id": 2,
-     *             "trainer_id": 1,
-     *             "name": "Combo Mauris Velit",
-     *             "description": "Cras velit nibh, tempor quis sagittis in",
-     *             "detail": [ "1", "2", "SL" ],
-     *             "video": {
-     *                 "id": 13,
-     *                 "type_id": 3,
-     *                 "plan_id": 2,
-     *                 "title": null,
-     *                 "file": "http://videos.example.com/videos/video.mp4",
-     *                 "thumbnail": "http://example.com/videos/thumbnails/thumb.png",
-     *                 "duration": null,
-     *                 "views": 2,
-     *                 "is_featured": true,
-     *                 "user_favorited": false,
-     *                 "likes": 0
-     *             },
-     *             "user_voted": false,
-     *             "rating": 3,
-     *             "filters": [1 , 2]
-     *         }
+     *              "type_id": 3,
+     *              "data": "{\"plan_id\":1,\"title\":\"Jab-Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Jab-Cross\",\"thumbnail\":\"http:\\/\\/videos.example.com\\/videos\\/thumbnails\\/thumb_video_1523057864.png\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"3.5\"}"
+     *          },
+     *          {
+     *              "type_id": 3,
+     *              "data": "{\"plan_id\":2,\"title\":\"Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Cross\",\"thumbnail\":\"http:\\/\\/videos.example.com\\/videos\\/thumbnails\\/thumb_video_1523023401.jpg\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"4.0\"}"
+     *          }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -190,23 +179,28 @@ class GuidanceController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getCombos(Request $request)
+    public function getPlans(Request $request, $typeId)
     {
-        $offset = (int) $request->get('start') ? $request->get('start') : 0;
-        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
+        if (!in_array($typeId, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT])) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid type-id, should be 3, 4 or 5 respectively']);
+        }
 
-        $combos = \App\NewCombos::select('id')->offset($offset)->limit($limit)->get();
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
+
+        $planVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit)->get();
+
         $data = [];
 
-        foreach ($combos as $combo) {
-            $data[] = \App\NewCombos::get($combo->id);
+        foreach ($planVideos as $planVideo) {
+            $data[] = $this->getPlanData($planVideo);
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
-     * @api {get} /guidance/combo_sets Guidance list of combo-sets
+     * @api {get} /guidance/plans/<type_id>/<plan_id> Guidance detail of plan
      * @apiGroup Guidance
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization Token
@@ -215,16 +209,16 @@ class GuidanceController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded"
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
+     * @apiParam {Number="3=combos", "4=combo-sets", "5=workouts"} type_id Type of plan (in url param)
+     * @apiParam {Number} plan_id ID of plan (combo / set-routine / workout)
      * @apiParamExample {json} Input
      *    {
-     *      "start": 0,
-     *      "limit": 20
+     *      "type_id": 3,
+     *      "plan_id": 5,
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Data object containing list of combos
+     * @apiSuccess {Object} data Data object containing detail of particular plan
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *    {
@@ -232,54 +226,9 @@ class GuidanceController extends Controller
      *      "message": "",
      *      "data": [
      *          {
-     *            "id": 1,
-     *            "trainer_id": 1,
-     *            "name": "Destroyer #1",
-     *            "description": "Nullam neque nibh pellentesque eu dui sit amet",
-     *            "detail": [ 1, 2, 3, 7, 9, 10 ],
-     *            "video": {
-     *                "id": 27,
-     *                "type_id": 4,
-     *                "plan_id": 1,
-     *                "title": "Set series",
-     *                "file": "http://localhost:8001/videos/",
-     *                "thumbnail": "http://localhost:8001/videos/thumbnails/",
-     *                "duration": null,
-     *                "views": 38,
-     *                "is_featured": true,
-     *                "user_favorited": false,
-     *                "likes": 0
-     *            },
-     *            "user_voted": false,
-     *            "rating": 4,
-     *            "filters": [
-     *                1,
-     *                2
-     *            ]
-     *        },
-     *        {
-     *            "id": 2,
-     *            "trainer_id": 1,
-     *            "name": "Fast Timing",
-     *            "description": "Mauris enim lectus, posuere eget fringilla eu",
-     *            "detail": [ 1, 4, 5 ],
-     *            "video": {
-     *                "id": 6,
-     *                "type_id": 4,
-     *                "plan_id": 2,
-     *                "title": "Fighter Series 4: Louis Smolka at UFC Athlete Summit 2016",
-     *                "file": "http://videos.example.com/videos/video.mp4",
-     *                "thumbnail": "http://example.com/videos/thumbnails/thumb.png",
-     *                "duration": "00:00:36",
-     *                "views": 58,
-     *                "is_featured": true,
-     *                "user_favorited": false,
-     *                "likes": 0
-     *            },
-     *            "user_voted": true,
-     *            "rating": 2.7,
-     *            "filters": []
-     *        }
+     *              "type_id": 3,
+     *              "data": "{\"plan_id\":5,\"title\":\"Jab- Roll Left\",\"video_title\":\"Susan Kocab's Jab-Roll Left\",\"thumbnail\":\"http:\\/\\/videos.example.com\\/videos\\/thumbnails\\/thumb_video_1523024274.jpg\",\"duration\":\"00:00:24\",\"trainer\":null,\"rating\":\"4.1\"}"
+     *          }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -290,127 +239,19 @@ class GuidanceController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getComboSets(Request $request)
+    public function getPlanDetail(Request $request, $typeId, $planId)
     {
-        $offset = (int) $request->get('start') ? $request->get('start') : 0;
-        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
-
-        $comboSets = \App\NewComboSets::select('id')->offset($offset)->limit($limit)->get();
-        $data = [];
-
-        foreach ($comboSets as $comboSet) {
-            $data[] = \App\NewComboSets::get($comboSet->id);
+        if (!in_array($typeId, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT])) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid type-id, should be 3, 4 or 5 respectively']);
         }
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
-    }
-
-    /**
-     * @api {get} /guidance/workouts Guidance list of workouts
-     * @apiGroup Guidance
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded"
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 0,
-     *      "limit": 20
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Data object containing list of combos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *          {
-     *             "id": 1,
-     *             "trainer_id": 1,
-     *             "name": "Workout-1",
-     *             "description": "Aliquam eu iaculis nisl",
-     *             "round_time": 5,
-     *             "rest_time": 0,
-     *             "prepare_time": 0,
-     *             "warning_time": 5,
-     *             "created_at": null,
-     *             "updated_at": null,
-     *             "detail": [
-     *                 [
-     *                     1,
-     *                     2,
-     *                     3
-     *                 ],
-     *                 [
-     *                     1,
-     *                     4,
-     *                     5
-     *                 ]
-     *             ],
-     *             "video": null,
-     *             "user_voted": false,
-     *             "rating": "0.0",
-     *             "filters": []
-     *         },
-     *         {
-     *             "id": 2,
-     *             "trainer_id": 1,
-     *             "name": "Workout-2",
-     *             "description": "Sed finibus varius massa",
-     *             "round_time": 4,
-     *             "rest_time": 0,
-     *             "prepare_time": 0,
-     *             "warning_time": 4,
-     *             "created_at": null,
-     *             "updated_at": null,
-     *             "detail": [
-     *                 [
-     *                     1,
-     *                     3,
-     *                     5
-     *                 ],
-     *                 [
-     *                     2,
-     *                     3,
-     *                     4
-     *                 ]
-     *             ],
-     *             "video": null,
-     *             "user_voted": false,
-     *             "rating": "0.0",
-     *             "filters": [
-     *                 1,
-     *                 2
-     *             ]
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function getWorkouts(Request $request)
-    {
-        $offset = (int) $request->get('start') ? $request->get('start') : 0;
-        $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
-
-        $workouts = \App\NewWorkouts::select('id')->offset($offset)->limit($limit)->get();
-
-        $data = [];
-        foreach ($workouts as $workout) {
-            $data[] = \App\NewWorkouts::get($workout->id);
+        if (!$planId) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid plan-id or plan not found']);
         }
+
+        $planVideo = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->where('plan_id', $planId)->first();
+
+        $data[] = $this->getPlanData($planVideo);
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
@@ -454,7 +295,7 @@ class GuidanceController extends Controller
     public function postRating(Request $request)
     {
         $validator = \Validator::make($request->all(), [
-            'type_id' => 'required|integer|in:1,2,3',
+            'type_id' => 'required|integer|in:3,4,5',
             'plan_id' => 'required|integer',
             'rating' => 'required|integer|between:1,5',
         ]);
@@ -485,5 +326,38 @@ class GuidanceController extends Controller
         }
 
         return response()->json(['error' => 'false', 'message' => 'Rating saved']);
+    }
+
+    // Getting plan data for /guidance/home
+    private function getPlanData($video)
+    {
+        switch ($video->type_id) {
+            // Combo
+            case \App\Types::COMBO:
+                $plan = \App\NewCombos::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+            
+            // Combo Set
+            case \App\Types::COMBO_SET:
+                $plan = \App\NewComboSets::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+
+            // Workout
+            case \App\Types::WORKOUT:
+                $plan = \App\NewWorkouts::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+        }
+
+        $data = [
+            'plan_id' => $video->plan_id,
+            'title' => $plan->name,
+            'video_title' => $video->title,
+            'thumbnail' => $video->thumbnail,
+            'duration' => $video->duration,
+            'trainer' => $plan->trainer,
+            'rating' => $plan->rating
+        ];
+
+        return ['type_id' => $video->type_id, 'data' => json_encode($data)];
     }
 }

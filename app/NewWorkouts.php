@@ -95,4 +95,16 @@ class NewWorkouts extends Model
 
         return (int) array_search($value, $range);
     }
+
+    public function getRatingAttribute($workoutId)
+    {
+        $_rating = \App\NewRatings::select(
+            \DB::raw('SUM(rating) as sum_of_ratings'),
+            \DB::raw('COUNT(rating) as total_ratings')
+        )->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workoutId)->first();
+
+        $rating = ($_rating->total_ratings > 0) ? ($_rating->sum_of_ratings / $_rating->total_ratings) : 0;
+        
+        return number_format($rating, 1);
+    }
 }

@@ -70,4 +70,16 @@ class NewComboSets extends Model
 
         return implode('-', $keySet);
     }
+
+    public function getRatingAttribute($comboSetId)
+    {
+        $_rating = \App\NewRatings::select(
+            \DB::raw('SUM(rating) as sum_of_ratings'),
+            \DB::raw('COUNT(rating) as total_ratings')
+        )->where('type_id', \App\Types::COMBO_SET)->where('plan_id', $comboSetId)->first();
+
+        $rating = ($_rating->total_ratings > 0) ? ($_rating->sum_of_ratings / $_rating->total_ratings) : 0;
+        
+        return number_format($rating, 1);
+    }
 }
