@@ -25,6 +25,21 @@ class NewVideos extends Model
         'updated_at'
     ];
 
+    public function combo()
+    {
+        return $this->belongsTo('App\NewCombos', 'plan_id');
+    }
+
+    public function comboSet()
+    {
+        return $this->belongsTo('App\NewComboSets', 'plan_id');
+    }
+
+    public function workout()
+    {
+        return $this->belongsTo('App\NewWorkouts', 'plan_id');
+    }
+
     public function filters()
     {
         return $this->hasMany('App\VideoTagFilters', 'video_id');

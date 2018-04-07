@@ -16,6 +16,11 @@ class GuidanceController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded"
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {String} [query] Search term e.g. "boxing+stance+and+footwork"
+     * @apiParamExample {json} Input
+     *    {
+     *      "query": "susan+kokab",
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data Data object
@@ -82,6 +87,23 @@ class GuidanceController extends Controller
     {
     	$data = [];
 
+        $trainer = null;
+
+        if (!empty($request->get('query'))) {
+            $searchQuery = $request->get('query');
+
+            $_trainer = \App\NewTrainers::select('id')->where(function ($q) use ($searchQuery) {
+                $name = explode(' ', str_replace('+', ' ', $searchQuery));
+                    if (count($name) > 1) {
+                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
+                    } else {
+                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
+                    }
+                });
+
+            $trainer = $_trainer->first();
+        }
+
         // Featured videos
     	$featuredItems = \App\GuidanceSlider::orderBy('order')->limit(5)->get();
 
@@ -94,28 +116,52 @@ class GuidanceController extends Controller
         }
 
         // Combos
-    	$comboVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+    	$_comboVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
             ->where('is_featured', 1)->where('type_id', \App\Types::COMBO)
-            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5);
+
+        if ($trainer) {
+            $_comboVideos->whereHas('combo', function($query) use($trainer) {
+                $query->where('trainer_id', $trainer->id);
+            });
+        }
     	
+        $comboVideos = $_comboVideos->get();
+
     	foreach ($comboVideos as $comboVideo) {
     		$data['combinations'][] = $this->getPlanData($comboVideo);
     	}
 
         // Combo-Sets
-    	$comboSetVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+    	$_comboSetVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
             ->where('is_featured', 1)->where('type_id', \App\Types::COMBO_SET)
-            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5);
     	
+        if ($trainer) {
+            $_comboSetVideos->whereHas('comboSet', function($query) use($trainer) {
+                $query->where('trainer_id', $trainer->id);
+            });
+        }
+
+        $comboSetVideos = $_comboSetVideos->get();
+
         foreach ($comboSetVideos as $comboSetVideo) {
     		$data['sets'][] = $this->getPlanData($comboSetVideo);
     	}
 
         // Workouts
-    	$workoutVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
+    	$_workoutVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))
             ->where('is_featured', 1)->where('type_id', \App\Types::WORKOUT)
-            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5)->get();
+            ->orderBy('views', 'desc')->orderBy('likes', 'desc')->limit(5);
     	
+        if ($trainer) {
+            $_workoutVideos->whereHas('workout', function($query) use($trainer) {
+                $query->where('trainer_id', $trainer->id);
+            });
+        }
+
+        $workoutVideos = $_workoutVideos->get();
+
         foreach ($workoutVideos as $workoutVideo) {
     		$data['workouts'][] = $this->getPlanData($workoutVideo);
     	}
@@ -188,7 +234,32 @@ class GuidanceController extends Controller
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
 
-        $planVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit)->get();
+        $trainer = null;
+
+        if (!empty($request->get('query'))) {
+            $searchQuery = $request->get('query');
+
+            $_trainer = \App\NewTrainers::select('id')->where(function ($q) use ($searchQuery) {
+                $name = explode(' ', str_replace('+', ' ', $searchQuery));
+                    if (count($name) > 1) {
+                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
+                    } else {
+                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
+                    }
+                });
+
+            $trainer = $_trainer->first();
+        }
+
+        $_planVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit);
+
+        if ($trainer) {
+            $_planVideos->whereHas('combo', function($query) use($trainer) {
+                $query->where('trainer_id', $trainer->id);
+            });
+        }
+
+        $planVideos = $_planVideos->get();
 
         $data = [];
 
@@ -328,23 +399,25 @@ class GuidanceController extends Controller
         return response()->json(['error' => 'false', 'message' => 'Rating saved']);
     }
 
-    // Getting plan data for /guidance/home
+    /**
+     * Getting plan data for /guidance/home (optimized object)
+     */
     private function getPlanData($video)
     {
         switch ($video->type_id) {
             // Combo
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
                 break;
             
             // Combo Set
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
                 break;
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::select('name', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
                 break;
         }
 
@@ -354,10 +427,18 @@ class GuidanceController extends Controller
             'video_title' => $video->title,
             'thumbnail' => $video->thumbnail,
             'duration' => $video->duration,
-            'trainer' => $plan->trainer,
+            'trainer' => ['id' => $plan->trainer->id, 'full_name' => $plan->trainer->first_name.' '.$plan->trainer->last_name],
             'rating' => $plan->rating
         ];
 
-        return ['type_id' => $video->type_id, 'data' => json_encode($data)];
+        return ['type_id' => $video->type_id, 'data' => $data];
+    }
+
+    /**
+     * Alter param
+     */
+    private function alterParam(&$param)
+    {
+        $param = "%$param%";
     }
 }
