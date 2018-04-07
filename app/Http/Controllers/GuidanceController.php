@@ -320,9 +320,21 @@ class GuidanceController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid plan-id or plan not found']);
         }
 
-        $planVideo = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->where('plan_id', $planId)->first();
+        // $planVideo = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->where('plan_id', $planId)->first();
 
-        $data[] = $this->getPlanData($planVideo);
+        switch ($typeId) {
+            case \App\Types::COMBO:
+                $plan = \App\NewCombos::get($planId);
+                break;
+            case \App\Types::COMBO_SET:
+                $plan = \App\NewComboSets::get($planId);
+                break;
+            case \App\Types::WORKOUT:
+                $plan = \App\NewWorkouts::get($planId);
+                break;
+        }
+
+        $data = ['type_id' => (int) $typeId, 'data' => json_encode($plan)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
