@@ -154,6 +154,23 @@ class TrainingController extends Controller
             $roundIDs = \DB::select(\DB::raw("SELECT id FROM session_rounds WHERE session_id = $_session->id"));
 
             $temp['round_ids'] = $roundIDs;
+            
+            switch ($_session->type_id) {
+                case \App\Types::COMBO:
+                    $plan = \App\NewCombos::get($_session->plan_id);
+                    break;
+                case \App\Types::COMBO_SET:
+                    $plan = \App\NewComboSets::get($_session->plan_id);
+                    break;
+                case \App\Types::WORKOUT:
+                    $plan = \App\NewWorkouts::get($_session->plan_id);
+                    break;
+                default:
+                    $plan = null;
+            }
+
+            $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($plan)];
+
             $sessions[] = $temp;
         }
 
@@ -253,10 +270,28 @@ class TrainingController extends Controller
             ]);
         }
 
+        $_session = $session->toArray();
+
+        switch ($session->type_id) {
+            case \App\Types::COMBO:
+                $plan = \App\NewCombos::get($session->plan_id);
+                break;
+            case \App\Types::COMBO_SET:
+                $plan = \App\NewComboSets::get($session->plan_id);
+                break;
+            case \App\Types::WORKOUT:
+                $plan = \App\NewWorkouts::get($session->plan_id);
+                break;
+            default:
+                $plan = null;
+        }
+
+        $_session['plan_detail'] = ['type_id' => (int) $session->type_id, 'data' => json_encode($plan)];
+
         return response()->json([
             'error' => 'false',
             'message' => '',
-            'session' => $session->toArray(),
+            'session' => $_session,
             'rounds' => $rounds->toArray()
         ]);
     }
