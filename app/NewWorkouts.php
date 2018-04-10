@@ -53,7 +53,7 @@ class NewWorkouts extends Model
 
     public function rounds()
     {
-        return $this->hasMany('App\WorkoutRounds', 'workout_id', 'id');
+        return $this->hasMany('App\NewWorkoutRounds', 'workout_id', 'id');
     }
 
     public function trainer()
