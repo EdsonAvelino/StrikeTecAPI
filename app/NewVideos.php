@@ -47,6 +47,10 @@ class NewVideos extends Model
 
     public function getFileAttribute($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+
         if (strpos($value, 'youtube') > 0 || strpos($value, 'youtu.be') > 0) {
             $youtubeUrl = $value;
 
@@ -75,6 +79,10 @@ class NewVideos extends Model
 
     public function getThumbnailAttribute($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+        
         return env('STORAGE_URL') . config('striketec.storage.videos_thumb') . $value;
     }
 

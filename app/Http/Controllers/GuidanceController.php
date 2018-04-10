@@ -412,6 +412,114 @@ class GuidanceController extends Controller
     }
 
     /**
+     * @api {get} /guidance/essentials Get list of Essentials Videos
+     * @apiGroup Guidance
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization Token
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} start Start offset
+     * @apiParam {Number} limit Limit number of videos
+     * @apiParamExample {json} Input
+     *    {
+     *      "start": 0,
+     *      "limit": 20
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Data object containing list of essentials videos
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getEssentialsVideos(Request $request)
+    {
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
+
+        // Essentials
+        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+            ->where(function($query) {
+                $query->whereNull('type_id')->orWhere('type_id', 0);
+            })->offset($offset)->limit($limit)->get();
+
+        $data = [];
+        
+        foreach ($essentialVideos as $essentialVideo) {
+            $data[] = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
+        }
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+    }
+
+    /**
+     * @api {get} /guidance/essentials/<id> Get Essentials Video Detail
+     * @apiGroup Guidance
+     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
+     * @apiHeader {String} Authorization Authorization Token
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Content-Type": "application/x-www-form-urlencoded"
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} id Id of essential video
+     * @apiParamExample {json} Input
+     *    {
+     *      "id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Data object containing detial essential video which is requested
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getEssentialsVideoDetail(Request $request, $id)
+    { 
+        $id = (int) $id;
+
+        $essentialVideo = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+            ->where(function($query) {
+                $query->whereNull('type_id')->orWhere('type_id', 0);
+            })->where('id', $id)->first();
+
+        if (!$essentialVideo) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
+        }
+        
+        $data = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+    }
+
+    /**
      * Getting plan data for /guidance/home (optimized object)
      */
     private function getPlanData($video)
@@ -424,12 +532,16 @@ class GuidanceController extends Controller
             
             // Combo Set
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'))->withCount('combos')->where('id', $video->plan_id)->first();
                 break;
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'))->withCount('rounds')->where('id', $video->plan_id)->first();
+                break;
+
+            default:
+                $plan = new stdClass();
                 break;
         }
 
@@ -440,9 +552,15 @@ class GuidanceController extends Controller
             'video_title' => $video->title,
             'thumbnail' => $video->thumbnail,
             'duration' => $video->duration,
-            'trainer' => ['id' => $plan->trainer->id, 'full_name' => $plan->trainer->first_name.' '.$plan->trainer->last_name],
+            'trainer' => ['id' => $plan->trainer->id, 'first_name' => $plan->trainer->first_name, 'last_name' => $plan->trainer->last_name],
             'rating' => $plan->rating
         ];
+
+        if ($video->type_id == \App\Types::COMBO_SET) {
+            $data['combos_count'] = $plan->combos_count;
+        } elseif ($video->type_id == \App\Types::WORKOUT) {
+            $data['rounds_count'] = $plan->rounds_count;
+        }
 
         return $data;
     }

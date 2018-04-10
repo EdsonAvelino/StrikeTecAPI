@@ -336,6 +336,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/guidance/plans/{type_id}', 'GuidanceController@getPlans');
     $app->get('/guidance/plans/{typeId}/{planId}', 'GuidanceController@getPlanDetail');
 
+    $app->get('/guidance/essentials', 'GuidanceController@getEssentialsVideos');
+    $app->get('/guidance/essentials/{id}', 'GuidanceController@getEssentialsVideoDetail');
+
     // Rating
     $app->post('/guidance/rate', 'GuidanceController@postRating');
 });
