@@ -51,6 +51,29 @@ class NewWorkouts extends Model
         return $_workout;
     }
 
+    public static function getOptimized($workoutId)
+    {
+        $workout = self::select('id', 'name', 'description')->where('id', $workoutId)->first();
+
+        if (!$workout) return null;
+
+        $_workout = $workout->toArray();
+
+        // Loop thru rounds and get combos of round
+        $datail = [];
+        foreach ($workout->rounds as $round) {
+            $_round = [];
+            foreach ($round->combos as $combo) {
+                $_round[] = \App\NewCombos::getOptimized($combo->combo_id);
+            }
+            $datail[] = $_round;
+        };
+        
+        $_workout['detail'] = $datail;
+
+        return $_workout;
+    }
+
     public function rounds()
     {
         return $this->hasMany('App\NewWorkoutRounds', 'workout_id', 'id');

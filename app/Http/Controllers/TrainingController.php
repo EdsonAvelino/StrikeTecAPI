@@ -157,7 +157,7 @@ class TrainingController extends Controller
                     $plan = \App\NewComboSets::get($_session->plan_id);
                     break;
                 case \App\Types::WORKOUT:
-                    $plan = \App\NewWorkouts::get($_session->plan_id);
+                    $plan = \App\NewWorkouts::getOptimized($_session->plan_id);
                     break;
                 default:
                     $plan = null;
@@ -182,7 +182,7 @@ class TrainingController extends Controller
                     'detail' => $plan['detail']
                 ];
 
-                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($planDetail)];
+                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => $planDetail];
             }
 
             $sessions[] = $temp;

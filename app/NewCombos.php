@@ -52,6 +52,22 @@ class NewCombos extends Model
         return $_combo;
     }
 
+    public static function getOptimized($comboId)
+    {
+        $combo = self::select('id', 'name', 'description', \DB::raw('id as key_set'))->where('id', $comboId)->first();
+
+        if (!$combo) return null;
+
+        $_combo = $combo->toArray();
+
+        $_combo['detail'] = explode('-', $_combo['key_set']);
+        
+        unset($_combo['key_set']);
+        unset($_combo['trainer_id']);
+
+        return $_combo;
+    }
+
     public function trainer()
     {
         return $this->belongsTo('App\NewTrainers');
