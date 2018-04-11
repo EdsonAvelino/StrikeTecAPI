@@ -40,9 +40,19 @@ class NewVideos extends Model
         return $this->belongsTo('App\NewWorkouts', 'plan_id');
     }
 
+    public function trainer()
+    {
+        return $this->belongsTo('App\NewTrainers');
+    }
+
     public function filters()
     {
         return $this->hasMany('App\VideoTagFilters', 'video_id');
+    }
+
+    public function getRatingAttribute($n = null)
+    {
+        return number_format($n, 1);
     }
 
     public function getFileAttribute($value)

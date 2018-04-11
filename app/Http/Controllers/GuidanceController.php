@@ -167,13 +167,14 @@ class GuidanceController extends Controller
     	}
 
         // Essentials
-        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
             })->limit(5)->get();
 
         foreach ($essentialVideos as $essentialVideo) {
-            $data['essentials'][] = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
+            $data['essentials'][] = $this->getPlanData($essentialVideo);
+            // ['type_id' => 0, 'data' => json_encode($essentialVideo)]
         }
 
 	    return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
@@ -541,7 +542,8 @@ class GuidanceController extends Controller
                 break;
 
             default:
-                $plan = new stdClass();
+                // Essential Video
+                $plan = $video;
                 break;
         }
 
