@@ -182,7 +182,7 @@ class TrainingController extends Controller
                     'detail' => $plan['detail']
                 ];
 
-                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => $planDetail];
+                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($planDetail)];
             }
 
             $sessions[] = $temp;
