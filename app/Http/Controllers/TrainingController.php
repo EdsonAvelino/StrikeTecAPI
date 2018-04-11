@@ -149,12 +149,6 @@ class TrainingController extends Controller
         $sessions = [];
 
         foreach ($result = $_sessions->get() as $_session) {
-            $temp = $_session->toArray();
-
-            $roundIDs = \DB::select(\DB::raw("SELECT id FROM session_rounds WHERE session_id = $_session->id"));
-
-            $temp['round_ids'] = $roundIDs;
-            
             switch ($_session->type_id) {
                 case \App\Types::COMBO:
                     $plan = \App\NewCombos::get($_session->plan_id);
@@ -169,7 +163,27 @@ class TrainingController extends Controller
                     $plan = null;
             }
 
-            $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($plan)];
+            // Skipping sessions of which
+            if ( in_array($_session->type_id, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT]) && !$plan) {
+                continue;
+            }
+
+            $temp = $_session->toArray();
+
+            $roundIDs = \DB::select(\DB::raw("SELECT id FROM session_rounds WHERE session_id = $_session->id"));
+
+            $temp['round_ids'] = $roundIDs;
+            
+            if ($plan) {
+                $planDetail = [
+                    'id' => $plan['id'],
+                    'name' => $plan['name'],
+                    'description' => $plan['description'],
+                    'detail' => $plan['detail']
+                ];
+
+                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => $planDetail];
+            }
 
             $sessions[] = $temp;
         }
