@@ -182,7 +182,7 @@ class TrainingController extends Controller
                     'detail' => $plan['detail']
                 ];
 
-                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => $planDetail];
+                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($planDetail)];
             }
 
             $sessions[] = $temp;
@@ -300,7 +300,17 @@ class TrainingController extends Controller
                 $plan = null;
         }
 
-        $_session['plan_detail'] = ['type_id' => (int) $session->type_id, 'data' => json_encode($plan)];
+        if ($plan) {
+            $planDetail = [
+                'id' => $plan['id'],
+                'name' => $plan['name'],
+                'description' => $plan['description'],
+                'detail' => $plan['detail']
+            ];
+
+            $_session['plan_detail'] = ['type_id' => (int) $session->type_id, 'data' => json_encode($planDetail)];
+        }
+        
 
         return response()->json([
             'error' => 'false',

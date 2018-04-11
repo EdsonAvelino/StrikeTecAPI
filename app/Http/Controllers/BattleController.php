@@ -211,9 +211,9 @@ class BattleController extends Controller
                 'detail' => $plan['detail']
             ];
 
-            $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => $planDetail];
+            $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
         }
-        
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
     }
 
