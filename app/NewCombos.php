@@ -81,7 +81,7 @@ class NewCombos extends Model
             return null;
         }
 
-        $keySet = \DB::table('combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
+        $keySet = \DB::table('__combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();
 
         return implode('-', $keySet);
     }
