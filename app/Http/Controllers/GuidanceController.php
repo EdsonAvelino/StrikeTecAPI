@@ -105,13 +105,9 @@ class GuidanceController extends Controller
         }
 
         // Featured videos
-    	$featuredItems = \App\GuidanceSlider::orderBy('order')->limit(5)->get();
+    	$featuredVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('is_featured', 1)->orderBy('order')->limit(5)->get();
 
-        $featuredData = [];
-
-        foreach ($featuredItems as $item) {
-            $video = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $item->type_id)->where('plan_id', $item->plan_id)->first();
-            
+        foreach ($featuredVideos as $video) {
             $data['featured'][] = $this->getPlanData($video);
         }
 
