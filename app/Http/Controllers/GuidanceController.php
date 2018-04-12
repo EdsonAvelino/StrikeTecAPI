@@ -529,17 +529,17 @@ class GuidanceController extends Controller
         switch ($video->type_id) {
             // Combo
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->where('id', $video->plan_id)->first();
                 break;
             
             // Combo Set
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->withCount('combos')->where('id', $video->plan_id)->first();
+                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('combos')->where('id', $video->plan_id)->first();
                 break;
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->withCount('rounds')->where('id', $video->plan_id)->first();
+                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('rounds')->where('id', $video->plan_id)->first();
                 break;
 
             default:
@@ -547,7 +547,7 @@ class GuidanceController extends Controller
                 $plan = $video;
                 break;
         }
-
+        
         $data = [
             'type_id' => $video->type_id,
             'plan_id' => $video->plan_id,
@@ -557,7 +557,7 @@ class GuidanceController extends Controller
             'duration' => $video->duration,
             'trainer' => ['id' => $plan->trainer->id, 'first_name' => $plan->trainer->first_name, 'last_name' => $plan->trainer->last_name],
             'rating' => $plan->rating,
-            'filters' => $plan->filters
+            'filter' => $plan->filter
         ];
 
         if ($video->type_id == \App\Types::COMBO_SET) {

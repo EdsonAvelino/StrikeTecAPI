@@ -50,6 +50,13 @@ class NewVideos extends Model
         return $this->hasMany('App\VideoTagFilters', 'video_id');
     }
 
+    public function getFilterAttribute($videoId)
+    {
+        $filter = \DB::table('video_tag_filters')->select('tag_filter_id')->where('video_id', $videoId)->first();
+
+        return (!$filter) ? null : $filter->filter_id;
+    }
+
     public function getRatingAttribute($n = null)
     {
         return number_format($n, 1);
