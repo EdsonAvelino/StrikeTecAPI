@@ -512,7 +512,7 @@ class GuidanceController extends Controller
         }
         
         $_essentialVideo = $essentialVideo->toArray();
-        $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
+        $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'type' => $essentialVideo->trainer->type, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
 
         unset($_essentialVideo['trainer_id']);
 
@@ -555,7 +555,7 @@ class GuidanceController extends Controller
             'video_title' => $video->title,
             'thumbnail' => $video->thumbnail,
             'duration' => $video->duration,
-            'trainer' => ['id' => $plan->trainer->id, 'first_name' => $plan->trainer->first_name, 'last_name' => $plan->trainer->last_name],
+            'trainer' => ['id' => $plan->trainer->id, 'type' => $plan->trainer->type, 'first_name' => $plan->trainer->first_name, 'last_name' => $plan->trainer->last_name],
             'rating' => $plan->rating,
             'filter' => $plan->filter
         ];
