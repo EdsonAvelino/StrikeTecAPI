@@ -119,6 +119,11 @@ class NewWorkouts extends Model
         return (int) array_search($value, $range);
     }
 
+    public function getFiltersAttribute($workoutId)
+    {
+        return \DB::table('__workout_tags')->select('filter_id')->where('workout_id', $workoutId)->get()->pluck('filter_id');
+    }
+
     public function getRatingAttribute($workoutId)
     {
         $_rating = \App\NewRatings::select(

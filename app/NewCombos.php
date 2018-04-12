@@ -93,6 +93,11 @@ class NewCombos extends Model
         return $_this->getKeySetAttribute($comboId);
     }
 
+    public function getFiltersAttribute($comboId)
+    {
+        return \DB::table('__combo_tags')->select('filter_id')->where('combo_id', $comboId)->get()->pluck('filter_id');
+    }
+
     public function getRatingAttribute($comboId)
     {
         $_rating = \App\NewRatings::select(

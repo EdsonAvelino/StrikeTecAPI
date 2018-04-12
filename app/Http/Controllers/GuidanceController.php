@@ -529,17 +529,17 @@ class GuidanceController extends Controller
         switch ($video->type_id) {
             // Combo
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->where('id', $video->plan_id)->first();
                 break;
             
             // Combo Set
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'))->withCount('combos')->where('id', $video->plan_id)->first();
+                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->withCount('combos')->where('id', $video->plan_id)->first();
                 break;
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'))->withCount('rounds')->where('id', $video->plan_id)->first();
+                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filters'))->withCount('rounds')->where('id', $video->plan_id)->first();
                 break;
 
             default:
@@ -556,7 +556,8 @@ class GuidanceController extends Controller
             'thumbnail' => $video->thumbnail,
             'duration' => $video->duration,
             'trainer' => ['id' => $plan->trainer->id, 'first_name' => $plan->trainer->first_name, 'last_name' => $plan->trainer->last_name],
-            'rating' => $plan->rating
+            'rating' => $plan->rating,
+            'filters' => $plan->filters
         ];
 
         if ($video->type_id == \App\Types::COMBO_SET) {

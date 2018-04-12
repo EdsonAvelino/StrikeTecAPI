@@ -71,6 +71,11 @@ class NewComboSets extends Model
         return implode('-', $keySet);
     }
 
+    public function getFiltersAttribute($comboSetId)
+    {
+        return \DB::table('__combo_set_tags')->select('filter_id')->where('combo_set_id', $comboSetId)->get()->pluck('filter_id');
+    }
+
     public function getRatingAttribute($comboSetId)
     {
         $_rating = \App\NewRatings::select(
