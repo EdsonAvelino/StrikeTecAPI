@@ -57,9 +57,40 @@ class NewVideos extends Model
         return (!$filter) ? null : $filter->filter_id;
     }
 
+    // used for essential video
     public function getRatingAttribute($n = null)
     {
         return number_format($n, 1);
+    }
+
+    // used for all other plans
+    public function getPlanRatingAttribute($videoId)
+    {
+        $video = self::find($videoId);
+
+        switch ($video->type_id) {
+            // Combo
+            case \App\Types::COMBO:
+                $plan = \App\NewCombos::select(\DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+            
+            // Combo Set
+            case \App\Types::COMBO_SET:
+                $plan = \App\NewComboSets::select(\DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+
+            // Workout
+            case \App\Types::WORKOUT:
+                $plan = \App\NewWorkouts::select(\DB::raw('id as rating'))->where('id', $video->plan_id)->first();
+                break;
+
+            // No any plan
+            default:
+                $plan = new \stdClass;
+
+        }
+
+        return number_format($plan->rating, 1);
     }
 
     public function getFileAttribute($value)
