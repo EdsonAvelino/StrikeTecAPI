@@ -450,7 +450,7 @@ class GuidanceController extends Controller
         $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
 
         // Essentials
-        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
             })->offset($offset)->limit($limit)->get();
@@ -458,7 +458,7 @@ class GuidanceController extends Controller
         $data = [];
         
         foreach ($essentialVideos as $essentialVideo) {
-            $data[] = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
+            $data[] = $this->getPlanData($essentialVideo);
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
@@ -511,7 +511,12 @@ class GuidanceController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
         }
         
-        $data = ['type_id' => 0, 'data' => json_encode($essentialVideo)];
+        $_essentialVideo = $essentialVideo->toArray();
+        $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
+
+        unset($_essentialVideo['trainer_id']);
+
+        $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
