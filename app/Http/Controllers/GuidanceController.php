@@ -113,7 +113,7 @@ class GuidanceController extends Controller
 
         // Combos
     	$_comboVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
-            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM ratings GROUP BY plan_id) r"), function($join) {
                 $join->on('videos.plan_id', '=', 'r.plan_id');
             })->where('type_id', \App\Types::COMBO)
             ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
@@ -132,7 +132,7 @@ class GuidanceController extends Controller
 
         // Combo-Sets
     	$_comboSetVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
-            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM ratings GROUP BY plan_id) r"), function($join) {
                 $join->on('videos.plan_id', '=', 'r.plan_id');
             })
             ->where('type_id', \App\Types::COMBO_SET)
@@ -152,7 +152,7 @@ class GuidanceController extends Controller
 
         // Workouts
     	$_workoutVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
-            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM ratings GROUP BY plan_id) r"), function($join) {
                 $join->on('videos.plan_id', '=', 'r.plan_id');
             })
             ->where('type_id', \App\Types::WORKOUT)
