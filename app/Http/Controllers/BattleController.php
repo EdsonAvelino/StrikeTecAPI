@@ -191,13 +191,13 @@ class BattleController extends Controller
 
         switch ($_battle->type_id) {
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::get($_battle->plan_id);
+                $plan = \App\Combos::get($_battle->plan_id);
                 break;
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::get($_battle->plan_id);
+                $plan = \App\ComboSets::get($_battle->plan_id);
                 break;
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::get($_battle->plan_id);
+                $plan = \App\Workouts::get($_battle->plan_id);
                 break;
             default:
                 $plan = null;

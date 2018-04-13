@@ -151,13 +151,13 @@ class TrainingController extends Controller
         foreach ($result = $_sessions->get() as $_session) {
             switch ($_session->type_id) {
                 case \App\Types::COMBO:
-                    $plan = \App\NewCombos::get($_session->plan_id);
+                    $plan = \App\Combos::get($_session->plan_id);
                     break;
                 case \App\Types::COMBO_SET:
-                    $plan = \App\NewComboSets::get($_session->plan_id);
+                    $plan = \App\ComboSets::get($_session->plan_id);
                     break;
                 case \App\Types::WORKOUT:
-                    $plan = \App\NewWorkouts::getOptimized($_session->plan_id);
+                    $plan = \App\Workouts::getOptimized($_session->plan_id);
                     break;
                 default:
                     $plan = null;
@@ -288,13 +288,13 @@ class TrainingController extends Controller
 
         switch ($session->type_id) {
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::get($session->plan_id);
+                $plan = \App\Combos::get($session->plan_id);
                 break;
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::get($session->plan_id);
+                $plan = \App\ComboSets::get($session->plan_id);
                 break;
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::get($session->plan_id);
+                $plan = \App\Workouts::get($session->plan_id);
                 break;
             default:
                 $plan = null;

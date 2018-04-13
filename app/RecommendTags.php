@@ -16,6 +16,7 @@ class RecommendTags extends Model
         'id',
         'name'
     ];
+    
     protected $hidden = [
 
         'created_at',

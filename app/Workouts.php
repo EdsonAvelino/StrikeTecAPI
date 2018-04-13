@@ -6,110 +6,133 @@ use Illuminate\Database\Eloquent\Model;
 
 class Workouts extends Model
 {
+    public static function get($workoutId)
+    {
+        $workout = self::find($workoutId);
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name'
-    ];
-    public $timestamps = false;
+        if (!$workout) return null;
+
+        $_workout = $workout->toArray();
+
+        // Loop thru rounds and get combos of round
+        $datail = [];
+        foreach ($workout->rounds as $round) {
+            $_round = [];
+            foreach ($round->combos as $combo) {
+                $_round[] = \App\Combos::get($combo->combo_id);
+            }
+            $datail[] = $_round;
+        };
+        
+        $_workout['detail'] = $datail;
+
+        unset($_workout['trainer_id']);
+        
+        // Trainer
+        $_workout['trainer'] = ['id' => $workout->trainer->id, 'full_name' => $workout->trainer->first_name .' '. $workout->trainer->last_name];
+
+        // Video
+        $video = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workout->id)->first();
+
+        $_workout['video'] = $video;
+        
+        // User rated workout
+        $_workout['user_voted'] = (bool) \App\Ratings::where('user_id', \Auth::id())->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workout->id)->exists();
+        
+        // Combo rating
+        $rating = \App\Ratings::select(\DB::raw('SUM(rating) as sum_of_ratings'), \DB::raw('COUNT(rating) as total_ratings'))->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workout->id)->first();
+        $_workout['rating'] = number_format( (($rating->total_ratings > 0) ? $rating->sum_of_ratings / $rating->total_ratings : 0), 1 );
+
+        // Skill levels
+        $_workout['filters'] = \App\WorkoutTags::select('filter_id')->where('workout_id', $workout->id)->get()->pluck('filter_id');
+
+        return $_workout;
+    }
+
+    public static function getOptimized($workoutId)
+    {
+        $workout = self::select('id', 'name', 'description')->where('id', $workoutId)->first();
+
+        if (!$workout) return null;
+
+        $_workout = $workout->toArray();
+
+        // Loop thru rounds and get combos of round
+        $datail = [];
+        foreach ($workout->rounds as $round) {
+            $_round = [];
+            foreach ($round->combos as $combo) {
+                $_round[] = \App\Combos::getOptimized($combo->combo_id);
+            }
+            $datail[] = $_round;
+        };
+        
+        $_workout['detail'] = $datail;
+
+        return $_workout;
+    }
 
     public function rounds()
     {
         return $this->hasMany('App\WorkoutRounds', 'workout_id', 'id');
     }
 
-    public function getTagsAttribute($workoutId)
+    public function trainer()
     {
-        $workoutId = (int) $workoutId;
+        return $this->belongsTo('App\Trainers');
+    }
 
-        if (empty($workoutId)) {
+    public function getRoundTimeAttribute($value)
+    {
+        return $this->getMetric('round_time', $value);
+    }
+
+    public function getRestTimeAttribute($value)
+    {
+        return $this->getMetric('rest_time', $value);
+    }
+
+    public function getPrepareTimeAttribute($value)
+    {
+        return $this->getMetric('prepare_time', $value);
+    }
+
+    public function getWarningTimeAttribute($value)
+    {
+        return $this->getMetric('warning_time', $value);
+    }
+
+    // Get matric value
+    private function getMetric($key, $value)
+    {
+        $value = (int) $value;
+
+        if (empty($value)) {
             return null;
         }
 
-        $tagFilters = [];
-        $tags = \DB::table('workout_tags')->select('tag_id', 'filter_id')->where('workout_id', $workoutId)->get();
-        foreach ($tags as $tag) {
-            $tagFilters[$tag->tag_id]['tag_id'] = $tag->tag_id;
-            $tagFilters[$tag->tag_id]['filters'][] = $tag->filter_id;
-        }
+        $metric = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', $key)->first();
+        $range = range($metric->min, $metric->max, $metric->interval);
 
-        return array_values($tagFilters);
+        return (int) array_search($value, $range);
     }
 
-    public function getRoundTimeAttribute($roundTimes)
+    public function getFilterAttribute($workoutId)
     {
-        $roundTimes = (int) $roundTimes;
+        $filter = \DB::table('workout_tags')->select('filter_id')->where('workout_id', $workoutId)->first();
 
-        if (empty($roundTimes)) {
-            return null;
-        }
-
-        $rounds = [];
-        $roundTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'round_time')->first();
-        $count = 0;
-        foreach (range($roundTime->min, $roundTime->max, $roundTime->interval) as $number) {
-            $rounds[$number] = $count;
-            $count = $count + 1;
-        }
-        return (int) $rounds[$roundTimes];
+        return (!$filter) ? null : $filter->filter_id;
     }
 
-    public function getRestTimeAttribute($restTimes)
+    public function getRatingAttribute($workoutId)
     {
-        $restTimes = (int) $restTimes;
+        $_rating = \App\Ratings::select(
+            \DB::raw('SUM(rating) as sum_of_ratings'),
+            \DB::raw('COUNT(rating) as total_ratings')
+        )->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workoutId)->first();
 
-        if (empty($restTimes)) {
-            return null;
-        }
-
-        $rest = [];
-        $restTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'rest_time')->first();
-        $count = 0;
-        foreach (range($restTime->min, $restTime->max, $restTime->interval) as $number) {
-            $rest[$number] = $count;
-            $count = $count + 1;
-        }
-        return (int) $rest[$restTimes];
+        $rating = ($_rating->total_ratings > 0) ? ($_rating->sum_of_ratings / $_rating->total_ratings) : 0;
+        
+        return number_format($rating, 1);
     }
-
-    public function getPrepareTimeAttribute($preperationTime)
-    {
-        $preperationTime = (int) $preperationTime;
-
-        if (empty($preperationTime)) {
-            return null;
-        }
-
-        $prep = [];
-        $prepTime = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'prepare_time')->first();
-        $count = 0;
-        foreach (range($prepTime->min, $prepTime->max, $prepTime->interval) as $number) {
-            $prep[$number] = $count;
-            $count = $count + 1;
-        }
-        return (int) $prep[$preperationTime];
-    }
-
-    public function getWarningTimeAttribute($warningTime)
-    {
-        $warningTime = (int) $warningTime;
-
-        if (empty($warningTime)) {
-            return null;
-        }
-
-        $warning = [];
-        $warningTimeData = \DB::table('workout_metrics')->select('min', 'max', 'interval')->where('metric', 'warning_time')->first();
-        $count = 0;
-        foreach (range($warningTimeData->min, $warningTimeData->max, $warningTimeData->interval) as $number) {
-            $warning[$number] = $count;
-            $count = $count + 1;
-        }
-        return (int) $warning[$warningTime];
-    }
-
 }

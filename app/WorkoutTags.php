@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class NewWorkoutTags extends Model
+class WorkoutTags extends Model
 {
     protected $table = 'workout_tags';
 }

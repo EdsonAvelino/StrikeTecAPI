@@ -4,10 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class NewRatings extends Model
+class Ratings extends Model
 {
-    protected $table = '__ratings';
-
 	public $timestamps = false;
 
     protected $fillable  = [

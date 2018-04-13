@@ -6,18 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Videos extends Model
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
+        'type_id',
+        'plan_id',
         'title',
         'file',
         'thumbnail',
-        'view_counts',
+        'views',
         'duration',
+        'is_featured',
         'author_name'
     ];
 
@@ -26,13 +23,50 @@ class Videos extends Model
         'updated_at'
     ];
 
+    public function combo()
+    {
+        return $this->belongsTo('App\Combos', 'plan_id');
+    }
+
+    public function comboSet()
+    {
+        return $this->belongsTo('App\ComboSets', 'plan_id');
+    }
+
+    public function workout()
+    {
+        return $this->belongsTo('App\Workouts', 'plan_id');
+    }
+
+    public function trainer()
+    {
+        return $this->belongsTo('App\Trainers');
+    }
+
     public function filters()
     {
         return $this->hasMany('App\VideoTagFilters', 'video_id');
     }
 
+    public function getFilterAttribute($videoId)
+    {
+        $filter = \DB::table('video_tag_filters')->select('tag_filter_id')->where('video_id', $videoId)->first();
+
+        return (!$filter) ? null : $filter->filter_id;
+    }
+
+    // used for essential video
+    public function getRatingAttribute($n = null)
+    {
+        return number_format($n, 1);
+    }    
+
     public function getFileAttribute($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+
         if (strpos($value, 'youtube') > 0 || strpos($value, 'youtu.be') > 0) {
             $youtubeUrl = $value;
 
@@ -61,6 +95,10 @@ class Videos extends Model
 
     public function getThumbnailAttribute($value)
     {
+        if (empty($value)) {
+            return null;
+        }
+        
         return env('STORAGE_URL') . config('striketec.storage.videos_thumb') . $value;
     }
 
@@ -86,5 +124,20 @@ class Videos extends Model
         list($width, $height, $type, $attr) = getimagesize($thumbFilePath);
 
         return $height;
+    }
+
+    public function getUserFavoritedAttribute($videoId)
+    {
+        return (bool) \App\UserFavVideos::where('user_id', \Auth::id())->where('video_id', $videoId)->exists();
+    }
+
+    public function getLikesAttribute($videoId)
+    {
+        return (int) \App\UserFavVideos::where('video_id', $videoId)->count();
+    }
+
+    public function getIsFeaturedAttribute($isFeatured)
+    {
+        return (bool) $isFeatured;
     }
 }

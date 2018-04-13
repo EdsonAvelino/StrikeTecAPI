@@ -92,7 +92,7 @@ class GuidanceController extends Controller
         if (!empty($request->get('query'))) {
             $searchQuery = $request->get('query');
 
-            $_trainer = \App\NewTrainers::select('id')->where(function ($q) use ($searchQuery) {
+            $_trainer = \App\Trainers::select('id')->where(function ($q) use ($searchQuery) {
                 $name = explode(' ', str_replace('+', ' ', $searchQuery));
                     if (count($name) > 1) {
                         $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
@@ -105,16 +105,16 @@ class GuidanceController extends Controller
         }
 
         // Featured videos
-    	$featuredVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('is_featured', 1)->orderBy('order')->limit(5)->get();
+    	$featuredVideos = \App\Videos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('is_featured', 1)->orderBy('order')->limit(5)->get();
 
         foreach ($featuredVideos as $video) {
             $data['featured'][] = $this->getPlanData($video);
         }
 
         // Combos
-    	$_comboVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+    	$_comboVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
             ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
-                $join->on('__videos.plan_id', '=', 'r.plan_id');
+                $join->on('videos.plan_id', '=', 'r.plan_id');
             })->where('type_id', \App\Types::COMBO)
             ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
 
@@ -131,9 +131,9 @@ class GuidanceController extends Controller
     	}
 
         // Combo-Sets
-    	$_comboSetVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+    	$_comboSetVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
             ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
-                $join->on('__videos.plan_id', '=', 'r.plan_id');
+                $join->on('videos.plan_id', '=', 'r.plan_id');
             })
             ->where('type_id', \App\Types::COMBO_SET)
             ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
@@ -151,9 +151,9 @@ class GuidanceController extends Controller
     	}
 
         // Workouts
-    	$_workoutVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+    	$_workoutVideos = \App\Videos::select('type_id', 'videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
             ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
-                $join->on('__videos.plan_id', '=', 'r.plan_id');
+                $join->on('videos.plan_id', '=', 'r.plan_id');
             })
             ->where('type_id', \App\Types::WORKOUT)
             ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
@@ -171,7 +171,7 @@ class GuidanceController extends Controller
     	}
 
         // Essentials
-        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $essentialVideos = \App\Videos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
             })->limit(5)->get();
@@ -244,7 +244,7 @@ class GuidanceController extends Controller
         if (!empty($request->get('query'))) {
             $searchQuery = $request->get('query');
 
-            $_trainer = \App\NewTrainers::select('id')->where(function ($q) use ($searchQuery) {
+            $_trainer = \App\Trainers::select('id')->where(function ($q) use ($searchQuery) {
                 $name = explode(' ', str_replace('+', ' ', $searchQuery));
                     if (count($name) > 1) {
                         $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
@@ -256,7 +256,7 @@ class GuidanceController extends Controller
             $trainer = $_trainer->first();
         }
 
-        $_planVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit);
+        $_planVideos = \App\Videos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit);
 
         if ($trainer) {
             $_planVideos->whereHas('combo', function($query) use($trainer) {
@@ -325,17 +325,17 @@ class GuidanceController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid plan-id or plan not found']);
         }
 
-        // $planVideo = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->where('plan_id', $planId)->first();
+        // $planVideo = \App\Videos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->where('plan_id', $planId)->first();
 
         switch ($typeId) {
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::get($planId);
+                $plan = \App\Combos::get($planId);
                 break;
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::get($planId);
+                $plan = \App\ComboSets::get($planId);
                 break;
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::get($planId);
+                $plan = \App\Workouts::get($planId);
                 break;
         }
 
@@ -402,10 +402,10 @@ class GuidanceController extends Controller
         $planId = (int) $request->get('plan_id');
         $rating = (int) $request->get('rating');
 
-        $ratingExists = \App\NewRatings::where('user_id', \Auth::id())->where('type_id', $typeId)->where('plan_id', $planId)->exists();
+        $ratingExists = \App\Ratings::where('user_id', \Auth::id())->where('type_id', $typeId)->where('plan_id', $planId)->exists();
 
         if (!$ratingExists) {
-            \App\NewRatings::create([
+            \App\Ratings::create([
                 'user_id' => \Auth::id(),
                 'type_id' => $typeId,
                 'plan_id' => $planId,
@@ -458,7 +458,7 @@ class GuidanceController extends Controller
         $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
 
         // Essentials
-        $essentialVideos = \App\NewVideos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $essentialVideos = \App\Videos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
             })->offset($offset)->limit($limit)->get();
@@ -510,7 +510,7 @@ class GuidanceController extends Controller
     { 
         $id = (int) $id;
 
-        $essentialVideo = \App\NewVideos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
             })->where('id', $id)->first();
@@ -537,17 +537,17 @@ class GuidanceController extends Controller
         switch ($video->type_id) {
             // Combo
             case \App\Types::COMBO:
-                $plan = \App\NewCombos::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->where('id', $video->plan_id)->first();
+                $plan = \App\Combos::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->where('id', $video->plan_id)->first();
                 break;
             
             // Combo Set
             case \App\Types::COMBO_SET:
-                $plan = \App\NewComboSets::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('combos')->where('id', $video->plan_id)->first();
+                $plan = \App\ComboSets::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('combos')->where('id', $video->plan_id)->first();
                 break;
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\NewWorkouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('rounds')->where('id', $video->plan_id)->first();
+                $plan = \App\Workouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('rounds')->where('id', $video->plan_id)->first();
                 break;
 
             default:
