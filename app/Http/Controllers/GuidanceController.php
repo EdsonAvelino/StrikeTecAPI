@@ -112,9 +112,11 @@ class GuidanceController extends Controller
         }
 
         // Combos
-    	$_comboVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('id as plan_rating'))
-            ->where('type_id', \App\Types::COMBO)
-            ->orderBy('plan_rating', 'desc')->orderBy('views', 'desc')->limit(5);
+    	$_comboVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+                $join->on('__videos.plan_id', '=', 'r.plan_id');
+            })->where('type_id', \App\Types::COMBO)
+            ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
 
         if ($trainer) {
             $_comboVideos->whereHas('combo', function($query) use($trainer) {
@@ -129,9 +131,12 @@ class GuidanceController extends Controller
     	}
 
         // Combo-Sets
-    	$_comboSetVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('id as plan_rating'))
+    	$_comboSetVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+                $join->on('__videos.plan_id', '=', 'r.plan_id');
+            })
             ->where('type_id', \App\Types::COMBO_SET)
-            ->orderBy('plan_rating', 'desc')->orderBy('views', 'desc')->limit(5);
+            ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
     	
         if ($trainer) {
             $_comboSetVideos->whereHas('comboSet', function($query) use($trainer) {
@@ -146,9 +151,12 @@ class GuidanceController extends Controller
     	}
 
         // Workouts
-    	$_workoutVideos = \App\NewVideos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('id as plan_rating'))
+    	$_workoutVideos = \App\NewVideos::select('type_id', '__videos.plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'), \DB::raw('(r.sum_of_ratings / r.total_ratings) AS rating'))
+            ->leftJoin(\DB::raw("(SELECT plan_id, SUM(rating) AS 'sum_of_ratings', COUNT(rating) AS 'total_ratings' FROM __ratings GROUP BY plan_id) r"), function($join) {
+                $join->on('__videos.plan_id', '=', 'r.plan_id');
+            })
             ->where('type_id', \App\Types::WORKOUT)
-            ->orderBy('plan_rating', 'desc')->orderBy('views', 'desc')->limit(5);
+            ->orderBy('rating', 'desc')->orderBy('views', 'desc')->limit(5);
     	
         if ($trainer) {
             $_workoutVideos->whereHas('workout', function($query) use($trainer) {
