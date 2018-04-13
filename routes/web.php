@@ -100,7 +100,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
     // TEST
-    $app->get('/user/testit', 'TrainingController@test');
+    // $app->get('/user/testit', 'TrainingController@test');
 
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
@@ -325,6 +325,22 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Invite connection for tournament 
     $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
+});
+
+// Guidance APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Guidance home screen
+    $app->get('/guidance/home', 'GuidanceController@home');
+    
+    // Getting list of combos/set-routines/workouts (plans)
+    $app->get('/guidance/plans/{type_id}', 'GuidanceController@getPlans');
+    $app->get('/guidance/plans/{typeId}/{planId}', 'GuidanceController@getPlanDetail');
+
+    $app->get('/guidance/essentials', 'GuidanceController@getEssentialsVideos');
+    $app->get('/guidance/essentials/{id}', 'GuidanceController@getEssentialsVideoDetail');
+
+    // Rating
+    $app->post('/guidance/rate', 'GuidanceController@postRating');
 });
 
 // In-App Purchase APIs [these APIs don't need authorization]

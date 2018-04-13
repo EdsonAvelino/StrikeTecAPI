@@ -149,11 +149,42 @@ class TrainingController extends Controller
         $sessions = [];
 
         foreach ($result = $_sessions->get() as $_session) {
+            switch ($_session->type_id) {
+                case \App\Types::COMBO:
+                    $plan = \App\Combos::get($_session->plan_id);
+                    break;
+                case \App\Types::COMBO_SET:
+                    $plan = \App\ComboSets::get($_session->plan_id);
+                    break;
+                case \App\Types::WORKOUT:
+                    $plan = \App\Workouts::getOptimized($_session->plan_id);
+                    break;
+                default:
+                    $plan = null;
+            }
+
+            // Skipping sessions of which
+            if ( in_array($_session->type_id, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT]) && !$plan) {
+                continue;
+            }
+
             $temp = $_session->toArray();
 
             $roundIDs = \DB::select(\DB::raw("SELECT id FROM session_rounds WHERE session_id = $_session->id"));
 
             $temp['round_ids'] = $roundIDs;
+            
+            if ($plan) {
+                $planDetail = [
+                    'id' => $plan['id'],
+                    'name' => $plan['name'],
+                    'description' => $plan['description'],
+                    'detail' => $plan['detail']
+                ];
+
+                $temp['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($planDetail)];
+            }
+
             $sessions[] = $temp;
         }
 
@@ -253,10 +284,38 @@ class TrainingController extends Controller
             ]);
         }
 
+        $_session = $session->toArray();
+
+        switch ($session->type_id) {
+            case \App\Types::COMBO:
+                $plan = \App\Combos::get($session->plan_id);
+                break;
+            case \App\Types::COMBO_SET:
+                $plan = \App\ComboSets::get($session->plan_id);
+                break;
+            case \App\Types::WORKOUT:
+                $plan = \App\Workouts::get($session->plan_id);
+                break;
+            default:
+                $plan = null;
+        }
+
+        if ($plan) {
+            $planDetail = [
+                'id' => $plan['id'],
+                'name' => $plan['name'],
+                'description' => $plan['description'],
+                'detail' => $plan['detail']
+            ];
+
+            $_session['plan_detail'] = ['type_id' => (int) $session->type_id, 'data' => json_encode($planDetail)];
+        }
+        
+
         return response()->json([
             'error' => 'false',
             'message' => '',
-            'session' => $session->toArray(),
+            'session' => $_session,
             'rounds' => $rounds->toArray()
         ]);
     }

@@ -17,8 +17,8 @@ class Achievements extends Model
         'name',
         'sequence'
     ];
+    
     protected $hidden = [
-
         'created_at',
         'updated_at'
     ];

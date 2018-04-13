@@ -17,6 +17,7 @@ class RecommendVideos extends Model
         'video_id',
         'recommend_video_id'
     ];
+    
     protected $hidden = [
         'created_at',
         'updated_at'
@@ -31,5 +32,4 @@ class RecommendVideos extends Model
     {
         return $this->hasMany('App\Videos', 'id', 'video_id');
     }
-
 }

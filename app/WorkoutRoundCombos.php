@@ -6,12 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class WorkoutRoundCombos extends Model
 {
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'workout_round_id',
         'combo_id'

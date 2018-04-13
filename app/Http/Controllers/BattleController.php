@@ -14,7 +14,6 @@ use App\Helpers\PushTypes;
 
 class BattleController extends Controller
 {
-
     /**
      * @api {post} /battles Send battle invite
      * @apiGroup Battles
@@ -189,6 +188,31 @@ class BattleController extends Controller
 
         // Battle result
         $battle['battle_result'] = Battles::getResult($battleId);
+
+        switch ($_battle->type_id) {
+            case \App\Types::COMBO:
+                $plan = \App\Combos::get($_battle->plan_id);
+                break;
+            case \App\Types::COMBO_SET:
+                $plan = \App\ComboSets::get($_battle->plan_id);
+                break;
+            case \App\Types::WORKOUT:
+                $plan = \App\Workouts::get($_battle->plan_id);
+                break;
+            default:
+                $plan = null;
+        }
+
+        if ($plan) {
+            $planDetail = [
+                'id' => $plan['id'],
+                'name' => $plan['name'],
+                'description' => $plan['description'],
+                'detail' => $plan['detail']
+            ];
+
+            $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
+        }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
     }
