@@ -493,12 +493,13 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
-        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->with('videos')->get()->toArray();
+        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
 
         foreach ($combos as $i => $combo) {
             $keySet = $combo['key_set'];
 
             $combos[$i]['keys'] = explode('-', $keySet);
+            $combos[$i]['videos'] = \App\Videos::where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
         }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
