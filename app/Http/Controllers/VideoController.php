@@ -43,7 +43,7 @@ class VideoController extends Controller
      *              "title": "Sample Video",
      *              "file": "http://example.com/videos/SampleVideo.mp4",
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo.png",
-     *              "view_counts": 250,
+     *              "views": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
      *              "user_favourited": true,
@@ -55,7 +55,7 @@ class VideoController extends Controller
      *              "title": "Another Sample Video",
      *              "file": "http://example.com/videos/video_ScMzIvxBSi4.mp4",
      *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
+     *              "views": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27",
      *              "user_favourited": false,
@@ -88,7 +88,7 @@ class VideoController extends Controller
                 'title',
                 'file',
                 'thumbnail',
-                'view_counts',
+                'views',
                 'duration',
                 'author_name',
                 'thumbnail as thumb_width',
@@ -145,7 +145,7 @@ class VideoController extends Controller
      *              "title": "Sample Video",
      *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
-     *              "view_counts": 250,
+     *              "views": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
      *              "user_favourited": true,
@@ -157,7 +157,7 @@ class VideoController extends Controller
      *              "title": "Another Sample Video",
      *              "file": "https://youtu.be/ScMzIvxBSi4",
      *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
+     *              "views": 360,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:27",
      *              "user_favourited": false,
@@ -284,7 +284,7 @@ class VideoController extends Controller
     }
 
     /**
-     * @api {post} /videos/add_view/{videoId} Add view_counts to video
+     * @api {post} /videos/add_view/{videoId} Add views to video
      * @apiGroup Videos
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -314,7 +314,7 @@ class VideoController extends Controller
         if ($videoId) {
             $video = Videos::find($videoId);
 
-            $video->view_counts = $video->view_counts + 1;
+            $video->views = $video->views + 1;
             $video->save();
 
             return response()->json(['error' => 'false', 'message' => 'Added successfully']);
@@ -350,7 +350,7 @@ class VideoController extends Controller
      *              "title": null,
      *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
-     *              "view_counts": 250,
+     *              "views": 250,
      *              "author_name": "Limer Waughts",
      *              "duration": "00:01:02",
      *              "user_favourited": true
@@ -360,7 +360,7 @@ class VideoController extends Controller
      *              "title": null,
      *              "file": "http://example.com/videos/SampleVideo_1280x720_20mb.mp4",
      *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_20mb.png",
-     *              "view_counts": 170,
+     *              "views": 170,
      *              "author_name": "Aeron Emeatt",
      *              "duration": "00:01:12",
      *              "user_favourited": true
