@@ -82,6 +82,11 @@ class Workouts extends Model
         return $this->belongsTo('App\Trainers');
     }
 
+    public function tag()
+    {
+        return $this->hasOne('App\WorkoutTags', 'workout_id');
+    }
+
     public function getRoundTimeAttribute($value)
     {
         return $this->getMetric('round_time', $value);

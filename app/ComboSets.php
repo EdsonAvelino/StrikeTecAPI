@@ -62,6 +62,11 @@ class ComboSets extends Model
         return $this->belongsTo('App\Trainers');
     }
 
+    public function tag()
+    {
+        return $this->hasOne('App\ComboSetTags', 'combo_set_id');
+    }
+
     public function getKeySetAttribute($comboId)
     {
         $keySet = \DB::table('combo_keys')->where('combo_id', $comboId)->pluck('punch_type_id')->toArray();

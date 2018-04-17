@@ -30,48 +30,147 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-    *              "featured": [
-     *                  {
-     *                      "type_id": 3,
-     *                      "data": "{\"plan_id\":1,\"title\":\"Jab-Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Jab-Cross\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523057864.png\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *          "featured": [
+     *             {
+     *                 "type_id": 3,
+     *                 "plan_id": 2,
+     *                 "title": "Jab-Cross",
+     *                 "video_title": "Susan Kocab's Jab-Cross",
+     *                 "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734934.jpg",
+     *                 "duration": "00:30",
+     *                 "trainer": {
+     *                     "id": 1,
+     *                     "type": 1,
+     *                     "first_name": "Susan",
+     *                     "last_name": "Kocab"
+     *                 },
+     *                 "rating": "5.0",
+     *                 "filter": 1
+     *             },
+     *             {
+     *                 "type_id": 3,
+     *                 "plan_id": 1,
+     *                 "title": "Jab-Jab-Cross",
+     *                 "video_title": "Susan Kocab's Jab-Jab-Cross",
+     *                 "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734899.jpg",
+     *                 "duration": "00:49",
+     *                 "trainer": {
+     *                     "id": 1,
+     *                     "type": 1,
+     *                     "first_name": "Susan",
+     *                     "last_name": "Kocab"
+     *                 },
+     *                 "rating": "5.0",
+     *                 "filter": 1
+     *             },
+     *          ],
+     *          "combinations": [
+     *              {
+     *                  "type_id": 3,
+     *                  "plan_id": 1,
+     *                  "title": "Jab-Jab-Cross",
+     *                  "video_title": "Susan Kocab's Jab-Jab-Cross",
+     *                  "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734899.jpg",
+     *                  "duration": "00:49",
+     *                  "trainer": {
+     *                      "id": 1,
+     *                      "type": 1,
+     *                      "first_name": "Susan",
+     *                      "last_name": "Kocab"
      *                  },
-     *                  {
-     *                      "type_id": 4,
-     *                      "data": "{\"plan_id\":1,\"title\":\"Sample SR-1\",\"video_title\":\"Sample SR-1\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:13\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  "rating": "5.0",
+     *                  "filter": 1
+     *              },
+     *              {
+     *                  "type_id": 3,
+     *                  "plan_id": 20,
+     *                  "title": "6-SR-2-SR-2",
+     *                  "video_title": "Susan Kocab's Intermediate 6-SR-2-SR-2",
+     *                  "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523817805.jpg",
+     *                  "duration": "00:40",
+     *                  "trainer": {
+     *                      "id": 1,
+     *                      "type": 1,
+     *                      "first_name": "Susan",
+     *                      "last_name": "Kocab"
      *                  },
-     *                  {
-     *                      "type_id": 5,
-     *                      "data": "{\"plan_id\":1,\"title\":\"BR1\",\"video_title\":\"Sample Boxing Routine-11\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"trainer\":null,\"rating\":\"0.0\"}"
-     *                  }
-     *              ],
-     *              "combinations": [
-     *                  {
-     *                      "type_id": 3,
-     *                      "data": "{\"plan_id\":3,\"title\":\"Jab-Cross-Left Hook\",\"video_title\":\"Susan Kocab's Jab-Cross-Left Hook (1-2-3)\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523023487.jpg\",\"duration\":\"00:01:05\",\"trainer\":null,\"rating\":\"0.0\"}"
+     *                  "rating": "5.0",
+     *                  "filter": 2
+     *              },
+     *          ],
+     *          "sets": [
+     *              {
+     *                   "type_id": 4,
+     *                   "plan_id": 2,
+     *                   "title": "HEAD MOVEMENT",
+     *                   "video_title": null,
+     *                   "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523656641.png",
+     *                   "duration": "",
+     *                   "trainer": {
+     *                       "id": 1,
+     *                       "type": 1,
+     *                       "first_name": "Susan",
+     *                       "last_name": "Kocab"
+     *                   },
+     *                   "rating": "5.0",
+     *                   "filter": 1,
+     *                   "combos_count": 10
+     *               },
+     *               {
+     *                   "type_id": 4,
+     *                   "plan_id": 4,
+     *                   "title": "Jab-Cross Flow",
+     *                   "video_title": null,
+     *                   "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523657053.png",
+     *                   "duration": "",
+     *                   "trainer": {
+     *                       "id": 1,
+     *                       "type": 1,
+     *                       "first_name": "Susan",
+     *                       "last_name": "Kocab"
+     *                   },
+     *                   "rating": "5.0",
+     *                   "filter": 1,
+     *                   "combos_count": 13
+     *               },
+     *          ],
+     *          "workouts": [
+     *              {
+     *                  "type_id": 5,
+     *                  "plan_id": 2,
+     *                  "title": "Workout #2",
+     *                  "video_title": "Workout 2",
+     *                  "thumbnail": null,
+     *                  "duration": null,
+     *                  "trainer": {
+     *                      "id": 1,
+     *                      "type": 1,
+     *                      "first_name": "Susan",
+     *                      "last_name": "Kocab"
      *                  },
-     *                  {
-     *                      "type_id": 3,
-     *                      "data": "{\"plan_id\":2,\"title\":\"Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Cross\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_video_1523023401.jpg\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"0.0\"}"
-     *                  }
-     *              ],
-     *              "sets": [
-     *                  {
-     *                      "type_id": 4,
-     *                      "data": "{\"plan_id\":1,\"title\":\"Sample SR-1\",\"video_title\":\"Sample SR-1\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:13\",\"trainer\":null,\"rating\":\"0.0\"}"
-     *                  }
-     *              ],
-     *              "workouts": [
-     *                  {
-     *                      "type_id": 5,
-     *                      "data": "{\"plan_id\":1,\"title\":\"BR1\",\"video_title\":\"Sample Boxing Routine-11\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"trainer\":null,\"rating\":\"0.0\"}"
-     *                  }
-     *              ],
-     *              "essentials": [
-     *                  {
-     *                      "type_id": 0,
-     *                      "data": "{\"id\":25,\"type_id\":null,\"plan_id\":null,\"title\":\"Essential Vid-I\",\"file\":\"http:\\/\\/localhost:8001\\/videos\\/video_1511264605.mp4\",\"thumbnail\":\"http:\\/\\/localhost:8001\\/videos\\/thumbnails\\/thumb_SampleVideo_1280x720_5mb.png\",\"duration\":\"00:00:04\",\"views\":1,\"is_featured\":false,\"user_favorited\":false,\"likes\":0}"
-     *                  }
-     *              ]
+     *                  "rating": "5.0",
+     *                  "filter": 2,
+     *                  "rounds_count": 2
+     *              }
+     *          ],
+     *          "essentials": [
+     *              {
+     *                  "type_id": null,
+     *                  "plan_id": 27,
+     *                  "title": "The Right Cross",
+     *                  "video_title": "The Right Cross",
+     *                  "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523667458.png",
+     *                  "duration": "00:54",
+     *                  "trainer": {
+     *                      "id": 2,
+     *                      "type": 1,
+     *                      "first_name": "Pete",
+     *                      "last_name": "V"
+     *                  },
+     *                  "rating": "5.0",
+     *                  "filter": 1
+     *              }
+     *          ]
      *		],
      *    }
      * @apiErrorExample {json} Error response
@@ -195,6 +294,8 @@ class GuidanceController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number="3=combos", "4=combo-sets", "5=workouts"} type_id Type of plan (in url param)
+     * @apiParam {Number} [trainer_id] ID of trainer
+     * @apiParam {Number} [filters="1=Beginner", "2=Intermediate", "3=Advanced"] Filter ids comma seperated e.g. 1,2
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
@@ -212,14 +313,38 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
-     *          {
-     *              "type_id": 3,
-     *              "data": "{\"plan_id\":1,\"title\":\"Jab-Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Jab-Cross\",\"thumbnail\":\"http:\\/\\/videos.example.com\\/videos\\/thumbnails\\/thumb_video_1523057864.png\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"3.5\"}"
-     *          },
-     *          {
-     *              "type_id": 3,
-     *              "data": "{\"plan_id\":2,\"title\":\"Jab-Cross\",\"video_title\":\"Susan Kocab's Jab-Cross\",\"thumbnail\":\"http:\\/\\/videos.example.com\\/videos\\/thumbnails\\/thumb_video_1523023401.jpg\",\"duration\":\"00:00:30\",\"trainer\":null,\"rating\":\"4.0\"}"
-     *          }
+     *           {
+     *             "type_id": 3,
+     *             "plan_id": 1,
+     *             "title": "Jab-Jab-Cross",
+     *             "video_title": "Susan Kocab's Jab-Jab-Cross",
+     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734899.jpg",
+     *             "duration": "00:49",
+     *             "trainer": {
+     *                 "id": 1,
+     *                 "type": 1,
+     *                 "first_name": "Susan",
+     *                 "last_name": "Kocab"
+     *             },
+     *             "rating": "5.0",
+     *             "filter": 1
+     *         },
+     *         {
+     *             "type_id": 3,
+     *             "plan_id": 2,
+     *             "title": "Jab-Cross",
+     *             "video_title": "Susan Kocab's Jab-Cross",
+     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734934.jpg",
+     *             "duration": "00:30",
+     *             "trainer": {
+     *                 "id": 1,
+     *                 "type": 1,
+     *                 "first_name": "Susan",
+     *                 "last_name": "Kocab"
+     *             },
+     *             "rating": "5.0",
+     *             "filter": 1
+     *         }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -233,34 +358,40 @@ class GuidanceController extends Controller
     public function getPlans(Request $request, $typeId)
     {
         if (!in_array($typeId, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT])) {
-            return response()->json(['error' => 'true', 'message' => 'Invalid type-id, should be 3, 4 or 5 respectively']);
+            return response()->json(['error' => 'true', 'message' => 'Invalid type id, should be 3, 4 or 5 respectively']);
         }
 
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
 
-        $trainer = null;
-
-        if (!empty($request->get('query'))) {
-            $searchQuery = $request->get('query');
-
-            $_trainer = \App\Trainers::select('id')->where(function ($q) use ($searchQuery) {
-                $name = explode(' ', str_replace('+', ' ', $searchQuery));
-                    if (count($name) > 1) {
-                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
-                    } else {
-                        $q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
-                    }
-                });
-
-            $trainer = $_trainer->first();
-        }
+        $trainerId = (int) $request->get('trainer_id');
+        $filterIds = explode( ',', trim($request->get('filters')) );
+        $filterIds = array_filter($filterIds); // Clearning array if no any values
 
         $_planVideos = \App\Videos::select('type_id', 'plan_id', 'title', 'thumbnail', 'duration', \DB::raw('id as likes'))->where('type_id', $typeId)->offset($offset)->limit($limit);
 
-        if ($trainer) {
-            $_planVideos->whereHas('combo', function($query) use($trainer) {
-                $query->where('trainer_id', $trainer->id);
+        // To use for relationship
+        if ($typeId == \App\Types::COMBO) {
+            $planType = 'combo';
+        } elseif ($typeId == \App\Types::COMBO_SET) {
+            $planType = 'comboSet';
+        } elseif ($typeId == \App\Types::WORKOUT) {
+            $planType = 'workout';
+        }
+
+        // Filter by trainer
+        if ($trainerId) {
+            $_planVideos->whereHas($planType, function($query) use($trainerId) {
+                $query->where('trainer_id', $trainerId);
+            });
+        }
+
+        // Filter by skill-level
+        if (count($filterIds)) {
+            $_planVideos->whereHas($planType, function($query) use($filterIds) {
+                $query->whereHas('tag', function($q) use($filterIds) {
+                    $q->whereIn('filter_id', $filterIds);
+                });
             });
         }
 
@@ -426,10 +557,14 @@ class GuidanceController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded"
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Number} [trainer_id] ID of trainer
+     * @apiParam {Number} [filters="1=Beginner", "2=Intermediate", "3=Advanced"] Filter ids comma seperated e.g. 1,2
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
      *    {
+     *      "trainer_id": 5,
+     *      "filter_id": 1,2,
      *      "start": 0,
      *      "limit": 20
      *    }
@@ -442,6 +577,38 @@ class GuidanceController extends Controller
      *      "error": "false",
      *      "message": "",
      *      "data": [
+     *           {
+     *             "type_id": null,
+     *             "plan_id": 27,
+     *             "title": "The Right Cross",
+     *             "video_title": "The Right Cross",
+     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523667458.png",
+     *             "duration": "00:54",
+     *             "trainer": {
+     *                 "id": 2,
+     *                 "type": 1,
+     *                 "first_name": "Pete",
+     *                 "last_name": "V"
+     *             },
+     *             "rating": "5.0",
+     *             "filter": 1
+     *         },
+     *         {
+     *             "type_id": null,
+     *             "plan_id": 28,
+     *             "title": "Ryan Martin's One of BEST",
+     *             "video_title": "Ryan Martin's One of BEST",
+     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523817764.jpg",
+     *             "duration": "00:33",
+     *             "trainer": {
+     *                 "id": 1,
+     *                 "type": 1,
+     *                 "first_name": "Susan",
+     *                 "last_name": "Kocab"
+     *             },
+     *             "rating": "5.0",
+     *             "filter": 2
+     *         }
      *      ]
      *    }
      * @apiErrorExample {json} Error response
@@ -457,11 +624,29 @@ class GuidanceController extends Controller
         $offset = (int) $request->get('start') ? $request->get('start') : 0;
         $limit = (int) $request->get('limit') ? $request->get('limit') : 10;
 
+        $trainerId = (int) $request->get('trainer_id');
+        $filterIds = explode( ',', trim($request->get('filters')) );
+        $filterIds = array_filter($filterIds); // Clearning array if no any values
+
         // Essentials
-        $essentialVideos = \App\Videos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+        $_essentialVideos = \App\Videos::select('*', \DB::raw('id as plan_id'), \DB::raw('title as name'), \DB::raw('id as user_favorited'), \DB::raw('id as likes'), \DB::raw('id as filter'))
             ->where(function($query) {
                 $query->whereNull('type_id')->orWhere('type_id', 0);
-            })->offset($offset)->limit($limit)->get();
+            })->offset($offset)->limit($limit);
+
+        // Filter by trainer
+        if ($trainerId) {
+            $_essentialVideos->where('trainer_id', $trainerId);
+        }
+
+        // Filter by skill-level
+        if (count($filterIds)) {
+            $_essentialVideos->whereHas('filters', function($query) use($filterIds) {
+                $query->whereIn('tag_filter_id', $filterIds);
+            });
+        }
+
+        $essentialVideos = $_essentialVideos->get();
 
         $data = [];
         
