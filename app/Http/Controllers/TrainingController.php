@@ -163,7 +163,7 @@ class TrainingController extends Controller
                     $plan = null;
             }
 
-            // Skipping sessions of which
+            // Skipping sessions which has plan id but no plan details
             if ( in_array($_session->type_id, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT]) && !$plan) {
                 continue;
             }
