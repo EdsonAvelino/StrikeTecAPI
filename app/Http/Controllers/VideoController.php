@@ -392,9 +392,9 @@ class VideoController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
-        $_videos = Videos::whereRaw("id IN (SELECT video_id from user_fav_videos WHERE user_id = ?)", [\Auth::id()])->offset($offset)->limit($limit)->get();
+        $videos = Videos::whereRaw("id IN (SELECT video_id from user_fav_videos WHERE user_id = ?)", [\Auth::id()])->offset($offset)->limit($limit)->get();
 
-        $videos = [];
+        $data = [];
 
         // foreach ($_videos as $video) {
         //     $userFavourited = UserFavVideos::where('user_id', \Auth::id())->where('video_id', $video->id)->exists();
@@ -422,11 +422,11 @@ class VideoController extends Controller
         //     $videos[] = $video;
         // }
 
-        foreach ($_videos as $video) {
-            $videos[] = $this->getPlanData($video);
+        foreach ($videos as $video) {
+            $data[] = $this->getPlanData($video);
         }
 
-        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**
