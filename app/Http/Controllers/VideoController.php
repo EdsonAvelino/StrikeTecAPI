@@ -560,7 +560,7 @@ class VideoController extends Controller
      */
     public function getTrainers(Request $request)
     {
-        $trainers = \App\Trainers::all();
+        $trainers = \App\Trainers::orderBy('type')->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $trainers]);
     }
