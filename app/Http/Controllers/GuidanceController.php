@@ -295,7 +295,7 @@ class GuidanceController extends Controller
      *     }
      * @apiParam {Number="3=combos", "4=combo-sets", "5=workouts"} type_id Type of plan (in url param)
      * @apiParam {Number} [trainer_id] ID of trainer
-     * @apiParam {Number} [filters="1=Beginner", "2=Intermediate", "3=Advanced"] Filter ids comma seperated e.g. 1,2
+     * @apiParam {Number="1=Beginner", "2=Intermediate", "3=Advanced"} [filters] Filter ids comma seperated e.g. 1,2
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
@@ -558,7 +558,7 @@ class GuidanceController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
      * @apiParam {Number} [trainer_id] ID of trainer
-     * @apiParam {Number} [filters="1=Beginner", "2=Intermediate", "3=Advanced"] Filter ids comma seperated e.g. 1,2
+     * @apiParam {Number="1=Beginner", "2=Intermediate", "3=Advanced"} [filters] Filter ids comma seperated e.g. 1,2
      * @apiParam {Number} start Start offset
      * @apiParam {Number} limit Limit number of videos
      * @apiParamExample {json} Input
