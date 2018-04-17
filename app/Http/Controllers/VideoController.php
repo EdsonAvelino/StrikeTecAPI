@@ -469,6 +469,7 @@ class VideoController extends Controller
     public function getVideoTags(Request $request)
     {
         $tagList = Tags::getTags(1);
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $tagList]);
     }
 
@@ -519,6 +520,49 @@ class VideoController extends Controller
     {
         $categories = VideoCategory::all();
         return response()->json(['error' => 'false', 'message' => '', 'data' => $categories]);
+    }
+
+    /**
+     * @api {get} /trainers Get list of trainers
+     * @apiGroup Videos
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data List of tags
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *   {
+     *      "error": "false",
+     *      "message": "",
+     *      "data":[
+     *          {
+     *              "id": 1,
+     *              "type": 1,
+     *              "first_name": "Susan",
+     *              "last_name": "Kocab",
+     *              "gender": "female"
+     *          },
+     *          {
+     *              "id": 2,
+     *              "type": 1,
+     *              "first_name": "Pete",
+     *              "last_name": "V",
+     *              "gender": "male"
+     *          }
+     *      ]
+     *  }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getTrainers(Request $request)
+    {
+        $trainers = \App\Trainers::all();
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $trainers]);
     }
 
     /**

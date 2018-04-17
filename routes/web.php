@@ -42,8 +42,11 @@ $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 // Get FAQs
 $app->get('/faqs', 'UserController@getFaqs');
 
-// get tags
+// Get all available tags
 $app->get('/tags', 'VideoController@getTags');
+
+// Get list of trainers
+$app->get('/trainers', 'VideoController@getTrainers');
 
 // Rest of all APIs are secured with access-token
 // User APIs
@@ -147,10 +150,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get user's favourited videos
     $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
 
-    // Get tags
+    // Get Video's Tags
     $app->get('/videos/tags', 'VideoController@getVideoTags');
 
-    // Get tags
+    // Get Categories
     $app->get('/videos/category', 'VideoController@getVideoCategories');
 });
 
