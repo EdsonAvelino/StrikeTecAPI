@@ -344,7 +344,7 @@ class VideoController extends Controller
      *    {
      *      "error": "false",
      *      "message": "",
-     *      "videos": [
+     *      "data": [
      *           {
      *             "type_id": 3,
      *             "plan_id": 1,
