@@ -727,7 +727,7 @@ class UserController extends Controller
 
         $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', \Auth::id())->where('game_id', $gameId)->first();
 
-        $data = [];
+        $data = new \stdClass;
 
         if ($leaderboardData) {
             $score = $leaderboardData->score;
@@ -739,8 +739,8 @@ class UserController extends Controller
                 case 4: $score = (int) $score; break;
             }
 
-            $data['score'] = $score;
-            $data['distance'] = (float) number_format($leaderboardData->distance, 1) ;
+            $data->score = $score;
+            $data->distance = (float) number_format($leaderboardData->distance, 1) ;
         }
 
         return response()->json([
