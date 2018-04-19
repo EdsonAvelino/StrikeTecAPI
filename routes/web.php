@@ -66,8 +66,11 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Search users
     $app->get('/users/search', 'UserController@searchUsers');
 
-    // Search users
+    // Get user's game score
     $app->get('/users/score', 'UserController@getUsersGameScores');
+
+    // Get user's progress
+    $app->get('/users/progress', 'UserController@getUsersProgress');
 
     // Get user's information
     $app->get('/users/{userId}', 'UserController@getUser');

@@ -495,7 +495,7 @@ class LeaderboardController extends Controller
 
     /**
      * @api {get} /leaderboard/game Game leaderboard data
-     * @apiGroup Leaderboard
+     * @apiGroup Game
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
