@@ -166,6 +166,7 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
+            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -208,6 +209,7 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
                 	->with(['country', 'state', 'city']);
             }])
+            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -247,6 +249,7 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
+            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -441,6 +444,7 @@ class LeaderboardController extends Controller
             $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', \DB::raw('id as number_of_challenges'))
             	->with(['country', 'state', 'city']);
         }])
+        ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
     	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender, $searchQuery) {
     		if ($countryId) {
     			$query->where('country_id', $countryId);
