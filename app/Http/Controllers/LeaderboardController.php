@@ -418,8 +418,6 @@ class LeaderboardController extends Controller
     public function getTrendingList(Request $request)
     {
     	// \DB::enableQueryLog();
-    	// TODO sort list of users according to likes-count of feed items for a week
-    	
     	$countryId = (int) $request->get('country_id');
     	$stateId = (int) $request->get('state_id');
     	
@@ -438,62 +436,82 @@ class LeaderboardController extends Controller
         $offset = (int) ($request->get('start') ?? 0);
         $limit = (int) ($request->get('limit') ?? 20);
 
-		\DB::statement(\DB::raw('SET @rank = 0'));
-
-		$leadersList = Leaderboard::with(['user' => function ($query) {
-            $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', \DB::raw('id as number_of_challenges'))
-            	->with(['country', 'state', 'city']);
-        }])
-        ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
-    	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender, $searchQuery) {
-    		if ($countryId) {
-    			$query->where('country_id', $countryId);
-
-    			// State (can be null when no country selected)
-    			if ($stateId)
-    				$query->where('state_id', $stateId);
-    		}
-    		
-    		if (sizeof($ageRange)) {
-            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
-            }
-
-            if (sizeof($weightRange)) {
-            	$query->whereBetween('weight', $weightRange);
-            }
-
-            if ($gender) {
-            	$query->where('gender', $gender);
-            }
-
-            $query->where(function($q) {
-            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
-            });
-        
-            if ($searchQuery) {
-            	$query->where(function ($q) use ($searchQuery) {
-            		$name = explode(' ', str_replace('+', ' ', $searchQuery));
-            		
-            		if (count($name) > 1){
-            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
-            		} else {
-            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
-            		}
-            		
-            	});
-            }
-    	})
-    	->where('user_id', '!=', \Auth::user()->id)
-    	->whereHas('user.preferences', function($q) {
-			$q->where('public_profile', 1);
-    	})
-    	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
-    	->orderBy('punches_count', 'desc')
-    	->offset($offset)->limit($limit)->get()->toArray();
+		// filter with session count this week.
+		// but will change per day when we have lots of users
 		
-		// ->orderByRaw('(user_id = '. \Auth::user()->id .') desc')
-        // dd(\DB::getQueryLog());
+		$leadersList = Leaderboard::select('leaderboard.*', 'week_sessions.week_sessions_count')
+			->leftJoin(\DB::raw('( SELECT user_id, COUNT(*) AS "week_sessions_count" FROM `sessions` WHERE YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1) GROUP BY user_id ) week_sessions'),  function($join) {
+	           		$join->on('leaderboard.user_id', '=', 'week_sessions.user_id');
+	        })->with(['user' => function ($query) {
+	            $query->select(
+	            	'id',
+	            	'first_name',
+	            	'last_name',
+	            	'skill_level',
+	            	'weight',
+	            	'city_id',
+	            	'state_id',
+	            	'country_id',
+	            	\DB::raw('birthday as age'),
+	            	\DB::raw('id as user_following'),
+	            	\DB::raw('id as user_follower'),
+	            	'photo_url',
+	            	'gender',
+	            	\DB::raw('id as number_of_challenges')
+	            )->with(['country', 'state', 'city']);
+	        }])
+	        ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
+	    	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender, $searchQuery) {
+	    		if ($countryId) {
+	    			$query->where('country_id', $countryId);
 
+	    			// State (can be null when no country selected)
+	    			if ($stateId)
+	    				$query->where('state_id', $stateId);
+	    		}
+	    		
+	    		if (sizeof($ageRange)) {
+	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+	            }
+
+	            if (sizeof($weightRange)) {
+	            	$query->whereBetween('weight', $weightRange);
+	            }
+
+	            if ($gender) {
+	            	$query->where('gender', $gender);
+	            }
+
+	            $query->where(function($q) {
+	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+	            });
+	        
+	            if ($searchQuery) {
+	            	$query->where(function ($q) use ($searchQuery) {
+	            		$name = explode(' ', str_replace('+', ' ', $searchQuery));
+	            		
+	            		if (count($name) > 1){
+	            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[1]%");
+	            		} else {
+	            			$q->where('first_name', 'like', "%$name[0]%")->orWhere('last_name', 'like', "%$name[0]%");
+	            		}
+	            		
+	            	});
+	            }
+	    	})
+	    	->where('leaderboard.user_id', '!=', \Auth::id())
+	    	->whereHas('user.preferences', function($q) {
+				$q->where('public_profile', 1);
+	    	})
+	    	->orderBy('week_sessions_count', 'desc')
+	    	->offset($offset)->limit($limit)->get();
+		
+        // print_r(\DB::getQueryLog());
+
+	    foreach ($leadersList as $idx => $row) {
+	    	$row->rank = $offset + $idx + 1;
+	    }
+	    
         return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
 
