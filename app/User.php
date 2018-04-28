@@ -113,6 +113,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return $this->hasOne('App\Companies', 'id', 'company_id');
     }
 
+    public function sessions()
+    {
+        return $this->hasMany('App\Sessions', 'user_id');
+    }
+
     public static function boot()
     {
         parent::boot();

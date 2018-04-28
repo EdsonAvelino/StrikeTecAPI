@@ -85,7 +85,7 @@ class TrainingController extends Controller
      *          "shared": "false",
      *          "created_at": "2017-09-09 18:08:21",
      *          "updated_at": "2017-09-09 18:08:21"
-     *          "round_ids" : [{ "id":3}, {"id":4} ]}
+     *          "round_ids" : [{'id':3}, {'id':4}]
      *      },
      *      {
      *          "id": 3,
@@ -103,7 +103,7 @@ class TrainingController extends Controller
      *          "shared": "true",
      *          "created_at": "2017-09-10 18:09:30",
      *          "updated_at": "2017-09-10 18:09:30"
-     *          "round_ids" : [{ "id":5}, {"id":6} ]}
+     *          "round_ids" : [{"id":5}, {"id":6}]
      *      }
      *    }
      * @apiErrorExample {json} Error Response
@@ -163,7 +163,7 @@ class TrainingController extends Controller
                     $plan = null;
             }
 
-            // Skipping sessions of which
+            // Skipping sessions which has plan id but no plan details
             if ( in_array($_session->type_id, [\App\Types::COMBO, \App\Types::COMBO_SET, \App\Types::WORKOUT]) && !$plan) {
                 continue;
             }

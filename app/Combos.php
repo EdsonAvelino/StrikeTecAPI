@@ -71,6 +71,11 @@ class Combos extends Model
         return $this->belongsTo('App\Trainers');
     }
 
+    public function tag()
+    {
+        return $this->hasOne('App\ComboTags', 'combo_id');
+    }
+
     public function getKeySetAttribute($comboId)
     {
         $comboId = (int) $comboId;

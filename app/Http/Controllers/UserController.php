@@ -680,7 +680,7 @@ class UserController extends Controller
 
     /**
      * @api {get} /users/score Get user's score
-     * @apiGroup Users
+     * @apiGroup Game
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
      *     {
@@ -727,7 +727,7 @@ class UserController extends Controller
 
         $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', \Auth::id())->where('game_id', $gameId)->first();
 
-        $data = [];
+        $data = new \stdClass;
 
         if ($leaderboardData) {
             $score = $leaderboardData->score;
@@ -739,14 +739,74 @@ class UserController extends Controller
                 case 4: $score = (int) $score; break;
             }
 
-            $data['score'] = $score;
-            $data['distance'] = (float) number_format($leaderboardData->distance, 1) ;
+            $data->score = $score;
+            $data->distance = (float) number_format($leaderboardData->distance, 1) ;
         }
 
         return response()->json([
             'error' => 'false',
             'message' => '',
             'data' => $data
+        ]);
+    }
+
+    /**
+     * @api {get} /users/progress Get user's training progress
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Summary of total trained grouping by skill-level
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "",
+     *          "data": {
+     *              "Beginner": {
+     *                  "trained": 3,
+     *                  "total": 9
+     *              },
+     *              "Intermediate": {
+     *                  "trained": 0,
+     *                  "total": 2
+     *              },
+     *              "Advanced": {
+     *                  "trained": 4,
+     *                  "total": 10
+     *              }
+     *          }
+     *     }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invaild request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getUsersProgress(Request $request)
+    {
+        $getTotalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
+
+        $result = [];
+
+        foreach ($getTotalCombos as $row) {
+            $combos = \App\ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
+
+            $userTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))->where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)->whereIn('plan_id', $combos)->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->groupBy('plan_id')->get()->count();
+
+            $result[$row->filter->filter_name] = ['trained' => $userTrained, 'total' => $row->combos_count];
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'data' => $result
         ]);
     }
 
