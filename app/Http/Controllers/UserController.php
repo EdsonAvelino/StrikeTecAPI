@@ -2087,7 +2087,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /users/notifications Get all unread notifications of current user
+     * @api {get} /user/notifications Get all unread notifications of current user
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -2313,7 +2313,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /users/notifications/read/<notification_id> Mark notifications read
+     * @api {get} /user/notifications/read/<notification_id> Mark notifications read
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
