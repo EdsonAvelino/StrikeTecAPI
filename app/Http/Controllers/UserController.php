@@ -791,14 +791,18 @@ class UserController extends Controller
      */
     public function getUsersProgress(Request $request)
     {
-        $getTotalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
+        $totalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
 
         $result = [];
 
-        foreach ($getTotalCombos as $row) {
+        foreach ($totalCombos as $row) {
             $combos = \App\ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
 
-            $userTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))->where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)->whereIn('plan_id', $combos)->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->groupBy('plan_id')->get()->count();
+            $userTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))
+                ->where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)
+                ->whereIn('plan_id', $combos)
+                // ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+                ->groupBy('plan_id')->get()->count();
 
             $result[$row->filter->filter_name] = ['trained' => $userTrained, 'total' => $row->combos_count];
         }
