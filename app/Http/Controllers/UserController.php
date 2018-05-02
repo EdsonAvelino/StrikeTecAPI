@@ -2215,23 +2215,29 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
-        // Current week's monday to sunday
+        // Current week's monday(start) to sunday(ends)
         $currentWeekStart = strtotime("last monday midnight");
-        $currentWeekEnd = strtotime("next sunday", $currentWeekStart);
+        $currentWeekEnd = strtotime("next monday midnight", $currentWeekStart)-1;
 
-        // Last week's monday to sunday
+        // echo date('d-m-Y h:i A', $currentWeekStart);
+        // echo "\n".date('d-m-Y h:i A', $currentWeekEnd);
+
+        // Last week's monday(starts) to sunday(ends)
         $lastWeek = strtotime("-1 week +1 day");
         $lastWeekStart = strtotime("last monday midnight", $lastWeek);
-        $lastWeekEnd = strtotime("next sunday", $lastWeekStart);
+        $lastWeekEnd = strtotime("next monday midnight", $lastWeekStart)-1;
+
+        // echo "\n--------------\n".date('d-m-Y h:i A', $lastWeekStart);
+        // echo "\n".date('d-m-Y h:i A', $lastWeekEnd);
 
         $lastWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
                         ->where('start_time', '>', ($lastWeekStart * 1000))
-                        ->where('start_time', '<', (($lastWeekEnd * 1000) - 1))
+                        ->where('start_time', '<', ($lastWeekEnd * 1000))
                         ->orderBy('avg_force', 'desc')->limit(1)->first();
 
         $currentWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
                         ->where('start_time', '>', ($currentWeekStart * 1000))
-                        ->where('start_time', '<', (($currentWeekEnd * 1000) - 1))
+                        ->where('start_time', '<', ($currentWeekEnd * 1000))
                         ->orderBy('avg_force', 'desc')->limit(1)->first();
 
         $lastWeekMaxAvgForce = $currentWeekMaxAvgForce = 0;
