@@ -791,14 +791,18 @@ class UserController extends Controller
      */
     public function getUsersProgress(Request $request)
     {
-        $getTotalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
+        $totalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
 
         $result = [];
 
-        foreach ($getTotalCombos as $row) {
+        foreach ($totalCombos as $row) {
             $combos = \App\ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
 
-            $userTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))->where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)->whereIn('plan_id', $combos)->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')->groupBy('plan_id')->get()->count();
+            $userTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))
+                ->where('user_id', \Auth::id())->where('type_id', \App\Types::COMBO)
+                ->whereIn('plan_id', $combos)
+                // ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+                ->groupBy('plan_id')->get()->count();
 
             $result[$row->filter->filter_name] = ['trained' => $userTrained, 'total' => $row->combos_count];
         }
@@ -2087,7 +2091,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /users/notifications Get all unread notifications of current user
+     * @api {get} /user/notifications Get all unread notifications of current user
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -2211,23 +2215,29 @@ class UserController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
 
-        // Current week's monday to sunday
+        // Current week's monday(start) to sunday(ends)
         $currentWeekStart = strtotime("last monday midnight");
-        $currentWeekEnd = strtotime("next sunday", $currentWeekStart);
+        $currentWeekEnd = strtotime("next monday midnight", $currentWeekStart)-1;
 
-        // Last week's monday to sunday
+        // echo date('d-m-Y h:i A', $currentWeekStart);
+        // echo "\n".date('d-m-Y h:i A', $currentWeekEnd);
+
+        // Last week's monday(starts) to sunday(ends)
         $lastWeek = strtotime("-1 week +1 day");
         $lastWeekStart = strtotime("last monday midnight", $lastWeek);
-        $lastWeekEnd = strtotime("next sunday", $lastWeekStart);
+        $lastWeekEnd = strtotime("next monday midnight", $lastWeekStart)-1;
+
+        // echo "\n--------------\n".date('d-m-Y h:i A', $lastWeekStart);
+        // echo "\n".date('d-m-Y h:i A', $lastWeekEnd);
 
         $lastWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
                         ->where('start_time', '>', ($lastWeekStart * 1000))
-                        ->where('start_time', '<', (($lastWeekEnd * 1000) - 1))
+                        ->where('start_time', '<', ($lastWeekEnd * 1000))
                         ->orderBy('avg_force', 'desc')->limit(1)->first();
 
         $currentWeekBestSession = \App\Sessions::where('user_id', \Auth::id())
                         ->where('start_time', '>', ($currentWeekStart * 1000))
-                        ->where('start_time', '<', (($currentWeekEnd * 1000) - 1))
+                        ->where('start_time', '<', ($currentWeekEnd * 1000))
                         ->orderBy('avg_force', 'desc')->limit(1)->first();
 
         $lastWeekMaxAvgForce = $currentWeekMaxAvgForce = 0;
@@ -2313,7 +2323,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /users/notifications/read/<notification_id> Mark notifications read
+     * @api {get} /user/notifications/read/<notification_id> Mark notifications read
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
