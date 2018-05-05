@@ -504,6 +504,7 @@ class LeaderboardController extends Controller
 				$q->where('public_profile', 1);
 	    	})
 	    	->orderBy('week_sessions_count', 'desc')
+	    	->orderBy('sessions_count', 'desc')
 	    	->offset($offset)->limit($limit)->get();
 		
         // print_r(\DB::getQueryLog());
