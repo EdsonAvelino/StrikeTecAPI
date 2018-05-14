@@ -678,8 +678,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
-     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
+     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
+     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "pause_duration": 25000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -719,6 +719,7 @@ class TrainingController extends Controller
                     $_round = SessionRounds::create([
                         'session_id' => $round['session_start_time'],
                         'start_time' => $round['start_time'],
+                        'pause_duration' => $round['pause_duration'],
                         'end_time' => $round['end_time'],
                         'avg_speed' => $round['avg_speed'],
                         'avg_force' => $round['avg_force'],
@@ -1416,7 +1417,7 @@ class TrainingController extends Controller
             // ref: SessionRounds -> getMostPunchesPerMinute()
             case 3: // Endurance
                 $result = $currentSessionRoundsQuery->select(
-                    \DB::raw('SUM(end_time - start_time) AS duration'),
+                    \DB::raw('SUM( (end_time - start_time) - pause_duration ) AS duration'),
                     \DB::raw('SUM(punches_count) as punches')
                 )->first();
 

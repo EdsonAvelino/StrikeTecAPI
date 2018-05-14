@@ -16,6 +16,7 @@ class SessionRounds extends Model
         'session_id',
         'start_time',
         'end_time',
+        'pause_duration',
         'avg_speed',
         'avg_force',
         'punches_count',
@@ -24,6 +25,7 @@ class SessionRounds extends Model
         'best_time',
             // 'avg_time',
     ];
+    
     protected $dateFormat = 'Y-m-d\TH:i:s.u';
 
     public function session()
