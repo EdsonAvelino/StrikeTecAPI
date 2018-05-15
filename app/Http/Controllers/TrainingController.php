@@ -362,6 +362,10 @@ class TrainingController extends Controller
      *               "shared": "false",
      *               "created_at": "2018-03-29T17:55:34.000000",
      *               "updated_at": "2018-03-29T18:00:32.000000",
+     *               "plan_detail": {
+     *                   "type_id": 3,
+     *                   "data": "{\"id\":1,\"name\":\"Jab-Jab-Cross\",\"description\":\"BEGINNER SERIES\\r\\nJab-Jab-Cross (1-1-2)\",\"detail\":[\"1\",\"1\",\"2\"]}"
+     *                 },
      *               "round_ids": [ {"id": 124} ]
      *           },
      *           {
@@ -382,6 +386,10 @@ class TrainingController extends Controller
      *               "shared": "false",
      *               "created_at": "2018-03-29T17:28:37.000000",
      *               "updated_at": "2018-03-29T17:27:40.000000",
+     *               "plan_detail": {
+     *                   "type_id": 3,
+     *                   "data": "{\"id\":1,\"name\":\"Jab-Jab-Cross\",\"description\":\"BEGINNER SERIES\\r\\nJab-Jab-Cross (1-1-2)\",\"detail\":[\"1\",\"1\",\"2\"]}"
+     *                 },
      *               "round_ids": [ {"id": 112 } ]
      *           }
      *      }
