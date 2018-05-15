@@ -31,7 +31,7 @@ class Combos extends Model
         unset($_combo['trainer_id']);
 
         // Trainer
-        $_combo['trainer'] = ['id' => $combo->trainer->id, 'full_name' => $combo->trainer->first_name .' '. $combo->trainer->last_name];
+        $_combo['trainer'] = ['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name];
 
         // Video
         $video = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::COMBO)->where('plan_id', $comboId)->first();
