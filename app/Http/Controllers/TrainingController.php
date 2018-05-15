@@ -420,7 +420,7 @@ class TrainingController extends Controller
         foreach ($_sessions as $_session) {
             $session = $_session->toArray();
 
-            $roundIDs = SessionRounds::select('id')->where('session_id', $_session->id)->get()->pluck('id');
+            $roundIDs = SessionRounds::select('id')->where('session_id', $_session->id)->get();
             $session['round_ids'] = $roundIDs;
 
             $sessions[] = $session;
