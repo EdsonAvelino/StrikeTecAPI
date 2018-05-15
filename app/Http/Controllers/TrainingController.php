@@ -362,9 +362,7 @@ class TrainingController extends Controller
      *               "shared": "false",
      *               "created_at": "2018-03-29T17:55:34.000000",
      *               "updated_at": "2018-03-29T18:00:32.000000",
-     *               "round_ids": [
-     *                   124
-     *               ]
+     *               "round_ids": [ {"id": 124} ]
      *           },
      *           {
      *               "id": 18,
@@ -384,9 +382,7 @@ class TrainingController extends Controller
      *               "shared": "false",
      *               "created_at": "2018-03-29T17:28:37.000000",
      *               "updated_at": "2018-03-29T17:27:40.000000",
-     *               "round_ids": [
-     *                   112
-     *               ]
+     *               "round_ids": [ {"id": 112 } ]
      *           }
      *      }
      *    }
@@ -403,9 +399,11 @@ class TrainingController extends Controller
         $sessionId = $request->get('session_id');
         $typeId = $request->get('type_id');
 
-        $_sessions = Sessions::where('id', '<=', $sessionId)
-            ->where('type_id', $typeId)->where('user_id', \Auth::id())
-            ->orderBy('id', 'desc')->limit(2)->get();
+        $_sessions = Sessions::where(function($query) use ($sessionId) {
+            $query->where('id', $sessionId)->orWhere('id', '<', $sessionId);
+        })->where('type_id', $typeId)->where('user_id', \Auth::id())
+        ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+        ->orderBy('id', 'desc')->limit(2)->get();
 
         if (empty($_sessions)) {
             return response()->json([
