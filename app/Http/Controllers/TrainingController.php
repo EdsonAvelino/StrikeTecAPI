@@ -418,6 +418,31 @@ class TrainingController extends Controller
         foreach ($_sessions as $_session) {
             $session = $_session->toArray();
 
+            switch ($_session->type_id) {
+                case \App\Types::COMBO:
+                    $plan = \App\Combos::get($_session->plan_id);
+                    break;
+                case \App\Types::COMBO_SET:
+                    $plan = \App\ComboSets::get($_session->plan_id);
+                    break;
+                case \App\Types::WORKOUT:
+                    $plan = \App\Workouts::get($_session->plan_id);
+                    break;
+                default:
+                    $plan = null;
+            }
+
+            if ($plan) {
+                $planDetail = [
+                    'id' => $plan['id'],
+                    'name' => $plan['name'],
+                    'description' => $plan['description'],
+                    'detail' => $plan['detail']
+                ];
+
+                $session['plan_detail'] = ['type_id' => (int) $_session->type_id, 'data' => json_encode($planDetail)];
+            }
+
             $roundIDs = SessionRounds::select('id')->where('session_id', $_session->id)->get();
             $session['round_ids'] = $roundIDs;
 
