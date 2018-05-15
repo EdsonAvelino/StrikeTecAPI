@@ -321,6 +321,119 @@ class TrainingController extends Controller
     }
 
     /**
+     * @api {get} /user/training/sessions/for_comparison Get session of particular type to compare with last
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {String} session_id Desired Session ID
+     * @apiParam {String} type_id Type ID
+     * @apiParamExample {json} Input
+     *    {
+     *      "session_id": 25,
+     *      "type_id": 1
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccess {Object} data Two session, one which requested another latest of the same type
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": {
+     *           {
+     *               "id": 25,
+     *               "user_id": 7,
+     *               "battle_id": 15,
+     *               "game_id": null,
+     *               "type_id": 3,
+     *               "start_time": 1522346134039,
+     *               "end_time": 1522346137158,
+     *               "plan_id": 3,
+     *               "avg_speed": 15,
+     *               "avg_force": 653,
+     *               "punches_count": 3,
+     *               "max_speed": 18,
+     *               "max_force": 857,
+     *               "best_time": "0.50",
+     *               "shared": "false",
+     *               "created_at": "2018-03-29T17:55:34.000000",
+     *               "updated_at": "2018-03-29T18:00:32.000000",
+     *               "round_ids": [
+     *                   124
+     *               ]
+     *           },
+     *           {
+     *               "id": 18,
+     *               "user_id": 7,
+     *               "battle_id": 14,
+     *               "game_id": null,
+     *               "type_id": 3,
+     *               "start_time": 1522344517124,
+     *               "end_time": 1522344520239,
+     *               "plan_id": 3,
+     *               "avg_speed": 17,
+     *               "avg_force": 736,
+     *               "punches_count": 3,
+     *               "max_speed": 23,
+     *               "max_force": 886,
+     *               "best_time": "0.50",
+     *               "shared": "false",
+     *               "created_at": "2018-03-29T17:28:37.000000",
+     *               "updated_at": "2018-03-29T17:27:40.000000",
+     *               "round_ids": [
+     *                   112
+     *               ]
+     *           }
+     *      }
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function getSessionForComparison(Request $request)
+    {
+        $sessionId = $request->get('session_id');
+        $typeId = $request->get('type_id');
+
+        $_sessions = Sessions::where('id', '<=', $sessionId)
+            ->where('type_id', $typeId)->where('user_id', \Auth::id())
+            ->orderBy('id', 'desc')->limit(2)->get();
+
+        if (empty($_sessions)) {
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'data' => null,
+            ]);
+        }
+
+        $sessions = [];
+
+        foreach ($_sessions as $_session) {
+            $session = $_session->toArray();
+
+            $roundIDs = SessionRounds::select('id')->where('session_id', $_session->id)->get()->pluck('id');
+            $session['round_ids'] = $roundIDs;
+
+            $sessions[] = $session;
+        }
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'data' => $sessions
+        ]);
+    }
+
+    /**
      * @api {post} /user/training/sessions Upload sessions
      * @apiGroup Training
      * @apiHeader {String} authorization Authorization value
