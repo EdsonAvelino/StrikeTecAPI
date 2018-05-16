@@ -560,86 +560,38 @@ class TrainingController extends Controller
                     'max_speed' => $session['max_speed'],
                     'best_time' => $session['best_time']
                 ]);
+
+                // Update battle details, if any
+                if ($_session->battle_id) {
+                    $this->updateBattle($_session->battleId);
+                }
+                // Game stuff
+                elseif ($_session->game_id) {
+                    $gameSession = true;
+                    $this->updateGameLeaderboard($_session->game_id, $_session->id);
+                }
+                // Goal updates
+                else {
+                    $this->updateGoal($_session);
+                }
             }
 
             $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-            // Update battle details, if any
-            if ($_session->battle_id) {
-                $battle = Battles::where('id', $_session->battle_id)->first();
+            // Process through achievements (badges) and assign 'em to user
+            
+            // skipping Achievements for now as they are not working properly
+            // $achievements = $this->achievements($_session->id, $_session->battle_id);
 
-                if (\Auth::user()->id == $battle->user_id) {
-                    $battle->user_finished = 1;
-                    $battle->user_finished_at = date('Y-m-d H:i:s');
-
-                    $pushToUserId = $battle->opponent_user_id;
-                    $pushOpponentUserId = $battle->user_id;
-                } else if (\Auth::user()->id == $battle->opponent_user_id) {
-                    $battle->opponent_finished = 1;
-                    $battle->opponent_finished_at = date('Y-m-d H:i:s');
-
-                    $pushToUserId = $battle->user_id;
-                    $pushOpponentUserId = $battle->opponent_user_id;
-                }
-
-                // Push to opponent, about battle is finished by current user
-                $pushMessage = 'User has finished battle';
-
-                // Set battle winner, according to battle-result
-                Battles::updateWinner($battle->id);
-
-                Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
-                // Generates new notification for user
-                $userThisBattleNotif = \App\UserNotifications::where('data_id', $battle->id)
-                                ->where(function($query) {
-                                    $query->whereNull('is_read')->orWhere('is_read', 0);
-                                })->where('user_id', \Auth::id())->first();
-
-                if ($userThisBattleNotif) {
-                    $userThisBattleNotif->is_read = 1;
-                    $userThisBattleNotif->save();
-                }
-
-                \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
-
-                $battle->update();
-            } elseif ($_session->game_id) {
-                $gameSession = true;
-                $this->updateGameLeaderboard($_session->game_id, $_session->id);
-            } else {
-                // Update goal progress
-                $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
-                        ->where('start_at', '<=', date('Y-m-d H:i:s'))
-                        ->where('end_at', '>=', date('Y-m-d H:i:s'))
-                        ->first();
-
-                if ($goal) {
-                    if ($goal->activity_type_id == 2) {
-                        if ($_session->type_id == 5) {
-                            GoalSession::create([
-                                'session_id' => $_session->id,
-                                'goal_id' => $goal->id
-                            ]);
-                            
-                            $goal->done_count = $goal->done_count + 1;
-                            $goal->save();
-                        }
-                    } else {
-                        GoalSession::create([
-                            'session_id' => $_session->id,
-                            'goal_id' => $goal->id
-                        ]);
-
-                        $goal->done_count = $_session->punches_count + $goal->done_count;
-                        $goal->save();
-                    }
-                }
-            }
-
-            $achievements = $this->achievements($_session->id, $_session->battle_id);
-            $sessions[] = ['session_id' => $_session->id, 'start_time' => $_session->start_time, 'achievements' => $achievements];
+            // Generating sessions' list for response
+            $sessions[] = [
+                'session_id' => $_session->id,
+                'start_time' => $_session->start_time,
+                'achievements' => []
+            ];
         }
 
+        // Sending response back if session is of game
         if ($gameSession) {
             return response()->json([
                 'error' => 'false',
@@ -698,6 +650,7 @@ class TrainingController extends Controller
 
         $leaderboardStatus->save();
 
+        // Finally sending response back to request
         return response()->json([
             'error' => 'false',
             'message' => 'Training sessions saved successfully',
@@ -1525,6 +1478,49 @@ class TrainingController extends Controller
         return UserAchievements::getSessionAchievements($userId, $sessionId);
     }
 
+    // Update battle
+    private function updateBattle($battleId)
+    {
+        $battle = Battles::where('id', $battleId)->first();
+
+        if (\Auth::id() == $battle->user_id) {
+            $battle->user_finished = 1;
+            $battle->user_finished_at = date('Y-m-d H:i:s');
+
+            $pushToUserId = $battle->opponent_user_id;
+            $pushOpponentUserId = $battle->user_id;
+        } elseif (\Auth::user()->id == $battle->opponent_user_id) {
+            $battle->opponent_finished = 1;
+            $battle->opponent_finished_at = date('Y-m-d H:i:s');
+
+            $pushToUserId = $battle->user_id;
+            $pushOpponentUserId = $battle->opponent_user_id;
+        }
+
+        // Push to opponent, about battle is finished by current user
+        $pushMessage = 'User has finished battle';
+
+        // Set battle winner, according to battle-result
+        Battles::updateWinner($battle->id);
+
+        Push::send(PushTypes::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $pushMessage, ['battle_id' => $battle->id]);
+        
+        // Generates new notification for user
+        $userThisBattleNotif = \App\UserNotifications::where('data_id', $battle->id)
+                        ->where(function($query) {
+                            $query->whereNull('is_read')->orWhere('is_read', 0);
+                        })->where('user_id', \Auth::id())->first();
+
+        if ($userThisBattleNotif) {
+            $userThisBattleNotif->is_read = 1;
+            $userThisBattleNotif->save();
+        }
+
+        \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
+
+        $battle->update();
+    }
+
     // Calculate & update game leaderboard
     private function updateGameLeaderboard($gameId, $sessionId)
     {
@@ -1616,6 +1612,37 @@ class TrainingController extends Controller
         }
 
         return true;
+    }
+
+    // Update Goal progress
+    private function updateGoal($session)
+    {
+        $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
+                ->where('start_at', '<=', date('Y-m-d H:i:s'))
+                ->where('end_at', '>=', date('Y-m-d H:i:s'))
+                ->first();
+
+        if ($goal) {
+            if ($goal->activity_type_id == 2) {
+                if ($session->type_id == 5) {
+                    GoalSession::create([
+                        'session_id' => $session->id,
+                        'goal_id' => $goal->id
+                    ]);
+                    
+                    $goal->done_count = $goal->done_count + 1;
+                    $goal->save();
+                }
+            } else {
+                GoalSession::create([
+                    'session_id' => $session->id,
+                    'goal_id' => $goal->id
+                ]);
+
+                $goal->done_count = $_session->punches_count + $goal->done_count;
+                $goal->save();
+            }
+        }
     }
 
     // Test for getting game score
