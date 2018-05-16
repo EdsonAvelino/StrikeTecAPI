@@ -32,7 +32,7 @@ class ComboSets extends Model
         unset($_comboSet['trainer_id']);
         
         // Trainer
-        $_comboSet['trainer'] = ['id' => $comboSet->trainer->id, 'full_name' => $comboSet->trainer->first_name .' '. $comboSet->trainer->last_name];
+        $_comboSet['trainer'] = ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name];
 
         // Video
         $video = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::COMBO_SET)->where('plan_id', $comboSet->id)->first();

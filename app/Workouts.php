@@ -29,7 +29,7 @@ class Workouts extends Model
         unset($_workout['trainer_id']);
         
         // Trainer
-        $_workout['trainer'] = ['id' => $workout->trainer->id, 'full_name' => $workout->trainer->first_name .' '. $workout->trainer->last_name];
+        $_workout['trainer'] = ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name];
 
         // Video
         $video = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))->where('type_id', \App\Types::WORKOUT)->where('plan_id', $workout->id)->first();

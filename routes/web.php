@@ -105,8 +105,8 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get rounds by Training-Type
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
-    // TEST
-    // $app->get('/user/testit', 'TrainingController@test');
+    // Get particular session
+    $app->get('/user/training/sessions/for_comparison', 'TrainingController@getSessionForComparison');
 
     // Training sessions list
     $app->get('/user/training/sessions', 'TrainingController@getSessions');
