@@ -114,8 +114,11 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Get particular session
     $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
 
-    // Save Training sessions data to db
+    // Save Training sessions
     $app->post('/user/training/sessions', 'TrainingController@storeSessions');
+
+    // Archive Traning session
+    $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
 
     // Get round and its punches
     $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');

@@ -659,6 +659,52 @@ class TrainingController extends Controller
     }
 
     /**
+     * @api {patch} /user/training/sessions/<session_id>/archive Archive session
+     * @apiGroup Training
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Session has been archived",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or session not found"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function archiveSession($sessionId)
+    {
+        $sessionId = (int) $sessionId;
+        
+        $session = Sessions::where('id', $sessionId)->where('user_id', \Auth::id())->first();
+
+        if (!$sessionId || !$session) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request or session not found',
+            ]);
+        }
+
+        $session->is_archieved = true;
+        $session->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Session has been archived',
+        ]);
+    }
+
+    /**
      * @api {get} /user/training/sessions/rounds/{round_id} Get rounds and its punches
      * @apiGroup Training
      * @apiHeader {String} authorization Authorization value
