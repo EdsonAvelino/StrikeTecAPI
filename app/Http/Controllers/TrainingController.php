@@ -695,7 +695,7 @@ class TrainingController extends Controller
             ]);
         }
 
-        $session->is_archieved = true;
+        $session->is_archived = true;
         $session->save();
 
         return response()->json([
