@@ -864,26 +864,31 @@ class UserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid data, product detail not found']);
         }
 
+        // Fetch user's existing subscription
         $subscription = UserSubscriptions::where('user_id', \Auth::id())->first();
 
         // Calculate expire time
         $purchaseTime = $receipt->purchaseTime / 1000;
 
         switch($receipt->productId) {
-            case 'striketec_coach_month': // Prod
-            case 'striketec_spectator_month': // Prod
-            case 'striketec_trainee_month': // Prod
-            case 'trainee_month_399': // Dev
-            case 'coach_399': // Dev
-            case 'spectator_monthly_399': //Dev
-                $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +1 month");
+            // Yearly - Prod
+            case 'striketec_coach_month':
+            case 'striketec_spectator_month':
+            case 'striketec_trainee_month':
+            // Yearly - Dev
+            case 'trainee_month_399':
+            case 'coach_399':
+            case 'spectator_monthly_399':
+                $expireAt = strtotime(date("Y-m-d h:i:s", $purchaseTime) . " +1 month");
                 break;
             
-            case 'striketec_spectator_year': // Prod
-            case 'striketec_trainee_year': // Prod
-            case 'trainee_yearly_399': // Dev
-            case 'spectator_yearly_399': // Dev
-                $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +12 month");
+            // Monthly - Prod
+            case 'striketec_spectator_year':
+            case 'striketec_trainee_year':
+            // Monthly - Dev
+            case 'trainee_yearly_399':
+            case 'spectator_yearly_399':
+                $expireAt = strtotime(date("Y-m-d h:i:s", $purchaseTime) . " +12 month");
                 break;
         }
 
@@ -895,7 +900,6 @@ class UserController extends Controller
                 'iap_product_id' => $IAPproduct->id,
                 'platform' => $request->get('platform'),
                 'receipt' => $request->get('receipt'),
-                'is_auto_renewable' => $receipt->autoRenewing,
                 'purchased_at' => $purchaseTime,
                 'expire_at' => $expireAt
             ]);
@@ -904,7 +908,6 @@ class UserController extends Controller
             $subscription->iap_product_id = $IAPproduct->id;
             $subscription->platform = $request->get('platform');
             $subscription->receipt = $request->get('receipt');            
-            $subscription->is_auto_renewable = $receipt->autoRenewing;
             $subscription->purchased_at = $purchaseTime;
             $subscription->expire_at = $expireAt;
 
@@ -1085,10 +1088,18 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getUser($userId = null)
+    public function getUser($userId)
     {
-        if (!$userId) {
-            $userId = \Auth::user()->id;
+        $userId = (int) $userId;
+        
+        $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
+
+        // Validation
+        if (!$userId || !$userData) {
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Invalid request or user not found',
+            ]);
         }
 
         // user_following = current user is following this user
@@ -1098,8 +1109,6 @@ class UserController extends Controller
         // user_follower = this user if following current user
         $userFollower = UserConnections::where('user_id', $userId)
                         ->where('follow_user_id', \Auth::user()->id)->exists();
-
-        $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         $userData = $userData->toArray();
         $userData['user_following'] = (bool) $userFollowing;
