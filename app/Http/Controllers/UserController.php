@@ -824,27 +824,20 @@ class UserController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *       "Content-Type": "application/x-www-form-urlencoded",
      *     }
-     * @apiParam {Json} receipt Receipt object
      * @apiParam {String="IOS","ANDROID"} platform App Platform iOS or Android
+     * @apiParam {Json} receipt Receipt object
      * @apiParamExample {json} Input
      *    {
-     *      'receipt': '{"orderId":"GPA.3343-1595-7351-65476","packageName":"efd.com.strikesub","productId":"trainee_yearly_399","purchaseTime":1527181738040,"purchaseState":0,"developerPayload":"33","purchaseToken":"iopahmdkggnddjiidkhpnggd.AO-J1Owfm38NMtFGkf-hesSoA6WI-ssf964HIgthX5qQkPp5webNpO2hUwNXUmAL_4mR-KelXb6XpLlyOWBQ4SgLcZX780BBHVuaQlOVaCcGdN0QnyPvuIFOiLTgy4cRjH50ulPTUpkg","autoRenewing":true}',
+     *      'platform' : 'android',
+     *      'receipt': '{"orderId":"GPA.3343-1595-7351-65476","packageName":"efd.com.strikesub","productId":"trainee_yearly_399","purchaseTime":1527181738040,"purchaseState":0,"developerPayload":"33","purchaseToken":"iopahmdkggnddjiidkhpnggd.AO-..._4mR-KelXb6XpLlyOWBQ4SgLcZX780BBHVuaQlOVaCcGdN0QnyPvuIFOiLTgy4cRjH50ulPTUpkg","autoRenewing":true}',
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Some data
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
      *      {
      *          "error": "false",
-     *          "message": "",
-     *          "data": {
-     *             "trainee_monthly": false,
-     *             "trainee_yearly": false,
-     *             "coach_monthly": true,
-     *             "spectator_monthly": false,
-     *             "spectator_yearly": false
-     *          }
+     *          "message": "Subscribed",
      *      }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
@@ -875,7 +868,7 @@ class UserController extends Controller
 
         // Calculate expire time
         $purchaseTime = $receipt->purchaseTime / 1000;
-        
+
         switch($receipt->productId) {
             case 'striketec_coach_month':
             case 'striketec_spectator_month':
