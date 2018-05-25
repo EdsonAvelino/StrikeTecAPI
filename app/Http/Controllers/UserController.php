@@ -815,7 +815,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {post} /users/subscription Know/Update User's app subscription
+     * @api {post} /users/subscription IAP User's app subscription
      * @apiGroup In-App Purchases
      * @apiHeader {String} authorization Authorization value
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -824,14 +824,11 @@ class UserController extends Controller
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *       "Content-Type": "application/x-www-form-urlencoded",
      *     }
-     * @apiParam {String} product_id In-App Product (Subscription) ID e.g. trainee_monthly, trainee_yearly
-     * @apiParam {String="IOS","ANDROID"} platform Device ID
-     * @apiParam {Boolean="ture","false"} [is_auto_renewable] Subscription is auto renewable, true/false
-     * @apiParam {Timestamp} purchased_at Purchased timestamp
+     * @apiParam {Json} receipt Receipt object
+     * @apiParam {String="IOS","ANDROID"} platform App Platform iOS or Android
      * @apiParamExample {json} Input
      *    {
-     *      'product_id': 1,
-     *      'platform': "IOS",
+     *      'receipt': '{"orderId":"GPA.3343-1595-7351-65476","packageName":"efd.com.strikesub","productId":"trainee_yearly_399","purchaseTime":1527181738040,"purchaseState":0,"developerPayload":"33","purchaseToken":"iopahmdkggnddjiidkhpnggd.AO-J1Owfm38NMtFGkf-hesSoA6WI-ssf964HIgthX5qQkPp5webNpO2hUwNXUmAL_4mR-KelXb6XpLlyOWBQ4SgLcZX780BBHVuaQlOVaCcGdN0QnyPvuIFOiLTgy4cRjH50ulPTUpkg","autoRenewing":true}',
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -857,15 +854,41 @@ class UserController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getOrUpdateUserSubscriptions(Request $request)
+    public function postUserSubscription(Request $request)
     {
-        $IAPproduct = \App\IapProducts::where('product_id', $request->get('product_id'))->where('platform', $request->get('platform'))->first();
+        // receipt
+        // $receipt = '{"orderId":"GPA.3343-1595-7351-65476","packageName":"efd.com.strikesub","productId":"trainee_yearly_399","purchaseTime":1527181738040,"purchaseState":0,"developerPayload":"33","purchaseToken":"iopahmdkggnddjiidkhpnggd.AO-J1Owfm38NMtFGkf-hesSoA6WI-ssf964HIgthX5qQkPp5webNpO2hUwNXUmAL_4mR-KelXb6XpLlyOWBQ4SgLcZX780BBHVuaQlOVaCcGdN0QnyPvuIFOiLTgy4cRjH50ulPTUpkg","autoRenewing":true}';
+
+        if (null == ($request->get('receipt'))) {
+            return response()->json(['error' => 'true', 'message' => 'Missing data']);
+        }
+
+        $receipt = json_decode($request->get('receipt'));
         
+        $IAPproduct = \App\IapProducts::where('product_id', $receipt->productId)->where('platform', $request->get('platform'))->first();
+
         if ( !$IAPproduct ) {
-            return response()->json(['error' => 'true', 'message' => 'Invalid product_id']);
+            return response()->json(['error' => 'true', 'message' => 'Invalid data, product detail not found']);
         }
 
         $subscription = UserSubscriptions::where('user_id', \Auth::id())->first();
+
+        // Calculate expire time
+        $purchaseTime = $receipt->purchaseTime / 1000;
+        
+        switch($receipt->productId) {
+            case 'striketec_coach_month':
+            case 'striketec_spectator_month':
+            case 'striketec_trainee_month':
+                $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +1 month");
+                break;
+            
+            case 'striketec_spectator_year':
+            case 'striketec_trainee_year':
+                $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +12 month");
+                break;
+        }
+
 
         if ( !$subscription ) {
             // Creates new if not found
@@ -873,32 +896,24 @@ class UserController extends Controller
                 'user_id' => \Auth::id(),
                 'iap_product_id' => $IAPproduct->id,
                 'platform' => $request->get('platform'),
-                'is_auto_renewable' => $request->get('is_auto_renewable') ?? null,
-                'purchased_at' => $request->get('purchased_at') ?? null, // Put timestamp here
-                'expire_at' => $request->get('expire_at') ?? null // Put timestamp here
-                // TODO fix expire_at 
+                'receipt' => $request->get('receipt'),
+                'is_auto_renewable' => $receipt->autoRenewing,
+                'purchased_at' => $purchaseTime,
+                'expire_at' => $expireAt
             ]);
         } else {
             // Updates existing subscription
             $subscription->iap_product_id = $IAPproduct->id;
             $subscription->platform = $request->get('platform');
-            $subscription->is_auto_renewable = $request->get('is_auto_renewable') ?? $subscription->is_auto_renewable;
-            // Put timestamp for purchased_at & expire_at
-            $subscription->purchased_at = $request->get('purchased_at') ?? $subscription->purchased_at;
-            $subscription->expire_at = $request->get('expire_at') ?? $subscription->expire_at;
+            $subscription->receipt = $request->get('receipt');            
+            $subscription->is_auto_renewable = $receipt->autoRenewing;
+            $subscription->purchased_at = $purchaseTime;
+            $subscription->expire_at = $expireAt;
 
             $subscription->save();
         }
 
-        // Fetch products for response
-        $products = \App\IapProducts::select('id', 'product_id')->where('platform', $request->get('platform'))->get();
-        
-        $data = [];
-        foreach ($products as $product) {
-            $data[$product->key] = ($product->id == $IAPproduct->id) ? true : false;
-        }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        return response()->json(['error' => 'false', 'message' => 'Subscribed']);
     }
 
     /**
