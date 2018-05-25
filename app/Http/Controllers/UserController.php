@@ -870,14 +870,19 @@ class UserController extends Controller
         $purchaseTime = $receipt->purchaseTime / 1000;
 
         switch($receipt->productId) {
-            case 'striketec_coach_month':
-            case 'striketec_spectator_month':
-            case 'striketec_trainee_month':
+            case 'striketec_coach_month': // Prod
+            case 'striketec_spectator_month': // Prod
+            case 'striketec_trainee_month': // Prod
+            case 'trainee_month_399': // Dev
+            case 'coach_399': // Dev
+            case 'spectator_monthly_399': //Dev
                 $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +1 month");
                 break;
             
-            case 'striketec_spectator_year':
-            case 'striketec_trainee_year':
+            case 'striketec_spectator_year': // Prod
+            case 'striketec_trainee_year': // Prod
+            case 'trainee_yearly_399': // Dev
+            case 'spectator_yearly_399': // Dev
                 $expireAt = strtotime(date("Y-m-d", $purchaseTime) . " +12 month");
                 break;
         }
