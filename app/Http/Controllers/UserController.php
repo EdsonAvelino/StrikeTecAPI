@@ -815,14 +815,14 @@ class UserController extends Controller
     }
 
     /**
-     * @api {post} /users/subscription IAP User's app subscription
+     * @api {post} /users/subscription User's IAP app subscription
      * @apiGroup In-App Purchases
      * @apiHeader {String} authorization Authorization value
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeaderExample {json} Header-Example:
      *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *       "Content-Type": "application/x-www-form-urlencoded",
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "application/x-www-form-urlencoded"
      *     }
      * @apiParam {String="IOS","ANDROID"} platform App Platform iOS or Android
      * @apiParam {Json} receipt Receipt object
