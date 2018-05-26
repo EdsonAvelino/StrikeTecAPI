@@ -19,7 +19,7 @@ class UserSubscriptions extends Model {
         'user_id',
         'iap_product_id',
         'platform',
-        'is_auto_renewable', 
+        'receipt',
         'purchased_at',
         'expire_at'
     ];

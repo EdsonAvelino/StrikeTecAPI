@@ -130,10 +130,16 @@ class TrainingController extends Controller
 
         $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'shared', 'created_at', 'updated_at'])->where('user_id', $userId);
 
+        // Exclude battle & game sessions
         $_sessions->where(function ($query) {
             $query->whereNull('battle_id')->orWhere('battle_id', '0');
         })->where(function ($query) {
             $query->whereNull('game_id')->orWhere('game_id', '0');
+        });
+
+        // Exclude archived sessions
+        $_sessions->where(function($query) {
+            $query->whereNull('is_archived')->orWhere('is_archived', '0');
         });
 
         if (!empty($startDate) && !empty($endDate)) {
@@ -409,7 +415,9 @@ class TrainingController extends Controller
 
         $_sessions = Sessions::where(function($query) use ($sessionId) {
             $query->where('id', $sessionId)->orWhere('id', '<', $sessionId);
-        })->where('type_id', $typeId)->where('user_id', \Auth::id())
+        })->where('type_id', $typeId)->where(function($query) {
+            $query->whereNull('is_archived')->orWhere('is_archived', 0);
+        })->where('user_id', \Auth::id())
         ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
         ->orderBy('id', 'desc')->limit(2)->get();
 
@@ -695,7 +703,7 @@ class TrainingController extends Controller
             ]);
         }
 
-        $session->is_archieved = true;
+        $session->is_archived = true;
         $session->save();
 
         return response()->json([

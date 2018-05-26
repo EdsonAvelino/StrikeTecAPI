@@ -55,7 +55,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     $app->post('/users', 'UserController@update');
 
     // Know or update user's subscription
-    $app->post('/users/subscription', 'UserController@getOrUpdateUserSubscriptions');
+    $app->post('/users/subscription', 'UserController@postUserSubscription');
     
     // Update user's sensor data
     $app->post('/users/sensors', 'UserController@updateSensors');
