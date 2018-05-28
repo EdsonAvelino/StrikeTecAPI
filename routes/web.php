@@ -36,8 +36,8 @@ $app->get('/countries', 'WorldController@getCountries');
 $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
 $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
-//Subscription plans
-$app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+// Subscription plans
+// $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 // Get FAQs
 $app->get('/faqs', 'UserController@getFaqs');
@@ -102,6 +102,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
 // Training APIs
 $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Save training (sensor) data
+    $app->post('/user/training/data', 'TrainingController@storeData');
+
     // Get rounds by Training-Type
     $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
@@ -129,10 +132,10 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Save Training sessions' rounds' punches data to db
     $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 
-    //get Tips data
+    // Get Tips data
     $app->get('/tips', 'TrainingController@tips');
 
-    //get Achievement List
+    // Get Achievement List
     $app->get('/achievements', 'AchievementController@getAchievementList');
 });
 

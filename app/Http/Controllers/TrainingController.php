@@ -25,6 +25,69 @@ use App\Helpers\PushTypes;
 class TrainingController extends Controller
 {
     /**
+     * @api {post} /user/training/data Store Training (Sensor) Data
+     * @apiGroup Training
+     * @apiDescription Used to store sensor data generated while traninig in csv format
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "multipart/form-data"
+     *     }
+     * @apiParam {File} data_file Data file to store on server
+     * @apiParamExample {json} Input
+     *    {
+     *      "data_file": "csv_file_to_upload.csv",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Stored",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or what error message is"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function storeData(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'data_file' => 'required|mimes:csv,txt',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors->first('data_file')]);
+        }
+
+        $uploadDir = env('DATA_STORAGE_URL').\Auth::id();
+        
+        // Create dir if not created
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir);
+        } 
+
+        $file = trim($request->file('data_file')->getClientOriginalName());
+        $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
+        $file = preg_replace('/[^A-Za-z0-9\-]/', '', $file); // Removing all special chars
+
+        $d = date('YmdHms_').$file;
+        $request->file('data_file')->move($uploadDir, $d);
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Stored',
+        ]);
+    }
+
+    /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiGroup Training
      * @apiDescription Used to get list of sessions of user, when any session is tied with
@@ -589,7 +652,7 @@ class TrainingController extends Controller
             // Process through achievements (badges) and assign 'em to user
             
             // skipping Achievements for now as they are not working properly
-            // $achievements = $this->achievements($_session->id, $_session->battle_id);
+            // $achievements = $this->processAchievements($_session->id, $_session->battle_id);
 
             // Generating sessions' list for response
             $sessions[] = [
@@ -800,18 +863,18 @@ class TrainingController extends Controller
         // If round not found, it will return null
         if (empty($round)) {
             return response()->json([
-                        'error' => 'false',
-                        'message' => '',
-                        'round' => null,
-                        'punches' => null
+                'error' => 'false',
+                'message' => '',
+                'round' => null,
+                'punches' => null
             ]);
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'round' => $round->toArray(),
-                    'punches' => $punches->toArray()
+            'error' => 'false',
+            'message' => '',
+            'round' => $round->toArray(),
+            'punches' => $punches->toArray()
         ]);
     }
 
@@ -823,7 +886,7 @@ class TrainingController extends Controller
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-      "Content-Type": "application/json"
+     * "Content-Type": "application/json"
      *     }
      * @apiParam {json} data Json formatted rounds data
      * @apiParamExample {json} Input
@@ -1102,14 +1165,14 @@ class TrainingController extends Controller
         ]);
     }
 
-    // Create goal session
-    public function storeGoalSession($goalId, $sessionId)
-    {
-        GoalSession::create([
-            'session_id' => $sessionId,
-            'goal_id' => $goalId
-        ]);
-    }
+    // // Create goal session
+    // public function storeGoalSession($goalId, $sessionId)
+    // {
+    //     GoalSession::create([
+    //         'session_id' => $sessionId,
+    //         'goal_id' => $goalId
+    //     ]);
+    // }
 
     /**
      * @api {get} /tips Get tips data
@@ -1330,12 +1393,14 @@ class TrainingController extends Controller
         return false;
     }
 
-    public function achievements($sessionId, $battleId)
+    // Process achievements, assigns new or updates existing one, based on achievement
+    private function processAchievements($sessionId, $battleId = null)
     {
-        $userId = \Auth::user()->id;
-        $goalId = Goals::getCurrentGoal($userId);
+        $userId = \Auth::id();
+        $goalId = Goals::getCurrentGoalId($userId);
         
         $achievements = Achievements::orderBy('sequence')->get();
+        
         $mostPowefulPunch = $mostPowefulSpeed = 0;
         $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
         

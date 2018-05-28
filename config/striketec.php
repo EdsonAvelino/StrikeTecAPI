@@ -14,6 +14,7 @@ return [
 	    'companies' => '/companies/',
         'videos' => '/videos/',
         'videos_thumb' => '/videos/thumbnails/',
+        'data' => '/data/',
     ],
 
     /*
