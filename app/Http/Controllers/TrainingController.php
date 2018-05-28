@@ -76,7 +76,7 @@ class TrainingController extends Controller
 
         $file = trim($request->file('data_file')->getClientOriginalName());
         $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
-        $file = preg_replace('/[^A-Za-z0-9\-]/', '', $file); // Removing all special chars
+        $file = preg_replace('/[^A-Za-z0-9.\-]/', '', $file); // Removing all special chars
 
         $d = date('YmdHms_').$file;
         $request->file('data_file')->move($uploadDir, $d);
