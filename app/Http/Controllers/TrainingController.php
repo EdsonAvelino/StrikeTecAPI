@@ -77,9 +77,13 @@ class TrainingController extends Controller
         $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
         
         // Create dir if not created
+        if (!is_dir(env('DATA_STORAGE_URL').\Auth::id())) {
+            mkdir(env('DATA_STORAGE_URL').\Auth::id());
+        }
+
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir);
-        } 
+        }
         
         $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
         $file = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
