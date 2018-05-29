@@ -67,19 +67,24 @@ class TrainingController extends Controller
             return response()->json(['error' => 'true', 'message' => $errors->first('data_file')]);
         }
 
-        $uploadDir = env('DATA_STORAGE_URL').\Auth::id();
+        $file = trim($request->file('data_file')->getClientOriginalName());
+        
+        // Getting date from timestamp in filename
+        $exploded = explode('-', $file);
+        $timestamp = (int) $exploded[1];
+        $dt = date('Y_m_d', ($timestamp/1000));
+
+        $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
         
         // Create dir if not created
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir);
         } 
-
-        $file = trim($request->file('data_file')->getClientOriginalName());
+        
         $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
-        $file = preg_replace('/[^A-Za-z0-9.\-]/', '', $file); // Removing all special chars
+        $file = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
 
-        $d = date('YmdHms_').$file;
-        $request->file('data_file')->move($uploadDir, $d);
+        $request->file('data_file')->move($uploadDir, $file);
 
         return response()->json([
             'error' => 'false',
