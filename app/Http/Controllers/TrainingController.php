@@ -70,8 +70,8 @@ class TrainingController extends Controller
         $file = trim($request->file('data_file')->getClientOriginalName());
         
         // Getting date from timestamp in filename
-        $exploded = explode('-', $file);
-        $timestamp = (int) $exploded[1];
+        $exploded = explode('_', $file);
+        $timestamp = (int) end($exploded);
         $dt = date('Y_m_d', ($timestamp/1000));
 
         $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
