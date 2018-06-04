@@ -310,6 +310,7 @@ class UserController extends Controller
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
+     * @apiParam {Number="1=Metric","0/empty=English"} [unit] Unit for weight & height scale 
 
      * @apiParamExample {json} Input
      *    {
@@ -377,9 +378,17 @@ class UserController extends Controller
 
             $user->save();
 
+            if ($request->get('unit') == 0 || $request->get('unit') == '') {
+                $userPreferences = $user->preferences;
+
+                $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+                $userPreferences->unit = $request->get('unit');
+                $userPreferences->save();
+            }
+
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'User details have been updated successfully'
+                'error' => 'false',
+                'message' => 'User details have been updated successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -1168,6 +1177,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_challenges_history] Show challenges history on to public profile or not
      * @apiParam {Boolean} [badge_notification] Badge notification
      * @apiParam {Boolean} [show_tutorial] Show Tutorials
+     * @apiParam {Number="1=Metric","0/empty=English"} [unit] Unit for weight & height scale 
      * @apiParamExample {json} Input
      *    {
      *      "public_profile": true,
@@ -1214,7 +1224,10 @@ class UserController extends Controller
         $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
         
-        // Unit
+        if( null !== $request->get('unit') ) {
+            $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+            $userPreferences->unit = $request->get('unit');
+        }
         
         $userPreferences->save();
 
