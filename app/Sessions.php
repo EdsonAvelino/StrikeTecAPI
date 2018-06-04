@@ -79,14 +79,20 @@ class Sessions extends Model
         return ($shared) ? 'true' : 'false';
     }
 
-    public static function getPunchCount()
+    public static function getPunchesCountOfToday()
     {
-        $createdDate = date('Y-m-d');
-        $punchesCount = self::select(\DB::raw('SUM(punches_count) as punch_count'))->where('user_id', \Auth::user()->id)
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->where('created_at', '>', $createdDate)->first();
-        return $punchesCount->punch_count;
+        $today = strtotime(date('d-m-Y 00:00:00'));
+        $todayEpoch = round($today * 1000);
+        
+        $result = self::select(\DB::raw('SUM(punches_count) as punches_count'))
+            ->where('user_id', \Auth::user()->id)
+            ->where(function ($query) {
+                $query->whereNull('battle_id')->orWhere('battle_id', '0');
+            })->where(function ($query) {
+                $query->whereNull('game_id')->orWhere('game_id', '0');
+            })->where('start_time', '>=', $todayEpoch)->first();
+
+        return $result->punches_count;
     }
 
     public static function getMostPowerfulPunchAndSpeed($sessonId)

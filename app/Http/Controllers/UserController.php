@@ -1214,6 +1214,8 @@ class UserController extends Controller
         $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
         
+        // Unit
+        
         $userPreferences->save();
 
         return response()->json([

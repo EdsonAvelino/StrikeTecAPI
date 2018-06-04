@@ -37,22 +37,24 @@ class Goals extends Model
         return ($shared) ? 'true' : 'false';
     }
 
-    public static function getAccomplishedGoal()
+    // Checks and updates current goal is accomplished
+    public static function checkCurrentGoalAccomplished()
     {
-        $goal = self::where('user_id', \Auth::user()->id)
-                        ->where('awarded', '!=', 1)
-                        ->where('followed', 1)->first();
-        $progress = 0;
+        $goal = self::where('user_id', \Auth::id())->where('awarded', '!=', 1)->where('followed', 1)->first();  
+
         if ($goal) {
-            $goalData = (int) $goal->done_count * 100 / $goal->target;
-            if ($goalData >= 100) {
-                $progress = 1;
+            $progress = (int) $goal->done_count * 100 / $goal->target;
+
+            if ($progress >= 100) {
                 $goal->awarded = 1;
+                $goal->followed = null;
                 $goal->save();
+                
+                return true;
             }
         }
 
-        return $progress;
+        return false;
     }
 
     // Get Current Followed Goal 
