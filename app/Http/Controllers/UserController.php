@@ -378,7 +378,7 @@ class UserController extends Controller
 
             $user->save();
 
-            if ($request->get('unit') == 0 || $request->get('unit') == '') {
+            if( null !== $request->get('unit') ) {
                 $userPreferences = $user->preferences;
 
                 $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
