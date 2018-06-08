@@ -85,7 +85,7 @@ class Sessions extends Model
         $todayEpoch = round($today * 1000);
         
         $result = self::select(\DB::raw('SUM(punches_count) as punches_count'))
-            ->where('user_id', \Auth::user()->id)
+            ->where('user_id', \Auth::id())
             ->where(function ($query) {
                 $query->whereNull('battle_id')->orWhere('battle_id', '0');
             })->where(function ($query) {
@@ -95,16 +95,6 @@ class Sessions extends Model
         return $result->punches_count;
     }
 
-    public static function getMostPowerfulPunchAndSpeed($sessonId)
-    {
-        $punchCount = self::select('max_force', 'max_speed')
-                        ->where('user_id', \Auth::user()->id)
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->where('id', $sessonId)->first();
-        return $punchCount;
-    }
-
     public static function getUserParticpation($userId, $perviousMonday)
     {
         $userParticpation = self::where('user_id', $userId)
@@ -112,6 +102,7 @@ class Sessions extends Model
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->count();
+
         return $userParticpation;
     }
 
@@ -137,6 +128,7 @@ class Sessions extends Model
                 ->where('avg_force', '>', $force)
                 ->where('start_time', '>', ($perviousMonday * 1000))
                 ->count();
+
         return $returnData;
     }
 
@@ -148,6 +140,7 @@ class Sessions extends Model
                     $query->whereNull('battle_id')->orWhere('battle_id', '0');
                 })->where('start_time', '>', ($perviousMonday * 1000))
                 ->first();
+
         return $ironFirst->max_force;
     }
 
@@ -158,9 +151,11 @@ class Sessions extends Model
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get();
+
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessionsData->isEmpty())
             return null;
+        
         foreach ($sessionsData as $sessions) {
             switch ($sessions->type_id) {
                 case 3: // Combo
@@ -176,6 +171,7 @@ class Sessions extends Model
                     break;
             }
         }
+
         return $data;
     }
 
@@ -192,10 +188,13 @@ class Sessions extends Model
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessions->isEmpty())
             return null;
+
         $userMarks = 0;
+
         foreach ($sessions as $session) {
             // Battle type combo and combo-set will always have one round
             $rounds = $session->rounds()->get();
+            
             foreach ($rounds as $round) {
                 $roundPunches[$session->user_id] = [];
                 foreach ($_punches = $round->punches as $key => $punch) {
@@ -206,6 +205,7 @@ class Sessions extends Model
                 }
             }
         }
+
         return $userMarks;
     }
 
@@ -253,6 +253,7 @@ class Sessions extends Model
                 // TODO compare for combo-sets and workouts
                 break;
         }
+
         return $data;
     }
 
@@ -265,9 +266,12 @@ class Sessions extends Model
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessions->isEmpty())
             return null;
+        
         $userMarks = 0;
+        
         // Battle type combo and combo-set will always have one round
         $rounds = $session->rounds()->get();
+
         foreach ($rounds as $round) {
             $roundPunches[$session->user_id] = [];
             foreach ($_punches = $round->punches as $key => $punch) {
@@ -277,9 +281,11 @@ class Sessions extends Model
                 }
             }
         }
+
         foreach ($missingPunch as $key => $data) {
             $missing[$key] = array_sum($data);
         }
+
         return $missing;
     }
 
@@ -288,6 +294,7 @@ class Sessions extends Model
     {
         $comboPunches = Battles::getComboPunches($session->plan_id);
         $comboPunchesType = self::getPunches($session->plan_id);
+
         return self::doPunchComparison($comboPunches, $session, $comboPunchesType);
     }
 
@@ -333,6 +340,7 @@ class Sessions extends Model
                     break; // DUCK RIGHT
             }
         }
+
         return $comboPunches;
     }
 
