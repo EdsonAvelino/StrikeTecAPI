@@ -14,6 +14,7 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
 use App\UserNotifications;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -1100,16 +1101,16 @@ class UserController extends Controller
     public function getUser($userId)
     {
         $userId = (int) $userId;
-        
-        $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
-
+    
         // Validation
-        if (!$userId || !$userData) {
+        if ( !$userId || !(User::where('id', $userId)->exists()) ) {
             return response()->json([
                 'error' => 'false',
                 'message' => 'Invalid request or user not found',
             ]);
         }
+
+        $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         // user_following = current user is following this user
         $userFollowing = UserConnections::where('follow_user_id', $userId)
@@ -1119,7 +1120,7 @@ class UserController extends Controller
         $userFollower = UserConnections::where('user_id', $userId)
                         ->where('follow_user_id', \Auth::user()->id)->exists();
 
-        $userData = $userData->toArray();
+        $userData = $user->toArray();
         $userData['user_following'] = (bool) $userFollowing;
         $userData['user_follower'] = (bool) $userFollower;
 
@@ -1127,37 +1128,63 @@ class UserController extends Controller
         $userData['points'] = (int) $userPoints;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
-        $data = $this->getAvgSpeedAndForce($userId);
-        $user = array_merge($userData, $data);
+        $additionalData = $this->getAdditionalData($userId);
 
-        $user['punches_count'] = $leaderboard->punches_count;
+        $userData = array_merge($userData, $additionalData);
+
+        $userData['punches_count'] = $leaderboard->punches_count;
 
         $battles = Battles::getFinishedBattles($userId);
 
-        $user['lose_counts'] = $battles['lost'];
-        $user['win_counts'] = $battles['won'];
-        $user['finished_battles'] = $battles['finished'];
+        // Membership plan info
+        $userData['has_membership'] = $user->hasMembership();
+
+        if ($user->hasMembership()) {
+            $membershipPlan = $user->membership;
+
+            $membershipDaysLeft = '';
+
+            if ($membershipPlan->isLimited()) {
+                $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($user->membership_plan_assigned_at));
+
+                $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
+
+                $now = \Carbon\Carbon::now();
+                $membershipDaysLeft = $now->diffInDays($effectiveDate); // Days
+            }
+            
+            $membership = [
+                'is_limited' => $membershipPlan->isLimited(),
+                'membership_days_left' => $membershipDaysLeft
+            ];
+
+            $userData['membership'] = $membership;   
+        }
+
+        $userData['lose_counts'] = $battles['lost'];
+        $userData['win_counts'] = $battles['won'];
+        $userData['finished_battles'] = $battles['finished'];
 
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
-        $user['user_connections'] = $connections;
-        //User Achievements data
-        $achievementsArr = UserAchievements::getUsersAchievements($userId);
-        if (count($achievementsArr) > 3) {
-            $user['achievements'] = array_slice($achievementsArr, 0, 3);
+
+        $userData['user_connections'] = $connections;
+        
+        // User Achievements data
+        $userAchievements = UserAchievements::getUsersAchievements($userId);
+
+        if (count($userAchievements) > 3) {
+            $user['achievements'] = array_slice($userAchievements, 0, 3);
         } else {
-            $user['achievements'] = $achievementsArr;
-        }
-        if (!$user) {
-            return response()->json(['error' => 'true', 'message' => 'User not found']);
+            $user['achievements'] = $userAchievements;
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'user' => $user
+            'error' => 'false',
+            'message' => '',
+            'user' => $userData
         ]);
     }
 
@@ -2082,19 +2109,20 @@ class UserController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
 
-
-    // get avg speed, punches & force
-    private function getAvgSpeedAndForce($userId)
+    // Get total time & day user trained, with avg-speed, punches & force
+    private function getAdditionalData($userId)
     {
         $session = Sessions::select('id', 'start_time', 'end_time')
                         ->where('user_id', $userId)
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
+
         $sessionIds = array_column($session, 'id');
 
         $totalTime = 0;
         $startDate = [];
+
         foreach ($session as $time) {
             if ($time['start_time'] > 0 && $time['end_time'] > 0 && $time['end_time'] > $time['start_time']) {
                 $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
@@ -2109,11 +2137,13 @@ class UserController extends Controller
                 })->first();
 
         $avgCount = 0;
+
         $getAvgCount = SessionRounds::select(
                                 \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
                         ->where('start_time', '>', 0)
                         ->where('end_time', '>', 0)
                         ->whereIn('session_id', $sessionIds)->first();
+
         if ($getAvgCount->total_time > 0) {
             $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
         }
