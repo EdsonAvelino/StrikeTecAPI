@@ -1002,6 +1002,11 @@ class UserController extends Controller
      *             "avg_speed": 438,
      *             "avg_force": 7992,
      *             "punches_count": 5854,
+     *             "has_membership": true,
+     *             "membership": {
+     *                  "is_limited": true,
+     *                  "membership_days_left": 26
+     *             }, 
      *             "avg_count": 6,
      *             "lose_counts": 1,
      *             "win_counts": 2,
