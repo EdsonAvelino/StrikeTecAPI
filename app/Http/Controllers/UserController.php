@@ -1161,13 +1161,21 @@ class UserController extends Controller
 
                          
                  }
-       
-                 $user['membership_time_left'] = $plan_time_left;
-                 $user['membership_plan'] = $user_planss->membership_duration_value;
+				 $user['is_member'] = "true";
+				 if($user['membership_plan_id']==25){
+				 $user['membership']['is_limited'] = 'false';	 
+                 $user['membership']['membership_time_left'] = $plan_time_left;
+                 $user['membership']['membership_plan'] = $user_planss->membership_duration_value;
+				 }else{
+				 $user['membership']['is_limited'] = 'true';	 
+                 $user['membership']['membership_time_left'] = $plan_time_left;
+                 $user['membership']['membership_plan'] = $user_planss->membership_duration_value;
+				 }
         }
         else{
                  $user['membership_time_left'] = "";
                  $user['membership_plan'] ="";
+				 $user['is_member'] = "false";
 
         }
         
