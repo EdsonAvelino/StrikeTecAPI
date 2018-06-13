@@ -14,6 +14,7 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
 use App\UserNotifications;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -1099,11 +1100,12 @@ class UserController extends Controller
      */
     public function getUser($userId)
     {
-        $userId = (int) $userId;
+         $userId = (int) $userId;
         
         $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         // Validation
+     
         if (!$userId || !$userData) {
             return response()->json([
                 'error' => 'false',
@@ -1111,6 +1113,7 @@ class UserController extends Controller
             ]);
         }
 
+       
         // user_following = current user is following this user
         $userFollowing = UserConnections::where('follow_user_id', $userId)
                         ->where('user_id', \Auth::user()->id)->exists();
@@ -1134,6 +1137,41 @@ class UserController extends Controller
 
         $battles = Battles::getFinishedBattles($userId);
 
+ //User assigned plan 
+
+        if($user['membership_plan_id']!=0){
+         
+          $user_planss = DB::table('membership_plans')
+          ->join('users', 'users.membership_plan_id', '=', 'membership_plans.membership_id')
+               
+             ->select('membership_plans.membership_duration_value', 'membership_plans.membership_duration_key')
+                 ->where('users.id', $userId)
+                 ->first();
+                 if($user_planss->membership_duration_value=="unlimited"){
+                    $plan_time_left = $user_planss->membership_duration_value;
+                 }else{
+                     $effectiveDate = strtotime("+".$user_planss->membership_duration_value, strtotime($user['membership_plan_assigned_at']));
+                     $effectiveDate =  date('Y-m-d',$effectiveDate); 
+                     $assign_plan_date =  date('Y-m-d',strtotime($user['membership_plan_assigned_at'])  );
+                 
+                    $date1=date_create($effectiveDate);
+                    $date2=date_create($assign_plan_date);
+                    $diff=date_diff($date1,$date2);
+                    $plan_time_left = $diff->format("%a days");
+
+                         
+                 }
+       
+                 $user['membership_time_left'] = $plan_time_left;
+                 $user['membership_plan'] = $user_planss->membership_duration_value;
+        }
+        else{
+                 $user['membership_time_left'] = "";
+                 $user['membership_plan'] ="";
+
+        }
+        
+
         $user['lose_counts'] = $battles['lost'];
         $user['win_counts'] = $battles['won'];
         $user['finished_battles'] = $battles['finished'];
@@ -1150,6 +1188,7 @@ class UserController extends Controller
         } else {
             $user['achievements'] = $achievementsArr;
         }
+        print_r($user);
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'User not found']);
         }
