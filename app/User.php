@@ -307,6 +307,17 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
     public function hasMembership()
     {
-        return (bool) ($this->membership_plan_id);
+        $membershipPlanId = (int) $this->membership_plan_id;
+
+        // Membership plan details
+        $membershipPlan = $this->membership;
+
+        $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($this->membership_plan_assigned_at));
+
+        $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
+
+        $now = \Carbon\Carbon::now();
+
+        return (bool) ($membershipPlanId && $now->lte($effectiveDate));
     }
 }
