@@ -97,7 +97,12 @@ class AuthController extends Controller
      *              "spectator_monthly ": true,
      *              "spectator_yearly ": false
      *          },
-     *          "subscription_check": false
+     *          "subscription_check": false,
+     *          "has_membership": true,
+     *          "membership": {
+     *              "is_limited": true,
+     *              "membership_days_left": 182
+     *          }
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
