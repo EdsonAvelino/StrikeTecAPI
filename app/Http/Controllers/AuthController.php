@@ -133,7 +133,8 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id())->toArray();
+        $_user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id());
+        $user = $_user->toArray();
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
@@ -144,6 +145,35 @@ class AuthController extends Controller
         // Subscription check flag for app to check user's subscription status on google/appstore 
         $subscriptionCheck = User::select('id as subscription_check')->where('id', $user['id'])->pluck('subscription_check')->first();
         $user['subscription_check'] = (bool) $subscriptionCheck;
+
+        // Membership plan info
+        $user['has_membership'] = $_user->hasMembership();
+        
+        if ($_user->hasMembership()) {
+            $membershipPlan = $_user->membership;
+            
+            $membershipDaysLeft = '';
+
+            if ($membershipPlan->isLimited()) {
+                $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($_user->membership_plan_assigned_at));
+
+                $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
+
+                $now = \Carbon\Carbon::now();
+                $membershipDaysLeft = $now->diffInDays($effectiveDate); // Days
+            }
+            
+            $membership = [
+                'is_limited' => $membershipPlan->isLimited(),
+                'membership_days_left' => $membershipDaysLeft
+            ];
+
+            $user['membership'] = $membership;   
+        }
+        
+        // Hiding membership related fields
+        unset($user['membership_plan_id']);
+        unset($user['membership_plan_assigned_at']);
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }

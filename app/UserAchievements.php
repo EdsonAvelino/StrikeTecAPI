@@ -149,14 +149,16 @@ class UserAchievements extends Model
     }
 
     // Running achievement schedular, source: App > Kernal > schedule()
+    // TODO optimize this method for large number of users
     public static function runScheduler()
     {
-        $users = User::select('id', 'gender')->get();
+        $users = User::select('id')->get();
 
         foreach ($users as $user) {
-            $text = "Achievement has been assigned to user #" . $user->id;
+            // $text = "Achievement has been assigned to user #" . $user->id;
             
             // Todo log this process in better way!
+            // Probably do weekly log in few rows, just like summary
             // \DB::insert('INSERT INTO scheduler_log (log, created_at) VALUES (?, ?)', [$text, $date]);
             
             self::process($user);
@@ -172,63 +174,57 @@ class UserAchievements extends Model
 
     private static function process($user)
     {
-        $perviousMonday = strtotime('previous monday');
-        
         $achievements = Achievements::select('id')->orderBy('sequence')->get();
         
         // Some achievements are assigned to next week, so we're processing them here
-        // Some resets everyweek
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
                 case Achievements::USER_PARTICIPATION:
-                    $userParticpation = Sessions::getUserParticpation($userId, $perviousMonday);
-                    
-                    $lastWeekSessionsCount = Sessions::where('user_id', $user->id)
-                        ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK("'. date('Y-m-d', $perviousMonday) .'", 1)')->count();
+                    $lastWeek = strtotime("-1 week +1 day");
+                    $lastWeekStart = strtotime("last monday midnight", $lastWeek);
+                    $lastWeekEnd = strtotime("next monday midnight", $lastWeekStart)-1;
 
-                    if ($userParticpation) {
-                        $achievementType = AchievementTypes::select('id')
-                                ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $userParticpation)
-                                ->where('max', '>', $userParticpation)
+                    $lastWeekSessionsCount = \App\Sessions::where('user_id', $user->id)
+                        ->where('start_time', '>', ($lastWeekStart * 1000))
+                        ->where('start_time', '<', ($lastWeekEnd * 1000))
+                        ->count();
+
+                    if ($lastWeekSessionsCount > 0) {
+                        $badge = AchievementTypes::select('id')
+                                ->where('achievement_id', Achievements::USER_PARTICIPATION)
+                                ->where('min', '<', $lastWeekSessionsCount)
+                                ->where('max', '>', $lastWeekSessionsCount)
                                 ->first();
 
-                        if ($achievementType) {
-                            $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
+                        if ($badge) {
+                            $_userAchievement = UserAchievements::where('achievement_id', Achievements::USER_PARTICIPATION)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
+                                    ->where('achievement_type_id', $badge->id)
                                     ->first();
 
-                            if ($userParticpation > 0) {
-                                if ($userParticpationData) {
-                                    if ($userParticpationData->metric_value < $userParticpation) {
-                                        $userParticpationData->achievement_type_id = $achievementType->id;
-                                        $userParticpationData->metric_value = $userParticpation;
-                                        $userParticpationData->count = 1;
-                                        $userParticpationData->shared = false;
-                                        $userParticpationData->awarded = true;
-                                        $userParticpationData->save();
-                                    }
-                                } else {
-                                    $userAchievements = UserAchievements::create([
-                                        'user_id' => $userId,
-                                        'achievement_id' => $achievement->id,
-                                        'achievement_type_id' => $achievementType->id,
-                                        'metric_value' => $userParticpation,
-                                        'count' => 1,
-                                        'awarded' => true,
-                                    ]);
+                            if ($_userAchievement) {
+                                if ($_userAchievement->metric_value < $lastWeekSessionsCount) {
+                                    $_userAchievement->achievement_type_id = $badge->id;
+                                    $_userAchievement->metric_value = $lastWeekSessionsCount;
+                                    $_userAchievement->shared = false;
+                                    $_userAchievement->awarded = true;
+                                    $_userAchievement->save();
                                 }
                             } else {
-                                if ($userParticpationData)
-                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
+                                $_userAchievement = UserAchievements::create([
+                                    'user_id' => $userId,
+                                    'achievement_id' => Achievements::USER_PARTICIPATION,
+                                    'achievement_type_id' => $badge->id,
+                                    'metric_value' => $lastWeekSessionsCount,
+                                    'count' => 1,
+                                    'awarded' => true,
+                                ]);
                             }
                         }
                     }
                 break;
             }
         }
-        return;
     }
 
     public static function getGoalAchievements($userId, $goalId)

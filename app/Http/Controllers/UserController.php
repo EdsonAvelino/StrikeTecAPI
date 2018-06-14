@@ -1165,6 +1165,10 @@ class UserController extends Controller
 
             $userData['membership'] = $membership;   
         }
+        
+        // Hiding membership related fields
+        unset($userData['membership_plan_id']);
+        unset($userData['membership_plan_assigned_at']);
 
         $userData['lose_counts'] = $battles['lost'];
         $userData['win_counts'] = $battles['won'];

@@ -558,8 +558,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "type_id": 1, "battle_id": 0, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
-     *      { "type_id": 1, "battle_id": 0, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
+     *      { "type_id": 1, "battle_id": 0, "game_id": 0, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
+     *      { "type_id": 1, "battle_id": 0, "game_id": 0, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -616,7 +616,7 @@ class TrainingController extends Controller
     public function storeSessions(Request $request)
     {
         $data = $request->get('data');
-        $sessions = []; //Will be use for response
+        $sessions = []; // Will be use for response
 
         $gameSession = false;
 
@@ -901,7 +901,7 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
+     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, "avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
      *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "pause_duration": 25000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
      *  ]
      * }
@@ -1414,6 +1414,7 @@ class TrainingController extends Controller
             switch ($achievement->id) {
                 // Badge BELT
                 // TODO this may not needed, as there's one badge already "Champions"
+                /*
                 case Achievements::BELT:
                     $belts = Battles::getBeltCount(\Auth::id());
 
@@ -1446,7 +1447,8 @@ class TrainingController extends Controller
                         }
                     }
                 break;
-
+                */
+                
                 // Badge Punches Count
                 case Achievements::PUNCHES_COUNT:
                     $punchesCount = Sessions::getPunchesCountOfToday();
