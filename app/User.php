@@ -311,6 +311,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         // Membership plan details
         $membershipPlan = $this->membership;
+        
+        // When user is not having any membership
+        if (!$membershipPlan) return false;
 
         $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($this->membership_plan_assigned_at));
 
