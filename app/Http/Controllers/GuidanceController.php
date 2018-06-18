@@ -387,10 +387,16 @@ class GuidanceController extends Controller
         }
 
         // Filter by skill-level
-        if (count($filterIds)) {
+        if ( count($filterIds) && \Auth::user()->hasMembership() ) {
             $_planVideos->whereHas($planType, function($query) use($filterIds) {
                 $query->whereHas('tag', function($q) use($filterIds) {
                     $q->whereIn('filter_id', $filterIds);
+                });
+            });
+        } else {
+            $_planVideos->whereHas($planType, function($query) use($filterIds) {
+                $query->whereHas('tag', function($q) use($filterIds) {
+                    $q->where('filter_id', 1); // Beginner only
                 });
             });
         }
