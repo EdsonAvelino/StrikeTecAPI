@@ -64,7 +64,7 @@ class WorldController extends Controller
      */
     public function getCountries()
     {
-        $countries = \App\Countries::get();
+        $countries = \App\Countries::where('phase', 1)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
     }
