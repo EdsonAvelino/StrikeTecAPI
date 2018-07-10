@@ -60,16 +60,18 @@ class ChatController extends Controller
 
         $chatId = $this->getChatid($userId);
 
-        $chatId = ChatMessages::create([
+        $chatMessageId = ChatMessages::create([
                     'user_id' => $senderId,
                     'read_flag' => false,
                     'message' => $message,
                     'chat_id' => $chatId
                 ])->id;
 
-        $chatResponse = ChatMessages::where('id', $chatId)
+        $chatResponse = ChatMessages::where('id', $chatMessageId)
                 ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
                 ->first();
+
+        $chat = Chat::where('id', $chatId)->update(['updated_at' => $chatResponse->send_time]);
 
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
@@ -139,6 +141,51 @@ class ChatController extends Controller
         }
 
         return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $messageId]]);
+    }
+
+    /**
+     * @api {delete} /chat/<message_id> Remove message
+     * @apiGroup Chat
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} message_id ID of message which is to delete
+     * @apiParamExample {json} Input
+     *    {
+     *      "message_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Message has been deleted",
+     *   }
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function deleteMessage(Request $request, $messageId)
+    {
+        if (!ChatMessages::where('id', $messageId)->exists()) {
+            return response()->json(['error' => 'true', 'message' => 'Message does not exists']);
+        }
+
+        ChatMessages::find($messageId)->delete();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Message has been deleted'
+        ]);
     }
 
     /**
@@ -291,7 +338,7 @@ class ChatController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $chatList = Chat::select('user_one', 'user_two', 'id')
-                        ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get()->all();
+                        ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('updated_at', 'desc')->offset($offset)->limit($limit)->get()->all();
         $chatCount = 0;
         $chat = array();
         foreach ($chatList as $data) {
@@ -309,6 +356,14 @@ class ChatController extends Controller
                 $chatCount++;
             }
         }
+
+        usort($chat, function ($a, $b) {
+            if ($a['msg_time'] == $b['msg_time']) {
+                return 0;
+            }
+            return ($a['msg_time'] > $b['msg_time']) ? -1 : 1;
+        });
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
     }
 

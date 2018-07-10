@@ -307,6 +307,9 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // Get all chats
     $app->get('/chat', 'ChatController@chats');
+
+    // Delete a message
+    $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
 });
 
 // Tournaments APIs
