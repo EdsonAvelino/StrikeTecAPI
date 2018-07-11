@@ -67,6 +67,8 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://example.com/profile/pic.jpg",
+     *          "login_count": 1,
+     *          "has_sensors": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -226,6 +228,8 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": null,
      *          "photo_url": "http://example.com/profile/pic.jpg",
+     *          "login_count": 1,
+     *          "has_sensors": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
