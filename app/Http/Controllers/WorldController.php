@@ -5,8 +5,13 @@ namespace App\Http\Controllers;
 class WorldController extends Controller
 {
     /**
-     * @api {get} /countries Get countries
+     * @api {get} /countries/<phase> Get countries
      * @apiGroup World
+     * @apiParam {Number} phase Selected phase number to get countries
+     * @apiParamExample {json} Input
+     *    {
+     *      "phase": 1,
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data List of countries
@@ -62,9 +67,18 @@ class WorldController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getCountries()
+    public function getCountries($phase = null)
     {
-        $countries = \App\Countries::where('phase', 1)->get();
+        if ($phase) {
+            $phase = (int) $phase;
+            $countries = \App\Countries::where('phase', '<=', $phase)->get();
+        } else {
+            $countries = \App\Countries::get();
+        }
+
+        foreach ($countries as $country) {
+            unset($country->phase);
+        }
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
     }
