@@ -82,6 +82,8 @@ class UserController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
+     *          "login_count": 0,
+     *          "has_sensors": 0,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -135,7 +137,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'login_count' => 0,
+            'has_sensors' => 0
         ]);
 
         try {
@@ -207,6 +211,8 @@ class UserController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
+     *          "login_count": 0,
+     *          "has_sensors": 0,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -262,7 +268,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'login_count' => 0,
+            'has_sensors' => 0
         ]);
 
         try {
@@ -308,6 +316,8 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_tip] Show tips true / false
      * @apiParam {String} [skill_level] Skill level of user
      * @apiParam {String} [photo_url] User profile photo-url
+     * @apiParam {Number} [login_count] Number of times it is login
+     * @apiParam {Boolean} [has_sensors] Has sensors true / false
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
@@ -372,6 +382,8 @@ class UserController extends Controller
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
+            $user->login_count = $request->get('login_count') ?? $user->login_count;
+            $user->has_sensors = $request->get('has_sensors') ?? $user->has_sensors;
 
             $user->city_id = $request->get('city_id') ?? $user->city_id;
             $user->state_id = $request->get('state_id') ?? $user->state_id;
@@ -483,6 +495,7 @@ class UserController extends Controller
             $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
             
             $user->is_spectator = 0;
+            $user->has_sensors = 1;
 
             $user->save();
 
