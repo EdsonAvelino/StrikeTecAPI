@@ -7,7 +7,7 @@ class WorldController extends Controller
     /**
      * @api {get} /countries/<phase> Get countries
      * @apiGroup World
-     * @apiParam {Number} phase Selected phase number to get countries
+     * @apiParam {Number} phase List all countries belonging to the phase passed as parameter. Also includes countries with lower phases. If not phase is provided, all countries are returned
      * @apiParamExample {json} Input
      *    {
      *      "phase": 1,

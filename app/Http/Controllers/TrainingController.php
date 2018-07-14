@@ -641,6 +641,8 @@ class TrainingController extends Controller
                     'best_time' => $session['best_time']
                 ]);
 
+                SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
+
                 // Update battle details, if any
                 if ($_session->battle_id) {
                     $this->updateBattle($_session->battleId);
@@ -654,9 +656,9 @@ class TrainingController extends Controller
                 else {
                     $this->updateGoal($_session);
                 }
+            } else {
+                SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
             }
-
-            $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
             // Process through achievements (badges) and assign 'em to user
             
