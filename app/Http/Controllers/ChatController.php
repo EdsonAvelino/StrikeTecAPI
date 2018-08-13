@@ -54,7 +54,20 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request)
     {
-        $senderId = \Auth::user()->id;
+
+        $validator = \Validator::make($request->all(), [
+            'user_id' => 'required',
+            'message' => 'required|min:2',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+
+        }
+
+
+            $senderId = \Auth::user()->id;
         $userId = $request->user_id;
         $message = $request->message;
 
@@ -123,22 +136,29 @@ class ChatController extends Controller
         $userId = \Auth::user()->id;
 
         $chatMessage = ChatMessages::where('id', $messageId)->where('user_id', '!=', $userId)->first();
-        $chatMessage->update(['read_flag' => 1]);
+        if ($chatMessage)
+        {
 
-        if ($chatMessage->user_id != \Auth::user()->id) {
+            $chatMessage->update(['read_flag' => 1]);
+            if ($chatMessage->user_id != \Auth::user()->id) {
 
-            $pushMessage = 'Read message';
+                $pushMessage = 'Read message';
 
-            $chatResponse = ChatMessages::where('id', $messageId)
-                            ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first();
+                $chatResponse = ChatMessages::where('id', $messageId)
+                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first();
 
-            $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
-            $chatResponse->send_time = strtotime($chatResponse->send_time);
+                $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+                $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-            Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+                Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+            }
+
+            return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $messageId]]);
+        }else{
+            return response()->json(['error' => 'true', 'message' => "Message not found"]);
+
         }
 
-        return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $messageId]]);
     }
 
     /**

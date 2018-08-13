@@ -1253,26 +1253,36 @@ class UserController extends Controller
      */
     public function follow($userId = null)
     {
-        if ($userId == \Auth::user()->id || !$userId)
-            return null;
+        try
+        {
 
-        $connection = UserConnections::where('user_id', \Auth::user()->id)
-                        ->where('follow_user_id', $userId)->first();
+            if ($userId == \Auth::user()->id || !$userId)
+                return null;
 
-        if (!$connection) {
-            UserConnections::create([
-                'user_id' => \Auth::user()->id,
-                'follow_user_id' => $userId,
-            ]);
+            $connection = UserConnections::where('user_id', \Auth::user()->id)
+                ->where('follow_user_id', $userId)->first();
 
-            // Generates new notification for user
-            UserNotifications::generate(UserNotifications::FOLLOW, $userId, \Auth::user()->id);
+            if (!$connection) {
+                UserConnections::create([
+                    'user_id' => \Auth::user()->id,
+                    'follow_user_id' => $userId,
+                ]);
 
-            $followUser = User::find($userId);
+                // Generates new notification for user
+                UserNotifications::generate(UserNotifications::FOLLOW, $userId, \Auth::user()->id);
 
+                $followUser = User::find($userId);
+
+                return response()->json([
+                    'error' => 'false',
+                    'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
+                ]);
+            }
+        }catch (\Exception $exception)
+        {
             return response()->json([
-                'error' => 'false',
-                'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
+                'error' => 'true',
+                'message' =>$exception->getMessage(),
             ]);
         }
     }
@@ -1308,16 +1318,26 @@ class UserController extends Controller
      */
     public function unfollow($userId = null)
     {
-        if ($userId == \Auth::user()->id || !$userId)
-            return null;
+        try
+        {
 
-        $connection = UserConnections::where('user_id', \Auth::user()->id)
-                        ->where('follow_user_id', $userId)->delete();
+            if ($userId == \Auth::user()->id || !$userId)
+                return null;
 
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'Unfollow successfull',
-        ]);
+            UserConnections::where('user_id', \Auth::user()->id)
+                ->where('follow_user_id', $userId)->delete();
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Unfollow successfull',
+            ]);
+        }catch (\Exception $exception)
+        {
+            return response()->json([
+                'error' => 'true',
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -1597,39 +1617,51 @@ class UserController extends Controller
      */
     public function getFollowing(Request $request)
     {
-        $offset = (int) ($request->get('start') ?? 0);
-        $limit = (int) ($request->get('limit') ?? 20);
 
-        $following = UserConnections::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
+        try
+        {
+            $offset = (int) ($request->get('start') ?? 0);
+            $limit = (int) ($request->get('limit') ?? 20);
 
-        $_following = [];
+            $following = UserConnections::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
 
-        foreach ($following as $follower) {
-            $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
-                            ->where('user_id', \Auth::user()->id)->exists();
+            $_following = [];
 
-            $follow = UserConnections::where('user_id', $follower->follow_user_id)
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
+            foreach ($following as $follower) {
+                $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
+                    ->where('user_id', \Auth::user()->id)->exists();
 
-            $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+                $follow = UserConnections::where('user_id', $follower->follow_user_id)
+                    ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $_following[] = [
-                'id' => $follower->follow_user_id,
-                'first_name' => $follower->followUser->first_name,
-                'last_name' => $follower->followUser->last_name,
-                'photo_url' => $follower->followUser->photo_url,
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+                $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
+                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
+
+                $_following[] = [
+                    'id' => $follower->follow_user_id,
+                    'first_name' => $follower->followUser['first_name'],
+                    'last_name' => $follower->followUser['last_name'],
+                    'photo_url' => $follower->followUser['photo_url'],
+                    'points' => (int) $points,
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ];
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'data' => $_following
+            ]);
+        }catch (\Exception $exception)
+        {
+            return response()->json([
+                'error' => 'true',
+                'message' => $exception->getMessage(),
+            ]);
         }
 
-        return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'data' => $_following
-        ]);
     }
 
     /**
@@ -1961,6 +1993,17 @@ class UserController extends Controller
      */
     public function setUserPassword(Request $request)
     {
+        $validator = \Validator::make($request->all(), [
+            'old_password' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+
+        }
+
         // Get current user
         $user = \Auth::user();
 
@@ -2393,7 +2436,7 @@ class UserController extends Controller
 
         return response()->json([
             'error' => 'false',
-            'message' => 'Marked notifications read'
+            'message' => 'Marked notifications read',
         ]);
     }
 }

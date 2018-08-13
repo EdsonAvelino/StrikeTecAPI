@@ -51,6 +51,19 @@ class BattleController extends Controller
      */
     public function postBattleWithInvite(Request $request)
     {
+
+        $validator = \Validator::make($request->all(), [
+            'opponent_user_id' => 'required',
+            'plan_id' => 'required',
+            'type_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
+
         $opponentUserId = (int) $request->get('opponent_user_id');
 
         $battle = Battles::create([
@@ -168,53 +181,60 @@ class BattleController extends Controller
 
         $_battle = Battles::find($battleId);
 
-        // Opponent user is opponent of current logged in user
-        $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
+        if ($_battle)
+        {
+            // Opponent user is opponent of current logged in user
+            $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
 
-        $opponentUser = User::get($opponentUserId);
+            $opponentUser = User::get($opponentUserId);
 
-        $battle = $_battle->toArray();
+            $battle = $_battle->toArray();
 
-        $battle['opponent_user'] = $opponentUser->toArray();
+            $battle['opponent_user'] = $opponentUser->toArray();
 
-        // ID of user who created the battle
-        $battle['sender_user_id'] = $_battle->user_id;
+            // ID of user who created the battle
+            $battle['sender_user_id'] = $_battle->user_id;
 
-        $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
+            $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
 
-        if (\Auth::user()->id == $_battle->opponent_user_id) {
-            $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+            if (\Auth::user()->id == $_battle->opponent_user_id) {
+                $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Battle result
+            $battle['battle_result'] = Battles::getResult($battleId);
+
+            switch ($_battle->type_id) {
+                case \App\Types::COMBO:
+                    $plan = \App\Combos::get($_battle->plan_id);
+                    break;
+                case \App\Types::COMBO_SET:
+                    $plan = \App\ComboSets::get($_battle->plan_id);
+                    break;
+                case \App\Types::WORKOUT:
+                    $plan = \App\Workouts::get($_battle->plan_id);
+                    break;
+                default:
+                    $plan = null;
+            }
+
+            if ($plan) {
+                $planDetail = [
+                    'id' => $plan['id'],
+                    'name' => $plan['name'],
+                    'description' => $plan['description'],
+                    'detail' => $plan['detail']
+                ];
+
+                $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
+            }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
+        }else{
+            return response()->json(['error' => 'true', 'message' => 'Battle not found']);
+
         }
 
-        // Battle result
-        $battle['battle_result'] = Battles::getResult($battleId);
-
-        switch ($_battle->type_id) {
-            case \App\Types::COMBO:
-                $plan = \App\Combos::get($_battle->plan_id);
-                break;
-            case \App\Types::COMBO_SET:
-                $plan = \App\ComboSets::get($_battle->plan_id);
-                break;
-            case \App\Types::WORKOUT:
-                $plan = \App\Workouts::get($_battle->plan_id);
-                break;
-            default:
-                $plan = null;
-        }
-
-        if ($plan) {
-            $planDetail = [
-                'id' => $plan['id'],
-                'name' => $plan['name'],
-                'description' => $plan['description'],
-                'detail' => $plan['detail']
-            ];
-
-            $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
-        }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
     }
 
     /**
@@ -251,25 +271,31 @@ class BattleController extends Controller
         $battleId = (int) $battleId;
 
         if (empty($battleId))
-            return null;
+        return null;
 
         $battle = Battles::find($battleId);
 
-        $user = $battle->user;
-        $opponentUser = $battle->opponentUser;
+        if ($battle)
+        {
 
-        // Send Push Notification
-        $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
-        // $pushOpponentUser = User::get();
-        // Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
+            $user = $battle->user;
+            $opponentUser = $battle->opponentUser;
 
-        Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
+            // Send Push Notification
+            $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
+            // $pushOpponentUser = User::get();
+            // Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
 
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'User invited for battle successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
-        ]);
+            Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'User invited for battle successfully',
+                'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            ]);
+        }else{
+            return response()->json(['error' => 'true', 'message' => 'Battle not found']);
+        }
     }
 
     /**
@@ -312,32 +338,36 @@ class BattleController extends Controller
 
         $battle = Battles::find($battleId);
 
-        $user = $battle->user;
-        $opponentUser = $battle->opponentUser;
+        if ($battle)
+        {
 
-        // Send push notification to sender user (who created battle)
-        $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
+            $user = $battle->user;
+            $opponentUser = $battle->opponentUser;
 
-        // $pushOpponentUser = User::get($battle->opponent_user_id);
+            // Send push notification to sender user (who created battle)
+            $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
 
-        $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
+            // $pushOpponentUser = User::get($battle->opponent_user_id);
 
-        // Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
-        Push::send($pushType, $battle->user_id, $battle->opponent_user_id, $pushMessage, ['battle_id' => $battle->id]);
+            $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
 
-        if ($accepted === false) {
-            $battle->delete();
-        } else {
-            $battle->accepted = $accepted;
-            $battle->accepted_at = date('Y-m-d H:i:s');
-            $battle->save();
+            // Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
+            Push::send($pushType, $battle->user_id, $battle->opponent_user_id, $pushMessage, ['battle_id' => $battle->id]);
+
+            if ($accepted === false) {
+                $battle->delete();
+            } else {
+                $battle->accepted = $accepted;
+                $battle->accepted_at = date('Y-m-d H:i:s');
+                $battle->save();
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
+                'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            ]);
         }
-
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
-        ]);
     }
 
     /**

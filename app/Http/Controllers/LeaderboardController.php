@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Leaderboard;
 use App\GameLeaderboard;
@@ -177,7 +178,8 @@ class LeaderboardController extends Controller
 	    		}
 
 	    		if (sizeof($ageRange)) {
-	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+                    $query->whereYear('birthday', '>=', Carbon::now()->year - $ageRange[1])
+                        ->whereYear('birthday', '<=', Carbon::now()->year - $ageRange[0]);
 	            }
 
 	            if (sizeof($weightRange)) {
@@ -220,7 +222,8 @@ class LeaderboardController extends Controller
 	    		}
 
 	    		if (sizeof($ageRange)) {
-	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+                    $query->whereYear('birthday', '>=', Carbon::now()->year - $ageRange[1])
+                        ->whereYear('birthday', '<=', Carbon::now()->year - $ageRange[0]);
 	            }
 
 	            if (sizeof($weightRange)) {
@@ -260,7 +263,8 @@ class LeaderboardController extends Controller
 	    		}
 
 	    		if (sizeof($ageRange)) {
-	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+                    $query->whereYear('birthday', '>=', Carbon::now()->year - $ageRange[1])
+                        ->whereYear('birthday', '<=', Carbon::now()->year - $ageRange[0]);
 	            }
 
 	            if (sizeof($weightRange)) {
@@ -469,9 +473,10 @@ class LeaderboardController extends Controller
 	    			if ($stateId)
 	    				$query->where('state_id', $stateId);
 	    		}
-	    		
-	    		if (sizeof($ageRange)) {
-	            	$query->whereRaw('get_age(birthday, NOW()) between ? AND ?', $ageRange);
+
+                if (sizeof($ageRange)){
+                    $query->whereYear('birthday', '>=', Carbon::now()->year - $ageRange[1])
+                        ->whereYear('birthday', '<=', Carbon::now()->year - $ageRange[0]);
 	            }
 
 	            if (sizeof($weightRange)) {
@@ -506,8 +511,7 @@ class LeaderboardController extends Controller
 	    	->orderBy('week_sessions_count', 'desc')
 	    	->orderBy('sessions_count', 'desc')
 	    	->offset($offset)->limit($limit)->get();
-		
-        // print_r(\DB::getQueryLog());
+
 
 	    foreach ($leadersList as $idx => $row) {
 	    	$row->rank = $offset + $idx + 1;

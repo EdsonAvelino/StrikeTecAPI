@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Dotenv\Validator;
 use Illuminate\Http\Request;
 use App\Settings;
 
@@ -43,73 +44,97 @@ class SettingController extends Controller
      */
     public function updateSettings(Request $request)
     {
-        $user_id = \Auth::user()->id;
-        
-        $action = strtolower($request->get('action'));
-        $value = filter_var($request->get('value'), FILTER_VALIDATE_BOOLEAN);
+        try
+        {
+            $user_id = \Auth::user()->id;
+            $validator = \Validator::make($request->all(), [
+                'action' => 'required',
+                'value' => 'required',
+            ]);
 
-        switch ($action) {
-            case "new_challenges":
-                Settings::where('user_id', $user_id)->update(
-                        ['new_challenges' => $value]
-                );
-                break;
+            $action = strtolower($request->get('action'));
+            $value = filter_var($request->get('value'), FILTER_VALIDATE_BOOLEAN);
 
-            case "battle_update":
-                Settings::where('user_id', $user_id)->update(
-                        ['battle_update' => $value]
-                );
-                break;
+            if (!$validator->fails()) {
+                switch ($action) {
+                    case "new_challenges":
+                        Settings::where('user_id', $user_id)->update(
+                            ['new_challenges' => $value]
+                        );
+                        break;
 
-            case "tournaments_update":
-                Settings::where('user_id', $user_id)->update(
-                        ['tournaments_update' => $value]
-                );
-                break;
+                    case "battle_update":
+                        Settings::where('user_id', $user_id)->update(
+                            ['battle_update' => $value]
+                        );
+                        break;
 
-            case "games_update":
-                Settings::where('user_id', $user_id)->update(
-                        ['games_update' => $value]
-                );
-                break;
+                    case "tournaments_update":
+                        Settings::where('user_id', $user_id)->update(
+                            ['tournaments_update' => $value]
+                        );
+                        break;
 
-            case "new_message":
-                Settings::where('user_id', $user_id)->update(
-                        ['new_message' => $value]
-                );
-                break;
+                    case "games_update":
+                        Settings::where('user_id', $user_id)->update(
+                            ['games_update' => $value]
+                        );
+                        break;
 
-            case "friend_invites":
-                Settings::where('user_id', $user_id)->update(
-                        ['friend_invites' => $value]
-                );
-                break;
+                    case "new_message":
+                        Settings::where('user_id', $user_id)->update(
+                            ['new_message' => $value]
+                        );
+                        break;
 
-            case "sensor_connectivity":
-                Settings::where('user_id', $user_id)->update(
-                        ['sensor_connectivity' => $value]
-                );
-                break;
+                    case "friend_invites":
+                        Settings::where('user_id', $user_id)->update(
+                            ['friend_invites' => $value]
+                        );
+                        break;
 
-            case "striketec_promos":
-                Settings::where('user_id', $user_id)->update(
-                        ['striketec_promos' => $value]
-                );
-                break;
-            case "app_updates":
-                Settings::where('user_id', $user_id)->update(
-                        ['app_updates' => $value]
-                );
-                break;
+                    case "sensor_connectivity":
+                        Settings::where('user_id', $user_id)->update(
+                            ['sensor_connectivity' => $value]
+                        );
+                        break;
 
-            case "striketec_news":
-                Settings::where('user_id', $user_id)->update(
-                        ['striketec_news' => $value]
-                );
-                break;
+                    case "striketec_promos":
+                        Settings::where('user_id', $user_id)->update(
+                            ['striketec_promos' => $value]
+                        );
+                        break;
+                    case "app_updates":
+                        Settings::where('user_id', $user_id)->update(
+                            ['app_updates' => $value]
+                        );
+                        break;
+
+                    case "striketec_news":
+                        Settings::where('user_id', $user_id)->update(
+                            ['striketec_news' => $value]
+                        );
+                        break;
+                    default:
+                        return response()->json(['error' => 'true', 'message' => 'Enter correct setting']);
+
+                }
+
+                return response()->json(['error' => 'false', 'message' => 'Notification settings have been updated successfully.']);
+            }else
+            {
+                $errors = $validator->errors();
+
+                return response()->json(['error' => 'true', 'message' => $errors]);
+
+            }
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+
         }
 
-        return response()->json(['error' => 'false', 'message' => 'Notification settings have been updated successfully.']);
+
     }
 
     /**

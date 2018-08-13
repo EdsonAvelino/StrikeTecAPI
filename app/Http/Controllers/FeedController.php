@@ -328,22 +328,22 @@ class FeedController extends Controller
                 if ($request->get('post_type_id') == 1) {
                     $data = \App\Battles::where('id', $request->get('data_id'))->first();
 
-                    if ($data->user_id == \Auth::user()->id) {
+                    if ($data && $data->user_id == \Auth::user()->id) {
                         $shared = 'user_shared';
-                    } elseif ($data->opponent_user_id == \Auth::user()->id) {
+                    } elseif ($data && $data->opponent_user_id == \Auth::user()->id) {
                         $shared = 'opponent_shared';
                     }
                 }
                 // Training session
-                elseif ($request->get('post_type_id') == 2) {
+                elseif ($data &&  $request->get('post_type_id') == 2) {
                     $data = \App\Sessions::where('id', $request->get('data_id'))->first();
                 }
                 // Goal
-                elseif ($request->get('post_type_id') == 3) {
+                elseif ( $data &&  $request->get('post_type_id') == 3) {
                     $data = \App\Goals::where('id', $request->get('data_id'))->first();
                 }
                 // Badge
-                elseif ($request->get('post_type_id') == 4) {
+                elseif ($data &&  $request->get('post_type_id') == 4) {
                     $data = \App\UserAchievements::where('id', $request->get('data_id'))->first();
                     $sharedDataJson = \App\UserAchievements::get($data->id);
                     $sharedData = json_encode($sharedDataJson);
@@ -351,6 +351,10 @@ class FeedController extends Controller
                                 'achievement_data' => $sharedData
                     ]);
                     $dataId = $sharedData->id;
+                }
+                else{
+                    return response()->json(['error' => 'false', 'message' => 'Data Not Found']);
+
                 }
 
                 if ($data && !(filter_var($data->{$shared}, FILTER_VALIDATE_BOOLEAN))) {
@@ -399,24 +403,34 @@ class FeedController extends Controller
              */
             public function postLike($postId)
             {
-                $postId = (int) $postId;
-                $post = Posts::find($postId);
+                try {
 
-                if ($post &&
+                    $postId = (int) $postId;
+                    $post = Posts::find($postId);
+
+                    if ($post &&
                         !(PostLikes::where('post_id', $postId)->where('user_id', \Auth::user()->id)->exists())
-                ) {
+                    ) {
 
-                    PostLikes::create([
-                        'post_id' => $postId,
-                        'user_id' => \Auth::user()->id,
-                    ]);
+                        PostLikes::create([
+                            'post_id' => $postId,
+                            'user_id' => \Auth::user()->id,
+                        ]);
 
-                    if ($post->user_id != \Auth::user()->id) {
-                        // Generates new notification for user
-                        \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_LIKE, $post->user_id, \Auth::user()->id, $postId);
+                        if ($post->user_id != \Auth::user()->id) {
+                            // Generates new notification for user
+                            \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_LIKE, $post->user_id, \Auth::user()->id, $postId);
+                        }
+                        return response()->json(['error' => 'false', 'message' => 'Liked']);
+
+                    }else{
+                        return response()->json(['error' => 'true', 'message' => 'Post not found or post already liked']);
+
                     }
+                }catch (\Exception $exception)
+                {
+                    return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
 
-                    return response()->json(['error' => 'false', 'message' => 'Liked']);
                 }
             }
 
@@ -646,9 +660,12 @@ class FeedController extends Controller
                     if ($post->user_id != \Auth::user()->id) {
                         \App\UserNotifications::generate(\App\UserNotifications::FEED_POST_COMMENT, $post->user_id, \Auth::user()->id, $postId);
                     }
+                    return response()->json(['error' => 'false', 'message' => 'Comment added']);
+                }else{
+                    return response()->json(['error' => 'true', 'message' => 'Post not found']);
+
                 }
 
-                return response()->json(['error' => 'false', 'message' => 'Comment added']);
             }
 
         }

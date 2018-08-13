@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Cities;
+use App\Countries;
+use App\States;
+
 class WorldController extends Controller
 {
     /**
@@ -64,7 +68,7 @@ class WorldController extends Controller
      */
     public function getCountries()
     {
-        $countries = \App\Countries::get();
+        $countries = Countries::get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
     }
@@ -123,7 +127,7 @@ class WorldController extends Controller
      */
     public function getStatesByCountry($countryId)
     {
-        $states = \App\States::where('country_id', $countryId)->get();
+        $states = States::where('country_id', $countryId)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $states->toArray()]);
     }
@@ -182,7 +186,7 @@ class WorldController extends Controller
      */
     public function getCitiesByState($stateId)
     {
-        $cities = \App\Cities::where('state_id', $stateId)->get();
+        $cities = Cities::where('state_id', $stateId)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $cities->toArray()]);
     }
