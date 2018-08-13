@@ -862,7 +862,6 @@ class TrainingController extends Controller
         try {
             foreach ($data as $round) {
                 // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
-
                 // Checking if round already exists
                 $_round = SessionRounds::where('start_time', $round['start_time'])->where('session_id', $round['session_start_time'])->first();
 
