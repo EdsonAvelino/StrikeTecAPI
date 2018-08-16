@@ -83,120 +83,122 @@ class BattleController extends Controller
         $battleId = (int) $battleId;
 
         $_battle = Battles::find($battleId);
+        
+        if ($_battle) {
 
-        if ($_battle)
-        {
-            // Opponent user is opponent of current logged in user
-            $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
+            try {
 
-            $opponentUser = User::get($opponentUserId);
+                // Opponent user is opponent of current logged in user
+                $opponentUserId = ($_battle->user_id == \Auth::user()->id) ? $_battle->opponent_user_id : $_battle->user_id;
 
-            $battle = $_battle->toArray();
+                $opponentUser = User::get($opponentUserId);
 
-            $battle['opponent_user'] = $opponentUser->toArray();
+                $battle = $_battle->toArray();
 
-            // ID of user who created the battle
-            $battle['sender_user_id'] = $_battle->user_id;
+                $battle['opponent_user'] = $opponentUser->toArray();
 
-            $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
+                // ID of user who created the battle
+                $battle['sender_user_id'] = $_battle->user_id;
 
-            if (\Auth::user()->id == $_battle->opponent_user_id) {
-                $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+                $battle['shared'] = filter_var($_battle->user_shared, FILTER_VALIDATE_BOOLEAN);
+
+                if (\Auth::user()->id == $_battle->opponent_user_id) {
+                    $battle['shared'] = filter_var($_battle->opponent_shared, FILTER_VALIDATE_BOOLEAN);
+                }
+
+                // Battle result
+                $battle['battle_result'] = Battles::getResult($battleId);
+
+                switch ($_battle->type_id) {
+                    case \App\Types::COMBO:
+                        $plan = \App\Combos::get($_battle->plan_id);
+                        break;
+                    case \App\Types::COMBO_SET:
+                        $plan = \App\ComboSets::get($_battle->plan_id);
+                        break;
+                    case \App\Types::WORKOUT:
+                        $plan = \App\Workouts::get($_battle->plan_id);
+                        break;
+                    default:
+                        $plan = null;
+                }
+
+                if ($plan) {
+                    $planDetail = [
+                        'id' => $plan['id'],
+                        'name' => $plan['name'],
+                        'description' => $plan['description'],
+                        'detail' => $plan['detail']
+                    ];
+
+                    $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
+                }
+
+                return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
+            
+            } catch (\Exception $exception) {
+
+                return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
             }
 
-            // Battle result
-            $battle['battle_result'] = Battles::getResult($battleId);
+        } else {
 
-            switch ($_battle->type_id) {
-                case \App\Types::COMBO:
-                    $plan = \App\Combos::get($_battle->plan_id);
-                    break;
-                case \App\Types::COMBO_SET:
-                    $plan = \App\ComboSets::get($_battle->plan_id);
-                    break;
-                case \App\Types::WORKOUT:
-                    $plan = \App\Workouts::get($_battle->plan_id);
-                    break;
-                default:
-                    $plan = null;
-            }
-
-            if ($plan) {
-                $planDetail = [
-                    'id' => $plan['id'],
-                    'name' => $plan['name'],
-                    'description' => $plan['description'],
-                    'detail' => $plan['detail']
-                ];
-
-                $battle['plan_detail'] = ['type_id' => (int) $_battle->type_id, 'data' => json_encode($planDetail)];
-            }
-
-            return response()->json(['error' => 'false', 'message' => '', 'data' => $battle]);
-        }else{
             return response()->json(['error' => 'true', 'message' => 'Battle not found']);
-
         }
 
     }
 
     /**
-     * @api {get} /battles/resend/<battle_id> Resend battle invite
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} battle_id Selected battle's id to resend invite
-     * @apiParamExample {json} Input
-     *    {
-     *      "battle_id": 1,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "User invited for battle successfully",
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET  /battles/resend/<battle_id> 
+     * 
+     * Resend battle invite
+     * 
+     * @param int $battleId
+     *
+     * @return json
      */
     public function resendBattleInvite($battleId)
     {
-        $battleId = (int) $battleId;
 
-        if (empty($battleId))
-        return null;
+
+        $validator = \Validator::make(['battle_id' => $battleId], [
+            'battle_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
 
         $battle = Battles::find($battleId);
 
-        if ($battle)
-        {
+        if ($battle) {
 
-            $user = $battle->user;
-            $opponentUser = $battle->opponentUser;
+            try { 
+                
+                $user = $battle->user;
+                $opponentUser = $battle->opponentUser;
 
-            // Send Push Notification
-            $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
-            // $pushOpponentUser = User::get();
-            // Push::send($battle->opponent_user_id, PushTypes::BATTLE_RESEND, $pushMessage, $pushOpponentUser);
+                // Send Push Notification
+                $pushMessage = $user->first_name . ' ' . $user->last_name . ' has invited you for battle';
 
-            Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
+                Push::send(PushTypes::BATTLE_RESEND, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
-            return response()->json([
-                'error' => 'false',
-                'message' => 'User invited for battle successfully',
-                'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
-            ]);
-        }else{
+                return response()->json([
+                    'error' => 'false',
+                    'message' => 'User invited for battle successfully',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                ]);
+
+            } catch (\Exception $exception) {
+
+                return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+            }
+
+        } else {
+
             return response()->json(['error' => 'true', 'message' => 'Battle not found']);
         }
     }
