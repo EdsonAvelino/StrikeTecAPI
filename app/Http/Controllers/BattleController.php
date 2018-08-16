@@ -80,7 +80,16 @@ class BattleController extends Controller
      */
     public function getBattle($battleId)
     {
-        $battleId = (int) $battleId;
+        $validator = \Validator::make(['battle_id' => $battleId], [
+            'battle_id' => 'required|integer'
+        ]);
+
+        if ($validator->fails()) {
+            
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
 
         $_battle = Battles::find($battleId);
         
@@ -160,7 +169,6 @@ class BattleController extends Controller
     public function resendBattleInvite($battleId)
     {
 
-
         $validator = \Validator::make(['battle_id' => $battleId], [
             'battle_id' => 'required|integer'
         ]);
@@ -202,77 +210,75 @@ class BattleController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Battle not found']);
         }
     }
-
+    
     /**
-     * @api {post} /battles/accept_decline Accept or Decline battle invite
-     * @apiGroup Battles
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} battle_id Battle ID
-     * @apiParam {Boolean} accept Either ture=accpted OR false=declined 
-     * @apiParamExample {json} Input
-     *    {
-     *      "battle_id": 1,
-     *      "accept": ture
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "User accepted/declined battle",
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api POST  /battles/accept_decline 
+     * 
+     * Accept or Decline battle invite
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function updateBattleInvite(Request $request)
     {
-        $battleId = (int) $request->get('battle_id');
+        
+        $validator = \Validator::make($request->all(), [
+            'battle_id' => 'required|integer',
+            'accept' => 'required|boolean'
+        ]);
+
+        if ($validator->fails()) {
+            
+            $errors = $validator->errors();
+
+            return response()->json(['error' => 'true', 'message' => $errors]);
+        }
+
+
+        $battleId = $request->get('battle_id');
+
+
         $accepted = filter_var($request->get('accept'), FILTER_VALIDATE_BOOLEAN);
 
-        $battle = Battles::find($battleId);
+        try {
+         
+            $battle = Battles::find($battleId);
 
-        if ($battle)
-        {
+            if ($battle) {
 
-            $user = $battle->user;
-            $opponentUser = $battle->opponentUser;
+                $user = $battle->user;
+                $opponentUser = $battle->opponentUser;
 
-            // Send push notification to sender user (who created battle)
-            $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
+                // Send push notification to sender user (who created battle)
+                $pushMessage = $opponentUser->first_name . ' ' . $opponentUser->last_name . ' has ' . ($accepted ? 'accepted' : 'declined') . ' battle';
 
-            // $pushOpponentUser = User::get($battle->opponent_user_id);
+                // $pushOpponentUser = User::get($battle->opponent_user_id);
 
-            $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
+                $pushType = ($accepted) ? PushTypes::BATTLE_ACCEPT : PushTypes::BATTLE_DECLINE;
 
-            // Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
-            Push::send($pushType, $battle->user_id, $battle->opponent_user_id, $pushMessage, ['battle_id' => $battle->id]);
+                // Push::send($battle->user_id, $pushType, $pushMessage, $pushOpponentUser);
+                Push::send($pushType, $battle->user_id, $battle->opponent_user_id, $pushMessage, ['battle_id' => $battle->id]);
 
-            if ($accepted === false) {
-                $battle->delete();
-            } else {
-                $battle->accepted = $accepted;
-                $battle->accepted_at = date('Y-m-d H:i:s');
-                $battle->save();
+                if ($accepted === false) {
+                    $battle->delete();
+                } else {
+                    $battle->accepted = $accepted;
+                    $battle->accepted_at = date('Y-m-d H:i:s');
+                    $battle->save();
+                }
+
+                return response()->json([
+                    'error' => 'false',
+                    'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
+                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+                ]);
             }
 
-            return response()->json([
-                'error' => 'false',
-                'message' => 'User ' . ($accepted ? 'accepted' : 'declined') . ' battle',
-                'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
-            ]);
-        }
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }    
     }
 
     /**
