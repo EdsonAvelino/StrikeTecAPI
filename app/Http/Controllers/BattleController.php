@@ -4,176 +4,79 @@ namespace App\Http\Controllers;
 
 use DB;
 use Illuminate\Http\Request;
-use App\Battles;
-use App\Combos;
-use App\ComboSets;
-use App\Workouts;
-use App\User;
-use App\Helpers\Push;
-use App\Helpers\PushTypes;
+use App\{Battles, Combos, ComboSets, Workouts, User};
+use App\Helpers\{Push, PushTypes};
 
 class BattleController extends Controller
 {
+
     /**
-     * @api {post} /battles Send battle invite
-     * @apiGroup Battles
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} opponent_user_id Opponent UserId
-     * @apiParam {Number} plan_id Selected combo-id, combo-set-id or workout-id
-     * @apiParam {Number} type_id Type could be from { 3 = Combo, 4 = Combo-Set, 5=Workout }
-     * @apiParamExample {json} Input
-     *    {
-     *      "opponent_user_id": 12,
-     *      "plan_id": 1
-     *      "type_id": 1
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "User invited for battle successfully",
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api POST /battles
+     * 
+     * Send battle invite
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function postBattleWithInvite(Request $request)
     {
 
         $validator = \Validator::make($request->all(), [
-            'opponent_user_id' => 'required',
-            'plan_id' => 'required',
-            'type_id' => 'required',
+            'opponent_user_id' => 'required|integer',
+            'plan_id' => 'required|integer',
+            'type_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
+            
             $errors = $validator->errors();
 
             return response()->json(['error' => 'true', 'message' => $errors]);
         }
 
-        $opponentUserId = (int) $request->get('opponent_user_id');
+        $opponentUserId = $request->get('opponent_user_id');
 
-        $battle = Battles::create([
-                    'user_id' => \Auth::user()->id,
-                    'opponent_user_id' => (int) $opponentUserId,
-                    'plan_id' => (int) $request->get('plan_id'),
-                    'type_id' => (int) $request->get('type_id')
-        ]);
+        try {
 
-        $opponentUser = $battle->opponentUser;
+            $battle = Battles::create([
+                        'user_id' => \Auth::user()->id,
+                        'opponent_user_id' => $opponentUserId,
+                        'plan_id' => $request->get('plan_id'),
+                        'type_id' => $request->get('type_id')
+            ]);
 
-        // Send Push Notification
-        $pushMessage = \Auth::user()->first_name . ' ' . \Auth::user()->last_name . ' has invited you for battle';
+            $opponentUser = $battle->opponentUser;
 
-        // Push::send($opponentUserId, PushTypes::BATTLE_INVITE, $pushMessage, $pushOpponentUser);
-        Push::send(PushTypes::BATTLE_INVITE, $opponentUserId, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
+            // Send Push Notification
+            $pushMessage = \Auth::user()->first_name . ' ' . \Auth::user()->last_name . ' has invited you for battle';
 
-        // Generates new notification for user
-        \App\UserNotifications::generate(\App\UserNotifications::BATTLE_CHALLENGED, $opponentUserId, \Auth::user()->id, $battle->id);
+            // push send
+            Push::send(PushTypes::BATTLE_INVITE, $opponentUserId, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
 
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'User invited for battle successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
-        ]);
+            // Generates new notification for user
+            \App\UserNotifications::generate(\App\UserNotifications::BATTLE_CHALLENGED, $opponentUserId, \Auth::user()->id, $battle->id);
+
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'User invited for battle successfully',
+                        'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            ]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }    
     }
 
     /**
-     * @api {get} /battles/<battle_id> Get battle details
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} battle_id Selected battle's id to get details
-     * @apiParamExample {json} Input
-     *    {
-     *      "battle_id": 1,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Data will contain battle details
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": {
-     *          "id": 8,
-     *          "user_id": 31,
-     *          "opponent_user_id": 7,
-     *          "plan_id": 3,
-     *          "type_id": 3,
-     *          "accepted": 1,
-     *          "accepted_at": "2017-12-07 18:38:55",
-     *          "user_finished": 1,
-     *          "opponent_finished": 1,
-     *          "user_finished_at": "2017-12-07 20:39:41",
-     *          "opponent_finished_at": 2017-12-07 21:30:59,
-     *          "winner_user_id": 31,
-     *          "shared": false,
-     *          "created_at": "2017-10-30 19:01:53",
-     *          "updated_at": "2017-10-30 19:01:53",
-     *          "opponent_user": 
-     *              {
-     *                  "id": 7,
-     *                  "first_name": "Qiang",
-     *                  "last_name": "Hu",
-     *                  "photo_url": null,
-     *                  "points": 2768,
-     *                  "user_following": true,
-     *                  "user_follower": true
-     *              },
-     *          "sender_user_id": 31,
-     *          "battle_result": {
-     *              "winner": {
-     *                  "id": 31,
-     *                  "first_name": "Rick",
-     *                  "last_name": "Buchner",
-     *                  "photo_url": null,
-     *                  "user_following": false,
-     *                  "user_follower": false,
-     *                  "points": 984,
-     *                  "avg_speed": 24,
-     *                  "avg_force": 431,
-     *                  "punches_count": 9
-     *              },
-     *              "looser": {
-     *                  "id": 7,
-     *                  "first_name": "Qiang",
-     *                  "last_name": "Hu",
-     *                  "photo_url": null,
-     *                  "user_following": true,
-     *                  "user_follower": true,
-     *                  "points": 2308,
-     *                  "avg_speed": 21,
-     *                  "avg_force": 354,
-     *                  "punches_count": 9
-     *              }
-     *          }
-     *      }
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET  /battles/<battle_id> 
+     * 
+     * Get battle details
+     * 
+     * @param int $battleId
+     *
+     * @return json
      */
     public function getBattle($battleId)
     {
