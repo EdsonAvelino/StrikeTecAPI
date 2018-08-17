@@ -7,12 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ChatMessages extends Model
 {
 
-    /**
-     * @var string
-     */
-    protected $table = 'chat_messages';
-
-    /**
+   /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -29,5 +24,6 @@ class ChatMessages extends Model
     {
         return $this->belongsTo('App\Chat');
     }
+
 
 }

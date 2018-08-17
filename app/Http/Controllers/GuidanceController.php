@@ -387,16 +387,10 @@ class GuidanceController extends Controller
         }
 
         // Filter by skill-level
-        if ( count($filterIds) && \Auth::user()->hasMembership() ) {
+        if (count($filterIds)) {
             $_planVideos->whereHas($planType, function($query) use($filterIds) {
                 $query->whereHas('tag', function($q) use($filterIds) {
                     $q->whereIn('filter_id', $filterIds);
-                });
-            });
-        } else {
-            $_planVideos->whereHas($planType, function($query) use($filterIds) {
-                $query->whereHas('tag', function($q) use($filterIds) {
-                    $q->where('filter_id', 1); // Beginner only
                 });
             });
         }
@@ -698,34 +692,26 @@ class GuidanceController extends Controller
      * @apiVersion 1.0.0
      */
     public function getEssentialsVideoDetail(Request $request, $id)
-    {
-        try
-        {
+    { 
+        $id = (int) $id;
 
-            $id = (int) $id;
+        $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+            ->where(function($query) {
+                $query->whereNull('type_id')->orWhere('type_id', 0);
+            })->where('id', $id)->first();
 
-            $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
-                ->where(function($query) {
-                    $query->whereNull('type_id')->orWhere('type_id', 0);
-                })->where('id', $id)->first();
-
-            if (!$essentialVideo) {
-                return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
-            }
-
-            $_essentialVideo = $essentialVideo->toArray();
-            $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'type' => $essentialVideo->trainer->type, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
-
-            unset($_essentialVideo['trainer_id']);
-
-            $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
-
-            return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
-        }catch (\Exception $exception)
-        {
-            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
-
+        if (!$essentialVideo) {
+            return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
         }
+        
+        $_essentialVideo = $essentialVideo->toArray();
+        $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'type' => $essentialVideo->trainer->type, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
+
+        unset($_essentialVideo['trainer_id']);
+
+        $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
+
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**

@@ -53,16 +53,6 @@ class PasswordController extends Controller
      */
     public function postEmail(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
-            'email' => 'required|email|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-            return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
-
-        }
-
         $user = User::where('email', $request->get('email'))->first();
 
         if (!$user) {
@@ -136,12 +126,12 @@ class PasswordController extends Controller
         $code = $request->get('code');
 
         $token = $this->jwt->parseToken();
-
+        
         $userId = $token->getClaim('sub');
         $key = $token->getClaim('key');
         
         $object = PasswordResets::where('key', $key)->where('user_id', $userId)->first();
-
+        
         if (!$object || $object->code != $code) {
             return response()->json(['error' => 'true', 'message' => 'Invalid code']);
         } else {
@@ -193,18 +183,18 @@ class PasswordController extends Controller
     {
         // No password pattern
         
-         $validator = Validator::make($request->all(), [
-             'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
-         ]);
+        // $validator = Validator::make($request->all(), [
+        //     'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+        // ]);
 
-         if ($validator->fails()) {
-             $errors = $validator->errors();
+        // if ($validator->fails()) {
+        //     $errors = $validator->errors();
             
-             return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
-         }
+        //     return response()->json(['error' => 'true', 'message' => $errors->first('password')]);
+        // }
 
         $token = $this->jwt->parseToken();
-
+        
         $userId = $token->getClaim('sub');
         $verified = $token->getClaim('verified');
 
@@ -214,7 +204,7 @@ class PasswordController extends Controller
 
             return response()->json(['error' => 'false', 'message' => 'Password successfully set']);
         } else {
-            return response()->json(['error' => 'true', 'message' => 'Bad request'], 400);
+            return response()->json(['error' => 'true', 'message' => 'Bad request'], 400);   
         }
     }
 }

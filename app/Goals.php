@@ -37,33 +37,36 @@ class Goals extends Model
         return ($shared) ? 'true' : 'false';
     }
 
-    // Checks and updates current goal is accomplished
-    public static function checkCurrentGoalAccomplished()
+    public static function getAccomplishedGoal()
     {
-        $goal = self::where('user_id', \Auth::id())->where('awarded', '!=', 1)->where('followed', 1)->first();  
-
+        $goal = self::where('user_id', \Auth::user()->id)
+                        ->where('awarded', '!=', 1)
+                        ->where('followed', 1)->first();
+        $progress = 0;
         if ($goal) {
-            $progress = (int) $goal->done_count * 100 / $goal->target;
-
-            if ($progress >= 100) {
+            $goalData = (int) $goal->done_count * 100 / $goal->target;
+            if ($goalData >= 100) {
+                $progress = 1;
                 $goal->awarded = 1;
-                $goal->followed = null;
                 $goal->save();
-                
-                return true;
             }
         }
 
-        return false;
+        return $progress;
     }
 
-    // Get Current Followed Goal 
-    public static function getCurrentGoalId($userId)
+    // get followed goal 
+    public static function getCurrentGoal($userId)
     {
-        $userId = (int) $userId;
+        $goalId = 0;
+        $goal = self::where('user_id', $userId)
+                ->where('followed', 1)
+                ->first();
 
-        if (!$userId) return 0;
+        if ($goal)
+            $goalId = $goal->id;
 
-        return self::select('id')->where('user_id', $userId)->where('followed', 1)->first()->pluck('id');
+        return (int) $goalId;
     }
+
 }
