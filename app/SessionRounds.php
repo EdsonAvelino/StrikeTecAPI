@@ -61,18 +61,21 @@ class SessionRounds extends Model
         }
     }
 
-    public static function getMostPunchesPerMinuteOfSession($sessionId)
+    public static function getMostPunchesPerMinute($sessionId)
     {
-        $sessionId = (int) $sessionId;
+        $avgCount = 0;
+
+        $getAvgCount = SessionRounds::select(
+                                \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
+                        ->where('start_time', '>', 0)
+                        ->where('end_time', '>', 0)
+                        ->where('session_id', $sessionId)->first();
+
+        if ($getAvgCount->total_time > 0) {
+            $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
+        }
         
-        if (!$sessionId) return 0;
-
-        $result = self::select(
-            \DB::raw('SUM( (end_time - start_time) - pause_duration ) AS duration'),
-            \DB::raw('SUM(punches_count) as punches')
-        )->where('session_id', $sessionId)->first();
-
-        return $result->punches * 1000 * 60 / $result->duration;
+        return $avgCount;
     }
 
 }
