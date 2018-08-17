@@ -242,7 +242,7 @@ class BattleController extends Controller
         $accepted = filter_var($request->get('accept'), FILTER_VALIDATE_BOOLEAN);
 
         try {
-         
+
             $battle = Battles::find($battleId);
 
             if ($battle) {
@@ -282,420 +282,159 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} /battles/cancel/<battle_id> Cancel battle
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} battle_id Selected battle's id to cancel
-     * @apiParamExample {json} Input
-     *    {
-     *      "battle_id": 1,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Battle cancelled successfully",
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET  /battles/cancel/<battle_id> 
+     * 
+     * Cancel battle
+     * 
+     * @param $battleId int
+     *
+     * @return json
      */
     public function cancelBattle($battleId)
     {
-        $battleId = (int) $battleId;
-
-        if (empty($battleId))
-            return null;
-
-        $battle = Battles::find($battleId);
-
-        if ($battle && $battle->user_id == \Auth::user()->id)
-            $battle->delete();
-
-        $user = $battle->user;
-        $opponentUser = $battle->opponentUser;
-
-        // Send Push Notification to opponent-user of battle
-        $pushMessage = $user->first_name . ' ' . $user->last_name . ' has cancelled battle';
-
-        // $pushOpponentUser = User::get(\Auth::user()->id);
-        // Push::send($battle->opponent_user_id, PushTypes::BATTLE_CANCEL, $pushMessage, $pushOpponentUser);
-
-        Push::send(PushTypes::BATTLE_CANCEL, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
-
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'Battle cancelled successfully',
-                    'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+        $validator = \Validator::make(['battle_id' => $battleId], [
+            'battle_id' => 'required|integer'
         ]);
-    }
 
-    /**
-     * @api {get} /battles/combos Get list of available combos
-     * @apiGroup Battles
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of combos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "id": 1,
-     *          "name": "Attack",
-     *          "key_set": "1-2-SR-2-3-2-5-6-3-2",
-     *              "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          "keys": [
-     *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
-     *          ]
-     *      },
-     *      {
-     *          "id": 2,
-     *          "name": "Crafty",
-     *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
-     *          "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          "keys": [
-     *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
-     *          ]
-     *      }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function getCombos()
-    {
-        $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
+        if ($validator->fails()) {
+            
+            $errors = $validator->errors();
 
-        foreach ($combos as $i => $combo) {
-            $keySet = $combo['key_set'];
-
-            $combos[$i]['keys'] = explode('-', $keySet);
-            $combos[$i]['videos'] = \App\Videos::where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
+            return response()->json(['error' => 'true', 'message' => $errors]);
         }
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
+        try {
+
+            $battle = Battles::find($battleId);
+
+            if ($battle && $battle->user_id == \Auth::user()->id)
+                $battle->delete();
+
+            $user = $battle->user;
+
+            $opponentUser = $battle->opponentUser;
+
+            // Send Push Notification to opponent-user of battle
+            $pushMessage = $user->first_name . ' ' . $user->last_name . ' has cancelled battle';
+
+            Push::send(PushTypes::BATTLE_CANCEL, $battle->opponent_user_id, \Auth::user()->id, $pushMessage, ['battle_id' => $battle->id]);
+
+            return response()->json([
+                        'error' => 'false',
+                        'message' => 'Battle cancelled successfully',
+                        'data' => ['battle_id' => $battle->id, 'time' => strtotime($battle->created_at)]
+            ]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }     
     }
 
     /**
-     * @api {get} /battles/combo_sets Get list of combo-sets
-     * @apiGroup Battles
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of combo-sets
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "id": 1,
-     *          "name": "AGGRESSOR",
-     *           "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "combos": [
-     *              "1", "2", "3"
-     *          ],
-     *      },
-     *      {
-     *          "id": 2,
-     *          "name": "DEFENSIVE",
-     *          "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "combos": [
-     *              "1", "4", "5"
-     *          ],
-     *      }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/combos 
+     * 
+     * Get list of available combos
+     *
+     * @return json
      */
+    public function getCombos()
+    {   
+        try {
+
+            $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
+
+            foreach ($combos as $i => $combo) {
+                $keySet = $combo['key_set'];
+
+                $combos[$i]['keys'] = explode('-', $keySet);
+                $combos[$i]['videos'] = \App\Videos::where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
+            }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }    
+    }
+
+    /**
+     * @api GET /battles/combo_sets 
+     * 
+     * Get list of combo-sets
+     * 
+     *
+     * @return json
+     */    
     public function getComboSets()
     {
         $comboSets = [];
-        $_comboSets = ComboSets::select('*', \DB::raw('id as tags'))->get();
 
-        foreach ($_comboSets as $comboSet) {
-            $_comboSet = $comboSet->toArray();
-            $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
+        try {
+            
+            $_comboSets = ComboSets::select('*', \DB::raw('id as tags'))->get();
 
-            $comboSets[] = $_comboSet;
+            foreach ($_comboSets as $comboSet) {
+                $_comboSet = $comboSet->toArray();
+                $_comboSet['combos'] = $comboSet->combos->pluck('combo_id')->toArray();
+
+                $comboSets[] = $_comboSet;
+            }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $comboSets]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
         }
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $comboSets]);
     }
 
     /**
-     * @api {get} /battles/workouts Get list of workouts
-     * @apiGroup Battles
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Workouts
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *          {
-     *              "id": 1,
-     *              "name": "Workout 1",
-     *              "round_count": 1,
-     *              "round_time":5,
-     *              "rest_time":5,
-     *              "prepare_time": 2,
-     *              "warning_time": 1,
-     *              "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *              "combos": [
-     *                  [ 1, 2, 3 ],
-     *                  [ 1, 4, 5 ],
-     *                  [ 2, 3, 1 ],
-     *                  [ 3, 4, 2 ],
-     *                  [ 3, 1, 5 ]
-     *              ]
-     *          },
-     *          {
-     *              "id": 2,
-     *              "name": "Workout 2",
-     *              "round_count": 1,
-     *              "round_time":5,
-     *              "rest_time":5,
-     *              "prepare_time": 2,
-     *              "warning_time": 1,
-     *              "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *              "combos": [
-     *                  [ 1, 5, 3 ],
-     *                  [ 2, 4, 3 ],
-     *                  [ 5, 3, 4 ],
-     *                  [ 1, 4, 2 ],
-     *                  [ 3, 1, 5 ],
-     *                  [ 2, 1, 5 ],
-     *                  [ 3, 2, 5 ],
-     *                  [ 3, 4, 1 ]
-     *              ]
-     *          }
-     *      ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/workouts 
+     * 
+     * Get list of workouts
+     * 
+     *
+     * @return json
      */
     public function getWorkouts()
     {
-        // \DB::enableQueryLog();
 
         $workouts = [];
-        $_workouts = Workouts::select('*', \DB::raw('round_time as round_time'), \DB::raw('rest_time as rest_time'), \DB::raw('prepare_time as prepare_time'), \DB::raw('warning_time as warning_time'), \DB::raw('id as tags'))->get();
 
-        foreach ($_workouts as $workout) {
-            $_workout = $workout->toArray();
-            $combos = [];
+        try {
 
-            foreach ($workout->rounds as $round) {
-                $combos[] = $round->combos->pluck('combo_id')->toArray();
+            $_workouts = Workouts::select('*', \DB::raw('round_time as round_time'), \DB::raw('rest_time as rest_time'), \DB::raw('prepare_time as prepare_time'), \DB::raw('warning_time as warning_time'), \DB::raw('id as tags'))->get();
+
+            foreach ($_workouts as $workout) {
+                $_workout = $workout->toArray();
+                $combos = [];
+
+                foreach ($workout->rounds as $round) {
+                    $combos[] = $round->combos->pluck('combo_id')->toArray();
+                }
+
+                $_workout['combos'] = $combos;
+
+                $workouts[] = $_workout;
             }
 
-            $_workout['combos'] = $combos;
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $workouts]);
 
-            $workouts[] = $_workout;
-        }
+        } catch (\Exception $exception) {
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $workouts]);
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }    
     }
 
     /**
-     * @api {get} /battles/received  Get list of received battles
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data list of received battles
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "battle_id": 12,
-     *          "time": 1509530127,
-     *          "opponent_user": {
-     *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             }
-     *         },
-     *        {
-     *          "battle_id": 2,
-     *          "time": 1509530127,
-     *          "opponent_user": {
-     *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             }
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/received 
+     * 
+     * Get list of received battles
+     * 
+     *
+     * @return json
      */
     public function getReceivedRequests(Request $request)
     {
@@ -704,217 +443,87 @@ class BattleController extends Controller
 
         $userId = \Auth::user()->id;
 
-        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
-                        ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $userId)
-                        ->where(function ($query) {
-                            $query->whereNull('accepted')->orWhere('accepted', 0);
-                        })
-                        ->orderBy('battles.updated_at', 'desc')
-                        ->offset($offset)->limit($limit)->get()->toArray();
-        $data = [];
-        $i = 0;
-        foreach ($battle_requests as $battle_request) {
-            $data[$i]['battle_id'] = $battle_request['battle_id'];
-            $data[$i]['time'] = strtotime($battle_request['time']);
-            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
-            $i++;
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        try {
+
+            $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
+                            ->join('users', 'users.id', '=', 'battles.user_id')
+                            ->where('opponent_user_id', $userId)
+                            ->where(function ($query) {
+                                $query->whereNull('accepted')->orWhere('accepted', 0);
+                            })
+                            ->orderBy('battles.updated_at', 'desc')
+                            ->offset($offset)->limit($limit)->get()->toArray();
+            $data = [];
+            $i = 0;
+            foreach ($battle_requests as $battle_request) {
+                $data[$i]['battle_id'] = $battle_request['battle_id'];
+                $data[$i]['time'] = strtotime($battle_request['time']);
+                $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
+                $i++;
+            }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }     
     }
 
     /**
-     * @api {get} /battles/my_battles  Get list of sent request battles
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data list of sent request battles
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *    {
-     *          "battle_id": 12,
-     *          "time": 1509530127,
-     *          "opponent_user": {
-     *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             }
-     *         },
-     *         {
-     *          "battle_id": 12,
-     *          "time": 1509530127,
-     *          "opponent_user": {
-     *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             }
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/my_battles 
+     * 
+     * Get list of sent request battles
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getMyBattles(Request $request)
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $userId = \Auth::user()->id;
-        $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where(function ($query) use($userId) {
-                            $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
-                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
-                            });
-                        })
-                        ->orWhere(function ($query) use($userId) {
-                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
-                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
-                            });
-                        })
-                        ->orderBy('battles.updated_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
-        $data = [];
-        $i = 0;
-        foreach ($requested_by_opponent as $battle_request) {
-            $data[$i]['battle_id'] = $battle_request['battle_id'];
-            $data[$i]['time'] = strtotime($battle_request['time']);
-            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
-            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
-            $i++;
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
-    }
 
+        try {
+
+            $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                            ->where(function ($query) use($userId) {
+                                $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
+                                    $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                                });
+                            })
+                            ->orWhere(function ($query) use($userId) {
+                                $query->where('user_id', $userId)->where(function ($query1) use($userId) {
+                                    $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                                });
+                            })
+                            ->orderBy('battles.updated_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+            $data = [];
+            $i = 0;
+            foreach ($requested_by_opponent as $battle_request) {
+                $data[$i]['battle_id'] = $battle_request['battle_id'];
+                $data[$i]['time'] = strtotime($battle_request['time']);
+                $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+                $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
+                $i++;
+            }
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }     
+    }
+ 
     /**
-     * @api {get} /battles/finished  Get list of finished battles 
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParam {Number="0 = All", "7 = Last 7 Days", "30 = Last 30 Days",  "60 = Last 30 Days", "90 = Last 90 Days"} [days] Filter records by days interval
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50,
-     *      "days": 7
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data list of finished battles 
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "battle_id": 4,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Anna",
-     *                 "last_name": "Mull",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Paige",
-     *                 "last_name": "Turner",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      },
-     *      {
-     *          "battle_id": 6,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Petey",
-     *                 "last_name": "Cruiser",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Bob",
-     *                 "last_name": "Frapples",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      }
-     *  ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/finished 
+     * 
+     * Get list of finished battles 
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getAllFinishedBattles(Request $request)
     {
@@ -923,303 +532,136 @@ class BattleController extends Controller
 
         $days = (int) ($request->get('days') ? $request->get('days') : null);
 
-        $userId = \Auth::user()->id;
-        $data = Battles::getFinishedBattles($userId, $days, $offset, $limit);
+        try {
+            
+            $userId = \Auth::user()->id;
+            $data = Battles::getFinishedBattles($userId, $days, $offset, $limit);
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $data['finished']]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }     
     }
 
     /**
-     * @api {get} /battles/all  Get list of all battles 
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data list of all battles
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": {
-     *          "received": [
-     *                     {
-     *                         "battle_id": 7,
-     *                         "opponent_user": {
-     *                             "id": 1,
-     *                             "first_name": "Mario",
-     *                             "last_name": "Toad",
-     *                             "photo_url": null,
-     *                             "points": 2768,
-     *                             "user_following": true,
-     *                             "user_follower": false
-     *                         }
-     *                     },
-     *                     {
-     *                         "battle_id": 6,
-     *                         "opponent_user": {
-     *                             "id": 1,
-     *                             "first_name": "Michal",
-     *                             "last_name": "Latour",
-     *                             "photo_url": null,
-     *                             "points": 2768,
-     *                             "user_following": true,
-     *                             "user_follower": false
-     *                         }
-     *                     }
-     *                 ],
-     *                 "my_battles": [
-     *                     {
-     *                         "battle_id": 32,
-     *                         "opponent_user": {
-     *                             "id": 1,
-     *                             "first_name": "Phillip",
-     *                             "last_name": "Newberry",
-     *                             "photo_url": null,
-     *                             "points": 2768,
-     *                             "user_following": true,
-     *                             "user_follower": false
-     *                         }
-     *                     },
-     *                   ],
-     * "finished": [
-     *      {
-     *          "battle_id": 4,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Shon",
-     *                 "last_name": "Hunsicker",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Jody",
-     *                 "last_name": "Bridger",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      },
-     *      {
-     *          "battle_id": 6,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Johnty",
-     *                 "last_name": "Roads",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Fritz",
-     *                 "last_name": "Ellis",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      }
-     *     ]
-     *   }
-     * }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/all 
+     * 
+     * Get list of all battles 
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getAllBattles(Request $request)
     {
         $useBattleData = array();
         $userId = \Auth::user()->id;
 
-        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
-                        ->join('users', 'users.id', '=', 'battles.user_id')
-                        ->where('opponent_user_id', $userId)
-                        ->where(function ($query) {
-                            $query->whereNull('accepted')->orWhere('accepted', 0);
-                        })
-                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();
-        $data = [];
-        $i = 0;
-        foreach ($battle_requests as $battle_request) {
-            $data[$i]['battle_id'] = $battle_request['battle_id'];
-            $data[$i]['time'] = strtotime($battle_request['time']);
-            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
-            $i++;
-        }
-        $useBattleData['received'] = $data;
+        try {
 
-        $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
-                        ->where(function ($query) use($userId) {
-                            $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
-                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
-                            });
-                        })
-                        ->orWhere(function ($query) use($userId) {
-                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
-                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
-                            });
-                        })
-                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();
-        $my_battle_data = [];
-        $j = 0;
-        foreach ($requested_by_opponent as $battle_request) {
-            $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
-            $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
-            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
-            $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
-            $j++;
-        }
-        $useBattleData['my_battles'] = $my_battle_data;
-        $finished = Battles::getFinishedBattles($userId);
-        $useBattleData['finished'] = $finished['finished'];
+            $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
+                            ->join('users', 'users.id', '=', 'battles.user_id')
+                            ->where('opponent_user_id', $userId)
+                            ->where(function ($query) {
+                                $query->whereNull('accepted')->orWhere('accepted', 0);
+                            })
+                            ->orderBy('battles.updated_at', 'desc')->get()->toArray();
+            $data = [];
+            $i = 0;
+            foreach ($battle_requests as $battle_request) {
+                $data[$i]['battle_id'] = $battle_request['battle_id'];
+                $data[$i]['time'] = strtotime($battle_request['time']);
+                $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
+                $i++;
+            }
+            $useBattleData['received'] = $data;
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
+            $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                            ->where(function ($query) use($userId) {
+                                $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
+                                    $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                                });
+                            })
+                            ->orWhere(function ($query) use($userId) {
+                                $query->where('user_id', $userId)->where(function ($query1) use($userId) {
+                                    $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                                });
+                            })
+                            ->orderBy('battles.updated_at', 'desc')->get()->toArray();
+            $my_battle_data = [];
+            $j = 0;
+            foreach ($requested_by_opponent as $battle_request) {
+                $my_battle_data[$j]['battle_id'] = $battle_request['battle_id'];
+                $my_battle_data[$j]['time'] = strtotime($battle_request['time']);
+                $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+                $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
+                $j++;
+            }
+            $useBattleData['my_battles'] = $my_battle_data;
+            $finished = Battles::getFinishedBattles($userId);
+            $useBattleData['finished'] = $finished['finished'];
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }   
     }
 
     /**
-     * @api {post} /combos/audio Set audio in combos
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *         "Content-Type": "multipart/form-data"
-     *         "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} combo_id Combo id
-     * @apiParam {file} audio_file recorded audio file need to be saved
-     * @apiParamExample {json} Input
-     *    {
-     *      "combo_id": 1,
-     *      "audio_file": abc.mp3
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} Data list of combos with audio
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *  {
-     *     "error": "false",
-     *     "message": "Audio uploaded successfully!",
-     *      "data": {
-     *          "id": 2,
-     *          "name": "Crafty",
-     *          "user_id": 7,
-     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
-     *      }
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /combos/audio  
+     * 
+     * Set audio in combos
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function saveAudio(Request $request)
     {
-        $userId = \Auth::user()->id;
-        $comboId = $request->combo_id;
-        $combo = Combos::findOrFail($comboId);
-        $image = $combo->audio;
-        $file = $request->file('audio_file');
-        if ($image != "") {
-            $url = url() . '/storage';
-            $pathToFile = str_replace($url, storage_path(), $image);
-            if (file_exists($pathToFile)) {
-                unlink($pathToFile); //delete earlier audio
+        try {
+
+            $userId = \Auth::user()->id;
+            $comboId = $request->combo_id;
+            $combo = Combos::findOrFail($comboId);
+            $image = $combo->audio;
+            $file = $request->file('audio_file');
+            if ($image != "") {
+                $url = url() . '/storage';
+                $pathToFile = str_replace($url, storage_path(), $image);
+                if (file_exists($pathToFile)) {
+                    unlink($pathToFile); //delete earlier audio
+                }
             }
-        }
-        $dest = 'storage/comboAudio';
-        if ($request->hasFile('audio_file')) {
-            $imgOrgName = $file->getClientOriginalName();
-            $nameWithoutExt = pathinfo($imgOrgName, PATHINFO_FILENAME);
-            $ext = pathinfo($imgOrgName, PATHINFO_EXTENSION);
-            $imgOrgName = $nameWithoutExt . '-' . time() . '.' . $ext;  //make audio name unique
-            $file->move($dest, $imgOrgName);
-            $gif_path = url() . '/' . $dest . '/' . $imgOrgName; // path to be inserted in table
-            $combo->audio = $gif_path;
-            $combo->user_id = $userId;
-            $combo->save();
-        }
-        return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!', 'data' => $combo]);
+            $dest = 'storage/comboAudio';
+            if ($request->hasFile('audio_file')) {
+                $imgOrgName = $file->getClientOriginalName();
+                $nameWithoutExt = pathinfo($imgOrgName, PATHINFO_FILENAME);
+                $ext = pathinfo($imgOrgName, PATHINFO_EXTENSION);
+                $imgOrgName = $nameWithoutExt . '-' . time() . '.' . $ext;  //make audio name unique
+                $file->move($dest, $imgOrgName);
+                $gif_path = url() . '/' . $dest . '/' . $imgOrgName; // path to be inserted in table
+                $combo->audio = $gif_path;
+                $combo->user_id = $userId;
+                $combo->save();
+            }
+            return response()->json(['error' => 'false', 'message' => 'Audio uploaded successfully!', 'data' => $combo]);
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }     
     }
 
     /**
-     * @api {get} /battles/combos/audio Get list of available combos with audio
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of combos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "id": 1,
-     *          "name": "Attack",
-     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
-     *      },
-     *      {
-     *          "id": 2,
-     *          "name": "Crafty",
-     *          "audio": "http://striketec.dev/storage/comboAudio/SampleAudi-1510313064.mp3"
-     *      }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/combos/audio 
+     * 
+     * Get list of available combos with audio
+     * 
+     *
+     * @return json
      */
     public function getCombosAudio()
     {
@@ -1229,107 +671,13 @@ class BattleController extends Controller
     }
 
     /**
-     * @api {get} /battles/user/finished  Get list of finished battles by user
-     * @apiGroup Battles
-     * @apiHeader {String} Authorization Authorization Token
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} user_id User id 
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "user_id": 20,
-     *      "start": 20,
-     *      "limit": 50
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data list of finished battles 
-     * @apiSuccessExample {json} Success
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "battle_id": 4,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Dalton",
-     *                 "last_name": "Stilwell",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Emmitt",
-     *                 "last_name": "Hamblin",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      },
-     *      {
-     *          "battle_id": 6,
-     *          "shared": false,
-     *          "winner": {
-     *                 "id": 33,
-     *                 "first_name": "Jospeh",
-     *                 "last_name": "Engels",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          },
-     *          "loser": {
-     *                 "id": 33,
-     *                 "first_name": "Carl",
-     *                 "last_name": "Cuomo",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false,
-     *                 "avg_speed": 23,
-     *                 "avg_force": 340,
-     *                 "max_speed": 33,
-     *                 "max_force": 483,
-     *                 "best_time": "0.50",
-     *                 "punches_count": 10
-     *          }
-     *      }
-     *  ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /battles/user/finished 
+     * 
+     * Get list of finished battles by user
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getUsersFinishedBattles(Request $request)
     {
