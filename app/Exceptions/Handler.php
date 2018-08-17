@@ -50,7 +50,7 @@ class Handler extends ExceptionHandler
             // return parent::render($request, $e);
             return response(view('error', ['request' => $request, 'exception' => $e]), 500);
         }
-
+        
         if ($e instanceof NotFoundHttpException) {
             return response(['error' => 'true', 'message' => 'Nothing was found matching the request method'], 404);
         } else {

@@ -15,6 +15,8 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 $app->group(['prefix' => 'api/v1'], function () use ($app) {
+
+
     // Check for app update
     $app->post('/check_update', 'AppController@checkForUpdate');
 
@@ -37,13 +39,13 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
     $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
 
-// Countries / States / Cities
-$app->get('/countries[/{phase}]', 'WorldController@getCountries');
-$app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
-$app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
+    // Countries / States / Cities
+    // $app->get('/countries[/{phase}]', 'WorldController@getCountries');
+    // $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
+    // $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
-// Subscription plans
-// $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+    // Subscription plans
+    // $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 
 
@@ -110,47 +112,48 @@ $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
         // Get rounds by Training-Type
         $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
-// Training APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Save training (sensor) data
-    $app->post('/user/training/data', 'TrainingController@storeData');
+        // Training APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            
+            // Save training (sensor) data
+            $app->post('/user/training/data', 'TrainingController@storeData');
 
-    // Get rounds by Training-Type
-    $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
-
-
-        // Training sessions list
-        $app->get('/user/training/sessions', 'TrainingController@getSessions');
-
-        // Get particular session
-        $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
-
-        // Save Training sessions
-        $app->post('/user/training/sessions', 'TrainingController@storeSessions');
-
-        // Archive Traning session
-        $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
-
-        // Get round and its punches
-        $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
-
-        // Save Training sessions' rounds data to db
-        $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
-
-        // Save Training sessions' rounds' punches data to db
-        $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
-
-        //get Tips data
-        $app->get('/tips', 'TrainingController@tips');
-
-    // Get Tips data
-    $app->get('/tips', 'TrainingController@tips');
-
-    // Get Achievement List
-    $app->get('/achievements', 'AchievementController@getAchievementList');
-});
+            // Get rounds by Training-Type
+            $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
 
+                // Training sessions list
+                $app->get('/user/training/sessions', 'TrainingController@getSessions');
+
+                // Get particular session
+                $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
+
+                // Save Training sessions
+                $app->post('/user/training/sessions', 'TrainingController@storeSessions');
+
+                // Archive Traning session
+                $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
+
+                // Get round and its punches
+                $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
+
+                // Save Training sessions' rounds data to db
+                $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
+
+                // Save Training sessions' rounds' punches data to db
+                $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
+
+                //get Tips data
+                $app->get('/tips', 'TrainingController@tips');
+
+            // Get Tips data
+            $app->get('/tips', 'TrainingController@tips');
+
+            // Get Achievement List
+            $app->get('/achievements', 'AchievementController@getAchievementList');
+        });
+
+        
         // Get list of videos available on server
         $app->get('/videos/search', 'VideoController@searchVideos');
 
@@ -300,25 +303,25 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
     // Contact Us(write us)
     $app->post('/writeus', 'WriteusController@writeUs');
 
-    // Chat APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
+        // Chat APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-        // Send message
-        $app->post('/chat/send', 'ChatController@sendMessage');
+            // Send message
+            $app->post('/chat/send', 'ChatController@sendMessage');
 
-        // Read message
-        $app->post('/chat/read', 'ChatController@ReadMessage');
+            // Read message
+            $app->post('/chat/read', 'ChatController@ReadMessage');
 
-        // Chat History (get all messages of particular chat )
-        $app->get('/chat/history', 'ChatController@chatHistory');
+            // Chat History (get all messages of particular chat )
+            $app->get('/chat/history', 'ChatController@chatHistory');
 
 
-    // Get all chats
-    $app->get('/chat', 'ChatController@chats');
+        // Get all chats
+        $app->get('/chat', 'ChatController@chats');
 
-    // Delete a message
-    $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
-});
+        // Delete a message
+        $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
+    });
 
 
     // Tournaments APIs

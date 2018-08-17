@@ -10,67 +10,15 @@ use App\VideoCategory;
 
 class VideoController extends Controller
 {
+
     /**
-     * @api {get} /videos Get videos by category
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials 
-     * @apiParam {String} [filter_id] Filter Ids separated by comma e.g. 1,2,3 or just 1
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "category_id": 1,
-     *      "filter_id": 1,
-     *      "start": 0,
-     *      "limit": 10
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "videos": [
-     *          {
-     *              "id": 1,
-     *              "title": "Sample Video",
-     *              "file": "http://example.com/videos/SampleVideo.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo.png",
-     *              "views": 250,
-     *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02",
-     *              "user_favourited": true,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          {
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "http://example.com/videos/video_ScMzIvxBSi4.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "views": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /videos 
+     * 
+     * Get videos by category
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getVideos(Request $request)
     {
