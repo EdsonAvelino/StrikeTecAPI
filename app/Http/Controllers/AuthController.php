@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Client;
 use Validator;
 use App\User;
 use Illuminate\Http\Request;
@@ -138,6 +139,9 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
         } catch (JWTException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
         }
 
         $_user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id());
@@ -273,7 +277,7 @@ class AuthController extends Controller
      */
     public function authenticateFacebook(Request $request)
     {
-        $user = User::where('facebook_id', $request->get('facebook_id'))->first();
+        $user = Client::where('facebook_id', $request->get('facebook_id'))->first();
 
         if (!$user) {
             return response()->json(['error' => 'true', 'message' => 'Invalid request or user not found']);
@@ -291,6 +295,9 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Invalid token'], $e->getStatusCode());
         } catch (JWTException $e) {
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
         }
 
         $user = User::with(['preferences', 'country', 'state', 'city'])->find(\Auth::id())->toArray();

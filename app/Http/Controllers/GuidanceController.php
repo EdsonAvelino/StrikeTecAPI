@@ -698,26 +698,34 @@ class GuidanceController extends Controller
      * @apiVersion 1.0.0
      */
     public function getEssentialsVideoDetail(Request $request, $id)
-    { 
-        $id = (int) $id;
+    {
+        try
+        {
 
-        $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
-            ->where(function($query) {
-                $query->whereNull('type_id')->orWhere('type_id', 0);
-            })->where('id', $id)->first();
+            $id = (int) $id;
 
-        if (!$essentialVideo) {
-            return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
+            $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
+                ->where(function($query) {
+                    $query->whereNull('type_id')->orWhere('type_id', 0);
+                })->where('id', $id)->first();
+
+            if (!$essentialVideo) {
+                return response()->json(['error' => 'true', 'message' => 'Invalid request or video not found']);
+            }
+
+            $_essentialVideo = $essentialVideo->toArray();
+            $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'type' => $essentialVideo->trainer->type, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
+
+            unset($_essentialVideo['trainer_id']);
+
+            $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+
         }
-        
-        $_essentialVideo = $essentialVideo->toArray();
-        $_essentialVideo['trainer'] = ['id' => $essentialVideo->trainer->id, 'type' => $essentialVideo->trainer->type, 'first_name' => $essentialVideo->trainer->first_name, 'last_name' => $essentialVideo->trainer->last_name];
-
-        unset($_essentialVideo['trainer_id']);
-
-        $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
 
     /**

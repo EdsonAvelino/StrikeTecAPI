@@ -8,57 +8,28 @@ use App\ChatMessages;
 use App\User;
 use App\Helpers\Push;
 use App\Helpers\PushTypes;
+use Auth;
 
 class ChatController extends Controller
 {
 
     /**
-     * @api {post} /chat/send Send new message
-     * @apiGroup Chat
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} user_id connection user id
-     * @apiParam {String} message message to send user 
-     * @apiParamExample {json} Input
-     *    {
-     *      "user_id": 1,
-     *      "message": 'test message'
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": {
-     *           "message_id": 47,
-     *           "sender_id": 7,
-     *           "message": "this is the test message 5",
-     *           "read": false,
-     *           "send_time": 1510569372
-     *      }
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api POST /chat/send
+     * 
+     * Send new message
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function sendMessage(Request $request)
     {
-        $senderId = \Auth::user()->id;
-        $userId = $request->user_id;
-        $message = $request->message;
 
-        $chatId = $this->getChatid($userId);
+        $validator = \Validator::make($request->all(), [
+            'user_id' => 'required',
+            'message' => 'required|min:2',
+        ]);
+
 
         $chatMessageId = ChatMessages::create([
                     'user_id' => $senderId,
@@ -76,71 +47,76 @@ class ChatController extends Controller
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-        $senderUser = User::get($senderId);
 
-        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
+            $chatId = ChatMessages::create([
+                        'user_id' => $senderId,
+                        'read_flag' => false,
+                        'message' => $message,
+                        'chat_id' => $chatId
+                    ])->id;
 
-        Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
-
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $chatResponse]);
-    }
-
-    /**
-     * @api {post} /chat/read Read messages
-     * @apiGroup Chat
-     * @apiHeader {String} Content-Type application/x-www-form-urlencoded
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Content-Type": "application/x-www-form-urlencoded",
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} message_id Message ID
-     * @apiParamExample {json} Input
-     *    {
-     *      "message_id": 20,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Read.",
-     *      "data": {
-     *           "message_id": "6"
-     *        }
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function readMessage(Request $request)
-    {
-        $messageId = $request->message_id;
-        $userId = \Auth::user()->id;
-
-        $chatMessage = ChatMessages::where('id', $messageId)->where('user_id', '!=', $userId)->first();
-        $chatMessage->update(['read_flag' => 1]);
-
-        if ($chatMessage->user_id != \Auth::user()->id) {
-
-            $pushMessage = 'Read message';
-
-            $chatResponse = ChatMessages::where('id', $messageId)
-                            ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first();
+            $chatResponse = ChatMessages::where('id', $chatId)
+                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                    ->first();
 
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->send_time = strtotime($chatResponse->send_time);
 
-            Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+            $senderUser = User::get($senderId);
+
+            $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
+
+            Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $chatResponse]);
+            
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+        }    
+    }
+    
+    /**
+     * @api POST /chat/read 
+     * 
+     * Read messages
+     * 
+     * @param Request $request
+     *
+     * @return json
+     */
+    public function readMessage(Request $request)
+    {
+        $messageId = $request->message_id;
+        $userId = Auth::user()->id;
+
+        $chatMessage = ChatMessages::where('id', $messageId)->where('user_id', '!=', $userId)->first();
+
+        if ($chatMessage)
+        {
+
+            $chatMessage->update(['read_flag' => 1]);
+
+            if ($chatMessage->user_id != \Auth::user()->id) {
+
+                $pushMessage = 'Read message';
+
+                $chatResponse = ChatMessages::where('id', $messageId)
+                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first();
+
+                $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+                $chatResponse->send_time = strtotime($chatResponse->send_time);
+
+                Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+            }
+
+            return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $messageId]]);
+
+        }else{
+
+            return response()->json(['error' => 'true', 'message' => "Message not found"]);
         }
 
-        return response()->json(['error' => 'false', 'message' => "Read.", 'data' => ['message_id' => $messageId]]);
     }
 
     /**
@@ -246,10 +222,14 @@ class ChatController extends Controller
      */
     public function chatHistory(Request $request)
     {
+
         $offsetMessageIid = (int) ($request->get('message_id') ? $request->get('message_id') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+
         $connectionId = (int) $request->get('user_id');
+        
         $chatId = $this->getChatid($connectionId);
+        
         $chatDetail = ChatMessages::select('chat_messages.id as message_id', 'user_id as sender_id', 'read_flag as read', 'chat_id', 'message', 'chat_messages.created_at as send_time')
                         ->join('users', 'users.id', '=', 'chat_messages.user_id')->where('chat_id', $chatId)
                         ->where(function($query) use ($offsetMessageIid) {
@@ -268,72 +248,22 @@ class ChatController extends Controller
                 'message' => $chatDetails['message'],
                 'send_time' => strtotime($chatDetails['send_time'])];
         }
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
     }
 
     /**
-     * @api {get} /chat Get all the chats 
-     * @apiGroup Chat
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *             "opponent_user": {
-     *                 "id": 12,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 3026,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             },
-     *             "msg_time": "1510569372",
-     *             "lst_msg": "yeshghgg",
-     *             "unread_msg_count": 0
-     *         },
-     *         {
-     *             "opponent_user": {
-     *                 "id": 33,
-     *                 "first_name": "Anchal",
-     *                 "last_name": "Gupta",
-     *                 "photo_url": null,
-     *                 "points": 0,
-     *                 "user_following": false,
-     *                 "user_follower": false
-     *             },
-     *             "msg_time": "1510569372",
-     *             "lst_msg": "yeshghgg",
-     *             "unread_msg_count": 3
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /chat 
+     * 
+     * Get all the chats 
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function chats(Request $request)
     {
+
         $userId = \Auth::user()->id;
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
@@ -354,8 +284,16 @@ class ChatController extends Controller
                         ->where('user_id', '!=', $userId)
                         ->count('message');
                 $chatCount++;
+
             }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
+
+        } catch (\Exception $exception) {
+
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
         }
+
 
         usort($chat, function ($a, $b) {
             if ($a['msg_time'] == $b['msg_time']) {
@@ -365,11 +303,15 @@ class ChatController extends Controller
         });
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
+
     }
+
 
     public function getChatid($connectionId)
     {
         $userId = \Auth::user()->id;
+
+
         $existingChatId = Chat::select('id')
                         ->where(function ($query) use ($userId, $connectionId) {
                             $query->where('user_one', $userId)->where('user_two', $connectionId);
@@ -382,6 +324,7 @@ class ChatController extends Controller
         if (!empty($existingChatId->id)) {
             return $existingChatId->id;
         }
+
         return Chat::create([
                     'user_one' => $userId,
                     'user_two' => $connectionId,
