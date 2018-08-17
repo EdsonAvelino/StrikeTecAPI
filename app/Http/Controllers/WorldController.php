@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Cities;
+use App\Countries;
+use App\States;
+
 class WorldController extends Controller
 {
     /**
-     * @api {get} /countries Get countries
+     * @api {get} /countries/<phase> Get countries
      * @apiGroup World
+     * @apiParam {Number} phase List all countries belonging to the phase passed as parameter. Also includes countries with lower phases. If not phase is provided, all countries are returned
+     * @apiParamExample {json} Input
+     *    {
+     *      "phase": 1,
+     *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
      * @apiSuccess {Object} data List of countries
@@ -62,9 +71,20 @@ class WorldController extends Controller
      *      }
      * @apiVersion 1.0.0
      */
-    public function getCountries()
+    public function getCountries($phase = null)
     {
-        $countries = \App\Countries::get();
+
+        if ($phase) {
+            $phase = (int) $phase;
+            $countries = \App\Countries::where('phase', '<=', $phase)->get();
+        } else {
+            $countries = \App\Countries::get();
+        }
+
+        foreach ($countries as $country) {
+            unset($country->phase);
+        }
+
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
     }
@@ -123,7 +143,7 @@ class WorldController extends Controller
      */
     public function getStatesByCountry($countryId)
     {
-        $states = \App\States::where('country_id', $countryId)->get();
+        $states = States::where('country_id', $countryId)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $states->toArray()]);
     }
@@ -182,7 +202,7 @@ class WorldController extends Controller
      */
     public function getCitiesByState($stateId)
     {
-        $cities = \App\Cities::where('state_id', $stateId)->get();
+        $cities = Cities::where('state_id', $stateId)->get();
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $cities->toArray()]);
     }

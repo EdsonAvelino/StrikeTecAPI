@@ -56,6 +56,20 @@ class GoalController extends Controller
     public function newGoal(Request $request)
     {
 
+        $validator = \Validator::make($request->all(), [
+            'activity_id' => 'required',
+            'activity_type_id' => 'required',
+            'target' => 'required',
+            'start_date' => 'required',
+            'end_date' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+
+        }
+
         $userId = \Auth::user()->id;
         $startAt = ($request->start_date) ? $request->start_date : null;
         $endAt = ($request->end_date) ? $request->end_date : null;
@@ -135,6 +149,21 @@ class GoalController extends Controller
      */
     public function updateGoal(Request $request)
     {
+        $validator = \Validator::make($request->all(), [
+            'activity_id' => 'required',
+            'activity_type_id' => 'required',
+            'target' => 'required',
+            'start_date' => 'required',
+            'end_date' => 'required',
+            'goal_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+
+        }
+
         $userId = \Auth::user()->id;
         $goalId = $request->goal_id;
         $goal = Goals::find($goalId);
@@ -314,28 +343,45 @@ class GoalController extends Controller
      */
     public function followGoal(Request $request)
     {
-        $goalId = $request->goal_id;
-        $follow = filter_var($request->get('follow'), FILTER_VALIDATE_BOOLEAN);
-        $userId = \Auth::user()->id;
-        $goal = Goals::where('id', $goalId)->where('user_id', $userId)->get()->first();
-        $endDate = $goal->end_at;
-        $today = date("Y-m-d");
 
-        Goals::where('id', $goalId)
-                ->where('user_id', $userId)
-                ->update(['followed' => $follow, 'followed_at' => date("Y-m-d H:i:s")]);
+        try
+        {
+            $goalId = $request->goal_id;
+            $follow = filter_var($request->get('follow'), FILTER_VALIDATE_BOOLEAN);
+            $userId = \Auth::user()->id;
+            $goal = Goals::where('id', $goalId)->where('user_id', $userId)->first();
+            if ($goal)
+            {
 
-        if ($follow == TRUE) {
-            if ($today >= $endDate) {
-                return response()->json(['error' => 'true', 'message' => 'You can not follow this goal,it has been expired.']);
+                $endDate = $goal->end_at;
+                $today = date("Y-m-d");
+
+                Goals::where('id', $goalId)
+                    ->where('user_id', $userId)
+                    ->update(['followed' => $follow, 'followed_at' => date("Y-m-d H:i:s")]);
+
+                if ($follow == TRUE) {
+                    if ($today >= $endDate) {
+                        return response()->json(['error' => 'true', 'message' => 'You can not follow this goal,it has been expired.']);
+                    }
+
+                    Goals::where('user_id', $userId)->where('id', '!=', $goalId)->where('followed', 1)->update([ 'followed' => 0]);
+
+                    return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goalId]]);
+                } else {
+                    return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goalId]]);
+                }
+            }else{
+                return response()->json(['error' => 'true', 'message' => 'Goal not found']);
+
             }
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
 
-            Goals::where('user_id', $userId)->where('id', '!=', $goalId)->where('followed', 1)->update([ 'followed' => 0]);
-
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been followed.', 'data' => ['goal_id' => $goalId]]);
-        } else {
-            return response()->json(['error' => 'false', 'message' => 'Your goal has been unfollowed.', 'data' => ['goal_id' => $goalId]]);
         }
+
+
     }
 
     /**

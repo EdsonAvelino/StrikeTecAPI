@@ -118,6 +118,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return $this->hasMany('App\Sessions', 'user_id');
     }
 
+    public function membership()
+    {
+        return $this->belongsTo('\App\MembershipPlans', 'membership_plan_id');
+    }
+
     public static function boot()
     {
         parent::boot();
@@ -126,6 +131,10 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
             if ($fbId = $model->facebook_id) {
                 $model->photo_url = "http://graph.facebook.com/$fbId/picture?type=large";
             }
+
+            // When user sign up, give one month limited membership to new user
+            $model->membership_plan_id = \App\MembershipPlans::PLAN_LIMITED_1_MONTH;
+            $model->membership_plan_assigned_at = $model->freshTimestamp();
         });
 
         static::created(function ($user) {
@@ -136,7 +145,8 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
                 'badge_notification' => true,
-                'show_tutorial' => true
+                'show_tutorial' => true,
+                'unit' => UserPreferences::UNIT_ENGLISH
             ]);
 
             Settings::create([
@@ -293,5 +303,24 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         }
 
         return $data;
+    }
+
+    public function hasMembership()
+    {
+        $membershipPlanId = (int) $this->membership_plan_id;
+
+        // Membership plan details
+        $membershipPlan = $this->membership;
+        
+        // When user is not having any membership
+        if (!$membershipPlan) return false;
+
+        $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($this->membership_plan_assigned_at));
+
+        $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
+
+        $now = \Carbon\Carbon::now();
+
+        return (bool) ($membershipPlanId && $now->lte($effectiveDate));
     }
 }

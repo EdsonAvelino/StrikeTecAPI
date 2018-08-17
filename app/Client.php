@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
-class User extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
+class Client extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
 {
 
     use Authenticatable,
@@ -55,6 +55,8 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'state_id',
         'city_id'
     ];
+
+    protected $table = 'users';
 
     /**
      * @return mixed

@@ -14,6 +14,7 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
 use App\UserNotifications;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -81,6 +82,8 @@ class UserController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
+     *          "login_count": 0,
+     *          "has_sensors": 0,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -134,7 +137,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'login_count' => 0,
+            'has_sensors' => 0
         ]);
 
         try {
@@ -153,6 +158,25 @@ class UserController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+
+
+        //Create a connection with Wes
+        $wesUserId = User::where('email', 'wes@efdsports.com')->first()->id;
+
+        UserConnections::create([
+            'user_id' => $wesUserId,
+            'follow_user_id' => $user['id']
+        ]);
+
+        UserConnections::create([
+            'user_id' => $user['id'],
+            'follow_user_id' => $wesUserId
+        ]);
+
+        // Generates new notification for user
+        UserNotifications::generate(UserNotifications::FOLLOW, $user['id'], $wesUserId);
+        UserNotifications::generate(UserNotifications::FOLLOW, $wesUserId, $user['id']);
+
 
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
     }
@@ -206,6 +230,8 @@ class UserController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
+     *          "login_count": 0,
+     *          "has_sensors": 0,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -261,7 +287,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'login_count' => 0,
+            'has_sensors' => 0
         ]);
 
         try {
@@ -281,6 +309,25 @@ class UserController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+
+
+        //Create a connection with Wes
+        $wesUserId = User::where('email', 'wes@efdsports.com')->first()->id;
+
+        UserConnections::create([
+            'user_id' => $wesUserId,
+            'follow_user_id' => $user['id']
+        ]);
+
+        UserConnections::create([
+            'user_id' => $user['id'],
+            'follow_user_id' => $wesUserId
+        ]);
+
+        // Generates new notification for user
+        UserNotifications::generate(UserNotifications::FOLLOW, $user['id'], $wesUserId);
+        UserNotifications::generate(UserNotifications::FOLLOW, $wesUserId, $user['id']);
+
 
         return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => $user]);
     }
@@ -307,9 +354,12 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_tip] Show tips true / false
      * @apiParam {String} [skill_level] Skill level of user
      * @apiParam {String} [photo_url] User profile photo-url
+     * @apiParam {Number} [login_count] Number of times it is login
+     * @apiParam {Boolean} [has_sensors] Has sensors true / false
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
+     * @apiParam {Number="1=Metric","0/empty=English"} [unit] Unit for weight & height scale 
 
      * @apiParamExample {json} Input
      *    {
@@ -370,6 +420,8 @@ class UserController extends Controller
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
+            $user->login_count = $request->get('login_count') ?? $user->login_count;
+            $user->has_sensors = $request->get('has_sensors') ?? $user->has_sensors;
 
             $user->city_id = $request->get('city_id') ?? $user->city_id;
             $user->state_id = $request->get('state_id') ?? $user->state_id;
@@ -377,9 +429,17 @@ class UserController extends Controller
 
             $user->save();
 
+            if( null !== $request->get('unit') ) {
+                $userPreferences = $user->preferences;
+
+                $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+                $userPreferences->unit = $request->get('unit');
+                $userPreferences->save();
+            }
+
             return response()->json([
-                        'error' => 'false',
-                        'message' => 'User details have been updated successfully'
+                'error' => 'false',
+                'message' => 'User details have been updated successfully'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -473,6 +533,7 @@ class UserController extends Controller
             $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
             
             $user->is_spectator = 0;
+            $user->has_sensors = 1;
 
             $user->save();
 
@@ -992,6 +1053,11 @@ class UserController extends Controller
      *             "avg_speed": 438,
      *             "avg_force": 7992,
      *             "punches_count": 5854,
+     *             "has_membership": true,
+     *             "membership": {
+     *                  "is_limited": true,
+     *                  "membership_days_left": 26
+     *             }, 
      *             "avg_count": 6,
      *             "lose_counts": 1,
      *             "win_counts": 2,
@@ -1091,16 +1157,16 @@ class UserController extends Controller
     public function getUser($userId)
     {
         $userId = (int) $userId;
-        
-        $userData = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
-
+    
         // Validation
-        if (!$userId || !$userData) {
+        if ( !$userId || !(User::where('id', $userId)->exists()) ) {
             return response()->json([
                 'error' => 'false',
                 'message' => 'Invalid request or user not found',
             ]);
         }
+
+        $user = User::with(['preferences', 'country', 'state', 'city'])->withCount('followers')->withCount('following')->find($userId);
 
         // user_following = current user is following this user
         $userFollowing = UserConnections::where('follow_user_id', $userId)
@@ -1110,7 +1176,7 @@ class UserController extends Controller
         $userFollower = UserConnections::where('user_id', $userId)
                         ->where('follow_user_id', \Auth::user()->id)->exists();
 
-        $userData = $userData->toArray();
+        $userData = $user->toArray();
         $userData['user_following'] = (bool) $userFollowing;
         $userData['user_follower'] = (bool) $userFollower;
 
@@ -1118,37 +1184,67 @@ class UserController extends Controller
         $userData['points'] = (int) $userPoints;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
-        $data = $this->getAvgSpeedAndForce($userId);
-        $user = array_merge($userData, $data);
+        $additionalData = $this->getAdditionalData($userId);
 
-        $user['punches_count'] = $leaderboard->punches_count;
+        $userData = array_merge($userData, $additionalData);
+
+        $userData['punches_count'] = $leaderboard->punches_count;
 
         $battles = Battles::getFinishedBattles($userId);
 
-        $user['lose_counts'] = $battles['lost'];
-        $user['win_counts'] = $battles['won'];
-        $user['finished_battles'] = $battles['finished'];
+        // Membership plan info
+        $userData['has_membership'] = $user->hasMembership();
+
+        if ($user->hasMembership()) {
+            $membershipPlan = $user->membership;
+
+            $membershipDaysLeft = '';
+
+            if ($membershipPlan->isLimited()) {
+                $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($user->membership_plan_assigned_at));
+
+                $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
+
+                $now = \Carbon\Carbon::now();
+                $membershipDaysLeft = $now->diffInDays($effectiveDate); // Days
+            }
+            
+            $membership = [
+                'is_limited' => $membershipPlan->isLimited(),
+                'membership_days_left' => $membershipDaysLeft
+            ];
+
+            $userData['membership'] = $membership;   
+        }
+        
+        // Hiding membership related fields
+        unset($userData['membership_plan_id']);
+        unset($userData['membership_plan_assigned_at']);
+
+        $userData['lose_counts'] = $battles['lost'];
+        $userData['win_counts'] = $battles['won'];
+        $userData['finished_battles'] = $battles['finished'];
 
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)
                 ->whereRaw("user_id IN ($userFollowing)", [$userId])
                 ->count();
-        $user['user_connections'] = $connections;
-        //User Achievements data
-        $achievementsArr = UserAchievements::getUsersAchievements($userId);
-        if (count($achievementsArr) > 3) {
-            $user['achievements'] = array_slice($achievementsArr, 0, 3);
+
+        $userData['user_connections'] = $connections;
+        
+        // User Achievements data
+        $userAchievements = UserAchievements::getUsersAchievements($userId);
+
+        if (count($userAchievements) > 3) {
+            $user['achievements'] = array_slice($userAchievements, 0, 3);
         } else {
-            $user['achievements'] = $achievementsArr;
-        }
-        if (!$user) {
-            return response()->json(['error' => 'true', 'message' => 'User not found']);
+            $user['achievements'] = $userAchievements;
         }
 
         return response()->json([
-                    'error' => 'false',
-                    'message' => '',
-                    'user' => $user
+            'error' => 'false',
+            'message' => '',
+            'user' => $userData
         ]);
     }
 
@@ -1168,6 +1264,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_challenges_history] Show challenges history on to public profile or not
      * @apiParam {Boolean} [badge_notification] Badge notification
      * @apiParam {Boolean} [show_tutorial] Show Tutorials
+     * @apiParam {Number="1=Metric","0/empty=English"} [unit] Unit for weight & height scale 
      * @apiParamExample {json} Input
      *    {
      *      "public_profile": true,
@@ -1214,6 +1311,11 @@ class UserController extends Controller
         $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
         
+        if( null !== $request->get('unit') ) {
+            $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+            $userPreferences->unit = $request->get('unit');
+        }
+        
         $userPreferences->save();
 
         return response()->json([
@@ -1253,26 +1355,36 @@ class UserController extends Controller
      */
     public function follow($userId = null)
     {
-        if ($userId == \Auth::user()->id || !$userId)
-            return null;
+        try
+        {
 
-        $connection = UserConnections::where('user_id', \Auth::user()->id)
-                        ->where('follow_user_id', $userId)->first();
+            if ($userId == \Auth::user()->id || !$userId)
+                return null;
 
-        if (!$connection) {
-            UserConnections::create([
-                'user_id' => \Auth::user()->id,
-                'follow_user_id' => $userId,
-            ]);
+            $connection = UserConnections::where('user_id', \Auth::user()->id)
+                ->where('follow_user_id', $userId)->first();
 
-            // Generates new notification for user
-            UserNotifications::generate(UserNotifications::FOLLOW, $userId, \Auth::user()->id);
+            if (!$connection) {
+                UserConnections::create([
+                    'user_id' => \Auth::user()->id,
+                    'follow_user_id' => $userId,
+                ]);
 
-            $followUser = User::find($userId);
+                // Generates new notification for user
+                UserNotifications::generate(UserNotifications::FOLLOW, $userId, \Auth::user()->id);
 
+                $followUser = User::find($userId);
+
+                return response()->json([
+                    'error' => 'false',
+                    'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
+                ]);
+            }
+        }catch (\Exception $exception)
+        {
             return response()->json([
-                'error' => 'false',
-                'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
+                'error' => 'true',
+                'message' =>$exception->getMessage(),
             ]);
         }
     }
@@ -1308,16 +1420,26 @@ class UserController extends Controller
      */
     public function unfollow($userId = null)
     {
-        if ($userId == \Auth::user()->id || !$userId)
-            return null;
+        try
+        {
 
-        $connection = UserConnections::where('user_id', \Auth::user()->id)
-                        ->where('follow_user_id', $userId)->delete();
+            if ($userId == \Auth::user()->id || !$userId)
+                return null;
 
-        return response()->json([
-                    'error' => 'false',
-                    'message' => 'Unfollow successfull',
-        ]);
+            UserConnections::where('user_id', \Auth::user()->id)
+                ->where('follow_user_id', $userId)->delete();
+
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Unfollow successfull',
+            ]);
+        }catch (\Exception $exception)
+        {
+            return response()->json([
+                'error' => 'true',
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -1597,39 +1719,51 @@ class UserController extends Controller
      */
     public function getFollowing(Request $request)
     {
-        $offset = (int) ($request->get('start') ?? 0);
-        $limit = (int) ($request->get('limit') ?? 20);
 
-        $following = UserConnections::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
+        try
+        {
+            $offset = (int) ($request->get('start') ?? 0);
+            $limit = (int) ($request->get('limit') ?? 20);
 
-        $_following = [];
+            $following = UserConnections::where('user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
 
-        foreach ($following as $follower) {
-            $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
-                            ->where('user_id', \Auth::user()->id)->exists();
+            $_following = [];
 
-            $follow = UserConnections::where('user_id', $follower->follow_user_id)
-                            ->where('follow_user_id', \Auth::user()->id)->exists();
+            foreach ($following as $follower) {
+                $following = UserConnections::where('follow_user_id', $follower->follow_user_id)
+                    ->where('user_id', \Auth::user()->id)->exists();
 
-            $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
-            $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+                $follow = UserConnections::where('user_id', $follower->follow_user_id)
+                    ->where('follow_user_id', \Auth::user()->id)->exists();
 
-            $_following[] = [
-                'id' => $follower->follow_user_id,
-                'first_name' => $follower->followUser->first_name,
-                'last_name' => $follower->followUser->last_name,
-                'photo_url' => $follower->followUser->photo_url,
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+                $leaderboard = Leaderboard::where('user_id', $follower->follow_user_id)->first();
+                $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
+
+
+                $_following[] = [
+                    'id' => $follower->follow_user_id,
+                    'first_name' => $follower->followUser['first_name'],
+                    'last_name' => $follower->followUser['last_name'],
+                    'photo_url' => $follower->followUser['photo_url'],
+                    'points' => (int) $points,
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ];
+            }
+
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'data' => $_following
+            ]);
+        }catch (\Exception $exception)
+        {
+            return response()->json([
+                'error' => 'true',
+                'message' => $exception->getMessage(),
+            ]);
         }
 
-        return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'data' => $_following
-        ]);
     }
 
     /**
@@ -1961,6 +2095,17 @@ class UserController extends Controller
      */
     public function setUserPassword(Request $request)
     {
+        $validator = \Validator::make($request->all(), [
+            'old_password' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors]);
+
+        }
+
         // Get current user
         $user = \Auth::user();
 
@@ -2067,19 +2212,20 @@ class UserController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
 
-
-    // get avg speed, punches & force
-    private function getAvgSpeedAndForce($userId)
+    // Get total time & day user trained, with avg-speed, punches & force
+    private function getAdditionalData($userId)
     {
         $session = Sessions::select('id', 'start_time', 'end_time')
                         ->where('user_id', $userId)
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get()->toArray();
+
         $sessionIds = array_column($session, 'id');
 
         $totalTime = 0;
         $startDate = [];
+
         foreach ($session as $time) {
             if ($time['start_time'] > 0 && $time['end_time'] > 0 && $time['end_time'] > $time['start_time']) {
                 $totalTime = $totalTime + abs($time['end_time'] - $time['start_time']);
@@ -2094,11 +2240,13 @@ class UserController extends Controller
                 })->first();
 
         $avgCount = 0;
+
         $getAvgCount = SessionRounds::select(
                                 \DB::raw('SUM(ABS(start_time - end_time)) AS `total_time`'), \DB::raw('SUM(punches_count) as punches'))
                         ->where('start_time', '>', 0)
                         ->where('end_time', '>', 0)
                         ->whereIn('session_id', $sessionIds)->first();
+
         if ($getAvgCount->total_time > 0) {
             $avgCount = $getAvgCount->punches * 1000 * 60 / $getAvgCount->total_time;
         }
@@ -2393,7 +2541,7 @@ class UserController extends Controller
 
         return response()->json([
             'error' => 'false',
-            'message' => 'Marked notifications read'
+            'message' => 'Marked notifications read',
         ]);
     }
 }

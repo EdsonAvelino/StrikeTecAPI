@@ -43,38 +43,41 @@ class PushController extends Controller
      */
     public function storeAppToken(Request $request)
     {
-        $validator = \Validator::make($request->all(), [
-            'os'    => 'required',
-            'token' => 'required'
-        ]);
+        try
+        {
+            $validator = \Validator::make($request->all(), [
+                'os'    => 'required',
+                'token' => 'required'
+            ]);
 
-        if ($validator->fails()) {
-            $errors = $validator->errors();
+            if ($validator->fails()) {
+                $errors = $validator->errors();
+                return response()->json(['error' => 'true', 'message' =>  $errors]);
+            }
 
-            if ($errors->first('od'))
-                return response()->json(['error' => 'true', 'message' =>  $errors->first('os')]);
-            else
-                return response()->json(['error' => 'true', 'message' =>  $errors->first('token')]);
+            $appToken = UserAppTokens::firstOrCreate(['user_id' => \Auth::user()->id]);
+            $appToken->os = $request->get('os');
+            $appToken->token = $request->get('token');
+            $appToken->save();
+
+            // $appTokenExists = UserAppTokens::where('user_id', \Auth::user()->id)
+            //     ->where('os', strtoupper($request->get('os')))
+            //     ->where('token', $request->get('token'))->exists();
+
+            // if (!$appTokenExists) {
+            //     $appToken = UserAppTokens::create([
+            //         'user_id' => \Auth::user()->id,
+            //         'os' => strtoupper($request->get('os')),
+            //         'token' => $request->get('token'),
+            //     ]);
+            // }
+
+            return response()->json(['error' => 'false', 'message' => 'Token saved successfully']);
+        }catch (\Exception $exception)
+        {
+            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+
         }
-
-        $appToken = UserAppTokens::firstOrCreate(['user_id' => \Auth::user()->id]);
-        $appToken->os = $request->get('os');
-        $appToken->token = $request->get('token');
-        $appToken->save();
-
-        // $appTokenExists = UserAppTokens::where('user_id', \Auth::user()->id)
-        //     ->where('os', strtoupper($request->get('os')))
-        //     ->where('token', $request->get('token'))->exists();
-
-        // if (!$appTokenExists) {
-        //     $appToken = UserAppTokens::create([
-        //         'user_id' => \Auth::user()->id,
-        //         'os' => strtoupper($request->get('os')),
-        //         'token' => $request->get('token'),
-        //     ]);
-        // }
-
-        return response()->json(['error' => 'false', 'message' => 'Token saved successfully']);
     }
 
     // public function testPush()

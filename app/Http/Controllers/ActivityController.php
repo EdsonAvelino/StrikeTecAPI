@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+
 use App\Activities;
 use App\ActivityTypes;
 
 class ActivityController extends Controller
 {
-
     /**
-     * @api {get}/activities Get list of Activities
+     * @api {get} /activities Get list of Activities
      * @apiGroup Goals
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -47,6 +47,7 @@ class ActivityController extends Controller
     public function getActivityList(Request $request)
     {
         $activityList = Activities::select('id', 'activity_name')->get();
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $activityList]);
     }
 
@@ -104,6 +105,7 @@ class ActivityController extends Controller
         } else {
             $activityTypes = ActivityTypes::select(['id', 'activity_id', 'type_name'])->where('activity_id', (int) $activity_id)->get();
         }
+
         return response()->json(['error' => 'false', 'message' => '', 'data' => $activityTypes]);
     }
 
