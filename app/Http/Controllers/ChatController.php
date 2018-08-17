@@ -37,15 +37,15 @@ class ChatController extends Controller
                     'message' => $message,
                     'chat_id' => $chatId
                 ])->id;
+        try {
+            $chatResponse = ChatMessages::where('id', $chatMessageId)
+                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                    ->first();
 
-        $chatResponse = ChatMessages::where('id', $chatMessageId)
-                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
-                ->first();
+            $chat = Chat::where('id', $chatId)->update(['updated_at' => $chatResponse->send_time]);
 
-        $chat = Chat::where('id', $chatId)->update(['updated_at' => $chatResponse->send_time]);
-
-        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
-        $chatResponse->send_time = strtotime($chatResponse->send_time);
+            $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+            $chatResponse->send_time = strtotime($chatResponse->send_time);
 
 
             $chatId = ChatMessages::create([
@@ -267,24 +267,26 @@ class ChatController extends Controller
         $userId = \Auth::user()->id;
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        $chatList = Chat::select('user_one', 'user_two', 'id')
-                        ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('updated_at', 'desc')->offset($offset)->limit($limit)->get()->all();
-        $chatCount = 0;
-        $chat = array();
-        foreach ($chatList as $data) {
-            $chatMsg = ChatMessages::select('message', 'created_at as msg_time')->where('chat_id', $data['id'])
-                            ->orderBy('chat_messages.created_at', 'desc')->offset(0)->limit(1)->get()->first();
-            if ($chatMsg) {
-                $opponentId = ($data['user_one'] != $userId) ? $data['user_one'] : $data['user_two'];
-                $chat[$chatCount]['opponent_user'] = User::get($opponentId);
-                $chat[$chatCount]['msg_time'] = strtotime($chatMsg['msg_time']);
-                $chat[$chatCount]['lst_msg'] = $chatMsg['message'];
-                $chat[$chatCount]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
-                        ->where('read_flag', 0)
-                        ->where('user_id', '!=', $userId)
-                        ->count('message');
-                $chatCount++;
 
+        try {
+            $chatList = Chat::select('user_one', 'user_two', 'id')
+                            ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('updated_at', 'desc')->offset($offset)->limit($limit)->get()->all();
+            $chatCount = 0;
+            $chat = array();
+            foreach ($chatList as $data) {
+                $chatMsg = ChatMessages::select('message', 'created_at as msg_time')->where('chat_id', $data['id'])
+                            ->orderBy('chat_messages.created_at', 'desc')->offset(0)->limit(1)->get()->first();
+                if ($chatMsg) {
+                    $opponentId = ($data['user_one'] != $userId) ? $data['user_one'] : $data['user_two'];
+                    $chat[$chatCount]['opponent_user'] = User::get($opponentId);
+                    $chat[$chatCount]['msg_time'] = strtotime($chatMsg['msg_time']);
+                    $chat[$chatCount]['lst_msg'] = $chatMsg['message'];
+                    $chat[$chatCount]['unread_msg_count'] = ChatMessages::where('chat_id', $data['id'])
+                            ->where('read_flag', 0)
+                            ->where('user_id', '!=', $userId)
+                            ->count('message');
+                    $chatCount++;
+                }
             }
 
             return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
