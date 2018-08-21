@@ -547,9 +547,12 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $sessions = []; //Will be use for response
 
-        \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
-        \Log::info('The Request Data - ' , $data);
-        \Log::info('Auth User ID - ' . \Auth::user()->id);
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
+        
 
         $gameSession = false;
 
@@ -578,8 +581,9 @@ class TrainingController extends Controller
                         'best_time' => $session['best_time']
                     ]);
                     
-                    \Log::info('Saved New Session Data  -- ', [$_session]);
-
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Saved New Session Data  -- ', [$_session]);
+                    }
                     // Update battle details, if any
                     if ($_session->battle_id) {
 
@@ -599,7 +603,11 @@ class TrainingController extends Controller
                 }
                 
                 $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
-                \Log::info('Update Session Round  '. $sessionRounds);
+
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                    \Log::info('Update Session Round  '. $sessionRounds);
+                }
+
 
                 // Process through achievements (badges) and assign 'em to user
             
@@ -758,11 +766,11 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $rounds = [];
-
-        \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
-        \Log::info('The Request Data - ' , $data);
-        \Log::info('Auth User ID - ' . \Auth::user()->id);
-
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
         try {
 
             foreach ($data as $round) {
@@ -785,8 +793,9 @@ class TrainingController extends Controller
                         'max_force' => $round['max_force'],
                         'best_time' => $round['best_time'],
                     ]);
-
-                    \Log::info('Create NEW Session Round Data - ' , [$_round]);
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Create NEW Session Round Data - ' , [$_round]);
+                    }
                 }
 
                 $rounds[] = ['start_time' => $_round->start_time];
@@ -814,10 +823,12 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $punches = [];
-
-        \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
-        \Log::info('The Request Data - ' , $data);
-        \Log::info('Auth User ID - ' . \Auth::user()->id);
+        
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
 
         try {
 
@@ -847,8 +858,9 @@ class TrainingController extends Controller
                         'distance' => $punch['distance'],
                         'is_correct' => $isCorrect,
                     ]);
-
-                    \Log::info('Created NEW Round Punches data- '.$_punch);
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Created NEW Round Punches data- '.$_punch);
+                    }    
                 }
 
                 $punches[] = ['start_time' => $_punch->punch_time];
