@@ -86,6 +86,8 @@ $app->register(Illuminate\Mail\MailServiceProvider::class);
 // Configure mail
 $app->configure('mail');
 
+// Logger
+$app->register(\Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class);
 /*
   |--------------------------------------------------------------------------
   | Load The Application Routes

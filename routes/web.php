@@ -11,6 +11,10 @@
   |
  */
 
+$app->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($app) {
+    $app->get('/logs', 'LogViewerController@index');
+});
+
 $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
