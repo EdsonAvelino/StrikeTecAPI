@@ -25,78 +25,6 @@ use App\Helpers\PushTypes;
 class TrainingController extends Controller
 {
     /**
-     * @api {post} /user/training/data Store Training (Sensor) Data
-     * @apiGroup Training
-     * @apiDescription Used to store sensor data generated while traninig in csv format
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     *       "Content-Type": "multipart/form-data"
-     *     }
-     * @apiParam {File} data_file Data file to store on server
-     * @apiParamExample {json} Input
-     *    {
-     *      "data_file": "csv_file_to_upload.csv",
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Stored",
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request or what error message is"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function storeData(Request $request)
-    {
-        $validator = \Validator::make($request->all(), [
-            'data_file' => 'required|mimes:csv,txt',
-        ]);
-
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-
-            return response()->json(['error' => 'true', 'message' => $errors->first('data_file')]);
-        }
-
-        $file = trim($request->file('data_file')->getClientOriginalName());
-        
-        // Getting date from timestamp in filename
-        $exploded = explode('_', $file);
-        $timestamp = (int) end($exploded);
-        $dt = date('Y_m_d', ($timestamp/1000));
-
-        $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
-        
-        // Create dir if not created
-        if (!is_dir(env('DATA_STORAGE_URL').\Auth::id())) {
-            mkdir(env('DATA_STORAGE_URL').\Auth::id());
-        }
-
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir);
-        }
-        
-        $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
-        $file = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
-
-        $request->file('data_file')->move($uploadDir, $file);
-
-        return response()->json([
-            'error' => 'false',
-            'message' => 'Stored',
-        ]);
-    }
-
-    /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiGroup Training
      * @apiDescription Used to get list of sessions of user, when any session is tied with
@@ -558,8 +486,8 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "type_id": 1, "battle_id": 0, "game_id": 0, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
-     *      { "type_id": 1, "battle_id": 0, "game_id": 0, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
+     *      { "type_id": 1, "battle_id": 0, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
+     *      { "type_id": 1, "battle_id": 0, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
      *  ]
      * }
      * @apiSuccess {Boolean} error Error flag 
@@ -616,7 +544,7 @@ class TrainingController extends Controller
     public function storeSessions(Request $request)
     {
         $data = $request->get('data');
-        $sessions = []; // Will be use for response
+        $sessions = []; //Will be use for response
 
         $gameSession = false;
 
@@ -641,8 +569,6 @@ class TrainingController extends Controller
                     'best_time' => $session['best_time']
                 ]);
 
-                SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
-
                 // Update battle details, if any
                 if ($_session->battle_id) {
                     $this->updateBattle($_session->battleId);
@@ -656,14 +582,14 @@ class TrainingController extends Controller
                 else {
                     $this->updateGoal($_session);
                 }
-            } else {
-                SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
             }
+
+            $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
             // Process through achievements (badges) and assign 'em to user
             
             // skipping Achievements for now as they are not working properly
-            // $achievements = $this->processAchievements($_session->id, $_session->battle_id);
+            // $achievements = $this->achievements($_session->id, $_session->battle_id);
 
             // Generating sessions' list for response
             $sessions[] = [
@@ -874,18 +800,18 @@ class TrainingController extends Controller
         // If round not found, it will return null
         if (empty($round)) {
             return response()->json([
-                'error' => 'false',
-                'message' => '',
-                'round' => null,
-                'punches' => null
+                        'error' => 'false',
+                        'message' => '',
+                        'round' => null,
+                        'punches' => null
             ]);
         }
 
         return response()->json([
-            'error' => 'false',
-            'message' => '',
-            'round' => $round->toArray(),
-            'punches' => $punches->toArray()
+                    'error' => 'false',
+                    'message' => '',
+                    'round' => $round->toArray(),
+                    'punches' => $punches->toArray()
         ]);
     }
 
@@ -897,13 +823,13 @@ class TrainingController extends Controller
      * @apiHeaderExample {json} Header-Example:
      *     {
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     * "Content-Type": "application/json"
+      "Content-Type": "application/json"
      *     }
      * @apiParam {json} data Json formatted rounds data
      * @apiParamExample {json} Input
      * {
      * "data": [
-     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, "avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
+     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
      *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "pause_duration": 25000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
      *  ]
      * }
@@ -936,6 +862,7 @@ class TrainingController extends Controller
         try {
             foreach ($data as $round) {
                 // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
+
                 // Checking if round already exists
                 $_round = SessionRounds::where('start_time', $round['start_time'])->where('session_id', $round['session_start_time'])->first();
 
@@ -1175,14 +1102,14 @@ class TrainingController extends Controller
         ]);
     }
 
-    // // Create goal session
-    // public function storeGoalSession($goalId, $sessionId)
-    // {
-    //     GoalSession::create([
-    //         'session_id' => $sessionId,
-    //         'goal_id' => $goalId
-    //     ]);
-    // }
+    // Create goal session
+    public function storeGoalSession($goalId, $sessionId)
+    {
+        GoalSession::create([
+            'session_id' => $sessionId,
+            'goal_id' => $goalId
+        ]);
+    }
 
     /**
      * @api {get} /tips Get tips data
@@ -1403,449 +1330,205 @@ class TrainingController extends Controller
         return false;
     }
 
-    // Process achievements, assigns new or updates existing one, based on achievement
-    private function processAchievements($sessionId, $battleId = null)
+    public function achievements($sessionId, $battleId)
     {
-        $userId = \Auth::id();
-        $goalId = Goals::getCurrentGoalId($userId);
+        $userId = \Auth::user()->id;
+        $goalId = Goals::getCurrentGoal($userId);
         
-        $achievements = Achievements::select('id')->orderBy('sequence')->get();
+        $achievements = Achievements::orderBy('sequence')->get();
+        $mostPowefulPunch = $mostPowefulSpeed = 0;
+        $mostPoweful = Sessions::getMostPowerfulPunchAndSpeed($sessionId);
+        
+        if ($mostPoweful) {
+            $mostPowefulPunch = $mostPoweful->max_force;
+            $mostPowefulSpeed = $mostPoweful->max_speed;
+        }
         
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
-                // Badge BELT
-                // TODO this may not needed, as there's one badge already "Champions"
-                /*
-                case Achievements::BELT:
-                    $belts = Battles::getBeltCount(\Auth::id());
-
+                case 1:
+                    $belts = Battles::getBeltCount(\Auth::user()->id);
                     if ($belts > 0) {
-                        $badge = AchievementTypes::select('id')->where('achievement_id', Achievements::BELT)->first();
+                        $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
 
-                        if ($badge) {
-                            $_userAchievement = UserAchievements::where('achievement_type_id', $badge->id)->where('user_id', $userId)->where('achievement_id', Achievements::BELT)->first();
-
-                            if ($_userAchievement) {
-                                if ($_userAchievement->metric_value < $belts) {
-                                    $_userAchievement->metric_value = $belts;
-                                    $_userAchievement->count = $belts;
-                                    $_userAchievement->shared = false;
-                                    $_userAchievement->session_id = $sessionId;
-                                    $_userAchievement->awarded = true;
-                                    $_userAchievement->save();
+                        if ($achievementType->id) {
+                            $beltsData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                                    ->where('user_id', $userId)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->first();
+                            if ($beltsData) {
+                                if ($beltsData->metric_value < $belts) {
+                                    $beltsData->metric_value = $belts;
+                                    $beltsData->count = $belts;
+                                    $beltsData->shared = false;
+                                    $beltsData->session_id = $sessionId;
+                                    $beltsData->awarded = true;
+                                    $beltsData->save();
                                 }
                             } else {
-                                $_userAchievement = UserAchievements::create([
-                                    'user_id' => $userId,
-                                    'achievement_id' => $achievement->id,
-                                    'achievement_type_id' => $achievementType->id,
-                                    'metric_value' => $belts,
-                                    'count' => $belts,
-                                    'awarded' => true,
-                                    'session_id' => $sessionId
-                                ]);
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $belts,
+                                            'count' => $belts,
+                                            'awarded' => true,
+                                            'session_id' => $sessionId]);
                             }
                         }
                     }
-                break;
-                */
-                
-                // Badge Punches Count
-                case Achievements::PUNCHES_COUNT:
-                    $punchesCount = Sessions::getPunchesCountOfToday();
+                    break;
+                case 2:
+                    $punchCount = Sessions::getPunchCount();
+                    if ($punchCount > 0) {
+                        $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
+                                        ->where('achievement_id', $achievement->id)->first();
 
-                    if ($punchesCount > 499) {
-                        $badge = AchievementTypes::select('id', \DB::raw('MAX(config) as metric_value'))
-                            ->where('config', '<=', $punchesCount)
-                            ->where('achievement_id', Achievements::PUNCHES_COUNT)->first();
-
-                        if ($badge) {
-                            $_userAchievement = UserAchievements::where('achievement_type_id', $badge->id)
+                        if ($achievementType->id) {
+                            $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', Achievements::PUNCHES_COUNT)
-                                    ->where('metric_value', $badge->metric_value)
+                                    ->where('achievement_id', $achievement->id)
+                                    ->where('metric_value', $achievementType->max_val)
                                     ->first();
 
-                            if (!$_userAchievement) {
-                                $_userAchievement = UserAchievements::create([
-                                    'user_id' => $userId,
-                                    'achievement_id' => Achievements::PUNCHES_COUNT,
-                                    'achievement_type_id' => $badge->id,
-                                    'metric_value' => $achievementType->metric_value,
-                                    'awarded' => true,
-                                    'goal_id' => $goalId,
-                                    'session_id' => $sessionId
-                                ]);
+                            if (empty($getUserPunchData)) {
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $achievementType->max_val,
+                                            'count' => 1,
+                                            'awarded' => true,
+                                            'goal_id' => $goalId,
+                                            'session_id' => $sessionId]);
                             }
                         }
                     }
-                break;
-
-                // Badge Most Punches Per Minute
-                case Achievements::MOST_PPM:
+                    break;
+                case 3:
                     $mostPunches = 0;
-
-                    if (!$battleId) {
-                        $mostPPM = SessionRounds::getMostPunchesPerMinuteOfSession($sessionId);
-                        
-                        if ($mostPPM > 9) {
-                            $badge = AchievementTypes::select('id', \DB::raw('MAX(config) as metric_value'))
-                                ->where('config', '<=', $mostPPM)
-                                ->where('achievement_id', Achievements::MOST_PPM)->first();
-
-                            if ($badge) {
-                                $_userAchievement = UserAchievements::where('achievement_type_id', $badge->id)
+                    if (empty($battleId)) {
+                        $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
+                        if ($mostPunches > 0) {
+                            $achievementType = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $mostPunches)
+                                            ->where('achievement_id', $achievement->id)->first();
+                            if ($achievementType->id) {
+                                $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
-                                        ->where('achievement_id', Achievements::MOST_PPM)
-                                        ->where('metric_value', $badge->metric_value)
+                                        ->where('achievement_id', $achievement->id)
+                                        ->where('metric_value', $achievementType->max_val)
                                         ->first();
-
-                                if (!$_userAchievement) {
-                                    $_userAchievement = UserAchievements::create([
-                                        'user_id' => $userId,
-                                        'achievement_id' => Achievements::MOST_PPM,
-                                        'achievement_type_id' => $badge->id,
-                                        'metric_value' => $badge->metric_value,
-                                        'awarded' => true,
-                                        'goal_id' => $goalId,
-                                        'session_id' => $sessionId
-                                    ]);
+                                if (empty($mostPunchesData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'awarded' => true,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'count' => 1,
+                                                'metric_value' => $achievementType->max_val,
+                                                'goal_id' => $goalId,
+                                                'session_id' => $sessionId]);
                                 }
                             }
                         }
                     }
-                break;
+                    break;
+                case 4:
+                    $goal = Goals::getAccomplishedGoal();
+                    if ($goal == 1) {
+                        $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
 
-                // Badge Goal accomplishment
-                case Achievements::ACCOMPLISH_GOAL:
-                    $goalAccomplished = Goals::checkCurrentGoalAccomplished();
-
-                    if ($goalAccomplished) {
-                        $badge = AchievementTypes::select('id')->where('achievement_id', Achievements::ACCOMPLISH_GOAL)->first();
-
-                        $_userAchievement = UserAchievements::where('achievement_type_id', $badge->id)
+                        $goalData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
-                                ->where('achievement_id', Achievements::ACCOMPLISH_GOAL)
+                                ->where('achievement_id', $achievement->id)
                                 ->first();
-
-                        // TODO need to check this
-                        // Should be count++ not metric_value++ (not sure)
-                        if ($_userAchievement) {
-                            $goalMatrix = $_userAchievement->metric_value + 1;
-
-                            $_userAchievement->metric_value = $goalMatrix;
-                            $_userAchievement->session_id = $sessionId;
-                            $_userAchievement->count = $goalMatrix;
-                            $_userAchievement->shared = false;
-                            $_userAchievement->awarded = true;
-                            $_userAchievement->save();
+                        if ($goalData) {
+                            $goalMatrix = $goalData->metric_value + 1;
+                            $goalData->metric_value = $goalMatrix;
+                            $goalData->session_id = $sessionId;
+                            $goalData->count = $goalMatrix;
+                            $goalData->shared = false;
+                            $goalData->awarded = true;
+                            $goalData->save();
                         } else {
-                            $_userAchievement = UserAchievements::create([
-                                'user_id' => $userId,
-                                'achievement_id' => Achievements::ACCOMPLISH_GOAL,
-                                'achievement_type_id' => $badge->id,
-                                'metric_value' => 1,
-                                'awarded' => true,
-                                'count' => 1,
-                                'session_id' => $sessionId
-                            ]);
+                            $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                        'achievement_id' => $achievement->id,
+                                        'achievement_type_id' => $achievementType->id,
+                                        'metric_value' => $goal,
+                                        'awarded' => true,
+                                        'count' => $goal,
+                                        'session_id' => $sessionId]);
                         }
                     }
-                break;
+                    break;
 
-                // Badge Most Powerful Punch
-                case Achievements::MOST_POWERFUL_PUNCH:
-                    $maxForce = Sessions::select(\DB::raw('MAX(max_force)'))
-                        ->where('user_id', \Auth::id())
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->where(function ($query) {
-                            $query->whereNull('game_id')->orWhere('game_id', '0');
-                        })->first();
-                    
-                    $badge = AchievementTypes::select('id')->where('achievement_id', Achievements::MOST_POWERFUL_PUNCH)->first();
-                    
-                    // User can earn first badge only when user has punched at least 100 LBF Power
-                    if ($maxForce > 99) {
-                        $_userAchievement = UserAchievements::where('achievement_type_id', $badge->id)
-                                ->where('user_id', $userId)
-                                ->where('achievement_id', Achievements::MOST_POWERFUL_PUNCH)
-                                ->first();
-                        
-                        if ($_userAchievement) {
-                            if ($_userAchievement->metric_value < $maxForce) {
-                                $_userAchievement->metric_value = $maxForce;
-                                $_userAchievement->session_id = $sessionId;
-                                $_userAchievement->shared = false;
-                                $_userAchievement->awarded = true;
-                                $_userAchievement->save();
-                            }
-                        } else {
-                            $_userAchievement = UserAchievements::create([
-                                'user_id' => $userId,
-                                'count' => 1,
-                                'awarded' => true,
-                                'achievement_id' => Achievements::MOST_POWERFUL_PUNCH,
-                                'achievement_type_id' => $badge->id,
-                                'metric_value' => $maxForce,
-                                'session_id' => $sessionId
-                            ]);
-                        }
+                case 5:
+                case 6:
+
+                    $speedAndPunch = $mostPowefulSpeed;
+                    if ($achievement->id == 5) {
+                        $speedAndPunch = $mostPowefulPunch;
                     }
-
-                break;
-                
-                // Badge Top Speed
-                case Achievements::TOP_SPEED:
-                    $maxSpeed = Sessions::select(\DB::raw('MAX(max_speed)'))
-                        ->where('user_id', \Auth::id())
-                        ->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->where(function ($query) {
-                            $query->whereNull('game_id')->orWhere('game_id', '0');
-                        })->first();
-
-                    $badge = AchievementTypes::select('id')->where('achievement_id', Achievements::TOP_SPEED)->first();
-                    
-                    // Min speed 10 mph to earn this badge for the first time
-                    if ($maxSpeed > 9) {
-                        $_userAchievement = UserAchievements::where('achievement_type_id', $achievementType->id)
+                    $achievementType = AchievementTypes::select('min', 'id')->where('achievement_id', $achievement->id)->first();
+                    if ($speedAndPunch > $achievementType->min) {
+                        $mostPowefulSpeedData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
                                 ->where('goal_id', $goalId)
                                 ->where('achievement_id', $achievement->id)
                                 ->first();
-                        
-                        if ($_userAchievement) {
-                            if ($_userAchievement->metric_value < $maxSpeed) {
-                                $_userAchievement->metric_value = $maxSpeed;
-                                $_userAchievement->session_id = $sessionId;
-                                $_userAchievement->shared = false;
-                                $_userAchievement->awarded = true;
-                                $_userAchievement->save();
+                        if ($mostPowefulSpeedData) {
+                            if ($mostPowefulSpeedData->metric_value < $speedAndPunch) {
+                                $mostPowefulSpeedData->metric_value = $speedAndPunch;
+                                $mostPowefulSpeedData->count = 1;
+                                $mostPowefulSpeedData->session_id = $sessionId;
+                                $mostPowefulSpeedData->shared = false;
+                                $mostPowefulSpeedData->awarded = true;
+                                $mostPowefulSpeedData->save();
                             }
                         } else {
-                            $_userAchievement = UserAchievements::create([
-                                'user_id' => $userId,
-                                'count' => 1,
-                                'awarded' => true,
-                                'achievement_id' => Achievements::TOP_SPEED,
-                                'achievement_type_id' => $badge->id,
-                                'metric_value' => $maxSpeed,
-                                'session_id' => $sessionId
-                            ]);
-                        }
-                    }
-                break;
-                
-                // Badge Champion
-                case Achievements::CHAMPION:
-                break;
-
-                // Badge Accuracy
-                // TODO need proper calculation for this
-                case Achievements::ACCURACY:
-                    // TODO check this
-                    $accuracy = Sessions::getAccuracy($perviousMonday);
-
-                    if ($accuracy) {
-                        $badge = AchievementTypes::select('id')
-                                ->where('achievement_id', Achievements::ACCURACY)
-                                ->where('min', '<', $accuracy)->where('max', '>', $accuracy)->first();
-
-                        if ($badge) {
-                            $_userAchievement = UserAchievements::where('achievement_id', Achievements::ACCURACY)
-                                    ->where('user_id', $userId)
-                                    ->where('achievement_type_id', $badge->id)
-                                    ->first();
-
-                            if ($accuracy > 0) {
-                                if ($accuracyData) {
-                                    if ($accuracyData->metric_value < $accuracy) {
-                                        $accuracyData->metric_value = $accuracy;
-                                        $accuracyData->achievement_type_id = $achievementType->id;
-                                        $accuracyData->count = 1;
-                                        $accuracyData->shared = false;
-                                        $accuracyData->awarded = true;
-                                        $accuracyData->save();
-                                    }
-                                } else {
-                                    $_userAchievement = UserAchievements::create([
-                                        'user_id' => $userId,
+                            $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                        'count' => 1,
+                                        'awarded' => true,
                                         'achievement_id' => $achievement->id,
                                         'achievement_type_id' => $achievementType->id,
-                                        'metric_value' => $accuracy,
-                                        'count' => 1,
-                                        'awarded' => true,
-                                    ]);
-                                }
-                            }
+                                        'metric_value' => $mostPowefulSpeed,
+                                        'goal_id' => $goalId,
+                                        'session_id' => $sessionId]);
                         }
                     }
-                break;
+                    break;
 
-                // Badge Strong Man/Woman
-                case Achievements::STRONG_MAN:
-                    $config = $achievement->{\Auth::user()->gender};
+                case 7:
+                    if ($battleId) {
+                        $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
+                        $champion = Battles::getChampian($battleId);
 
-                    // $strongMan = Sessions::getStrongMen($config, $userId, $perviousMonday);
-                    
-                    $currentWeekStart = strtotime("last monday midnight");
-                    $currentWeekEnd = strtotime("next monday midnight", $currentWeekStart)-1;
-
-                    $currentWeekSessionsCount = Sessions::where('user_id', \Auth::id())
-                        ->where('start_time', '>', ($currentWeekStart * 1000))
-                        ->where('start_time', '<', ($currentWeekEnd * 1000))
-                        ->count();
-
-                    // Minimum this badge needs 10 sessions
-                    if ($currentWeekSessionsCount > 9) {
-                        $avgForce = Sessions::select('avg_force')->where('user_id', \Auth::id())
-                            ->where('start_time', '>', ($currentWeekStart * 1000))
-                            ->where('start_time', '<', ($currentWeekEnd * 1000))
-                            ->orderBy('avg_force', 'desc')->limit(1)->first()->pluck('avg_force');
-                        
-                        // Average power for male is over 500 lbs and for female is over 300 lbs
-                        if ($avgForce > 499) {
-                            $badge = AchievementTypes::select('id')
-                                    ->where('achievement_id', $achievement->id)
-                                    ->where('min', '<=', $currentWeekSessionsCount)
-                                    ->where('max', '>=', $currentWeekSessionsCount)
-                                    ->first();
-
-                            if ($badge) {
-                                $_userAchievement = UserAchievements::where('achievement_id', Achievements::STRONG_MAN)
-                                        ->where('user_id', $userId)
-                                        ->where('achievement_type_id', $badge->id)
-                                        ->first();
-
-                                if ($_userAchievement) {
-                                    if ($_userAchievement->metric_value < $avgForce) {
-                                        $_userAchievement->metric_value = $avgForce;
-                                        $_userAchievement->count = 1;
-                                        $_userAchievement->achievement_type_id = $badge->id;
-                                        $_userAchievement->shared = false;
-                                        $_userAchievement->awarded = true;
-                                        $_userAchievement->save();
-                                    }
-                                } else {
-                                    $_userAchievement = UserAchievements::create([
-                                        'user_id' => $userId,
-                                        'achievement_id' => $achievement->id,
-                                        'achievement_type_id' => $badge->id,
-                                        'metric_value' => $avgForce,
-                                        'count' => 1,
-                                        'awarded' => true,
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                break;
-
-                // Badge Speed Deamon
-                case Achievements::SPEED_DEAMON:
-                    $config = $achievement->{\Auth::user()->gender};
-
-                    $currentWeekStart = strtotime("last monday midnight");
-                    $currentWeekEnd = strtotime("next monday midnight", $currentWeekStart)-1;
-
-                    $currentWeekSessionsCount = Sessions::where('user_id', \Auth::id())
-                        ->where('start_time', '>', ($currentWeekStart * 1000))
-                        ->where('start_time', '<', ($currentWeekEnd * 1000))
-                        ->count();
-
-                    // Minimum this badge needs 10 sessions
-                    if ($currentWeekSessionsCount > 9) {
-                        $avgSpeed = Sessions::select('avg_speed')->where('user_id', \Auth::id())
-                            ->where('start_time', '>', ($currentWeekStart * 1000))
-                            ->where('start_time', '<', ($currentWeekEnd * 1000))
-                            ->orderBy('avg_speed', 'desc')->limit(1)->first();
-                        
-                        // Average power for male is over 500 lbs and for female is over 300 lbs
-                        if ($avgSpeed > 20) {
-                            $badge = AchievementTypes::select('id')
-                                    ->where('achievement_id', $achievement->id)
-                                    ->where('min', '<=', $currentWeekSessionsCount)
-                                    ->where('max', '>=', $currentWeekSessionsCount)
-                                    ->first();
-
-                            if ($badge) {
-                                $_userAchievement = UserAchievements::where('achievement_id', Achievements::STRONG_MAN)
-                                        ->where('user_id', $userId)
-                                        ->where('achievement_type_id', $badge->id)
-                                        ->first();
-
-                                if ($_userAchievement) {
-                                    if ($_userAchievement->metric_value < $avgSpeed) {
-                                        $_userAchievement->metric_value = $avgSpeed;
-                                        $_userAchievement->count = 1;
-                                        $_userAchievement->achievement_type_id = $badge->id;
-                                        $_userAchievement->shared = false;
-                                        $_userAchievement->awarded = true;
-                                        $_userAchievement->save();
-                                    }
-                                } else {
-                                    $_userAchievement = UserAchievements::create([
-                                        'user_id' => $userId,
-                                        'achievement_id' => $achievement->id,
-                                        'achievement_type_id' => $badge->id,
-                                        'metric_value' => $avgSpeed,
-                                        'count' => 1,
-                                        'awarded' => true,
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                break;
-
-                case Achievements::IRON_FIRST:
-                    $ironFirst = Sessions::ironFirst($userId, $perviousMonday);
-                    
-                    if ($ironFirst) {
-                        $achievementType = AchievementTypes::select('id')
+                        $championData = UserAchievements::where('achievement_type_id', $achievementType->id)
+                                ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
-                                ->where('gender', $gender)
-                                ->where('min', '<', $ironFirst)
-                                ->where('max', '>', $ironFirst)
                                 ->first();
-
-                        if ($achievementType) {
-                            $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
-                                    ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
-                                    ->first();
-                            if ($ironFirst > 0) {
-                                if ($ironFirstData) {
-                                    if ($ironFirstData->metric_value < $ironFirst) {
-                                        $ironFirstData->metric_value = $ironFirst;
-                                        $ironFirstData->count = 1;
-                                        $ironFirstData->achievement_type_id = $achievementType->id;
-                                        $ironFirstData->shared = false;
-                                        $ironFirstData->awarded = true;
-                                        $ironFirstData->save();
-                                    }
-                                } else {
-                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                'achievement_id' => $achievement->id,
-                                                'achievement_type_id' => $achievementType->id,
-                                                'metric_value' => $ironFirst,
-                                                'count' => 1,
-                                                'awarded' => true,
-                                    ]);
+                        if ($champion > 0) {
+                            if ($championData) {
+                                if ($championData->metric_value < $belts) {
+                                    $championData->metric_value = $champion;
+                                    $championData->session_id = $sessionId;
+                                    $championData->count = $champion;
+                                    $championData->shared = false;
+                                    $championData->awarded = true;
+                                    $championData->save();
                                 }
                             } else {
-                                if ($ironFirstData)
-                                    UserAchievements::where('achievement_id', $achievement->id)->delete();
+                                $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                            'achievement_id' => $achievement->id,
+                                            'achievement_type_id' => $achievementType->id,
+                                            'metric_value' => $champion,
+                                            'count' => $champion,
+                                            'awarded' => true,
+                                            'session_id' => $sessionId]);
                             }
                         }
                     }
-                break;
+                    break;
             }
         }
 
-        // Finally, returns all achivements user got for this session
-        // TODO improve this part
         return UserAchievements::getSessionAchievements($userId, $sessionId);
     }
 
@@ -1988,7 +1671,7 @@ class TrainingController extends Controller
     // Update Goal progress
     private function updateGoal($session)
     {
-        $goal = Goals::where('user_id', \Auth::id())->where('followed', 1)
+        $goal = Goals::where('user_id', \Auth::user()->id)->where('followed', 1)
                 ->where('start_at', '<=', date('Y-m-d H:i:s'))
                 ->where('end_at', '>=', date('Y-m-d H:i:s'))
                 ->first();

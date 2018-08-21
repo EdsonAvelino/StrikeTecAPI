@@ -14,103 +14,101 @@
 $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
+
 $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
 
     // Check for app update
     $app->post('/check_update', 'AppController@checkForUpdate');
 
-    // Login
-    $app->post('/auth/login', 'AuthController@authenticate');
-    $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
-    // User Signup
-    $app->post('/user/register', 'UserController@register');
-    $app->post('/user/register/facebook', 'UserController@registerFacebook');
+        // Check for app update
+        $app->post('/check_update', 'AppController@checkForUpdate');
 
-    // Password Reset
-    $app->post('/password', 'PasswordController@postEmail');
-    $app->post('/password/verify_code', 'PasswordController@postVerifyCode');
-    $app->post('/password/reset', 'PasswordController@postReset');
+        // Login
+        $app->post('/auth/login', 'AuthController@authenticate');
+        $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
-    // Countries / States / Cities
-    $app->get('/countries', 'WorldController@getCountries');
-    $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
-    $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
+        // User Signup
+        $app->post('/user/register', 'UserController@register');
+        $app->post('/user/register/facebook', 'UserController@registerFacebook');
 
-
-    // Countries / States / Cities
-    // $app->get('/countries[/{phase}]', 'WorldController@getCountries');
-    // $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
-    // $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
-
-    // Subscription plans
-    // $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+        // Password Reset
+        $app->post('/password', 'PasswordController@postEmail');
+        $app->post('/password/verify_code', 'PasswordController@postVerifyCode');
+        $app->post('/password/reset', 'PasswordController@postReset');
 
 
+        // Countries / States / Cities
+        $app->get('/countries', 'WorldController@getCountries');
+        $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
+        $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
-    // Get all available tags
-    $app->get('/tags', 'VideoController@getTags');
+        //Subscription plans
+        $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
-    // Get list of trainers
-    $app->get('/trainers', 'VideoController@getTrainers');
 
-    // Rest of all APIs are secured with access-token
-    // User APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Update user's profile data
-        $app->post('/users', 'UserController@update');
+        // Get FAQs
+        $app->get('/faqs', 'UserController@getFaqs');
 
-        // Know or update user's subscription
-        $app->post('/users/subscription', 'UserController@postUserSubscription');
-        
-        // Update user's sensor data
-        $app->post('/users/sensors', 'UserController@updateSensors');
+        // Get all available tags
+        $app->get('/tags', 'VideoController@getTags');
 
-        // Update user's preferences
-        $app->post('/users/preferences', 'UserController@updatePreferences');
+        // Get list of trainers
+        $app->get('/trainers', 'VideoController@getTrainers');
 
-        // Search users
-        $app->get('/users/search', 'UserController@searchUsers');
+        // Rest of all APIs are secured with access-token
+        // User APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Update user's profile data
+            $app->post('/users', 'UserController@update');
 
-        // Get user's game score
-        $app->get('/users/score', 'UserController@getUsersGameScores');
+            // Know or update user's subscription
+            $app->post('/users/subscription', 'UserController@postUserSubscription');
+            
+            // Update user's sensor data
+            $app->post('/users/sensors', 'UserController@updateSensors');
 
-        // Get user's progress
-        $app->get('/users/progress', 'UserController@getUsersProgress');
+            // Update user's preferences
+            $app->post('/users/preferences', 'UserController@updatePreferences');
 
-        // Get user's information
-        $app->get('/users/{userId}', 'UserController@getUser');
+            // Search users
+            $app->get('/users/search', 'UserController@searchUsers');
 
-        // Change password
-        $app->post('/users/change_password', 'UserController@setUserPassword');
+            // Get user's game score
+            $app->get('/users/score', 'UserController@getUsersGameScores');
 
-        // User's social connectivity
-        // Get user's connections
-        $app->get('/user/connections/{userId}', 'UserController@getConnections');
+            // Get user's progress
+            $app->get('/users/progress', 'UserController@getUsersProgress');
 
-        // Get suggestions to follow
-        $app->get('/user/follow/suggestions', 'UserController@getFollowSuggestions');
+            // Get user's information
+            $app->get('/users/{userId}', 'UserController@getUser');
 
-        $app->get('/user/follow/{userId}', 'UserController@follow');
-        $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
+            // Change password
+            $app->post('/users/change_password', 'UserController@setUserPassword');
 
-        $app->get('/user/followers', 'UserController@getFollowers');
-        $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
+            // User's social connectivity
+            // Get user's connections
+            $app->get('/user/connections/{userId}', 'UserController@getConnections');
 
-        $app->get('/user/following', 'UserController@getFollowing');
-        $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
+            // Get suggestions to follow
+            $app->get('/user/follow/suggestions', 'UserController@getFollowSuggestions');
 
-        $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+            $app->get('/user/follow/{userId}', 'UserController@follow');
+            $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
 
-        $app->get('/user/notifications', 'UserController@getNotifications');
-        $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
-    });
+            $app->get('/user/followers', 'UserController@getFollowers');
+            $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
 
-    // Training APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Get rounds by Training-Type
-        $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
+            $app->get('/user/following', 'UserController@getFollowing');
+            $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
+
+            $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+
+            $app->get('/user/notifications', 'UserController@getNotifications');
+            $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
+        });
+
 
         // Training APIs
         $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -120,6 +118,10 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
             // Get rounds by Training-Type
             $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
+
+
+            // Get particular session
+            $app->get('/user/training/sessions/for_comparison', 'TrainingController@getSessionForComparison');
 
 
                 // Training sessions list
@@ -160,6 +162,7 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
         // Update video
         $app->post('/videos/add_view/{videoId}', 'VideoController@addViewCount');
 
+
         // Set video favourite for user
         $app->post('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
 
@@ -176,132 +179,130 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
         $app->get('/videos/category', 'VideoController@getVideoCategories');
     });
 
-    // Leaderboard APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Get list of leaderboard data
-        $app->get('/leaderboard', 'LeaderboardController@getList');
 
-        // Trending data
-        $app->get('/trending', 'LeaderboardController@getTrendingList');
+// Leaderboard APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of leaderboard data
+    $app->get('/leaderboard', 'LeaderboardController@getList');
 
-        // Game leaderboard data
-        $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
-    });
+    // Trending data
+    $app->get('/trending', 'LeaderboardController@getTrendingList');
 
-    // Push notifications APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Save customer token for push notifications
-        $app->post('/user/app_token', 'PushController@storeAppToken');
-    });
+    // Game leaderboard data
+    $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
+});
 
-    // Push notifications settings APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        $app->post('/notification/settings', 'SettingController@updateSettings');
-        $app->get('/notification/settings', 'SettingController@getSettings');
-    });
+// Push notifications APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Save customer token for push notifications
+    $app->post('/user/app_token', 'PushController@storeAppToken');
+});
 
-    // Get list of comobos
-    $app->get('/battles/combos', 'BattleController@getCombos');
+// Push notifications settings APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    $app->post('/notification/settings', 'SettingController@updateSettings');
+    $app->get('/notification/settings', 'SettingController@getSettings');
+});
 
-    // Get list of comobo-sets
-    $app->get('/battles/combo_sets', 'BattleController@getComboSets');
+// Get list of comobos
+$app->get('/battles/combos', 'BattleController@getCombos');
 
-    // Get list of workouts
-    $app->get('/battles/workouts', 'BattleController@getWorkouts');
+// Get list of comobo-sets
+$app->get('/battles/combo_sets', 'BattleController@getComboSets');
 
-    // Not in use for now so commenting (17032018)
-    // Upload combo audio
-    // $app->post('/combos/audio', 'BattleController@saveAudio');
+// Get list of workouts
+$app->get('/battles/workouts', 'BattleController@getWorkouts');
 
-    // list of combos with audios
-    // $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
+// Not in use for now so commenting (17032018)
+// Upload combo audio
+// $app->post('/combos/audio', 'BattleController@saveAudio');
 
-    // Battle APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Get battle Request
-        $app->get('/battles/received', 'BattleController@getReceivedRequests');
+// list of combos with audios
+// $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
 
-        // Get my battles
-        $app->get('/battles/my_battles', 'BattleController@getMyBattles');
+// Battle APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get battle Request
+    $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
-        // Get finished battles
-        $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
+    // Get my battles
+    $app->get('/battles/my_battles', 'BattleController@getMyBattles');
 
-        // Get all battles
-        $app->get('/battles/all', 'BattleController@getAllBattles');
+    // Get finished battles
+    $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
 
-        // Send battle invite to another user    
-        $app->post('/battles', 'BattleController@postBattleWithInvite');
+    // Get all battles
+    $app->get('/battles/all', 'BattleController@getAllBattles');
 
-        // Accept/Decline battle invite (Opponent user)
-        $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
+    // Send battle invite to another user    
+    $app->post('/battles', 'BattleController@postBattleWithInvite');
 
-        // Resent battle invite
-        $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
+    // Accept/Decline battle invite (Opponent user)
+    $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
 
-        // Cancel battle
-        $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
+    // Resent battle invite
+    $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
 
-        // Get details of battle(challenge)
-        $app->get('/battles/{battleId}', 'BattleController@getBattle');
+    // Cancel battle
+    $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
 
-        // Get battles of user 
-        $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
-    });
+    // Get details of battle(challenge)
+    $app->get('/battles/{battleId}', 'BattleController@getBattle');
 
-    // Goals APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get battles of user 
+    $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
+});
 
-        // Get list of activities
-        $app->get('/activities', 'ActivityController@getActivityList');
+// Goals APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-        // Get list of activity type
-        $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
+    // Get list of activities
+    $app->get('/activities', 'ActivityController@getActivityList');
 
-        // Set new goal
-        $app->post('/goal/add', 'GoalController@newGoal');
+    // Get list of activity type
+    $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
 
-        // edit goal
-        $app->post('/goal/edit', 'GoalController@updateGoal');
+    // Set new goal
+    $app->post('/goal/add', 'GoalController@newGoal');
 
-        // follow goal
-        $app->post('/goal/follow', 'GoalController@followGoal');
+    // edit goal
+    $app->post('/goal/edit', 'GoalController@updateGoal');
 
-        // delete goal
-        $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
+    // follow goal
+    $app->post('/goal/follow', 'GoalController@followGoal');
 
-        // GET list of goal
-        $app->get('/goals', 'GoalController@getGoalList');
+    // delete goal
+    $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
 
-        // Calculate goal data
-        $app->get('/goal/info', 'GoalController@goalInfo');
+    // GET list of goal
+    $app->get('/goals', 'GoalController@getGoalList');
 
-        // Calculate goal data
-        $app->get('/goal', 'GoalController@goal');
-    });
+    // Calculate goal data
+    $app->get('/goal/info', 'GoalController@goalInfo');
 
-    // Feed APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Get list of feed-posts
-        $app->get('/feed/posts', 'FeedController@getPosts');
+    // Calculate goal data
+    $app->get('/goal', 'GoalController@goal');
+});
 
-        // Add new feed-post
-        $app->post('/feed/posts', 'FeedController@addPost');
+// Feed APIs
+$app->group(['middleware' => 'auth:api'], function () use ($app) {
+    // Get list of feed-posts
+    $app->get('/feed/posts', 'FeedController@getPosts');
 
-        // Like/Unlike feed-post
-        $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
-        $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
+    // Add new feed-post
+    $app->post('/feed/posts', 'FeedController@addPost');
 
-        // Get comments of feed-post
-        $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
+    // Like/Unlike feed-post
+    $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
+    $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
 
-        // Post comment on feed-post
-        $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
-    });
+    // Get comments of feed-post
+    $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
 
-    // This API does not need auth
-    // Contact Us(write us)
-    $app->post('/writeus', 'WriteusController@writeUs');
+    // Post comment on feed-post
+    $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
+});
+
 
         // Chat APIs
         $app->group(['middleware' => 'auth:api'], function () use ($app) {
@@ -316,42 +317,45 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             $app->get('/chat/history', 'ChatController@chatHistory');
 
 
-        // Get all chats
-        $app->get('/chat', 'ChatController@chats');
+            // Chat History (get all messages of particular chat )
+            $app->get('/chat/history', 'ChatController@chatHistory');
 
-        // Delete a message
-        $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
-    });
+            // Get all chats
+            $app->get('/chat', 'ChatController@chats');
+
+            // Delete a message
+            $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
+        });
 
 
-    // Tournaments APIs
-    $app->group(['middleware' => 'auth:api'], function () use ($app) {
-        // Get all new / joined / finished tournaments
-        $app->get('/tournaments/all', 'TournamentController@getAllEventsList');
+        // Tournaments APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get all new / joined / finished tournaments
+            $app->get('/tournaments/all', 'TournamentController@getAllEventsList');
 
-        // Get all new tournaments user didn't join
-        $app->get('/tournaments', 'TournamentController@getEventsList');
+            // Get all new tournaments user didn't join
+            $app->get('/tournaments', 'TournamentController@getEventsList');
 
-        // Tournament activity details
-        $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
+            // Tournament activity details
+            $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
 
-        // Tournament activity leaderboard
-        $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
-          
-        // User Join the tournament
-        $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
-        
-        // Get all tournaments that user joined
-        $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
+            // Tournament activity leaderboard
+            $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
+              
+            // User Join the tournament
+            $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
+            
+            // Get all tournaments that user joined
+            $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
 
-        // Get all finished tournaments that user joined
-        $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
-        
-        // Get user's tournament connections who haven not joined yet
-        $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
+            // Get all finished tournaments that user joined
+            $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
+            
+            // Get user's tournament connections who haven not joined yet
+            $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
 
-        // Invite connection for tournament 
-        $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
+            // Invite connection for tournament 
+            $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
     });
 
     // Guidance APIs
@@ -451,4 +455,3 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
         // Update activity status
         $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
     });
-});

@@ -8,12 +8,6 @@ class Chat extends Model
 {
 
     /**
-     *
-     * @var string
-     */
-    protected $table = 'chats';
-
-    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -23,6 +17,7 @@ class Chat extends Model
             'user_two'
     ];
 
+    
     /**
      * Get the messages for the chat.
      */

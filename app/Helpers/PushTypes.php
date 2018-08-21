@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 class PushTypes
 {
+
     const BATTLE_INVITE = 1;
     const BATTLE_RESEND = 2;
     const BATTLE_ACCEPT = 3;

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\DB;
 use Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -47,51 +46,35 @@ class WriteusController extends Controller
      */
     public function writeUs(Request $request)
     {
-        try {
-            \DB::beginTransaction();
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email|max:255',
-                'subject' => 'required|min:2',
-                'message' => 'required|min:2',
-            ]);
+        $validator = Validator::make($request->all(), [
+                    'email' => 'required|email|max:255',
+                    'subject' => 'required|min:2',
+                    'message' => 'required|min:2',
+        ]);
 
-            if ($validator->fails()) {
-                $errors = $validator->errors();
+        if ($validator->fails()) {
+            $errors = $validator->errors();
 
-                if ($errors->get('email'))
-                    return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
-                else if ($errors->get('subject'))
-                    return response()->json(['error' => 'true', 'message' => $errors->first('subject')]);
-                else if ($errors->get('message'))
-                    return response()->json(['error' => 'true', 'message' => $errors->first('message')]);
-            }
-
-            $writeUs = new WriteUs();
-
-            $email = $request->email;
-            $subject = $request->subject;
-            $message = $request->message;
-
-
-            $writeUs->email = $email;
-            $writeUs->message = $message;
-            $writeUs->subject = $subject;
-
-            $writeUs->save();
-
-            DB::commit();
-            // Admin Email
-            $adminEmail = env('WRITE_US_EMAIL');
-
-            Mail::to($adminEmail)->send(new WriteUsEmail($email, $subject, $message));
-
-            return response()->json(['error' => 'false', 'message' => 'Thank you for contacting us.']);
-        }catch (\Exception $exception)
-        {
-            DB::rollBack();
-            return response()->json(['error' => 'true', 'message' => $exception->getMessage()]);
+            if ($errors->get('email'))
+                return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
+            else if ($errors->get('subject'))
+                return response()->json(['error' => 'true', 'message' => $errors->first('subject')]);
+            else if ($errors->get('message'))
+                return response()->json(['error' => 'true', 'message' => $errors->first('message')]);
         }
 
+        WriteUs::create([
+            'email' => ( $email = $request->get('email') ),
+            'message' => ( $message = $request->get('message') ),
+            'subject' => ( $subject = $request->get('subject') )
+        ]);
+
+        // Admin Email
+        $adminEmail = env('WRITE_US_EMAIL');
+
+        Mail::to($adminEmail)->send(new WriteUsEmail($email, $subject, $message));
+
+        return response()->json(['error' => 'false', 'message' => 'Thank you for contacting us.']);
     }
 
 }
