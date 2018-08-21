@@ -543,60 +543,92 @@ class TrainingController extends Controller
      */
     public function storeSessions(Request $request)
     {
+
         $data = $request->get('data');
         $sessions = []; //Will be use for response
+
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
+        
 
         $gameSession = false;
 
         foreach ($data as $session) {
-            // Checking if session already exists
-            $_session = Sessions::where('start_time', $session['start_time'])->first();
 
-            if (!$_session) {
-                $_session = Sessions::create([
-                    'user_id' => \Auth::user()->id,
-                    'battle_id' => ($session['battle_id']) ?? null,
-                    'game_id' => ($session['game_id']) ?? null,
-                    'type_id' => $session['type_id'],
-                    'start_time' => $session['start_time'],
-                    'end_time' => $session['end_time'],
-                    'plan_id' => $session['plan_id'],
-                    'avg_speed' => $session['avg_speed'],
-                    'avg_force' => $session['avg_force'],
-                    'punches_count' => $session['punches_count'],
-                    'max_force' => $session['max_force'],
-                    'max_speed' => $session['max_speed'],
-                    'best_time' => $session['best_time']
-                ]);
+            try {
 
-                // Update battle details, if any
-                if ($_session->battle_id) {
-                    $this->updateBattle($_session->battleId);
+                // Checking if session already exists
+                $_session = Sessions::where('start_time', $session['start_time'])->first();
+
+                if (!$_session) {
+
+                    $_session = Sessions::create([
+                        'user_id' => \Auth::user()->id,
+                        'battle_id' => ($session['battle_id']) ?? null,
+                        'game_id' => ($session['game_id']) ?? null,
+                        'type_id' => $session['type_id'],
+                        'start_time' => $session['start_time'],
+                        'end_time' => $session['end_time'],
+                        'plan_id' => $session['plan_id'],
+                        'avg_speed' => $session['avg_speed'],
+                        'avg_force' => $session['avg_force'],
+                        'punches_count' => $session['punches_count'],
+                        'max_force' => $session['max_force'],
+                        'max_speed' => $session['max_speed'],
+                        'best_time' => $session['best_time']
+                    ]);
+                    
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Saved New Session Data  -- ', [$_session]);
+                    }
+                    // Update battle details, if any
+                    if ($_session->battle_id) {
+
+                        $this->updateBattle($_session->battleId);
+
+                    } elseif ($_session->game_id) {
+
+                        // Game stuff
+                        $gameSession = true;
+                        $this->updateGameLeaderboard($_session->game_id, $_session->id);
+
+                    } else {
+
+                        // Goal updates
+                        $this->updateGoal($_session);
+                    }
                 }
-                // Game stuff
-                elseif ($_session->game_id) {
-                    $gameSession = true;
-                    $this->updateGameLeaderboard($_session->game_id, $_session->id);
-                }
-                // Goal updates
-                else {
-                    $this->updateGoal($_session);
-                }
-            }
+                
+                $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
 
-            $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                    \Log::info('Update Session Round  '. $sessionRounds);
+                }
 
-            // Process through achievements (badges) and assign 'em to user
+
+                // Process through achievements (badges) and assign 'em to user
             
-            // skipping Achievements for now as they are not working properly
-            // $achievements = $this->achievements($_session->id, $_session->battle_id);
+                // skipping Achievements for now as they are not working properly
+                // $achievements = $this->achievements($_session->id, $_session->battle_id);
 
-            // Generating sessions' list for response
-            $sessions[] = [
-                'session_id' => $_session->id,
-                'start_time' => $_session->start_time,
-                'achievements' => []
-            ];
+                // Generating sessions' list for response
+                $sessions[] = [
+                    'session_id' => $_session->id,
+                    'start_time' => $_session->start_time,
+                    'achievements' => []
+                ];
+
+            } catch(\Exception $e) {
+               
+                return response()->json([
+                    'error' => 'true',
+                    'message' => $e->getMessage()
+                ]);
+            }
+            
         }
 
         // Sending response back if session is of game
@@ -608,87 +640,76 @@ class TrainingController extends Controller
             ]);
         }
 
-        // User's total sessions count
-        $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
-        $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
+        try {
 
-        // Create / Update Leaderboard entry for this user
-        $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
+            // User's total sessions count
+            $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
+            $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
 
-        // Set all old averate data to 0
-        $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
-         
-        $oldAvgSpeed = $leaderboardStatus->avg_speed;
-        $oldAvgForce = $leaderboardStatus->avg_force;
-        $oldPunchesCount = $leaderboardStatus->punches_count;
+            // Create / Update Leaderboard entry for this user
+            $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
 
-        $leaderboardStatus->sessions_count = $sessionsCount;
-        $leaderboardStatus->punches_count = $punchesCount;
-        $leaderboardStatus->save();
+            // Set all old averate data to 0
+            $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
+             
+            $oldAvgSpeed = $leaderboardStatus->avg_speed;
+            $oldAvgForce = $leaderboardStatus->avg_force;
+            $oldPunchesCount = $leaderboardStatus->punches_count;
 
-        // Formula
-        // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+            $leaderboardStatus->sessions_count = $sessionsCount;
+            $leaderboardStatus->punches_count = $punchesCount;
+            $leaderboardStatus->save();
 
-        $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
-        $avgForceData[] = $oldAvgForce * $oldPunchesCount;
+            // Formula
+            // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
 
-        $division = $oldPunchesCount;
+            $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
+            $avgForceData[] = $oldAvgForce * $oldPunchesCount;
 
-        foreach ($data as $session) {
-            $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-            $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+            $division = $oldPunchesCount;
 
-            $division += $session['punches_count'];
-        }
+            foreach ($data as $session) {
+                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
 
-        $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
-        $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
+                $division += $session['punches_count'];
+            }
 
-        $temp = SessionRounds::select(
-                                \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
-                        )
-                        ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
+            $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
+            $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
 
-        $leaderboardStatus->max_speed = $temp->max_speed;
-        $leaderboardStatus->max_force = $temp->max_force;
+            $temp = SessionRounds::select(
+                                    \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
+                            )
+                            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
 
-        $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+            $leaderboardStatus->max_speed = $temp->max_speed;
+            $leaderboardStatus->max_force = $temp->max_force;
 
-        $leaderboardStatus->total_time_trained = $totalTimeTrained;
+            $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
 
-        $leaderboardStatus->save();
+            $leaderboardStatus->total_time_trained = $totalTimeTrained;
 
-        // Finally sending response back to request
-        return response()->json([
-            'error' => 'false',
-            'message' => 'Training sessions saved successfully',
-            'data' => $sessions
-        ]);
+            $leaderboardStatus->save();
+
+            // Finally sending response back to request
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Training sessions saved successfully',
+                'data' => $sessions
+            ]);
+
+        } catch(\Exception $e) {
+               
+            return response()->json([
+                'error' => 'true',
+                'message' => $e->getMessage()
+            ]);
+        }    
     }
 
     /**
      * @api {patch} /user/training/sessions/<session_id>/archive Archive session
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Session has been archived",
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request or session not found"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function archiveSession($sessionId)
     {
@@ -714,83 +735,6 @@ class TrainingController extends Controller
 
     /**
      * @api {get} /user/training/sessions/rounds/{round_id} Get rounds and its punches
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} round Round information
-     * @apiSuccess {Object} punches List of round's punches
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "round": {
-     *          "id": 1,
-     *          "session_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": null,
-     *          "avg_speed": 20.71,
-     *          "avg_force": 358.64,
-     *          "punches_count": 28,
-     *          "max_speed": 34,
-     *          "max_force": 549,
-     *          "best_time": "0.39",
-     *          "avg_time": "0.51",
-     *          "created_at": "2017-09-09 18:06:33",
-     *          "updated_at": "2017-09-09 18:06:33"
-     *      },
-     *      "punches": [{
-     *          "id": 1,
-     *          "round_id": 1,
-     *          "punch_time": "1505089499658",
-     *          "punch_duration": "0.60",
-     *          "force": 270,
-     *          "speed": 14,
-     *          "punch_type": "H",
-     *          "hand": "L",
-     *          "distance": 35.49,
-     *          "created_at": "2017-09-13 17:55:00",
-     *          "updated_at": "2017-09-13 17:55:00"
-     *      },
-     *      {
-     *          "id": 2,
-     *          "round_id": 1,
-     *          "punch_time": "1505089500659",
-     *          "punch_duration": "0.40",
-     *          "force": 217,
-     *          "speed": 23,
-     *          "punch_type": "H",
-     *          "hand": "L",
-     *          "distance": 49.20,
-     *          "created_at": "2017-09-13 17:55:01",
-     *          "updated_at": "2017-09-13 17:55:01"
-     *      },
-     *     {
-     *          "id": 3,
-     *          "round_id": 1,
-     *          "punch_time": "1505089501660",
-     *          "punch_duration": "0.50",
-     *          "force": 549,
-     *          "speed": 22,
-     *          "punch_type": "J",
-     *          "hand": "R",
-     *          "distance": 55.57,
-     *          "created_at": "2017-09-13 17:55:02",
-     *          "updated_at": "2017-09-13 17:55:02"
-     *      }]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getSessionsRound($roundId)
     {
@@ -817,49 +761,18 @@ class TrainingController extends Controller
 
     /**
      * @api {post} /user/training/sessions/rounds Upload sessions' rounds
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeader {String} content-type Content-Type set to "application/json"
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-      "Content-Type": "application/json"
-     *     }
-     * @apiParam {json} data Json formatted rounds data
-     * @apiParamExample {json} Input
-     * {
-     * "data": [
-     *      { "session_start_time": 1505745766000, "start_time": 1505745866000, "end_time": 1505745866000, "pause_duration": 30000, avg_speed": 21.50, "avg_force": 364.25, "punches_count": 100, "max_speed": 32, "max_force": 579, "best_time": 0.50 },
-     *      { "session_start_time": 1505792485000, "start_time": 1505792485080, "end_time": 1505792585000, "pause_duration": 25000, "avg_speed": 22.57, "avg_force": 439.46, "punches_count": 120, "max_speed": 34, "max_force": 586, "best_time": 0.43}
-     *  ]
-     * }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each rounds' session_start_time
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Sessions rounds saved successfully",
-     *      "data": {[
-     *          {"start_time": 1505745866000},
-     *          {"start_time": 1505792485080},
-     *      ]}
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function storeSessionsRounds(Request $request)
     {
         $data = $request->get('data');
         $rounds = [];
-
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
         try {
+
             foreach ($data as $round) {
                 // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
 
@@ -867,6 +780,7 @@ class TrainingController extends Controller
                 $_round = SessionRounds::where('start_time', $round['start_time'])->where('session_id', $round['session_start_time'])->first();
 
                 if (!$_round) {
+
                     $_round = SessionRounds::create([
                         'session_id' => $round['session_start_time'],
                         'start_time' => $round['start_time'],
@@ -879,6 +793,9 @@ class TrainingController extends Controller
                         'max_force' => $round['max_force'],
                         'best_time' => $round['best_time'],
                     ]);
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Create NEW Session Round Data - ' , [$_round]);
+                    }
                 }
 
                 $rounds[] = ['start_time' => $_round->start_time];
@@ -889,7 +806,9 @@ class TrainingController extends Controller
                 'message' => 'Sessions rounds saved successfully',
                 'data' => $rounds
             ]);
+
         } catch (Exception $e) {
+
             return response()->json([
                 'error' => 'true',
                 'message' => 'Invalid request',
@@ -899,54 +818,22 @@ class TrainingController extends Controller
 
     /**
      * @api {post} /user/training/sessions/rounds/punches Upload rounds' punches
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeader {String} content-type Content-Type set to "application/json"
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-      "Content-Type": "application/json"
-     *     }
-     * @apiParam {json} data Json formatted punches data
-     * @apiParamExample {json} Input
-     * {
-     * "data": [
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 53.21, "is_correct": true },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 43.41, "is_correct": false },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 51.27, "is_correct": true },
-     *      { "round_start_time": 1505745766000, "punch_time": 1505745766000, "punch_duration": 0.5, "force" : 130, "speed" : 30, "punch_type" : "Jab", "hand" : "left", "distance": 33.09, "is_correct": false },
-     *  ]
-     * }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each punches' round_start_time
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Rounds punches saved successfully",
-     *      "data": {[
-     *          {"start_time": 1505745766000},
-     *          {"start_time": 1505745766000},
-     *          {"start_time": 1505745766000},
-     *          {"start_time": 1505745766000},
-     *      ]}
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function storeSessionsRoundsPunches(Request $request)
     {
         $data = $request->get('data');
         $punches = [];
+        
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+            \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
+            \Log::info('The Request Data - ' , $data);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
 
         try {
+
             foreach ($data as $punch) {
+
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
                 // Check if punches already exists
@@ -971,6 +858,9 @@ class TrainingController extends Controller
                         'distance' => $punch['distance'],
                         'is_correct' => $isCorrect,
                     ]);
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                        \Log::info('Created NEW Round Punches data- '.$_punch);
+                    }    
                 }
 
                 $punches[] = ['start_time' => $_punch->punch_time];
@@ -982,6 +872,7 @@ class TrainingController extends Controller
                 'data' => $punches
             ]);
         } catch (Exception $e) {
+
             return response()->json([
                 'error' => 'true',
                 'message' => 'Invalid request',

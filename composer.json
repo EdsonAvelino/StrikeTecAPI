@@ -12,7 +12,8 @@
         "illuminate/mail": "^5.4",
         "james-heinrich/getid3": "^1.9",
         "guzzlehttp/guzzle": "~6.0",
-        "google/apiclient": "^2.2"
+        "google/apiclient": "^2.2",
+        "rap2hpoutre/laravel-log-viewer": "^0.20.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
