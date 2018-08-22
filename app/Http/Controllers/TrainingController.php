@@ -26,92 +26,6 @@ class TrainingController extends Controller
 {
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
-     * @apiGroup Training
-     * @apiDescription Used to get list of sessions of user, when any session is tied with
-     * battle, that session will not be in response.
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
-     * @apiParam {Date} end_date The timestamp of end date since 1970.1.1 (unit is seccond)
-     * @apiParam {Number} [type_id] Optional Training type id e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
-     * @apiParamExample {json} Input
-     *    {
-     *      "start_date": "1505088000",
-     *      "end_date": "1505088000",
-     *      "type_id": 1,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} sessions List of sessions betweeen given date range
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "sessions": [{
-     *          "id": 1,
-     *          "user_id": 1,
-     *          "type_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": "1507203103523",
-     *          "plan_id": -1,
-     *          "avg_speed": 20.16,
-     *          "avg_force": 348.03,
-     *          "punches_count": 31,
-     *          "max_speed": 34.00,
-     *          "max_force": 549.00,
-     *          "best_time": "0.50",
-     *          "shared": "true",
-     *          "created_at": "2017-09-09 18:03:57",
-     *          "updated_at": "2017-09-09 18:03:57",
-     *          "round_ids" : [{ "id":1}, {"id":2} ]}
-     *      },
-     *      {
-     *          "id": 2,
-     *          "user_id": 1,
-     *          "type_id": 1,
-     *          "start_time": "1504978767000",
-     *          "end_time": "1507203088297",
-     *          "plan_id": -1,
-     *          "avg_speed": 20.16,
-     *          "avg_force": 348.03,
-     *          "punches_count": 31,
-     *          "max_speed": 34.00,
-     *          "max_force": 549.00,
-     *          "best_time": "0.45",
-     *          "shared": "false",
-     *          "created_at": "2017-09-09 18:08:21",
-     *          "updated_at": "2017-09-09 18:08:21"
-     *          "round_ids" : [{'id':3}, {'id':4}]
-     *      },
-     *      {
-     *          "id": 3,
-     *          "user_id": 1,
-     *          "type_id": 1,
-     *          "start_time": "1505025567000",
-     *          "end_time": "1507203103523",
-     *          "plan_id": -1,
-     *          "avg_speed": 20.16,
-     *          "avg_force": 348.03,
-     *          "punches_count": 31,
-     *          "max_speed": 34.00,
-     *          "max_force": 549.00,
-     *          "best_time": "0.40",
-     *          "shared": "true",
-     *          "created_at": "2017-09-10 18:09:30",
-     *          "updated_at": "2017-09-10 18:09:30"
-     *          "round_ids" : [{"id":5}, {"id":6}]
-     *      }
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function getSessions(Request $request)
@@ -203,75 +117,6 @@ class TrainingController extends Controller
 
     /**
      * @api {get} /user/training/sessions/<session_id> Get session and its rounds
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} session Sessions information
-     * @apiSuccess {Object} rounds List of current session's rounds
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "session": {
-     *          "id": 1,
-     *          "user_id": 1,
-     *          "type_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": "1504960423000",
-     *          "plan_id": -1,
-     *          "avg_speed": "20.16",
-     *          "avg_force": "348.03",
-     *          "punches_count": 31,
-     *          "max_speed": "34.00",
-     *          "max_force": "549.00",
-     *          "best_time": "0.50",
-     *          "shared": "true",
-     *          "created_at": "2017-09-09 18:03:57",
-     *          "updated_at": "2017-09-09 18:03:57"
-     *      }
-     *      "rounds": [{
-     *          "id": 1,
-     *          "session_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": "1504960423000",
-     *          "avg_speed": 20.71,
-     *          "avg_force": 358.64,
-     *          "punches_count": 28,
-     *          "max_speed": 34,
-     *          "max_force": 549,
-     *          "best_time": "0.39",
-     *          "avg_time": "0.51",
-     *          "created_at": "2017-09-09 18:06:33",
-     *          "updated_at": "2017-09-09 18:06:33"
-     *      },
-     *      {
-     *          "id": 2,
-     *          "session_id": 1,
-     *          "start_time": "1504960422890",
-     *          "end_time": "15049604223000",
-     *          "avg_speed": 20.71,
-     *          "avg_force": 358.64,
-     *          "punches_count": 28,
-     *          "max_speed": 34,
-     *          "max_force": 549,
-     *          "best_time": "0.39",
-     *          "avg_time": "0.51",
-     *          "created_at": "2017-09-09 18:06:33",
-     *          "updated_at": "2017-09-09 18:06:33"
-     *      }]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function getSession($sessionId)
@@ -328,84 +173,6 @@ class TrainingController extends Controller
 
     /**
      * @api {get} /user/training/sessions/for_comparison Get session of particular type to compare with last
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {String} session_id Desired Session ID
-     * @apiParam {String} type_id Type ID
-     * @apiParamExample {json} Input
-     *    {
-     *      "session_id": 25,
-     *      "type_id": 1
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data Two session, one which requested another latest of the same type
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": {
-     *           {
-     *               "id": 25,
-     *               "user_id": 7,
-     *               "battle_id": 15,
-     *               "game_id": null,
-     *               "type_id": 3,
-     *               "start_time": 1522346134039,
-     *               "end_time": 1522346137158,
-     *               "plan_id": 3,
-     *               "avg_speed": 15,
-     *               "avg_force": 653,
-     *               "punches_count": 3,
-     *               "max_speed": 18,
-     *               "max_force": 857,
-     *               "best_time": "0.50",
-     *               "shared": "false",
-     *               "created_at": "2018-03-29T17:55:34.000000",
-     *               "updated_at": "2018-03-29T18:00:32.000000",
-     *               "plan_detail": {
-     *                   "type_id": 3,
-     *                   "data": "{\"id\":1,\"name\":\"Jab-Jab-Cross\",\"description\":\"BEGINNER SERIES\\r\\nJab-Jab-Cross (1-1-2)\",\"detail\":[\"1\",\"1\",\"2\"]}"
-     *                 },
-     *               "round_ids": [ {"id": 124} ]
-     *           },
-     *           {
-     *               "id": 18,
-     *               "user_id": 7,
-     *               "battle_id": 14,
-     *               "game_id": null,
-     *               "type_id": 3,
-     *               "start_time": 1522344517124,
-     *               "end_time": 1522344520239,
-     *               "plan_id": 3,
-     *               "avg_speed": 17,
-     *               "avg_force": 736,
-     *               "punches_count": 3,
-     *               "max_speed": 23,
-     *               "max_force": 886,
-     *               "best_time": "0.50",
-     *               "shared": "false",
-     *               "created_at": "2018-03-29T17:28:37.000000",
-     *               "updated_at": "2018-03-29T17:27:40.000000",
-     *               "plan_detail": {
-     *                   "type_id": 3,
-     *                   "data": "{\"id\":1,\"name\":\"Jab-Jab-Cross\",\"description\":\"BEGINNER SERIES\\r\\nJab-Jab-Cross (1-1-2)\",\"detail\":[\"1\",\"1\",\"2\"]}"
-     *                 },
-     *               "round_ids": [ {"id": 112 } ]
-     *           }
-     *      }
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function getSessionForComparison(Request $request)
@@ -474,80 +241,15 @@ class TrainingController extends Controller
 
     /**
      * @api {post} /user/training/sessions Upload sessions
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeader {String} content-type Content-Type set to "application/json"
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     *       "Content-Type": "application/json"
-     *     }
-     * @apiParam {json} data Json formatted sessions data
-     * @apiParamExample {json} Input
-     * {
-     * "data": [
-     *      { "type_id": 1, "battle_id": 0, "start_time": 1505745766000, "end_time": "", "plan_id":-1, "avg_speed": 21.87,  "avg_force" : 400.17, "punches_count" : 600, "max_force" : 34, "max_speed": 599, "best_time": 0.48 },
-     *      { "type_id": 1, "battle_id": 0, "start_time": 1505792485000, "end_time": "", "plan_id":-1, "avg_speed": 20.55,  "avg_force" : 350.72, "punches_count" : 300, "max_force" : 35, "max_speed": 576, "best_time": 0.46 }
-     *  ]
-     * }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} data Data contains each sessions' start_time
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Training sessions saved successfully",
-     *      "data": {[
-     *          {
-     *             "session_id": 639,
-     *             "start_time": "1513591500000",
-     *             "achievements": [
-     *           {
-     *              "achievement_id": 5,
-     *              "achievement_name": "Most Powerful Punch",
-     *              "name": "Powerful Punch",
-     *              "description": "Most Powerful Punch",
-     *              "image": "http://badges.example.com/Punch_Count_5000.png",
-     *              "badge_value": 1,
-     *              "awarded": true,
-     *              "count": 1,
-     *              "shared": false
-     *          },
-     *          {
-     *              "achievement_id": 12,
-     *              "achievement_name": "Iron First",
-     *              "name": "Gold",
-     *              "description": "User Participation",
-     *              "image": "http://badges.example.com/Punch_Count_5000.png",
-     *              "badge_value": 1,
-     *              "awarded": true,
-     *              "count": 1,
-     *              "shared": false
-     *          }
-     *         },
-     *         {
-     *             "session_id": 639,
-     *             "start_time": "1513591500000",
-     *             "achievements": []
-     *         }
-     *      ]}
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function storeSessions(Request $request)
     {
 
         $data = $request->get('data');
+
         $sessions = []; //Will be use for response
 
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
             \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
@@ -581,7 +283,7 @@ class TrainingController extends Controller
                         'best_time' => $session['best_time']
                     ]);
                     
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                         \Log::info('Saved New Session Data  -- ', [$_session]);
                     }
                     // Update battle details, if any
@@ -602,9 +304,9 @@ class TrainingController extends Controller
                     }
                 }
                 
-                $sessionRounds = SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
+                $sessionRounds = SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
 
-                if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                     \Log::info('Update Session Round  '. $sessionRounds);
                 }
 
@@ -766,23 +468,34 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $rounds = [];
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+
             \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
-            \Log::info('The Request Data - ' , $data);
+            \Log::info('The Request Data - ' , $data); 
             \Log::info('Auth User ID - ' . \Auth::user()->id);
         }
+
         try {
 
             foreach ($data as $round) {
+
                 // $sessionId = Sessions::where('start_time', $round['session_start_time'])->first()->id;
 
                 // Checking if round already exists
-                $_round = SessionRounds::where('start_time', $round['start_time'])->where('session_id', $round['session_start_time'])->first();
+                $testRound = SessionRounds::where('start_time', $round['start_time'])->where('session_start_time', $round['session_start_time']);
+                
+                $_round = $testRound->first();
+
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {                    
+                    \Log::info('storeSessionsRounds() Session Start Time - ' . $round['session_start_time']);
+                    \Log::info('Count For Get sessions Rounds - '. $testRound->count());
+                }
 
                 if (!$_round) {
 
                     $_round = SessionRounds::create([
-                        'session_id' => $round['session_start_time'],
+                        'session_start_time' => $round['session_start_time'],
                         'start_time' => $round['start_time'],
                         'pause_duration' => $round['pause_duration'],
                         'end_time' => $round['end_time'],
@@ -793,7 +506,8 @@ class TrainingController extends Controller
                         'max_force' => $round['max_force'],
                         'best_time' => $round['best_time'],
                     ]);
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                         \Log::info('Create NEW Session Round Data - ' , [$_round]);
                     }
                 }
@@ -824,7 +538,7 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $punches = [];
         
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
@@ -837,9 +551,16 @@ class TrainingController extends Controller
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
                 // Check if punches already exists
-                $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
+                $testPunches = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id);
+                $_punch = $testPunches->first();
+
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
+                    \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
+                }
 
                 if (!$_punch) {
+
                     // To prevent errors on Prod
                     $isCorrect = null;
 
@@ -858,7 +579,8 @@ class TrainingController extends Controller
                         'distance' => $punch['distance'],
                         'is_correct' => $isCorrect,
                     ]);
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236) {
+
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                         \Log::info('Created NEW Round Punches data- '.$_punch);
                     }    
                 }
@@ -882,68 +604,6 @@ class TrainingController extends Controller
 
     /**
      * @api {get} /user/training/sessions/rounds_by_training Get rounds by training-type
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     *     }
-     * @apiParam {Number} type_id Type ID e.g. 1 = Quick Start, 2 = Round, 3 = Combo, 4 = Set, 5 = Workout
-     * @apiParam {Date} start_date The timestamp of start date since 1970.1.1(unit is seccond)
-     * @apiParam {Date} end_date The timestamp of end date since 1970.1.1 (unit is seccond)
-     * @apiParamExample {json} Input
-     *    {
-     *      "type_id": 1,
-     *      "start_date": "1505088000",
-     *      "end_date": "1505088000",
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Array} rounds List of rounds by filtered by training-type
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Rounds punches saved successfully",
-     *      "rounds": [
-     *          {
-     *          "id": 4,
-     *          "session_id": 11,
-     *          "start_time": "1505243114094",
-     *          "end_time": "1505243115773",
-     *          "avg_speed": 22,
-     *          "avg_force": 258,
-     *          "punches_count": 3,
-     *          "max_speed": 24,
-     *          "max_force": 269,
-     *          "best_time": "0.47",
-     *          "avg_time": "0.49",
-     *          "created_at": "2017-09-12 19:07:28",
-     *          "updated_at": "2017-09-13 17:55:18"
-     *      },
-     *          {
-     *          "id": 5,
-     *          "session_id": 10,
-     *          "start_time": "1505243114090",
-     *          "end_time": "1505243115780",
-     *          "avg_speed": 29,
-     *          "avg_force": 252,
-     *          "punches_count": 9,
-     *          "max_speed": 23,
-     *          "max_force": 219,
-     *          "best_time": "0.57",
-     *          "avg_time": "0.47",
-     *          "created_at": "2017-09-14 18:17:48",
-     *          "updated_at": "2017-09-15 19:50:32"
-     *      }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function getSessionsRoundsByTrainingType(Request $request)
@@ -1004,93 +664,6 @@ class TrainingController extends Controller
 
     /**
      * @api {get} /tips Get tips data
-     * @apiGroup Training
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
-     *     }
-     * @apiParam {Number} session_id Session ID 
-     * @apiParamExample {json} Input
-     *    {
-     *      "session_id": 75
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data data of tips
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": {
-     *          "current_speed": 20,
-     *          "highest_speed": 25,
-     *          "lowest_speed": 6,
-     *          "current_force": 741,
-     *          "highest_force": 804,
-     *          "lowest_force": 1,
-     *          "current_damage": 5689,
-     *          "highest_damage": 464062,
-     *          "lowest_damage": 217,
-     *           "missing_punches": {
-     *                      "S": 6,
-     *                      "SR": 2,
-     *                      "LH": 7,
-     *                      "LU": 6,
-     *                      "RU": 1,
-     *                      "J": 4,
-     *                      "SH": 1
-     *                  },
-     *          "videos": [
-     *              {
-     *                  "id": 1,
-     *                  "category_id": 2,
-     *                  "title": "Intro",
-     *                  "file": "http://videos.example.com/video_1511358745.mp4",
-     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790678.png",
-     *                  "view_counts": 211,
-     *                  "duration": "00:00:06",
-     *                  "author_name": "Striketec",
-     *                  "price": null,
-     *                  "thumb_width": 1338,
-     *                  "thumb_height": 676
-     *              },
-     *              {
-     *                  "id": 4,
-     *                  "category_id": 2,
-     *                  "title": "The Hook",
-     *                  "file": "http://videos.example.com/video_1511357565.mp4",
-     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790074.jpg",
-     *                  "view_counts": 19,
-     *                  "duration": "00:00:55",
-     *                  "author_name": "Striketec",
-     *                  "price": null,
-     *                  "thumb_width": 1327,
-     *                  "thumb_height": 753
-     *              },
-     *              {
-     *                  "id": 5,
-     *                  "category_id": 3,
-     *                  "title": "Right Handed Boxing Stance",
-     *                  "file": "http://videos.example.com/video_1511357525.mp4",
-     *                  "thumbnail": "http://videos.example.com/thumbnails/video_thumb_1511790106.jpg",
-     *                  "view_counts": 26,
-     *                  "duration": "00:00:27",
-     *                  "author_name": "Striketec",
-     *                  "price": null,
-     *                  "thumb_width": 1341,
-     *                  "thumb_height": 747
-     *              },
-     *          ]
-     *      }
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function tips(Request $request)

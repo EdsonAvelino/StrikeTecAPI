@@ -23,6 +23,7 @@ class SessionRounds extends Model
         'max_speed',
         'max_force',
         'best_time',
+        'session_start_time'
             // 'avg_time',
     ];
     
