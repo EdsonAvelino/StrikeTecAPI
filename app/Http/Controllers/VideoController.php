@@ -10,6 +10,12 @@ use App\VideoCategory;
 
 class VideoController extends Controller
 {
+    protected $lengthTypes = [
+        1 => '10 min or less',
+        2 => '10 - 20 min',
+        3 => '20 - 30 min',
+        4 => '30+'
+    ];
 
     /**
      * @api GET /videos 
@@ -64,63 +70,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /videos/search Search videos
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {String} query Search term e.g. "boxing+stance+and+footwork"
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "query": "boxing+stance+and+footwork",
-     *      "start": 0,
-     *      "limit": 10,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "videos": [
-     *          {
-     *              "id": 1,
-     *              "title": "Sample Video",
-     *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
-     *              "views": 250,
-     *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02",
-     *              "user_favourited": true,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          {
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "views": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function searchVideos(Request $request)
     {
@@ -154,6 +103,119 @@ class VideoController extends Controller
     }
 
     /**
+     * @api {get} /videos/filter
+     * 
+     */
+    public function videosFilter(Request $request)
+    {
+
+        $validator = \Validator::make($request->all(), [
+            'featured' => 'sometimes|required|boolean', 
+            'my_favorites' => 'sometimes|required|boolean', 
+            'is_watched' => 'sometimes|required|boolean',
+            'video_length_type' => 'sometimes|required|in:1,2,3,4',
+            'skill_level' => 'sometimes|required|in:1,2,3',
+            'trainer_id' => 'sometimes|required|exists:trainers,id',
+            'sort_by' => 'sometimes|required|in:1,2,3'
+        ]);
+ 
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
+        }
+
+        $videos = Videos::query();
+
+        // Filter is_featured videos or no
+        if ($request->get('featured') !== null) {
+            $featured = $request->get('featured');
+            $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
+        }
+
+        // Filter auth user favorite videos
+        if ($request->get('my_favorites')) {
+            $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+            $videos = $videos->whereIn('id', $favVideosId);   
+        }
+
+        // Filter viewed videos or no
+        if ($request->get('is_watched') !== null) {
+            $isWatched = $request->get('is_watched');
+            $videos = $isWatched ?  $videos->whereNotNull('views') : $videos->whereNull('views');   
+        }
+
+        // Filter video duration
+        if ($request->get('video_length_type')) {
+
+            $videoLength = $request->get('video_length_type');
+
+            switch ($videoLength) {
+                case 1 :
+                    
+                    $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                    
+                    break;
+                case 2 :
+                    
+                    $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                    
+                    break;
+                case 3 :
+                    
+                    $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                    
+                    break;
+                case 4 :
+                    
+                    $videos = $videos->where('duration' , '>', '30:00');   
+                    
+                    break;
+            }
+        }
+        
+        // Filter with the skill level
+        if ($request->get('skill_level')) {
+            
+            $skillLevelId = $request->get('skill_level');
+            $videos = $videos->where('type_id', $skillLevelId);   
+        }
+
+        // Filter with the skill level
+        if ($request->get('trainer_id')) {
+            
+            $trainerId = $request->get('trainer_id');
+            $videos = $videos->where('trainer_id', $trainerId);   
+        }
+
+        // Filter with the skill level
+        if ($request->get('sort_by')) {
+
+            $sortBy = $request->get('sort_by');
+
+            switch ($sortBy) {
+                case 1 :
+                    
+                    $videos = $videos->orderBy('updated_at', 'DESC');   
+                    
+                    break;
+                case 2 :
+                    
+                    $videos = $videos->orderBy('duration', 'DESC');   
+                    
+                    break;
+                case 3 :
+                    
+                    $videos = $videos->orderBy('type_id', 'ASC');
+                    
+                    break;
+            }  
+        }
+
+
+        dd($videos->get());
+    }
+
+    /**
      * Alter param
      */
     private function alterParam(&$param)
@@ -163,27 +225,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/favourite/{videoId} Add video to Favourite
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Successfully saved in favourite list",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function setVideoFav($videoId)
     {
@@ -198,27 +239,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/unfavourite/{videoId} Remove video from Favourite
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Successfully removed from favourite list",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function setVideoUnFav($videoId)
     {
@@ -233,26 +253,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/add_view/{videoId} Add views to video
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Added successfully",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function addViewCount($videoId)
@@ -271,69 +271,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /user/fav_videos Get user's fav videos
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *           {
-     *             "type_id": 3,
-     *             "plan_id": 1,
-     *             "title": "Jab-Jab-Cross",
-     *             "video_title": "Susan Kocab's Jab-Jab-Cross",
-     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734899.jpg",
-     *             "duration": "00:49",
-     *             "trainer": {
-     *                 "id": 1,
-     *                 "type": 1,
-     *                 "first_name": "Susan",
-     *                 "last_name": "Kocab"
-     *             },
-     *             "rating": "0.0",
-     *             "filter": 1
-     *         },
-     *         {
-     *             "type_id": 3,
-     *             "plan_id": 4,
-     *             "title": "Jab-Cross-Roll Right",
-     *             "video_title": "Susan Kocab's Jab-Cross-Roll Right",
-     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734966.jpg",
-     *             "duration": "00:34",
-     *             "trainer": {
-     *                 "id": 1,
-     *                 "type": 1,
-     *                 "first_name": "Susan",
-     *                 "last_name": "Kocab"
-     *             },
-     *             "rating": "0.0",
-     *             "filter": 1
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getUserFavVideos(Request $request)
     {
@@ -379,40 +316,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /videos/tags list of video's tags
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of video's tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                      {
-     *                          "id": 1,
-     *                          "type": 1,
-     *                          "name": "Boxing Videos"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "type": 1,
-     *                          "name": "Kickboxing Videos"
-     *                      }
-     *                  ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getVideoTags(Request $request)
     {
@@ -423,46 +326,6 @@ class VideoController extends Controller
 
     /**
      * @api {get}/videos/category Get list of videos categories
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of videos categories
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Workout Routines"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Tutorials"
-     *                      }
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Drills"
-     *                      }
-     *                      {
-     *                          "id": 4,
-     *                          "name": "Essentials"
-     *                      }
-     *                  ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getVideoCategories(Request $request)
     {
@@ -472,39 +335,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /trainers Get list of trainers
-     * @apiGroup Videos
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *          {
-     *              "id": 1,
-     *              "type": 1,
-     *              "first_name": "Susan",
-     *              "last_name": "Kocab",
-     *              "gender": "female"
-     *          },
-     *          {
-     *              "id": 2,
-     *              "type": 1,
-     *              "first_name": "Pete",
-     *              "last_name": "V",
-     *              "gender": "male"
-     *          }
-     *      ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getTrainers(Request $request)
     {
@@ -515,66 +345,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /tags Get list of tags and filters
-     * @apiGroup Videos
-     * @apiParam {Number="1-Videos","2-Combos",'3-Workouts','4-Sets'} [type_id] Type Id
-     * @apiParamExample {json} Input
-     *    {
-     *      "type_id": 2
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                {
-     *                    "id": 1,
-     *                    "type": 2,
-     *                    "name": "Boxing"
-     *                    "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Beginner"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Intermediate"
-     *                      },
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Advanced"
-     *                      }
-     *                 },
-     *                {
-     *                     "id": 2,
-     *                     "type": 2,
-     *                     "name": "Kickboxing"
-     *                     "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Beginner"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Intermediate"
-     *                      },
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Advanced"
-     *                      }
-     *               }
-     *        ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getTags(Request $request)
     {

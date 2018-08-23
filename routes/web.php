@@ -22,8 +22,8 @@ $app->get('/', function () use ($app) {
 $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
 
-    // Check for app update
-    $app->post('/check_update', 'AppController@checkForUpdate');
+        // Check for app update
+        $app->post('/check_update', 'AppController@checkForUpdate');
 
 
         // Check for app update
@@ -181,131 +181,133 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
         // Get Categories
         $app->get('/videos/category', 'VideoController@getVideoCategories');
-    });
+
+        // Get list of videos available on server
+        $app->get('/videos/filter', 'VideoController@videosFilter');
 
 
-// Leaderboard APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of leaderboard data
-    $app->get('/leaderboard', 'LeaderboardController@getList');
+        // Leaderboard APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get list of leaderboard data
+            $app->get('/leaderboard', 'LeaderboardController@getList');
 
-    // Trending data
-    $app->get('/trending', 'LeaderboardController@getTrendingList');
+            // Trending data
+            $app->get('/trending', 'LeaderboardController@getTrendingList');
 
-    // Game leaderboard data
-    $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
-});
+            // Game leaderboard data
+            $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
+        });
 
-// Push notifications APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Save customer token for push notifications
-    $app->post('/user/app_token', 'PushController@storeAppToken');
-});
+        // Push notifications APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Save customer token for push notifications
+            $app->post('/user/app_token', 'PushController@storeAppToken');
+        });
 
-// Push notifications settings APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    $app->post('/notification/settings', 'SettingController@updateSettings');
-    $app->get('/notification/settings', 'SettingController@getSettings');
-});
+        // Push notifications settings APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            $app->post('/notification/settings', 'SettingController@updateSettings');
+            $app->get('/notification/settings', 'SettingController@getSettings');
+        });
 
-// Get list of comobos
-$app->get('/battles/combos', 'BattleController@getCombos');
+        // Get list of comobos
+        $app->get('/battles/combos', 'BattleController@getCombos');
 
-// Get list of comobo-sets
-$app->get('/battles/combo_sets', 'BattleController@getComboSets');
+        // Get list of comobo-sets
+        $app->get('/battles/combo_sets', 'BattleController@getComboSets');
 
-// Get list of workouts
-$app->get('/battles/workouts', 'BattleController@getWorkouts');
+        // Get list of workouts
+        $app->get('/battles/workouts', 'BattleController@getWorkouts');
 
-// Not in use for now so commenting (17032018)
-// Upload combo audio
-// $app->post('/combos/audio', 'BattleController@saveAudio');
+        // Not in use for now so commenting (17032018)
+        // Upload combo audio
+        // $app->post('/combos/audio', 'BattleController@saveAudio');
 
-// list of combos with audios
-// $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
+        // list of combos with audios
+        // $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
 
-// Battle APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get battle Request
-    $app->get('/battles/received', 'BattleController@getReceivedRequests');
+        // Battle APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get battle Request
+            $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
-    // Get my battles
-    $app->get('/battles/my_battles', 'BattleController@getMyBattles');
+            // Get my battles
+            $app->get('/battles/my_battles', 'BattleController@getMyBattles');
 
-    // Get finished battles
-    $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
+            // Get finished battles
+            $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
 
-    // Get all battles
-    $app->get('/battles/all', 'BattleController@getAllBattles');
+            // Get all battles
+            $app->get('/battles/all', 'BattleController@getAllBattles');
 
-    // Send battle invite to another user    
-    $app->post('/battles', 'BattleController@postBattleWithInvite');
+            // Send battle invite to another user    
+            $app->post('/battles', 'BattleController@postBattleWithInvite');
 
-    // Accept/Decline battle invite (Opponent user)
-    $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
+            // Accept/Decline battle invite (Opponent user)
+            $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
 
-    // Resent battle invite
-    $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
+            // Resent battle invite
+            $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
 
-    // Cancel battle
-    $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
+            // Cancel battle
+            $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
 
-    // Get details of battle(challenge)
-    $app->get('/battles/{battleId}', 'BattleController@getBattle');
+            // Get details of battle(challenge)
+            $app->get('/battles/{battleId}', 'BattleController@getBattle');
 
-    // Get battles of user 
-    $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
-});
+            // Get battles of user 
+            $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
+        });
 
-// Goals APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
+        // Goals APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-    // Get list of activities
-    $app->get('/activities', 'ActivityController@getActivityList');
+            // Get list of activities
+            $app->get('/activities', 'ActivityController@getActivityList');
 
-    // Get list of activity type
-    $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
+            // Get list of activity type
+            $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
 
-    // Set new goal
-    $app->post('/goal/add', 'GoalController@newGoal');
+            // Set new goal
+            $app->post('/goal/add', 'GoalController@newGoal');
 
-    // edit goal
-    $app->post('/goal/edit', 'GoalController@updateGoal');
+            // edit goal
+            $app->post('/goal/edit', 'GoalController@updateGoal');
 
-    // follow goal
-    $app->post('/goal/follow', 'GoalController@followGoal');
+            // follow goal
+            $app->post('/goal/follow', 'GoalController@followGoal');
 
-    // delete goal
-    $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
+            // delete goal
+            $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
 
-    // GET list of goal
-    $app->get('/goals', 'GoalController@getGoalList');
+            // GET list of goal
+            $app->get('/goals', 'GoalController@getGoalList');
 
-    // Calculate goal data
-    $app->get('/goal/info', 'GoalController@goalInfo');
+            // Calculate goal data
+            $app->get('/goal/info', 'GoalController@goalInfo');
 
-    // Calculate goal data
-    $app->get('/goal', 'GoalController@goal');
-});
+            // Calculate goal data
+            $app->get('/goal', 'GoalController@goal');
+        });
 
-// Feed APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of feed-posts
-    $app->get('/feed/posts', 'FeedController@getPosts');
+        // Feed APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get list of feed-posts
+            $app->get('/feed/posts', 'FeedController@getPosts');
 
-    // Add new feed-post
-    $app->post('/feed/posts', 'FeedController@addPost');
+            // Add new feed-post
+            $app->post('/feed/posts', 'FeedController@addPost');
 
-    // Like/Unlike feed-post
-    $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
-    $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
+            // Like/Unlike feed-post
+            $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
+            $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
 
-    // Get comments of feed-post
-    $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
+            // Get comments of feed-post
+            $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
 
-    // Post comment on feed-post
-    $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
-});
+            // Post comment on feed-post
+            $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
+        });
 
 
         // Chat APIs
@@ -399,6 +401,7 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
     // FAN App APIs
     $app->group(['middleware' => 'auth:fan'], function() use ($app) {
+
         // Get my events list
         $app->get('/fan/events', 'EventController@getMyEventsList');
 
@@ -459,3 +462,4 @@ $app->group(['middleware' => 'auth:api'], function () use ($app) {
         // Update activity status
         $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
     });
+});
