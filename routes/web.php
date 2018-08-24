@@ -185,6 +185,9 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
         // Get list of videos available on server
         $app->get('/videos/filter', 'VideoController@videosFilter');
 
+        // Get list of videos available on server
+        $app->get('/videos/count', 'VideoController@videosCount');
+
 
         // Leaderboard APIs
         $app->group(['middleware' => 'auth:api'], function () use ($app) {

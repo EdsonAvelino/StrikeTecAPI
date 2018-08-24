@@ -97,13 +97,8 @@ class VideoController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 
-    /**
-     * @api {get} /videos/filter
-     * 
-     */
-    public function videosFilter(Request $request)
+    public function videosCount(Request $request)
     {
-
         $validator = \Validator::make($request->all(), [
             'featured' => 'sometimes|required|boolean', 
             'my_favorites' => 'sometimes|required|boolean', 
@@ -111,7 +106,7 @@ class VideoController extends Controller
             'video_length_type' => 'sometimes|required|in:1,2,3,4',
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
-            'sort_by' => 'sometimes|required|in:1,2,3'
+            'sort_by' => 'sometimes|required'
         ]);
  
         if ($validator->fails()) {
@@ -211,6 +206,140 @@ class VideoController extends Controller
             }
 
 
+            return response()->json(['error' => 'false', 'message' => '', 'data' => ['count' => $videos->count()] ]);
+        
+        } catch (\Exception $e) {
+
+            return response()->json(['error' => 'true', 'message' => $e->getMessage()]);
+        }    
+    }
+
+    /**
+     * @api {get} /videos/filter
+     * 
+     */
+    public function videosFilter(Request $request)
+    {
+
+        $validator = \Validator::make($request->all(), [
+            'featured' => 'sometimes|required|boolean', 
+            'my_favorites' => 'sometimes|required|boolean', 
+            'is_watched' => 'sometimes|required|boolean',
+            'video_length_type' => 'sometimes|required|in:1,2,3,4',
+            'skill_level' => 'sometimes|required|in:1,2,3',
+            'trainer_id' => 'sometimes|required|exists:trainers,id',
+            'sort_by' => 'sometimes|required',
+            'start' => 'sometimes|required',
+            'limit' => 'sometimes|required'
+        ]);
+ 
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
+        }
+
+        try {
+            $videos = Videos::query()->with(['trainer']);
+
+            // Filter is_featured videos or no
+            if ($request->get('featured') !== null) {
+                $featured = $request->get('featured');
+                $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
+            }
+
+            // Filter auth user favorite videos
+            if ($request->get('my_favorites')) {
+                $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+                $videos = $videos->whereIn('id', $favVideosId);   
+            }
+
+            // Filter viewed videos or no
+            if ($request->get('is_watched') !== null) {
+                $isWatched = $request->get('is_watched');
+
+                $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
+
+                $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereIn('id', '!=', $userWatched);   
+            }
+
+            // Filter video duration
+            if ($request->get('video_length_type')) {
+
+                $videoLength = $request->get('video_length_type');
+
+                switch ($videoLength) {
+                    case 1 :
+                        
+                        $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                        
+                        break;
+                    case 2 :
+                        
+                        $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                        
+                        break;
+                    case 3 :
+                        
+                        $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                        
+                        break;
+                    case 4 :
+                        
+                        $videos = $videos->where('duration' , '>', '30:00');   
+                        
+                        break;
+                }
+            }
+            
+            // Filter with the skill level
+            if ($request->get('skill_level')) {
+                
+                $skillLevelId = $request->get('skill_level');
+                $videos = $videos->where('type_id', $skillLevelId);   
+            }
+
+            // Filter with the skill level
+            if ($request->get('trainer_id')) {
+                
+                $trainerId = $request->get('trainer_id');
+                $videos = $videos->where('trainer_id', $trainerId);   
+            }
+
+            // Filter with the skill level
+            if ($request->get('sort_by')) {
+
+                $sortBy = $request->get('sort_by');
+
+                switch ($sortBy) {
+                    case 1 :
+                        
+                        $videos = $videos->orderBy('updated_at', 'DESC');   
+                        
+                        break;
+                    case 2 :
+                        
+                        $videos = $videos->orderBy('duration', 'DESC');   
+                        
+                        break;
+                    case 3 :
+                        
+                        $videos = $videos->orderBy('type_id', 'ASC');
+                        
+                        break;
+                }  
+            }
+
+
+            // Filter with the skill level
+            if ($request->get('start')) {                
+                $offset = $request->get('start');
+                $videos = $videos->offset($offset);   
+            }
+
+            if ($request->get('limit')) {
+                $limit = $request->get('limit');
+                $videos = $videos->limit($limit);   
+            }
 
             $videoData = $videos->get();
             $responseData = [];
