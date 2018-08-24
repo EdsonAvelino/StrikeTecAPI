@@ -140,4 +140,9 @@ class Videos extends Model
     {
         return (bool) $isFeatured;
     }
+
+    public function getUserWatchedVideo($videoId)
+    {
+        return \App\VideoView::where('user_id', \Auth::id())->where('video_id', $videoId)->first(['watched_count']);
+    }
 }
