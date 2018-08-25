@@ -8,6 +8,7 @@ use App\UserFavVideos;
 use App\Tags;
 use App\VideoCategory;
 use App\VideoView;
+use App\VideoTagFilters;
 
 class VideoController extends Controller
 {
@@ -106,7 +107,8 @@ class VideoController extends Controller
             'video_length_type' => 'sometimes|required|in:1,2,3,4',
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
-            'sort_by' => 'sometimes|required'
+            'sort_by' => 'sometimes|required',
+            'type_id' => 'sometimes|required|in:1,2,3,4,5,6,7',
         ]);
  
         if ($validator->fails()) {
@@ -133,9 +135,9 @@ class VideoController extends Controller
             if ($request->get('is_watched') !== null) {
                 $isWatched = $request->get('is_watched');
 
-                $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
-
-                $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereIn('id', '!=', $userWatched);   
+                $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id'])->pluck('video_id');
+                // dd($userWatched);
+                $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
             }
 
             // Filter video duration
@@ -167,11 +169,21 @@ class VideoController extends Controller
                 }
             }
             
-            // Filter with the skill level
+             // Filter with the skill level
             if ($request->get('skill_level')) {
                 
                 $skillLevelId = $request->get('skill_level');
-                $videos = $videos->where('type_id', $skillLevelId);   
+
+                $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+
+                $videos = $videos->whereIn('id', $videoTagFiltersId);  
+            }
+            
+            // Filter with the skill level
+            if ($request->get('type_id')) {
+                
+                $typeId = $request->get('type_id');
+                $videos = $videos->where('type_id', $typeId);   
             }
 
             // Filter with the skill level
@@ -229,6 +241,7 @@ class VideoController extends Controller
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
             'sort_by' => 'sometimes|required',
+            'type_id' => 'sometimes|required|in:1,2,3,4,5,6,7',
             'start' => 'sometimes|required',
             'limit' => 'sometimes|required'
         ]);
@@ -295,7 +308,17 @@ class VideoController extends Controller
             if ($request->get('skill_level')) {
                 
                 $skillLevelId = $request->get('skill_level');
-                $videos = $videos->where('type_id', $skillLevelId);   
+
+                $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+
+                $videos = $videos->whereIn('id', $videoTagFiltersId);  
+            }
+
+            // Filter with the type
+            if ($request->get('type_id')) {
+                
+                $typeId = $request->get('type_id');
+                $videos = $videos->where('type_id', $typeId);   
             }
 
             // Filter with the skill level
@@ -346,17 +369,14 @@ class VideoController extends Controller
 
             foreach ($videoData as $key => $value) {
 
-                $responseData[$key]['id'] = $value->id;
+                $responseData[$key]['video_id'] = $value->id;
                 $responseData[$key]['type_id'] = $value->type_id;
                 $responseData[$key]['plan_id'] = $value->plan_id;
-                $responseData[$key]['title'] = $value->title;
-                $responseData[$key]['video_file'] = $value->file;
-                $responseData[$key]['video_thumbnail'] = $value->thumbnail;
+                $responseData[$key]['video_title'] = $value->title;
+                $responseData[$key]['thumbnail'] = $value->thumbnail;
                 $responseData[$key]['duration'] = $value->duration;
                 $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
-                $responseData[$key]['trainer'] = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : false ;
-                $responseData[$key]['is_watched'] = $value->getUserWatchedVideo($value->id);
-                $responseData[$key]['all_video_views'] = $value->views;
+                $responseData[$key]['trainer'] = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ;
                 
 
             }
