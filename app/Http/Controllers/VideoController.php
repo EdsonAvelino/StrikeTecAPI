@@ -640,7 +640,10 @@ class VideoController extends Controller
                 if ($request->get('sort_by') && $request->get('sort_by') == 3) {
 
                     usort($responseData, function($a, $b) {
-                        return $a['skill'] <=> $b['skill'];
+                        if(isset($a['skill']) && isset($b['skill'])) {
+                             return $a['skill'] <=> $b['skill'];
+                        }
+                       
                     });
 
                     foreach ($responseData as $key => $value) {
