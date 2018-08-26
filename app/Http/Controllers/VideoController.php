@@ -117,106 +117,119 @@ class VideoController extends Controller
         }
 
         try {
+            
             $videos = Videos::query()->with(['trainer']);
 
-            // Filter is_featured videos or no
-            if ($request->get('featured') !== null) {
-                $featured = $request->get('featured');
-                $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
-            }
+            if ($request->get('type_id') != 6) {
 
-            // Filter auth user favorite videos
-            if ($request->get('my_favorites')) {
-                $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
-                $videos = $videos->whereIn('id', $favVideosId);   
-            }
-
-            // Filter viewed videos or no
-            if ($request->get('is_watched') !== null) {
-                $isWatched = $request->get('is_watched');
-
-                $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id'])->pluck('video_id');
-                // dd($userWatched);
-                $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
-            }
-
-            // Filter video duration
-            if ($request->get('video_length_type')) {
-
-                $videoLength = $request->get('video_length_type');
-
-                switch ($videoLength) {
-                    case 1 :
-                        
-                        $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
-                        
-                        break;
-                    case 2 :
-                        
-                        $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
-                        
-                        break;
-                    case 3 :
-                        
-                        $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
-                        
-                        break;
-                    case 4 :
-                        
-                        $videos = $videos->where('duration' , '>', '30:00');   
-                        
-                        break;
+                // Filter is_featured videos or no
+                if ($request->get('featured') !== null) {
+                    $featured = $request->get('featured');
+                    $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
                 }
-            }
-            
-             // Filter with the skill level
-            if ($request->get('skill_level')) {
+
+                // Filter auth user favorite videos
+                if ($request->get('my_favorites')) {
+                    $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+                    $videos = $videos->whereIn('id', $favVideosId);   
+                }
+
+                // Filter viewed videos or no
+                if ($request->get('is_watched') !== null) {
+                    $isWatched = $request->get('is_watched');
+
+                    $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id'])->pluck('video_id');
+                    
+                    $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
+                }
+
+                // Filter video duration
+                if ($request->get('video_length_type')) {
+
+                    $videoLength = $request->get('video_length_type');
+
+                    switch ($videoLength) {
+                        case 1 :
+                            
+                            $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                            
+                            break;
+                        case 2 :
+                            
+                            $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                            
+                            break;
+                        case 3 :
+                            
+                            $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                            
+                            break;
+                        case 4 :
+                            
+                            $videos = $videos->where('duration' , '>', '30:00');   
+                            
+                            break;
+                    }
+                }
                 
-                $skillLevelId = $request->get('skill_level');
+                 // Filter with the skill level
+                if ($request->get('skill_level')) {
+                    
+                    $skillLevelId = $request->get('skill_level');
 
-                $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+                    $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
 
-                $videos = $videos->whereIn('id', $videoTagFiltersId);  
-            }
-            
-            // Filter with the skill level
-            if ($request->get('type_id')) {
+                    $videos = $videos->whereIn('id', $videoTagFiltersId);  
+                }
+
+                // Filter with the skill level
+                if ($request->get('type_id')) {
+                    
+                    $typeId = $request->get('type_id');
+                    $videos = $videos->where('type_id', $typeId);   
+                }
+
+                // Filter with the skill level
+                if ($request->get('trainer_id')) {
+                    
+                    $trainerId = $request->get('trainer_id');
+                    $videos = $videos->where('trainer_id', $trainerId);   
+                }
+
+                // Filter with the skill level
+                if ($request->get('sort_by')) {
+
+                    $sortBy = $request->get('sort_by');
+
+                    switch ($sortBy) {
+                        case 1 :
+                            
+                            $videos = $videos->orderBy('updated_at', 'DESC');   
+                            
+                            break;
+                        case 2 :
+                            
+                            $videos = $videos->orderBy('duration', 'DESC');   
+                            
+                            break;
+                        case 3 :
+                            
+                            $videos = $videos->orderBy('type_id', 'ASC');
+                            
+                            break;
+                    }  
+                }
                 
-                $typeId = $request->get('type_id');
-                $videos = $videos->where('type_id', $typeId);   
+            } else {
+
+                    // Filter with the type
+                    if ($request->get('type_id')) {
+                        
+                        $typeId = $request->get('type_id');
+                        $videos = $videos->where('type_id', $typeId);   
+                    }
+
             }
-
-            // Filter with the skill level
-            if ($request->get('trainer_id')) {
-                
-                $trainerId = $request->get('trainer_id');
-                $videos = $videos->where('trainer_id', $trainerId);   
-            }
-
-            // Filter with the skill level
-            if ($request->get('sort_by')) {
-
-                $sortBy = $request->get('sort_by');
-
-                switch ($sortBy) {
-                    case 1 :
-                        
-                        $videos = $videos->orderBy('updated_at', 'DESC');   
-                        
-                        break;
-                    case 2 :
-                        
-                        $videos = $videos->orderBy('duration', 'DESC');   
-                        
-                        break;
-                    case 3 :
-                        
-                        $videos = $videos->orderBy('type_id', 'ASC');
-                        
-                        break;
-                }  
-            }
-
 
             return response()->json(['error' => 'false', 'message' => '', 'data' => ['count' => $videos->count()] ]);
         
@@ -252,134 +265,189 @@ class VideoController extends Controller
         }
 
         try {
-            $videos = Videos::query()->with(['trainer']);
 
-            // Filter is_featured videos or no
-            if ($request->get('featured') !== null) {
-                $featured = $request->get('featured');
-                $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
-            }
+                $videos = Videos::query()->with(['trainer']);
 
-            // Filter auth user favorite videos
-            if ($request->get('my_favorites')) {
-                $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
-                $videos = $videos->whereIn('id', $favVideosId);   
-            }
+                if ($request->get('type_id') != 6) {
 
-            // Filter viewed videos or no
-            if ($request->get('is_watched') !== null) {
-                $isWatched = $request->get('is_watched');
+                    // Filter is_featured videos or no
+                    if ($request->get('featured') !== null) {
+                        $featured = $request->get('featured');
 
-                $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
+                        $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
+                    }
 
-                $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereIn('id', '!=', $userWatched);   
-            }
+                    // Filter auth user favorite videos
+                    if ($request->get('my_favorites')) {
+                        $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+                        $videos = $videos->whereIn('id', $favVideosId);   
+                    }
 
-            // Filter video duration
-            if ($request->get('video_length_type')) {
+                    // Filter viewed videos or no
+                    if ($request->get('is_watched') !== null) {
+                        $isWatched = $request->get('is_watched');
 
-                $videoLength = $request->get('video_length_type');
+                        $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
 
-                switch ($videoLength) {
-                    case 1 :
+                        $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereIn('id', '!=', $userWatched);   
+                    }
+
+                    // Filter video duration
+                    if ($request->get('video_length_type')) {
+
+                        $videoLength = $request->get('video_length_type');
+
+                        switch ($videoLength) {
+                            case 1 :
+                                
+                                $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                                
+                                break;
+                            case 2 :
+                                
+                                $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                                
+                                break;
+                            case 3 :
+                                
+                                $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                                
+                                break;
+                            case 4 :
+                                
+                                $videos = $videos->where('duration' , '>', '30:00');   
+                                
+                                break;
+                        }
+                    }
+                    
+                    // Filter with the skill level
+                    if ($request->get('skill_level')) {
                         
-                        $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                        $skillLevelId = $request->get('skill_level');
+
+                        $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+
+                        $videos = $videos->whereIn('id', $videoTagFiltersId);  
+                    }
+
+                    // Filter with the type
+                    if ($request->get('type_id')) {
                         
-                        break;
-                    case 2 :
+                        $typeId = $request->get('type_id');
+                        $videos = $videos->where('type_id', $typeId);   
+                    }
+
+                    // Filter with the skill level
+                    if ($request->get('trainer_id')) {
                         
-                        $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                        $trainerId = $request->get('trainer_id');
+                        $videos = $videos->where('trainer_id', $trainerId);   
+                    }
+
+                    // Filter with the skill level
+                    if ($request->get('sort_by')) {
+
+                        $sortBy = $request->get('sort_by');
+
+                        switch ($sortBy) {
+                            case 1 :
+                                
+                                $videos = $videos->orderBy('updated_at', 'DESC');   
+                                
+                                break;
+                            case 2 :
+                                
+                                $videos = $videos->orderBy('duration', 'DESC');   
+                                
+                                break;
+                            case 3 :
+                                
+                                $videos = $videos->orderBy('type_id', 'ASC');
+                                
+                                break;
+                        }  
+                    }
+
+
+                    // Filter with the skill level
+                    if ($request->get('start')) {                
+                        $offset = $request->get('start');
+                        $videos = $videos->offset($offset);   
+                    }
+
+                    if ($request->get('limit')) {
+                        $limit = $request->get('limit');
+                        $videos = $videos->limit($limit);   
+                    }
+
+                } else {
+
+                    // Filter with the type
+                    if ($request->get('type_id')) {
                         
-                        break;
-                    case 3 :
-                        
-                        $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
-                        
-                        break;
-                    case 4 :
-                        
-                        $videos = $videos->where('duration' , '>', '30:00');   
-                        
-                        break;
+                        $typeId = $request->get('type_id');
+                        $videos = $videos->where('type_id', $typeId);   
+                    }
+
+                    // Filter with the skill level
+                    if ($request->get('start')) {                
+                        $offset = $request->get('start');
+                        $videos = $videos->offset($offset);   
+                    }
+
+                    if ($request->get('limit')) {
+                        $limit = $request->get('limit');
+                        $videos = $videos->limit($limit);   
+                    }
                 }
-            }
-            
-            // Filter with the skill level
-            if ($request->get('skill_level')) {
-                
-                $skillLevelId = $request->get('skill_level');
 
-                $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+                $videoData = $videos->get();
+                $responseData = [];
 
-                $videos = $videos->whereIn('id', $videoTagFiltersId);  
-            }
+                foreach ($videoData as $key => $value) {
 
-            // Filter with the type
-            if ($request->get('type_id')) {
-                
-                $typeId = $request->get('type_id');
-                $videos = $videos->where('type_id', $typeId);   
-            }
-
-            // Filter with the skill level
-            if ($request->get('trainer_id')) {
-                
-                $trainerId = $request->get('trainer_id');
-                $videos = $videos->where('trainer_id', $trainerId);   
-            }
-
-            // Filter with the skill level
-            if ($request->get('sort_by')) {
-
-                $sortBy = $request->get('sort_by');
-
-                switch ($sortBy) {
-                    case 1 :
-                        
-                        $videos = $videos->orderBy('updated_at', 'DESC');   
-                        
-                        break;
-                    case 2 :
-                        
-                        $videos = $videos->orderBy('duration', 'DESC');   
-                        
-                        break;
-                    case 3 :
-                        
-                        $videos = $videos->orderBy('type_id', 'ASC');
-                        
-                        break;
-                }  
-            }
+                    switch ($value->type_id) {
+                        case 3 :
+                            
+                            $combo = $value->combo;
+                            $title = $combo->name;
+                            $trainer = $combo->trainer ?['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name] : null ;
+                            break;
+                        case 4 :
+                            
+                            $comboSet = $value->comboSet;
+                            $title = $comboSet->name;
+                            $trainer = $comboSet->trainer ? ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name] : null ; 
+                            
+                            break;
+                        case 5 :
+                            
+                            $workout = $value->workout;
+                            $title = $workout->name;
+                            $trainer = $workout->trainer ? ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name] : null ; 
+                            
+                            break;
+                        case 6 :
+                            
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+                            
+                            break;    
+                    }  
 
 
-            // Filter with the skill level
-            if ($request->get('start')) {                
-                $offset = $request->get('start');
-                $videos = $videos->offset($offset);   
-            }
+                    $responseData[$key]['video_id'] = $value->id;
+                    $responseData[$key]['type_id'] = $value->type_id;
+                    $responseData[$key]['plan_id'] = $value->plan_id;
+                    $responseData[$key]['title'] = $title ? $title : null;
+                    $responseData[$key]['video_title'] = $value->title;
+                    $responseData[$key]['thumbnail'] = $value->thumbnail;
+                    $responseData[$key]['duration'] = $value->duration;
+                    $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
+                    $responseData[$key]['trainer'] = $trainer ? $trainer : null;                    
 
-            if ($request->get('limit')) {
-                $limit = $request->get('limit');
-                $videos = $videos->limit($limit);   
-            }
-
-            $videoData = $videos->get();
-            $responseData = [];
-
-            foreach ($videoData as $key => $value) {
-
-                $responseData[$key]['video_id'] = $value->id;
-                $responseData[$key]['type_id'] = $value->type_id;
-                $responseData[$key]['plan_id'] = $value->plan_id;
-                $responseData[$key]['video_title'] = $value->title;
-                $responseData[$key]['thumbnail'] = $value->thumbnail;
-                $responseData[$key]['duration'] = $value->duration;
-                $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
-                $responseData[$key]['trainer'] = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ;
-                
-
-            }
+                }
 
             return response()->json(['error' => 'false', 'message' => '', 'data' => $responseData]);
         

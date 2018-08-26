@@ -25,17 +25,17 @@ class Videos extends Model
 
     public function combo()
     {
-        return $this->belongsTo('App\Combos', 'plan_id');
+        return $this->belongsTo('App\Combos', 'plan_id')->with(['trainer']);
     }
 
     public function comboSet()
     {
-        return $this->belongsTo('App\ComboSets', 'plan_id');
+        return $this->belongsTo('App\ComboSets', 'plan_id')->with(['trainer']);
     }
 
     public function workout()
     {
-        return $this->belongsTo('App\Workouts', 'plan_id');
+        return $this->belongsTo('App\Workouts', 'plan_id')->with(['trainer']);
     }
 
     public function trainer()
