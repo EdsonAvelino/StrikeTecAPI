@@ -709,7 +709,7 @@ class GuidanceController extends Controller
 
         unset($_essentialVideo['trainer_id']);
 
-        $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
+        $data = ['type_id' => 6, 'data' => json_encode($_essentialVideo)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
