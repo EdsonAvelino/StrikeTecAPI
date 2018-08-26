@@ -210,7 +210,7 @@ class VideoController extends Controller
                             break;
                         case 2 :
                             
-                            $videos = $videos->orderBy('duration', 'DESC');   
+                            $videos = $videos->orderBy('duration', 'ASC');   
                             
                             break;
                         case 3 :
@@ -450,7 +450,7 @@ class VideoController extends Controller
                                 break;
                             case 2 :
                                 
-                                $videos = $videos->orderBy('duration', 'DESC');   
+                                $videos = $videos->orderBy('videos.duration', 'asc');   
                                 
                                 break;
                         }  
