@@ -386,9 +386,9 @@ class VideoController extends Controller
                     }
 
                     // Filter auth user favorite videos
-                    if ($request->get('my_favorites')) {
+                    if ($request->get('my_favorites') !== null ) {
                         $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
-                        $videos = $videos->whereIn('id', $favVideosId);   
+                        $videos = $request->get('my_favorites') ? $videos->whereIn('id', $favVideosId) : $videos->whereNotIn('id', $favVideosId);   
                     }
 
                     // Filter viewed videos or no
@@ -397,7 +397,7 @@ class VideoController extends Controller
 
                         $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
 
-                        $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereIn('id', '!=', $userWatched);   
+                        $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
                     }
 
                     // Filter video duration
