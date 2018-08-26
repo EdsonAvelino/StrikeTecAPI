@@ -644,7 +644,9 @@ class VideoController extends Controller
                     });
 
                     foreach ($responseData as $key => $value) {
-                        unset($responseData[$key]['skill']);
+                        if (isset($responseData[$key]['skill'])) {                            
+                            unset($responseData[$key]['skill']);
+                        }
                     }
                 }
 
