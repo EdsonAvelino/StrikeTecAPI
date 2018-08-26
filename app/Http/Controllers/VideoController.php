@@ -452,11 +452,6 @@ class VideoController extends Controller
                                 $videos = $videos->orderBy('duration', 'DESC');   
                                 
                                 break;
-                            case 3 :
-                                
-                                $videos = $videos->orderBy('type_id', 'DESC');
-                                
-                                break;
                         }  
                     }
 
@@ -522,7 +517,11 @@ class VideoController extends Controller
                                 if ($combo->tag && $combo->tag->filter_id != $skillLevelId){
                                     continue;
                                 }
-                            }  
+                            }
+
+                            // if ($request->get('sort_by') && $request->get('sort_by') == 3 && $combo->tag) { 
+                            //     $responseData[$key]['skill'] = $combo->tag->filter_id;
+                            // }  
                         }
                             
                         if ($value->type_id == 4) {
@@ -546,7 +545,11 @@ class VideoController extends Controller
                                 if ($comboSet->tag && $comboSet->tag->filter_id != $skillLevelId){
                                     continue;
                                 }
-                            } 
+                            }
+
+                            // if ($request->get('sort_by') && $request->get('sort_by') == 3 && $comboSet->tag) { 
+                            //     $responseData[$key]['skill'] = $comboSet->tag->filter_id;
+                            // }  
                         }
                         
                         if ($value->type_id == 5) {
@@ -571,6 +574,10 @@ class VideoController extends Controller
                                     continue;
                                 }
                             }
+
+                            // if ($request->get('sort_by') && $request->get('sort_by') == 3 && $workout->tag) { 
+                            //     $responseData[$key]['skill'] = $workout->tag->filter_id;
+                            // }
                         }
                         
                         if ($value->type_id == 6) {   
@@ -594,6 +601,10 @@ class VideoController extends Controller
                                     continue;
                                 }
                             }
+
+                            // if ($request->get('sort_by') && $request->get('sort_by') == 3 && $value->filters) { 
+                            //     $responseData[$key]['skill'] = $value->filters->tag_filter_id;
+                            // }
                         }
 
 
@@ -608,7 +619,8 @@ class VideoController extends Controller
                         $responseData[$key]['trainer'] = $trainer ? $trainer : null;                    
 
                 }
-
+                // dd($responseData);
+                // usort($responseData, 'sortBySkilll');
             return response()->json(['error' => 'false', 'message' => '', 'data' => $responseData]);
         
         } catch (\Exception $e) {
@@ -616,6 +628,14 @@ class VideoController extends Controller
             return response()->json(['error' => 'true', 'message' => $e->getMessage()]);
         }    
     }
+
+    // protected function sortBySkilll($a, $b) {
+
+    //     if ( $a['skill'] == $b['skill'] ) {
+    //         return 0;
+    //     }
+    //     return ($a['skill'] > $b['skill'])? 1: -1;
+    // }
 
     /**
      * Alter param
