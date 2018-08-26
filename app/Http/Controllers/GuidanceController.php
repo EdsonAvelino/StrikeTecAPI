@@ -697,7 +697,7 @@ class GuidanceController extends Controller
 
         $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
-                $query->whereNull('type_id')->orWhere('type_id', 0);
+                $query->whereNull('type_id')->orWhere('type_id', 6);
             })->where('id', $id)->first();
 
         if (!$essentialVideo) {

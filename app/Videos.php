@@ -25,17 +25,17 @@ class Videos extends Model
 
     public function combo()
     {
-        return $this->belongsTo('App\Combos', 'plan_id')->with(['trainer']);
+        return $this->belongsTo('App\Combos', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function comboSet()
     {
-        return $this->belongsTo('App\ComboSets', 'plan_id')->with(['trainer']);
+        return $this->belongsTo('App\ComboSets', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function workout()
     {
-        return $this->belongsTo('App\Workouts', 'plan_id')->with(['trainer']);
+        return $this->belongsTo('App\Workouts', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function trainer()
@@ -45,7 +45,7 @@ class Videos extends Model
 
     public function filters()
     {
-        return $this->hasMany('App\VideoTagFilters', 'video_id');
+        return $this->belongsTo('App\VideoTagFilters', 'video_id');
     }
 
     public function getFilterAttribute($videoId)

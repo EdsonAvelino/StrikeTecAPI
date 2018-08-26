@@ -173,14 +173,14 @@ class VideoController extends Controller
                 }
                 
                  // Filter with the skill level
-                if ($request->get('skill_level')) {
+                // if ($request->get('skill_level')) {
                     
-                    $skillLevelId = $request->get('skill_level');
+                //     $skillLevelId = $request->get('skill_level');
 
-                    $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
+                //     $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
 
-                    $videos = $videos->whereIn('id', $videoTagFiltersId);  
-                }
+                //     $videos = $videos->whereIn('id', $videoTagFiltersId);  
+                // }
 
                 // Filter with the skill level
                 if ($request->get('type_id')) {
@@ -190,11 +190,11 @@ class VideoController extends Controller
                 }
 
                 // Filter with the skill level
-                if ($request->get('trainer_id')) {
+                // if ($request->get('trainer_id')) {
                     
-                    $trainerId = $request->get('trainer_id');
-                    $videos = $videos->where('trainer_id', $trainerId);   
-                }
+                //     $trainerId = $request->get('trainer_id');
+                //     $videos = $videos->where('trainer_id', $trainerId);   
+                // }
 
                 // Filter with the skill level
                 if ($request->get('sort_by')) {
@@ -222,16 +222,124 @@ class VideoController extends Controller
                 
             } else {
 
-                    // Filter with the type
-                    if ($request->get('type_id')) {
-                        
-                        $typeId = $request->get('type_id');
-                        $videos = $videos->where('type_id', $typeId);   
-                    }
+                // Filter with the type
+                if ($request->get('type_id')) {
+                    
+                    $typeId = $request->get('type_id');
+                    $videos = $videos->where('type_id', $typeId);   
+                }
 
             }
 
-            return response()->json(['error' => 'false', 'message' => '', 'data' => ['count' => $videos->count()] ]);
+            $videoData = $videos->get();
+            $responseData = [];
+            
+            foreach ($videoData as $key => $value) {
+
+                        if ($value->type_id == 3) {
+
+                            $combo = $value->combo;
+                            $title = $combo->name;
+                            $trainer = $combo->trainer ?['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name] : null ;
+
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+
+                                if ($combo->trainer_id != $trainerId) {
+
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }  
+                        }
+                            
+                        if ($value->type_id == 4) {
+
+                            $comboSet = $value->comboSet;
+                            $title = $comboSet->name;
+                            $trainer = $comboSet->trainer ? ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($comboSet->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($comboSet->tag && $comboSet->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            } 
+                        }
+                        
+                        if ($value->type_id == 5) {
+
+                            $workout = $value->workout;
+                            $title = $workout->name;
+                            $trainer = $workout->trainer ? ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($workout->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($workout->tag && $workout->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+                        }
+                        
+                        if ($value->type_id == 6) {   
+
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+                        }
+
+
+                        $responseData[$key]['video_id'] = $value->id;                  
+
+                }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => ['count' => count($responseData)] ]);
         
         } catch (\Exception $e) {
 
@@ -266,7 +374,7 @@ class VideoController extends Controller
 
         try {
 
-                $videos = Videos::query()->with(['trainer']);
+                $videos = Videos::query()->with(['trainer', 'filters']);
 
                 if ($request->get('type_id') != 6) {
 
@@ -320,29 +428,12 @@ class VideoController extends Controller
                                 break;
                         }
                     }
-                    
-                    // Filter with the skill level
-                    if ($request->get('skill_level')) {
-                        
-                        $skillLevelId = $request->get('skill_level');
-
-                        $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
-
-                        $videos = $videos->whereIn('id', $videoTagFiltersId);  
-                    }
 
                     // Filter with the type
                     if ($request->get('type_id')) {
                         
                         $typeId = $request->get('type_id');
                         $videos = $videos->where('type_id', $typeId);   
-                    }
-
-                    // Filter with the skill level
-                    if ($request->get('trainer_id')) {
-                        
-                        $trainerId = $request->get('trainer_id');
-                        $videos = $videos->where('trainer_id', $trainerId);   
                     }
 
                     // Filter with the skill level
@@ -363,7 +454,7 @@ class VideoController extends Controller
                                 break;
                             case 3 :
                                 
-                                $videos = $videos->orderBy('type_id', 'ASC');
+                                $videos = $videos->orderBy('type_id', 'DESC');
                                 
                                 break;
                         }  
@@ -407,45 +498,114 @@ class VideoController extends Controller
 
                 foreach ($videoData as $key => $value) {
 
-                    switch ($value->type_id) {
-                        case 3 :
-                            
+                        if ($value->type_id == 3) {
+
                             $combo = $value->combo;
                             $title = $combo->name;
                             $trainer = $combo->trainer ?['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name] : null ;
-                            break;
-                        case 4 :
+
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+
+                                if ($combo->trainer_id != $trainerId) {
+
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }  
+                        }
                             
+                        if ($value->type_id == 4) {
+
                             $comboSet = $value->comboSet;
                             $title = $comboSet->name;
                             $trainer = $comboSet->trainer ? ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name] : null ; 
                             
-                            break;
-                        case 5 :
-                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($comboSet->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($comboSet->tag && $comboSet->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            } 
+                        }
+                        
+                        if ($value->type_id == 5) {
+
                             $workout = $value->workout;
                             $title = $workout->name;
                             $trainer = $workout->trainer ? ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name] : null ; 
                             
-                            break;
-                        case 6 :
-                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($workout->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($workout->tag && $workout->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+                        }
+                        
+                        if ($value->type_id == 6) {   
+
                             $title = $value->name;
                             $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
-                            
-                            break;    
-                    }  
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+                        }
 
 
-                    $responseData[$key]['video_id'] = $value->id;
-                    $responseData[$key]['type_id'] = $value->type_id;
-                    $responseData[$key]['plan_id'] = $value->plan_id;
-                    $responseData[$key]['title'] = $title ? $title : null;
-                    $responseData[$key]['video_title'] = $value->title;
-                    $responseData[$key]['thumbnail'] = $value->thumbnail;
-                    $responseData[$key]['duration'] = $value->duration;
-                    $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
-                    $responseData[$key]['trainer'] = $trainer ? $trainer : null;                    
+                        $responseData[$key]['video_id'] = $value->id;
+                        $responseData[$key]['type_id'] = $value->type_id;
+                        $responseData[$key]['plan_id'] = $value->plan_id;
+                        $responseData[$key]['title'] = $title ? $title : null;
+                        $responseData[$key]['video_title'] = $value->title;
+                        $responseData[$key]['thumbnail'] = $value->thumbnail;
+                        $responseData[$key]['duration'] = $value->duration;
+                        $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
+                        $responseData[$key]['trainer'] = $trainer ? $trainer : null;                    
 
                 }
 
