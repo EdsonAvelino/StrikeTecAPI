@@ -172,16 +172,6 @@ class VideoController extends Controller
                             break;
                     }
                 }
-                
-                 // Filter with the skill level
-                // if ($request->get('skill_level')) {
-                    
-                //     $skillLevelId = $request->get('skill_level');
-
-                //     $videoTagFiltersId = VideoTagFilters::where('tag_filter_id', $skillLevelId)->get(['video_id'])->toArray();
-
-                //     $videos = $videos->whereIn('id', $videoTagFiltersId);  
-                // }
 
                 // Filter with the skill level
                 if ($request->get('type_id')) {
@@ -189,13 +179,6 @@ class VideoController extends Controller
                     $typeId = $request->get('type_id');
                     $videos = $videos->where('type_id', $typeId);   
                 }
-
-                // Filter with the skill level
-                // if ($request->get('trainer_id')) {
-                    
-                //     $trainerId = $request->get('trainer_id');
-                //     $videos = $videos->where('trainer_id', $trainerId);   
-                // }
 
                 // Filter with the skill level
                 if ($request->get('sort_by')) {
@@ -262,10 +245,6 @@ class VideoController extends Controller
                                     continue;
                                 }
                             }
-
-                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $combo->tag) { 
-                                $responseData[$key]['skill'] = $combo->tag->filter_id;
-                            }  
                         }
                             
                         if ($value->type_id == 4) {
@@ -290,10 +269,7 @@ class VideoController extends Controller
                                     continue;
                                 }
                             }
-
-                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $comboSet->tag) { 
-                                $responseData[$key]['skill'] = $comboSet->tag->filter_id;
-                            }  
+ 
                         }
                         
                         if ($value->type_id == 5) {
@@ -319,9 +295,6 @@ class VideoController extends Controller
                                 }
                             }
 
-                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $workout->tag) { 
-                                $responseData[$key]['skill'] = $workout->tag->filter_id;
-                            }
                         }
                         
                         if ($value->type_id == 6) {   
@@ -346,9 +319,6 @@ class VideoController extends Controller
                                 }
                             }
 
-                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $value->filters) { 
-                                $responseData[$key]['skill'] = $value->filters->tag_filter_id;
-                            }
                         }
 
 

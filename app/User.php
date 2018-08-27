@@ -41,7 +41,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'photo_url',
         'city_id',
         'state_id',
-        'country_id'
+        'country_id',
+        'login_count',
+        'has_sensors'
     ];
 
     /**

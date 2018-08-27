@@ -322,13 +322,6 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             // Read message
             $app->post('/chat/read', 'ChatController@ReadMessage');
 
-            // Chat History (get all messages of particular chat )
-            $app->get('/chat/history', 'ChatController@chatHistory');
-
-
-            // Chat History (get all messages of particular chat )
-            $app->get('/chat/history', 'ChatController@chatHistory');
-
             // Get all chats
             $app->get('/chat', 'ChatController@chats');
 
