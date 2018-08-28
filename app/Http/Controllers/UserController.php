@@ -395,7 +395,8 @@ class UserController extends Controller
             $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
             
             $user->is_spectator = 0;
-
+            $user->has_sensors = 1;
+            
             $user->save();
 
             return response()->json([
