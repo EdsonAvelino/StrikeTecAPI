@@ -107,8 +107,8 @@ class VideoController extends Controller
             'video_length_type' => 'sometimes|required|in:1,2,3,4',
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
-            'sort_by' => 'sometimes|required',
-            'type_id' => 'sometimes|required|in:1,2,3,4,5,6,7',
+            'sort_by' => 'sometimes|required|in:1,2,3',
+            'type_id' => 'sometimes|required|in:3,4,5,6',
         ]);
  
         if ($validator->fails()) {
@@ -348,8 +348,8 @@ class VideoController extends Controller
             'video_length_type' => 'sometimes|required|in:1,2,3,4',
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
-            'sort_by' => 'sometimes|required',
-            'type_id' => 'sometimes|required|in:1,2,3,4,5,6,7',
+            'sort_by' => 'sometimes|required|in:1,2,3',
+            'type_id' => 'sometimes|required|in:3,4,5,6',
             'start' => 'sometimes|required',
             'limit' => 'sometimes|required'
         ]);
