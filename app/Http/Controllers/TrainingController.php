@@ -23,7 +23,72 @@ use App\Helpers\Push;
 use App\Helpers\PushTypes;
 
 class TrainingController extends Controller
-{
+{   
+    /**
+     * @api {post} /user/training/data Store Training (Sensor) Data
+     * @apiGroup Training
+     * @apiDescription Used to store sensor data generated while traninig in csv format
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "multipart/form-data"
+     *     }
+     * @apiParam {File} data_file Data file to store on server
+     * @apiParamExample {json} Input
+     *    {
+     *      "data_file": "csv_file_to_upload.csv",
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Stored",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or what error message is"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function storeData(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'data_file' => 'required|mimes:csv,txt',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors->first('data_file')]);
+        }
+        $file = trim($request->file('data_file')->getClientOriginalName());
+        
+        // Getting date from timestamp in filename
+        $exploded = explode('_', $file);
+        $timestamp = (int) end($exploded);
+        $dt = date('Y_m_d', ($timestamp/1000));
+        $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
+        
+        // Create dir if not created
+        if (!is_dir(env('DATA_STORAGE_URL').\Auth::id())) {
+            mkdir(env('DATA_STORAGE_URL').\Auth::id());
+        }
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir);
+        }
+        
+        $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
+        $file = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
+        $request->file('data_file')->move($uploadDir, $file);
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Stored',
+        ]);
+    }
+    
     /**
      * @api {get} /user/training/sessions Get list of sessions of user
      * @apiVersion 1.0.0
