@@ -1321,26 +1321,31 @@ class UserController extends Controller
         $followers = UserConnections::where('follow_user_id', \Auth::user()->id)->offset($offset)->limit($limit)->get();
 
         $_followers = [];
-
+        
         foreach ($followers as $follower) {
+
             $following = UserConnections::where('follow_user_id', $follower->user_id)
                             ->where('user_id', \Auth::user()->id)->exists();
 
             $follow = UserConnections::where('user_id', $follower->user_id)
                             ->where('follow_user_id', \Auth::user()->id)->exists();
+      
 
             $leaderboard = Leaderboard::where('user_id', $follower->user_id)->first();
             $points = (!empty($leaderboard)) ? $leaderboard->punches_count : 0;
 
-            $_followers[] = [
-                'id' => $follower->user_id,
-                'first_name' => $follower->user->first_name,
-                'last_name' => $follower->user->last_name,
-                'photo_url' => $follower->user->photo_url,
-                'points' => (int) $points,
-                'user_following' => (bool) $following,
-                'user_follower' => (bool) $follow
-            ];
+            if ($follower->user) {
+                $_followers[] = [
+                    'id' => $follower->user_id,
+                    'first_name' => $follower->user->first_name,
+                    'last_name' => $follower->user->last_name,
+                    'photo_url' => $follower->user->photo_url,
+                    'points' => (int) $points,
+                    'user_following' => (bool) $following,
+                    'user_follower' => (bool) $follow
+                ]; 
+            }
+            
         }
 
         return response()->json([
