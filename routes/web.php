@@ -108,6 +108,7 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
             $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+            $app->get('/user/runSomethingInServer', 'UserController@runSomethingInServer');
 
             $app->get('/user/notifications', 'UserController@getNotifications');
             $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');

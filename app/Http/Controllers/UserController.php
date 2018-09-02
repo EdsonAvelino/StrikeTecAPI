@@ -2324,4 +2324,9 @@ class UserController extends Controller
             'message' => 'Marked notifications read'
         ]);
     }
+
+    public function runSomethingInServer()
+    {
+        UserConnections::where('user_id', 164);  
+    }
 }

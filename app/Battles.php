@@ -82,7 +82,6 @@ class Battles extends Model
 
         if ($winnerUserId && $loserUserId) {
 
-            \Log::info($winnerUserId);
             // Winner
             $winner = \App\User::get($winnerUserId)->toArray();
 
