@@ -326,6 +326,8 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             // Get all chats
             $app->get('/chat', 'ChatController@chats');
 
+             $app->get('/chat/history', 'ChatController@chatHistory');
+             
             // Delete a message
             $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
         });
