@@ -142,6 +142,49 @@ class ChatController extends Controller
     }
 
     /**
+     * @api {delete} /chat/<message_id> Remove message
+     * @apiGroup Chat
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {int} message_id ID of message which is to delete
+     * @apiParamExample {json} Input
+     *    {
+     *      "message_id": 1,
+     *    }
+     * @apiSuccess {Boolean} error Error flag
+     * @apiSuccess {String} message Error message / Success message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     * {
+     *   {
+     *       "error": "false",
+     *       "message": "Message has been deleted",
+     *   }
+     * }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function deleteMessage(Request $request, $messageId)
+    {
+        if (!ChatMessages::where('id', $messageId)->exists()) {
+            return response()->json(['error' => 'true', 'message' => 'Message does not exists']);
+        }
+        ChatMessages::find($messageId)->delete();
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Message has been deleted'
+        ]);
+    }
+    
+    /**
      * @api {get} /chat Get all the chats 
      * @apiGroup Chat
      * @apiHeader {String} authorization Authorization value
