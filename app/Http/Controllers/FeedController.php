@@ -194,9 +194,10 @@ class FeedController extends Controller
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        // \DB::enableQueryLog();
+        
         // Feed-Post data
         $posts = [];
+
         // Feed-Posts from DB
         $_posts = Posts::with(['user' => function($q) {
                                 $q->select(['id', 'first_name', 'last_name', 'photo_url', 'gender', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
@@ -206,11 +207,11 @@ class FeedController extends Controller
                                 ->withCount('likes')->withCount('comments')
                                 ->offset($offset)->limit($limit)->orderBy('created_at', 'desc')->get();
 
-                // dd(\DB::getQueryLog());
 
                 foreach ($_posts as $post) {
                     $_post = $post->toArray();
 
+                    \Log::info($post->id);
                     $user1FullName = $post->user->first_name . ' ' . $post->user->last_name;
 
                     $user2FullName = null;
