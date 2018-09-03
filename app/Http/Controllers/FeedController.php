@@ -212,6 +212,7 @@ class FeedController extends Controller
                     $_post = $post->toArray();
 
                     \Log::info($post->id);
+                    \Log::info($post->user);
                     $user1FullName = $post->user->first_name . ' ' . $post->user->last_name;
 
                     $user2FullName = null;
