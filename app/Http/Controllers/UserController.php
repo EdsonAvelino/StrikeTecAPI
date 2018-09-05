@@ -268,7 +268,7 @@ class UserController extends Controller
         ]);
 
         \Log::info($request->get('birthday'));
-        \Log::info($request->all());
+        \Log::info(json_encode($request->all() ) );
         try {
             $user = \Auth::user();
 
