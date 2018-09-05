@@ -261,11 +261,13 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
+
         $this->validate($request, [
             'gender' => 'nullable|in:male,female',
             'birthday' => 'nullable|date',
         ]);
-
+        
+        \Log::info($request->get('birthday'));
         try {
             $user = \Auth::user();
 
