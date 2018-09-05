@@ -266,8 +266,9 @@ class UserController extends Controller
             'gender' => 'nullable|in:male,female',
             'birthday' => 'nullable|date',
         ]);
-        
+
         \Log::info($request->get('birthday'));
+        \Log::info($request->all());
         try {
             $user = \Auth::user();
 
