@@ -630,42 +630,54 @@ class TrainingController extends Controller
 
                 $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-                // Check if punches already exists
-                $testPunches = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id);
-                $_punch = $testPunches->first();
+                if ($sessionRound) {
 
-                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                    \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
-                    \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
-                }
-
-                if (!$_punch) {
-
-                    // To prevent errors on Prod
-                    $isCorrect = null;
-
-                    if (isset($punch['is_correct'])) {
-                        $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
-                    }
-
-                    $_punch = SessionRoundPunches::create([
-                        'session_round_id' => $sessionRound->id,
-                        'punch_time' => $punch['punch_time'],
-                        'punch_duration' => $punch['punch_duration'],
-                        'force' => $punch['force'],
-                        'speed' => $punch['speed'],
-                        'punch_type' => strtoupper($punch['punch_type']),
-                        'hand' => strtoupper($punch['hand']),
-                        'distance' => $punch['distance'],
-                        'is_correct' => $isCorrect,
-                    ]);
+                    // Check if punches already exists
+                    $testPunches = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id);
+                    $_punch = $testPunches->first();
 
                     if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                        \Log::info('Created NEW Round Punches data- '.$_punch);
-                    }    
-                }
+                        \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
+                        \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
+                    }
 
-                $punches[] = ['start_time' => $_punch->punch_time];
+                    if (!$_punch) {
+
+                        // To prevent errors on Prod
+                        $isCorrect = null;
+
+                        if (isset($punch['is_correct'])) {
+                            $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+                        }
+
+                        $_punch = SessionRoundPunches::create([
+                            'session_round_id' => $sessionRound->id,
+                            'punch_time' => $punch['punch_time'],
+                            'punch_duration' => $punch['punch_duration'],
+                            'force' => $punch['force'],
+                            'speed' => $punch['speed'],
+                            'punch_type' => strtoupper($punch['punch_type']),
+                            'hand' => strtoupper($punch['hand']),
+                            'distance' => $punch['distance'],
+                            'is_correct' => $isCorrect,
+                        ]);
+
+                        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                            \Log::info('Created NEW Round Punches data- '.$_punch);
+                        }    
+                    }
+
+                    $punches[] = ['start_time' => $_punch->punch_time];
+
+                } else {
+
+                    return response()->json([
+                        'error' => 'true',
+                        'message' => 'round_start_time is not valid,  not exist any Session Rounds with start_time'
+                    ]);
+
+                }
+                
             }
 
             return response()->json([
