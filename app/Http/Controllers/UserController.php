@@ -261,7 +261,7 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
-
+        \Log::info(json_encode($request->all() ) );
         $this->validate($request, [
             'gender' => 'nullable|in:male,female',
             'birthday' => 'nullable|date',
