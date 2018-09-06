@@ -418,7 +418,7 @@ class ChatController extends Controller
 
                     Push::send(PushTypes::CHAT_EDIT_MESSAGE, $opponentId, \Auth::user()->id, $pushMessage, ['message' => $chatResponse]);
 
-                    return response()->json(['error' => 'false', 'message' => 'Succesfully updated !']);
+                    return response()->json(['error' => 'false', 'message' => 'Succesfully updated !', 'data' => $chatResponse]);
 
                  } else {
 
