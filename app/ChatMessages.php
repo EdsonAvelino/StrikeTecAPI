@@ -17,6 +17,7 @@ class ChatMessages extends Model
         'read_flag',
         'user_id',
         'message',
+        'edited'
     ];
     
     

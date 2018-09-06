@@ -18,6 +18,8 @@ class PushTypes
     
     const TOURNAMENT_ACTIVITY_INVITE = 9;
 
+    const CHAT_EDIT_MESSAGE = 10;
+
     public static function getSilentPushListForIOS()
     {
     	return [

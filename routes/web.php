@@ -323,6 +323,9 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             // Read message
             $app->post('/chat/read', 'ChatController@ReadMessage');
 
+            // Read message
+            $app->post('/chat/edit', 'ChatController@chatEdit');
+
             // Get all chats
             $app->get('/chat', 'ChatController@chats');
 
