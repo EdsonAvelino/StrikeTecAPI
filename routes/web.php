@@ -44,7 +44,7 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
 
         // Countries / States / Cities
-        $app->get('/countries', 'WorldController@getCountries');
+        $app->get('/countries[/{phase}]', 'WorldController@getCountries');
         $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
         $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
