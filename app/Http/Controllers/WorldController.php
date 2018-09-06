@@ -6,66 +6,19 @@ class WorldController extends Controller
 {
     /**
      * @api {get} /countries Get countries
-     * @apiGroup World
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of countries
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *         {
-     *          "id": 1,
-     *          "abbr": "AF",
-     *          "name": "Afghanistan",
-     *          "phone_code": 93
-     *        },
-     *        {
-     *          "id": 2,
-     *          "abbr": "AL",
-     *          "name": "Albania",
-     *          "phone_code": 355
-     *        },
-     *        {
-     *          "id": 3,
-     *          "abbr": "DZ",
-     *          "name": "Algeria",
-     *          "phone_code": 213
-     *        },
-     *        {
-     *          "id": 4,
-     *          "abbr": "AS",
-     *          "name": "American Samoa",
-     *          "phone_code": 1684
-     *        },
-     *        {
-     *          "id": 5,
-     *          "abbr": "AD",
-     *          "name": "Andorra",
-     *          "phone_code": 376
-     *        },
-     *        {
-     *          "id": 6,
-     *          "abbr": "AO",
-     *          "name": "Angola",
-     *          "phone_code": 244
-     *        }
-     *        ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
-    public function getCountries()
+    public function getCountries($phase = null)
     {
-        $countries = \App\Countries::get();
-
+        if ($phase) {
+            $phase = (int) $phase;
+            $countries = \App\Countries::where('phase', '<=', $phase)->get();
+        } else {
+            $countries = \App\Countries::get();
+        }
+        foreach ($countries as $country) {
+            unset($country->phase);
+        }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $countries->toArray()]);
     }
 
