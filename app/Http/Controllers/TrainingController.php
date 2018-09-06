@@ -545,52 +545,37 @@ class TrainingController extends Controller
 
             foreach ($data as $round) {
 
-                $session = Sessions::where('start_time', $round['session_start_time'])->first();
+                // Checking if round already exists
+                $testRound = SessionRounds::where('start_time', $round['start_time'])->where('session_start_time', $round['session_start_time']);
+                
+                $_round = $testRound->first();
 
-                if ($session) {
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {                    
+                    \Log::info('storeSessionsRounds() Session Start Time - ' . $round['session_start_time']);
+                    \Log::info('Count For Get sessions Rounds - '. $testRound->count());
+                }
 
+                if (!$_round) {
 
-                    // Checking if round already exists
-                    $testRound = SessionRounds::where('start_time', $round['start_time'])->where('session_start_time', $round['session_start_time']);
-                    
-                    $_round = $testRound->first();
-
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {                    
-                        \Log::info('storeSessionsRounds() Session Start Time - ' . $round['session_start_time']);
-                        \Log::info('Count For Get sessions Rounds - '. $testRound->count());
-                    }
-
-                    if (!$_round) {
-
-                        $_round = SessionRounds::create([
-                            'session_id' => $session->id,
-                            'session_start_time' => $round['session_start_time'],
-                            'start_time' => $round['start_time'],
-                            'pause_duration' => $round['pause_duration'],
-                            'end_time' => $round['end_time'],
-                            'avg_speed' => $round['avg_speed'],
-                            'avg_force' => $round['avg_force'],
-                            'punches_count' => $round['punches_count'],
-                            'max_speed' => $round['max_speed'],
-                            'max_force' => $round['max_force'],
-                            'best_time' => $round['best_time'],
-                        ]);
-
-                        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                            \Log::info('Create NEW Session Round Data - ' , [$_round]);
-                        }
-                    }
-
-                    $rounds[] = ['start_time' => $_round->start_time];
-
-                } else {
-
-                    return response()->json([
-                        'error' => 'true',
-                        'message' => 'session_start_time is not valid,  not exist any session with start_time'
+                    $_round = SessionRounds::create([
+                        'session_start_time' => $round['session_start_time'],
+                        'start_time' => $round['start_time'],
+                        'pause_duration' => $round['pause_duration'],
+                        'end_time' => $round['end_time'],
+                        'avg_speed' => $round['avg_speed'],
+                        'avg_force' => $round['avg_force'],
+                        'punches_count' => $round['punches_count'],
+                        'max_speed' => $round['max_speed'],
+                        'max_force' => $round['max_force'],
+                        'best_time' => $round['best_time'],
                     ]);
 
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                        \Log::info('Create NEW Session Round Data - ' , [$_round]);
+                    }
                 }
+
+                $rounds[] = ['start_time' => $_round->start_time];
 
                     
             }
@@ -670,12 +655,8 @@ class TrainingController extends Controller
                     $punches[] = ['start_time' => $_punch->punch_time];
 
                 } else {
-
-                    return response()->json([
-                        'error' => 'true',
-                        'message' => 'round_start_time is not valid,  not exist any Session Rounds with start_time'
-                    ]);
-
+                    
+                    continue;
                 }
                 
             }
