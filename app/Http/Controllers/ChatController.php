@@ -414,6 +414,7 @@ class ChatController extends Controller
                                     ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited as edited', 'updated_at as updated_time')->first();
 
                     $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
+                    $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
                     $chatResponse->updated_time = strtotime($chatResponse->updated_time);
 
                     Push::send(PushTypes::CHAT_EDIT_MESSAGE, $opponentId, \Auth::user()->id, $pushMessage, ['message' => $chatResponse]);

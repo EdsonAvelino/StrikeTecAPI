@@ -29,6 +29,9 @@
         "classmap": [
             "tests/",
             "database/"
+        ],
+        "files": [
+            "tests/helpers/functions.php"
         ]
     },
     "scripts": {
