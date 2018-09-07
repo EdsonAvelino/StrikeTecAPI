@@ -252,7 +252,7 @@ class ChatController extends Controller
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
         $chatList = Chat::select('user_one', 'user_two', 'id')
-                        ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get()->all();
+                        ->where('user_one', $userId)->orwhere('user_two', $userId)->orderBy('updated_at', 'desc')->offset($offset)->limit($limit)->get()->all();
         $chatCount = 0;
         $chat = array();
         foreach ($chatList as $data) {
@@ -270,6 +270,12 @@ class ChatController extends Controller
                 $chatCount++;
             }
         }
+        usort($chat, function ($a, $b) {
+            if ($a['msg_time'] == $b['msg_time']) {
+                return 0;
+            }
+            return ($a['msg_time'] > $b['msg_time']) ? -1 : 1;
+        });
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
     }
 
