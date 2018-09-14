@@ -241,7 +241,7 @@ class VideoController extends Controller
                         
                                 $skillLevelId = $request->get('skill_level');
 
-                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId){
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId) {
                                     continue;
                                 }
                             }
@@ -353,7 +353,7 @@ class VideoController extends Controller
             'start' => 'sometimes|required',
             'limit' => 'sometimes|required'
         ]);
- 
+        
         if ($validator->fails()) {
             $errors = $validator->errors();
             return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
@@ -417,8 +417,7 @@ class VideoController extends Controller
                     }
 
                     // Filter with the type
-                    if ($request->get('type_id')) {
-                        
+                    if ($request->get('type_id')) {                        
                         $typeId = $request->get('type_id');
                         $videos = $videos->where('type_id', $typeId);   
                     }
@@ -442,15 +441,14 @@ class VideoController extends Controller
                         }  
                     }
 
-
                     // Filter with the skill level
                     if ($request->get('start')) {                
-                        $offset = $request->get('start');
+                        $offset = (int) ($request->get('start') ?? 0);
                         $videos = $videos->offset($offset);   
                     }
 
                     if ($request->get('limit')) {
-                        $limit = $request->get('limit');
+                        $limit = (int) ($request->get('limit') ?? 20);
                         $videos = $videos->limit($limit);   
                     }
 
@@ -465,12 +463,12 @@ class VideoController extends Controller
 
                     // Filter with the skill level
                     if ($request->get('start')) {                
-                        $offset = $request->get('start');
+                        $offset = $offset = (int) ($request->get('start') ?? 0);
                         $videos = $videos->offset($offset);   
                     }
 
                     if ($request->get('limit')) {
-                        $limit = $request->get('limit');
+                        $limit = (int) ($request->get('limit') ?? 20);
                         $videos = $videos->limit($limit);   
                     }
                 }
@@ -501,7 +499,7 @@ class VideoController extends Controller
                         
                                 $skillLevelId = $request->get('skill_level');
 
-                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId){
+                                if ($combo->filters && $combo->filters->filter_id != $skillLevelId){
                                     continue;
                                 }
                             }
