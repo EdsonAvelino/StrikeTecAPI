@@ -327,66 +327,63 @@ class TrainingController extends Controller
 
             try {
 
-                // Checking if session already exists
-                $_session = Sessions::where('start_time', $session['start_time'])->first();
+                    // Checking if session already exists
+                    $_session = Sessions::where('start_time', $session['start_time'])->first();
 
-                if (!$_session) {
-
-                    $_session = Sessions::create([
-                        'user_id' => \Auth::user()->id,
-                        'battle_id' => ($session['battle_id']) ?? null,
-                        'game_id' => ($session['game_id']) ?? null,
-                        'type_id' => $session['type_id'],
-                        'start_time' => $session['start_time'],
-                        'end_time' => $session['end_time'],
-                        'plan_id' => $session['plan_id'],
-                        'avg_speed' => $session['avg_speed'],
-                        'avg_force' => $session['avg_force'],
-                        'punches_count' => $session['punches_count'],
-                        'max_force' => $session['max_force'],
-                        'max_speed' => $session['max_speed'],
-                        'best_time' => $session['best_time']
-                    ]);
-                    
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                        \Log::info('Saved New Session Data  -- ', [$_session]);
-                    }
-                    // Update battle details, if any
-                    if ($_session->battle_id) {
-
-                        $this->updateBattle($_session->battleId);
-
-                    } elseif ($_session->game_id) {
-
+                    if (!$_session) {
+                        $_session = Sessions::create([
+                            'user_id' => \Auth::user()->id,
+                            'battle_id' => ($session['battle_id']) ?? null,
+                            'game_id' => ($session['game_id']) ?? null,
+                            'type_id' => $session['type_id'],
+                            'start_time' => $session['start_time'],
+                            'end_time' => $session['end_time'],
+                            'plan_id' => $session['plan_id'],
+                            'avg_speed' => $session['avg_speed'],
+                            'avg_force' => $session['avg_force'],
+                            'punches_count' => $session['punches_count'],
+                            'max_force' => $session['max_force'],
+                            'max_speed' => $session['max_speed'],
+                            'best_time' => $session['best_time']
+                        ]);
+                        SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
+                        // Update battle details, if any
+                        if ($_session->battle_id) {
+                            $this->updateBattle($_session->battleId);
+                        }
                         // Game stuff
-                        $gameSession = true;
-                        $this->updateGameLeaderboard($_session->game_id, $_session->id);
-
-                    } else {
-
+                        elseif ($_session->game_id) {
+                            $gameSession = true;
+                            $this->updateGameLeaderboard($_session->game_id, $_session->id);
+                        }
                         // Goal updates
-                        $this->updateGoal($_session);
+                        else {
+                            $this->updateGoal($_session);
+                        }
+                        
+                    } else {
+                        SessionRounds::where('session_id', $_session->start_time)->update(['session_id' => $_session->id]);
                     }
+                    // Process through achievements (badges) and assign 'em to user
+                    
+                    // skipping Achievements for now as they are not working properly
+                    // $achievements = $this->processAchievements($_session->id, $_session->battle_id);
+                    // Generating sessions' list for response
+                    $sessions[] = [
+                        'session_id' => $_session->id,
+                        'start_time' => $_session->start_time,
+                        'achievements' => []
+                    ];
                 }
-                
-                $sessionRounds = SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
 
-                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                    \Log::info('Update Session Round  '. $sessionRounds);
+                // Sending response back if session is of game
+                if ($gameSession) {
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Training sessions saved successfully',
+                        'data' => $sessions
+                    ]);
                 }
-
-
-                // Process through achievements (badges) and assign 'em to user
-            
-                // skipping Achievements for now as they are not working properly
-                // $achievements = $this->achievements($_session->id, $_session->battle_id);
-
-                // Generating sessions' list for response
-                $sessions[] = [
-                    'session_id' => $_session->id,
-                    'start_time' => $_session->start_time,
-                    'achievements' => []
-                ];
 
             } catch(\Exception $e) {
                
@@ -412,53 +409,38 @@ class TrainingController extends Controller
             // User's total sessions count
             $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
             $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
-
             // Create / Update Leaderboard entry for this user
             $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
-
             // Set all old averate data to 0
             $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = 0;
              
             $oldAvgSpeed = $leaderboardStatus->avg_speed;
             $oldAvgForce = $leaderboardStatus->avg_force;
             $oldPunchesCount = $leaderboardStatus->punches_count;
-
             $leaderboardStatus->sessions_count = $sessionsCount;
             $leaderboardStatus->punches_count = $punchesCount;
             $leaderboardStatus->save();
-
             // Formula
             // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
-
             $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
             $avgForceData[] = $oldAvgForce * $oldPunchesCount;
-
             $division = $oldPunchesCount;
-
             foreach ($data as $session) {
                 $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
                 $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-
                 $division += $session['punches_count'];
             }
-
             $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
             $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
-
             $temp = SessionRounds::select(
                                     \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
                             )
                             ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
-
             $leaderboardStatus->max_speed = $temp->max_speed;
             $leaderboardStatus->max_force = $temp->max_force;
-
             $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
-
             $leaderboardStatus->total_time_trained = $totalTimeTrained;
-
             $leaderboardStatus->save();
-
             // Finally sending response back to request
             return response()->json([
                 'error' => 'false',
