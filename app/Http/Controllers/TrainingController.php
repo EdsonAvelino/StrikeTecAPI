@@ -374,18 +374,17 @@ class TrainingController extends Controller
                         'start_time' => $_session->start_time,
                         'achievements' => []
                     ];
-                }
+                
+                    // Sending response back if session is of game
+                    if ($gameSession) {
+                        return response()->json([
+                            'error' => 'false',
+                            'message' => 'Training sessions saved successfully',
+                            'data' => $sessions
+                        ]);
+                    }
 
-                // Sending response back if session is of game
-                if ($gameSession) {
-                    return response()->json([
-                        'error' => 'false',
-                        'message' => 'Training sessions saved successfully',
-                        'data' => $sessions
-                    ]);
-                }
-
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                
                 return response()->json([
                     'error' => 'true',
