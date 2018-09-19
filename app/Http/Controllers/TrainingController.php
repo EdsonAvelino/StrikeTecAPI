@@ -649,6 +649,7 @@ class TrainingController extends Controller
                 'message' => 'Rounds punches saved successfully',
                 'data' => $punches
             ]);
+            
         } catch (Exception $e) {
 
             return response()->json([

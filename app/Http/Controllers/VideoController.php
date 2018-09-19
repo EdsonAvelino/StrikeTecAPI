@@ -441,16 +441,16 @@ class VideoController extends Controller
                         }  
                     }
 
-                    // Filter with the skill level
-                    if ($request->get('start')) {                
-                        $offset = (int) ($request->get('start') ?? 0);
-                        $videos = $videos->offset($offset);   
-                    }
+                    // // Filter with the skill level
+                    // if ($request->get('start')) {                
+                    //     $offset = (int) ($request->get('start') ?? 0);
+                    //     $videos = $videos->offset($offset);   
+                    // }
 
-                    if ($request->get('limit')) {
-                        $limit = (int) ($request->get('limit') ?? 20);
-                        $videos = $videos->limit($limit);   
-                    }
+                    // if ($request->get('limit')) {
+                    //     $limit = (int) ($request->get('limit') ?? 20);
+                    //     $videos = $videos->limit($limit);   
+                    // }
 
                 } else {
 
@@ -461,19 +461,22 @@ class VideoController extends Controller
                         $videos = $videos->where('type_id', $typeId);   
                     }
 
-                    // Filter with the skill level
-                    if ($request->get('start')) {                
-                        $offset = $offset = (int) ($request->get('start') ?? 0);
-                        $videos = $videos->offset($offset);   
-                    }
+                    // // Filter with the skill level
+                    // if ($request->get('start')) {                
+                    //     $offset = $offset = (int) ($request->get('start') ?? 0);
+                    //     $videos = $videos->offset($offset);   
+                    // }
 
-                    if ($request->get('limit')) {
-                        $limit = (int) ($request->get('limit') ?? 20);
-                        $videos = $videos->limit($limit);   
-                    }
+                    // if ($request->get('limit')) {
+                    //     $limit = (int) ($request->get('limit') ?? 20);
+                    //     $videos = $videos->limit($limit);   
+                    // }
                 }
-
-                $videoData = $videos->get();
+                
+                $offset = (int) $request->get('start') ? $request->get('start') : 0;
+                $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
+                
+                $videoData = $videos->->offset($offset)->limit($limit)->get();
                 $responseData = [];
 
                 foreach ($videoData as $key => $value) {
