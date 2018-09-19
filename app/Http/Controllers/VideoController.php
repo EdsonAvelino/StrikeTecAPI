@@ -476,7 +476,7 @@ class VideoController extends Controller
                 $offset = (int) $request->get('start') ? $request->get('start') : 0;
                 $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
                 
-                $videoData = $videos->->offset($offset)->limit($limit)->get();
+                $videoData = $videos->offset($offset)->limit($limit)->get();
                 $responseData = [];
 
                 foreach ($videoData as $key => $value) {
