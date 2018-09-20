@@ -27,6 +27,8 @@ $app->withFacades();
 
 $app->withEloquent();
 $app->configure('striketec');
+$app->configure('filesystems');
+
 
 /*
   |--------------------------------------------------------------------------
@@ -88,6 +90,10 @@ $app->configure('mail');
 
 // Logger
 $app->register(\Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class);
+
+// Filesystem
+$app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
+
 /*
   |--------------------------------------------------------------------------
   | Load The Application Routes

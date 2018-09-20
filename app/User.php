@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
+use App\Helpers\StorageHelper;
 
 class User extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
 {
@@ -184,8 +185,10 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
     public function getPhotoUrlAttribute($photo)
     {
+
         if ( (filter_var($photo, FILTER_VALIDATE_URL) === FALSE) ) {
-            return (!empty($photo)) ? env('STORAGE_URL') . config('striketec.storage.users') . $photo : null;
+            
+            return (!empty($photo)) ?  StorageHelper::getFile('users/'.$photo)  : null;
         }
 
         // As it can be Facebook graph url

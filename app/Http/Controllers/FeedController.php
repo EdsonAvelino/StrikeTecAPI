@@ -246,7 +246,7 @@ class FeedController extends Controller
 
                             $extraData['winner_total_win_counts'] = $winnerTotalWinCounts;
                             $extraData['loser_total_win_counts'] = $loserTotalWinCounts;
-
+                            
                             $extraData = array_merge($extraData, $battleResult);
                             $_post['extra_data'] = json_encode($extraData);
                             break;

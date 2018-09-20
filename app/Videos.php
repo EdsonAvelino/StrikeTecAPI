@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Helpers\StorageHelper;
 class Videos extends Model
 {
     protected $fillable = [
@@ -89,17 +89,14 @@ class Videos extends Model
                 }
             }
         } else {
-            return env('STORAGE_URL') . config('striketec.storage.videos') . $value;
+            return ($value) ? ( StorageHelper::getFile('videos/'.$value) ) : null;
         }
     }
 
     public function getThumbnailAttribute($value)
     {
-        if (empty($value)) {
-            return null;
-        }
-        
-        return env('STORAGE_URL') . config('striketec.storage.videos_thumb') . $value;
+
+        return ($value) ? ( StorageHelper::getFile('videos/thumbnails/'.$value) ) : null;
     }
 
     public function getThumbWidthAttribute($thumb)

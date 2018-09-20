@@ -13,7 +13,8 @@
         "james-heinrich/getid3": "^1.9",
         "guzzlehttp/guzzle": "~6.0",
         "google/apiclient": "^2.2",
-        "rap2hpoutre/laravel-log-viewer": "^0.20.0"
+        "rap2hpoutre/laravel-log-viewer": "^0.20.0",
+        "league/flysystem-aws-s3-v3": "^1.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
