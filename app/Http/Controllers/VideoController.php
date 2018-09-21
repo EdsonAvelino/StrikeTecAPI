@@ -502,7 +502,7 @@ class VideoController extends Controller
                         
                                 $skillLevelId = $request->get('skill_level');
 
-                                if ($combo->filters && $combo->filters->filter_id != $skillLevelId){
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId) {
                                     continue;
                                 }
                             }
