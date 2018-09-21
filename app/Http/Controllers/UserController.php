@@ -56,7 +56,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'login_count' => 0,
+            'has_sensors' => 0
         ]);
 
         try {
@@ -76,6 +78,20 @@ class UserController extends Controller
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
 
+         //Create a connection with Wes
+        $wesUserId = User::where('email', 'wes@efdsports.com')->first()->id;
+        UserConnections::create([
+            'user_id' => $wesUserId,
+            'follow_user_id' => $user['id']
+        ]);
+        UserConnections::create([
+            'user_id' => $user['id'],
+            'follow_user_id' => $wesUserId
+        ]);
+        // Generates new notification for user
+        UserNotifications::generate(UserNotifications::FOLLOW, $user['id'], $wesUserId);
+        UserNotifications::generate(UserNotifications::FOLLOW, $wesUserId, $user['id']);
+        
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
     }
 
