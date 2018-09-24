@@ -19,7 +19,7 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
-//$app->group(['prefix' => 'v1'], function () use ($app) {
+//$app->group(['prefix' => 'api/v1'], function () use ($app) {
 
 
         // Check for app update

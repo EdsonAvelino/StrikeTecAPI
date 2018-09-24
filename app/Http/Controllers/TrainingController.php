@@ -1253,3 +1253,4 @@ class TrainingController extends Controller
     //     // $roundCountsOfSession = $currentSessionQuery->count();
     // }
 }
+
