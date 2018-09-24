@@ -11,431 +11,457 @@
   |
  */
 
+$app->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($app) {
+    $app->get('/logs', 'LogViewerController@index');
+});
+
 $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
-// Check for app update
-$app->post('/check_update', 'AppController@checkForUpdate');
+//$app->group(['prefix' => 'v1'], function () use ($app) {
 
-// Login
-$app->post('/auth/login', 'AuthController@authenticate');
-$app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
-// User Signup
-$app->post('/user/register', 'UserController@register');
-$app->post('/user/register/facebook', 'UserController@registerFacebook');
+        // Check for app update
+        $app->post('/check_update', 'AppController@checkForUpdate');
 
-// Password Reset
-$app->post('/password', 'PasswordController@postEmail');
-$app->post('/password/verify_code', 'PasswordController@postVerifyCode');
-$app->post('/password/reset', 'PasswordController@postReset');
 
-// Countries / States / Cities
-$app->get('/countries[/{phase}]', 'WorldController@getCountries');
-$app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
-$app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
+        // Check for app update
+        $app->post('/check_update', 'AppController@checkForUpdate');
 
-// Subscription plans
-// $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+        // Login
+        $app->post('/auth/login', 'AuthController@authenticate');
+        $app->post('/auth/facebook', 'AuthController@authenticateFacebook');
 
-// Get FAQs
-$app->get('/faqs', 'UserController@getFaqs');
+        // User Signup
+        $app->post('/user/register', 'UserController@register');
+        $app->post('/user/register/facebook', 'UserController@registerFacebook');
 
-// Get all available tags
-$app->get('/tags', 'VideoController@getTags');
+        // Password Reset
+        $app->post('/password', 'PasswordController@postEmail');
+        $app->post('/password/verify_code', 'PasswordController@postVerifyCode');
+        $app->post('/password/reset', 'PasswordController@postReset');
 
-// Get list of trainers
-$app->get('/trainers', 'VideoController@getTrainers');
 
-// Rest of all APIs are secured with access-token
-// User APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Update user's profile data
-    $app->post('/users', 'UserController@update');
+        // Countries / States / Cities
+        $app->get('/countries[/{phase}]', 'WorldController@getCountries');
+        $app->get('/states_by_country/{countryId}', 'WorldController@getStatesByCountry');
+        $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
-    // Know or update user's subscription
-    $app->post('/users/subscription', 'UserController@postUserSubscription');
-    
-    // Update user's sensor data
-    $app->post('/users/sensors', 'UserController@updateSensors');
+        //Subscription plans
+        $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
-    // Update user's preferences
-    $app->post('/users/preferences', 'UserController@updatePreferences');
 
-    // Search users
-    $app->get('/users/search', 'UserController@searchUsers');
+        // Get FAQs
+        $app->get('/faqs', 'UserController@getFaqs');
 
-    // Get user's game score
-    $app->get('/users/score', 'UserController@getUsersGameScores');
+        // Get all available tags
+        $app->get('/tags', 'VideoController@getTags');
 
-    // Get user's progress
-    $app->get('/users/progress', 'UserController@getUsersProgress');
+        // Get list of trainers
+        $app->get('/trainers', 'VideoController@getTrainers');
 
-    // Get user's information
-    $app->get('/users/{userId}', 'UserController@getUser');
+        // Rest of all APIs are secured with access-token
+        // User APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Update user's profile data
+            $app->post('/users', 'UserController@update');
 
-    // Change password
-    $app->post('/users/change_password', 'UserController@setUserPassword');
+            // Know or update user's subscription
+            $app->post('/users/subscription', 'UserController@postUserSubscription');
+            
+            // Update user's sensor data
+            $app->post('/users/sensors', 'UserController@updateSensors');
 
-    // User's social connectivity
-    // Get user's connections
-    $app->get('/user/connections/{userId}', 'UserController@getConnections');
+            // Update user's preferences
+            $app->post('/users/preferences', 'UserController@updatePreferences');
 
-    // Get suggestions to follow
-    $app->get('/user/follow/suggestions', 'UserController@getFollowSuggestions');
+            // Search users
+            $app->get('/users/search', 'UserController@searchUsers');
 
-    $app->get('/user/follow/{userId}', 'UserController@follow');
-    $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
+            // Get user's game score
+            $app->get('/users/score', 'UserController@getUsersGameScores');
 
-    $app->get('/user/followers', 'UserController@getFollowers');
-    $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
+            // Get user's progress
+            $app->get('/users/progress', 'UserController@getUsersProgress');
 
-    $app->get('/user/following', 'UserController@getFollowing');
-    $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
+            // Get user's information
+            $app->get('/users/{userId}', 'UserController@getUser');
 
-    $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+            // Change password
+            $app->post('/users/change_password', 'UserController@setUserPassword');
 
-    $app->get('/user/notifications', 'UserController@getNotifications');
-    $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
-});
+            // User's social connectivity
+            // Get user's connections
+            $app->get('/user/connections/{userId}', 'UserController@getConnections');
 
-// Training APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Save training (sensor) data
-    $app->post('/user/training/data', 'TrainingController@storeData');
+            // Get suggestions to follow
+            $app->get('/user/follow/suggestions', 'UserController@getFollowSuggestions');
 
-    // Get rounds by Training-Type
-    $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
+            $app->get('/user/follow/{userId}', 'UserController@follow');
+            $app->get('/user/unfollow/{userId}', 'UserController@unfollow');
 
-    // Get particular session
-    $app->get('/user/training/sessions/for_comparison', 'TrainingController@getSessionForComparison');
+            $app->get('/user/followers', 'UserController@getFollowers');
+            $app->get('/user/{userId}/followers', 'UserController@getFollowersOfUser');
 
-    // Training sessions list
-    $app->get('/user/training/sessions', 'TrainingController@getSessions');
+            $app->get('/user/following', 'UserController@getFollowing');
+            $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
-    // Get particular session
-    $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
+            $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
+            $app->get('/user/runSomethingInServer', 'UserController@runSomethingInServer');
 
-    // Save Training sessions
-    $app->post('/user/training/sessions', 'TrainingController@storeSessions');
+            $app->get('/user/notifications', 'UserController@getNotifications');
+            $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
+        });
 
-    // Archive Traning session
-    $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
 
-    // Get round and its punches
-    $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
+        // Training APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            
+            // Save training (sensor) data
+            $app->post('/user/training/data', 'TrainingController@storeData');
 
-    // Save Training sessions' rounds data to db
-    $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
+            // Get rounds by Training-Type
+            $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
-    // Save Training sessions' rounds' punches data to db
-    $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 
-    // Get Tips data
-    $app->get('/tips', 'TrainingController@tips');
+            // Get particular session
+            $app->get('/user/training/sessions/for_comparison', 'TrainingController@getSessionForComparison');
 
-    // Get Achievement List
-    $app->get('/achievements', 'AchievementController@getAchievementList');
-});
 
-// Video APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of videos available on server
-    $app->get('/videos', 'VideoController@getVideos');
+                // Training sessions list
+                $app->get('/user/training/sessions', 'TrainingController@getSessions');
 
-    // Get list of videos available on server
-    $app->get('/videos/search', 'VideoController@searchVideos');
+                // Get particular session
+                $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
 
-    // Update video
-    $app->post('/videos/add_view/{videoId}', 'VideoController@addViewCount');
+                // Save Training sessions
+                $app->post('/user/training/sessions', 'TrainingController@storeSessions');
 
-    // Set video favourite for user
-    $app->post('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
+                // Archive Traning session
+                $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
 
-    // Set video unfavourite for user
-    $app->post('/videos/unfavourite/{videoId}', 'VideoController@setVideoUnFav');
+                // Get round and its punches
+                $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');
 
-    // Get user's favourited videos
-    $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
+                // Save Training sessions' rounds data to db
+                $app->post('/user/training/sessions/rounds', 'TrainingController@storeSessionsRounds');
 
-    // Get Video's Tags
-    $app->get('/videos/tags', 'VideoController@getVideoTags');
+                // Save Training sessions' rounds' punches data to db
+                $app->post('/user/training/sessions/rounds/punches', 'TrainingController@storeSessionsRoundsPunches');
 
-    // Get Categories
-    $app->get('/videos/category', 'VideoController@getVideoCategories');
-});
+                //get Tips data
+                $app->get('/tips', 'TrainingController@tips');
 
-// Leaderboard APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of leaderboard data
-    $app->get('/leaderboard', 'LeaderboardController@getList');
+            // Get Tips data
+            $app->get('/tips', 'TrainingController@tips');
 
-    // Trending data
-    $app->get('/trending', 'LeaderboardController@getTrendingList');
+            // Get Achievement List
+            $app->get('/achievements', 'AchievementController@getAchievementList');
+        });
 
-    // Game leaderboard data
-    $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
-});
+        
+        // Get list of videos available on server
+        $app->get('/videos/search', 'VideoController@searchVideos');
 
-// Push notifications APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Save customer token for push notifications
-    $app->post('/user/app_token', 'PushController@storeAppToken');
-});
+        // Update video
+        $app->post('/videos/add_view/{videoId}', 'VideoController@addViewCount');
 
-// Push notifications settings APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    $app->post('/notification/settings', 'SettingController@updateSettings');
-    $app->get('/notification/settings', 'SettingController@getSettings');
-});
 
-// Get list of comobos
-$app->get('/battles/combos', 'BattleController@getCombos');
+        // Set video favourite for user
+        $app->post('/videos/favourite/{videoId}', 'VideoController@setVideoFav');
 
-// Get list of comobo-sets
-$app->get('/battles/combo_sets', 'BattleController@getComboSets');
+        // Set video unfavourite for user
+        $app->post('/videos/unfavourite/{videoId}', 'VideoController@setVideoUnFav');
 
-// Get list of workouts
-$app->get('/battles/workouts', 'BattleController@getWorkouts');
+        // Get user's favourited videos
+        $app->get('/user/fav_videos', 'VideoController@getUserFavVideos');
 
-// Not in use for now so commenting (17032018)
-// Upload combo audio
-// $app->post('/combos/audio', 'BattleController@saveAudio');
+        // Get Video's Tags
+        $app->get('/videos/tags', 'VideoController@getVideoTags');
 
-// list of combos with audios
-// $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
+        // Get Categories
+        $app->get('/videos/category', 'VideoController@getVideoCategories');
 
-// Battle APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get battle Request
-    $app->get('/battles/received', 'BattleController@getReceivedRequests');
+        // Get list of videos available on server
+        $app->get('/videos/filter', 'VideoController@videosFilter');
 
-    // Get my battles
-    $app->get('/battles/my_battles', 'BattleController@getMyBattles');
+        // Get list of videos available on server
+        $app->get('/videos/count', 'VideoController@videosCount');
 
-    // Get finished battles
-    $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
 
-    // Get all battles
-    $app->get('/battles/all', 'BattleController@getAllBattles');
+        // Leaderboard APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get list of leaderboard data
+            $app->get('/leaderboard', 'LeaderboardController@getList');
 
-    // Send battle invite to another user    
-    $app->post('/battles', 'BattleController@postBattleWithInvite');
+            // Trending data
+            $app->get('/trending', 'LeaderboardController@getTrendingList');
 
-    // Accept/Decline battle invite (Opponent user)
-    $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
+            // Game leaderboard data
+            $app->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
+        });
 
-    // Resent battle invite
-    $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
+        // Push notifications APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Save customer token for push notifications
+            $app->post('/user/app_token', 'PushController@storeAppToken');
+        });
 
-    // Cancel battle
-    $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
+        // Push notifications settings APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            $app->post('/notification/settings', 'SettingController@updateSettings');
+            $app->get('/notification/settings', 'SettingController@getSettings');
+        });
 
-    // Get details of battle(challenge)
-    $app->get('/battles/{battleId}', 'BattleController@getBattle');
+        // Get list of comobos
+        $app->get('/battles/combos', 'BattleController@getCombos');
 
-    // Get battles of user 
-    $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
-});
+        // Get list of comobo-sets
+        $app->get('/battles/combo_sets', 'BattleController@getComboSets');
 
-// Goals APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
+        // Get list of workouts
+        $app->get('/battles/workouts', 'BattleController@getWorkouts');
 
-    // Get list of activities
-    $app->get('/activities', 'ActivityController@getActivityList');
+        // Not in use for now so commenting (17032018)
+        // Upload combo audio
+        // $app->post('/combos/audio', 'BattleController@saveAudio');
 
-    // Get list of activity type
-    $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
+        // list of combos with audios
+        // $app->get('/battles/combos/audio', 'BattleController@getCombosAudio');
 
-    // Set new goal
-    $app->post('/goal/add', 'GoalController@newGoal');
+        // Battle APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get battle Request
+            $app->get('/battles/received', 'BattleController@getReceivedRequests');
 
-    // edit goal
-    $app->post('/goal/edit', 'GoalController@updateGoal');
+            // Get my battles
+            $app->get('/battles/my_battles', 'BattleController@getMyBattles');
 
-    // follow goal
-    $app->post('/goal/follow', 'GoalController@followGoal');
+            // Get finished battles
+            $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
 
-    // delete goal
-    $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
+            // Get all battles
+            $app->get('/battles/all', 'BattleController@getAllBattles');
 
-    // GET list of goal
-    $app->get('/goals', 'GoalController@getGoalList');
+            // Send battle invite to another user    
+            $app->post('/battles', 'BattleController@postBattleWithInvite');
 
-    // Calculate goal data
-    $app->get('/goal/info', 'GoalController@goalInfo');
+            // Accept/Decline battle invite (Opponent user)
+            $app->post('/battles/accept_decline', 'BattleController@updateBattleInvite');
 
-    // Calculate goal data
-    $app->get('/goal', 'GoalController@goal');
-});
+            // Resent battle invite
+            $app->get('/battles/resend/{battleId}', 'BattleController@resendBattleInvite');
 
-// Feed APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get list of feed-posts
-    $app->get('/feed/posts', 'FeedController@getPosts');
+            // Cancel battle
+            $app->get('/battles/cancel/{battleId}', 'BattleController@cancelBattle');
 
-    // Add new feed-post
-    $app->post('/feed/posts', 'FeedController@addPost');
+            // Get details of battle(challenge)
+            $app->get('/battles/{battleId}', 'BattleController@getBattle');
 
-    // Like/Unlike feed-post
-    $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
-    $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
+            // Get battles of user 
+            $app->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
+        });
 
-    // Get comments of feed-post
-    $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
+        // Goals APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-    // Post comment on feed-post
-    $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
-});
+            // Get list of activities
+            $app->get('/activities', 'ActivityController@getActivityList');
 
-// This API does not need auth
-// Contact Us(write us)
-$app->post('/writeus', 'WriteusController@writeUs');
+            // Get list of activity type
+            $app->get('/activity/types[/{activity_id}]', 'ActivityController@getActivityTypeList');
 
-// Chat APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Set new goal
+            $app->post('/goal/add', 'GoalController@newGoal');
 
-    // Send message
-    $app->post('/chat/send', 'ChatController@sendMessage');
+            // edit goal
+            $app->post('/goal/edit', 'GoalController@updateGoal');
 
-    // Read message
-    $app->post('/chat/read', 'ChatController@ReadMessage');
+            // follow goal
+            $app->post('/goal/follow', 'GoalController@followGoal');
 
-    // Chat History (get all messages of particular chat )
-    $app->get('/chat/history', 'ChatController@chatHistory');
+            // delete goal
+            $app->delete('/goal/{goal_id}', 'GoalController@deleteGoal');
 
-    // Get all chats
-    $app->get('/chat', 'ChatController@chats');
+            // GET list of goal
+            $app->get('/goals', 'GoalController@getGoalList');
 
-    // Delete a message
-    $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
-});
+            // Calculate goal data
+            $app->get('/goal/info', 'GoalController@goalInfo');
 
-// Tournaments APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Get all new / joined / finished tournaments
-    $app->get('/tournaments/all', 'TournamentController@getAllEventsList');
+            // Calculate goal data
+            $app->get('/goal', 'GoalController@goal');
+        });
 
-    // Get all new tournaments user didn't join
-    $app->get('/tournaments', 'TournamentController@getEventsList');
+        // Feed APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get list of feed-posts
+            $app->get('/feed/posts', 'FeedController@getPosts');
 
-    // Tournament activity details
-    $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
+            // Add new feed-post
+            $app->post('/feed/posts', 'FeedController@addPost');
 
-    // Tournament activity leaderboard
-    $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
-      
-    // User Join the tournament
-    $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
-    
-    // Get all tournaments that user joined
-    $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
+            // Like/Unlike feed-post
+            $app->post('/feed/posts/{postId}/like', 'FeedController@postLike');
+            $app->post('/feed/posts/{postId}/unlike', 'FeedController@postUnlike');
 
-    // Get all finished tournaments that user joined
-    $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
-    
-    // Get user's tournament connections who haven not joined yet
-    $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
+            // Get comments of feed-post
+            $app->get('/feed/posts/{postId}/comments', 'FeedController@getComments');
 
-    // Invite connection for tournament 
-    $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
-});
+            // Post comment on feed-post
+            $app->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
+        });
 
-// Guidance APIs
-$app->group(['middleware' => 'auth:api'], function () use ($app) {
-    // Guidance home screen
-    $app->get('/guidance/home', 'GuidanceController@home');
-    
-    // Getting list of combos/set-routines/workouts (plans)
-    $app->get('/guidance/plans/{type_id}', 'GuidanceController@getPlans');
-    $app->get('/guidance/plans/{typeId}/{planId}', 'GuidanceController@getPlanDetail');
 
-    $app->get('/guidance/essentials', 'GuidanceController@getEssentialsVideos');
-    $app->get('/guidance/essentials/{id}', 'GuidanceController@getEssentialsVideoDetail');
+        // Chat APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
 
-    // Rating
-    $app->post('/guidance/rate', 'GuidanceController@postRating');
-});
+            // Send message
+            $app->post('/chat/send', 'ChatController@sendMessage');
 
-// In-App Purchase APIs [these APIs don't need authorization]
-// Get IAP get list of products
-$app->get('/iap/products/{platform}', 'IapController@getProducts');
+            // Read message
+            $app->post('/chat/read', 'ChatController@ReadMessage');
 
-// Store In-App Purchase receipts
-$app->post('/iap/receipt', 'IapController@storeReceipt');
+            // Read message
+            $app->post('/chat/edit', 'ChatController@chatEdit');
 
-// Fan App APIs routes
-// These API does not need auth
+            // Get all chats
+            $app->get('/chat', 'ChatController@chats');
 
-// Get list of Fan APP Companies
-$app->get('/fan/companies', 'CompanyController@getCompanyList');
+             $app->get('/chat/history', 'ChatController@chatHistory');
+             
+            // Delete a message
+            $app->delete('/chat/{messageId}', 'ChatController@deleteMessage');
+        });
 
-// FAN App admin register
-$app->post('/fan/user/register', 'FanUserController@registerFanAdmin');
 
-// FAN App admin login
-$app->post('/fan/auth/login', 'FanUserController@authenticate');
+        // Tournaments APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Get all new / joined / finished tournaments
+            $app->get('/tournaments/all', 'TournamentController@getAllEventsList');
 
-// FAN App APIs
-$app->group(['middleware' => 'auth:fan'], function() use ($app) {
-    // Get my events list
-    $app->get('/fan/events', 'EventController@getMyEventsList');
+            // Get all new tournaments user didn't join
+            $app->get('/tournaments', 'TournamentController@getEventsList');
 
-    // Get list of all of the events
-    $app->get('/fan/events/all', 'EventController@getAllEventsList');
+            // Tournament activity details
+            $app->get('/tournaments/{eventActivityId}', 'TournamentController@getEventActivityDetails');
 
-    // New Event
-    $app->post('/fan/events', 'EventController@postEvent');
+            // Tournament activity leaderboard
+            $app->get('/tournaments/{eventActivityId}/leaderboard', 'TournamentController@getEventActivityLeaderboard');
+              
+            // User Join the tournament
+            $app->post('/user/tournaments/join', 'TournamentController@userJoinTournament');
+            
+            // Get all tournaments that user joined
+            $app->get('/user/tournaments', 'TournamentController@getUserJoinedTournaments');
 
-    // Update an Event
-    $app->post('/fan/events/{eventId}', 'EventController@postUpdateEvent');
-    
-    // Delete an event
-    $app->delete('/fan/events/{eventId}', 'EventController@deleteEvent');
-    
-    // Get fan activity types
-    $app->get('/fan/activities', 'EventController@getEventActivityTypes');
+            // Get all finished tournaments that user joined
+            $app->get('/user/tournaments/finished', 'TournamentController@getUserFinishedTournaments');
+            
+            // Get user's tournament connections who haven not joined yet
+            $app->get('/user/tournaments/{eventActivityId}/connections', 'TournamentController@getUserTournamentConnections');
 
-    // Get user's event list by country id for fan APP 
-    $app->get('/fan/users', 'FanUserController@getUsersList');
-    
-    // Register user to db
-    $app->post('/fan/users', 'FanUserController@postUserToDb');
-    
-    // Get list of event activities with users
-    $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
+            // Invite connection for tournament 
+            $app->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
+    });
 
-    // Create activity into event
-    $app->post('/fan/events/{eventId}/activities', 'EventController@postAddEventActivity');
+    // Guidance APIs
+    $app->group(['middleware' => 'auth:api'], function () use ($app) {
+        // Guidance home screen
+        $app->get('/guidance/home', 'GuidanceController@home');
+        
+        // Getting list of combos/set-routines/workouts (plans)
+        $app->get('/guidance/plans/{type_id}', 'GuidanceController@getPlans');
+        $app->get('/guidance/plans/{typeId}/{planId}', 'GuidanceController@getPlanDetail');
 
-    // Remove activity
-    $app->delete('/fan/events/{eventId}/activities', 'EventController@deleteEventActivity');
+        $app->get('/guidance/essentials', 'GuidanceController@getEssentialsVideos');
+        $app->get('/guidance/essentials/{id}', 'GuidanceController@getEssentialsVideoDetail');
 
-    // List of locations
-    $app->get('/fan/locations', 'LocationController@getLocationsList');
+        // Rating
+        $app->post('/guidance/rate', 'GuidanceController@postRating');
+    });
 
-    // Change password
-    $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
-    
-    // Get Event Activity participants
-    $app->get('/fan/events/activities/{eventActivityId}/users', 'EventController@getEventActivityParticipants');
+    // In-App Purchase APIs [these APIs don't need authorization]
+    // Get IAP get list of products
+    $app->get('/iap/products/{platform}', 'IapController@getProducts');
 
-    // Add user to Event Activity
-    $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
-    
-    // Remove user from Event Activity
-    $app->delete('/fan/events/activities/users', 'EventController@deleteUsersFromEventActivity');
+    // Store In-App Purchase receipts
+    $app->post('/iap/receipt', 'IapController@storeReceipt');
 
-    // Authorize user for Event Activity
-    $app->post('/fan/events/activities/users/authorize', 'EventController@authorizeUserForEventActivity');
+    // Fan App APIs routes
+    // These API does not need auth
 
-    // Store event activity sessoins' punches data
-    $app->post('/fan/events/activities/sessions', 'EventController@storeEventSessions');
-    
-    // Get event activity leaderboard 
-    $app->get('/fan/events/activities/{eventActivityId}/leaderboard', 'EventController@getLeaderboardByEventActivity');
-     
-    // Update activity status
-    $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
-});
+    // Get list of Fan APP Companies
+    $app->get('/fan/companies', 'CompanyController@getCompanyList');
+
+    // FAN App admin register
+    $app->post('/fan/user/register', 'FanUserController@registerFanAdmin');
+
+    // FAN App admin login
+    $app->post('/fan/auth/login', 'FanUserController@authenticate');
+
+    // FAN App APIs
+    $app->group(['middleware' => 'auth:fan'], function() use ($app) {
+
+        // Get my events list
+        $app->get('/fan/events', 'EventController@getMyEventsList');
+
+        // Get list of all of the events
+        $app->get('/fan/events/all', 'EventController@getAllEventsList');
+
+        // New Event
+        $app->post('/fan/events', 'EventController@postEvent');
+
+        // Update an Event
+        $app->post('/fan/events/{eventId}', 'EventController@postUpdateEvent');
+        
+        // Delete an event
+        $app->delete('/fan/events/{eventId}', 'EventController@deleteEvent');
+        
+        // Get fan activity types
+        $app->get('/fan/activities', 'EventController@getEventActivityTypes');
+
+        // Get user's event list by country id for fan APP 
+        $app->get('/fan/users', 'FanUserController@getUsersList');
+        
+        // Register user to db
+        $app->post('/fan/users', 'FanUserController@postUserToDb');
+        
+        // Get list of event activities with users
+        $app->get('/fan/events/{eventId}/activities', 'EventController@getEventActivities');
+
+        // Create activity into event
+        $app->post('/fan/events/{eventId}/activities', 'EventController@postAddEventActivity');
+
+        // Remove activity
+        $app->delete('/fan/events/{eventId}/activities', 'EventController@deleteEventActivity');
+
+        // List of locations
+        $app->get('/fan/locations', 'LocationController@getLocationsList');
+
+        // Change password
+        $app->post('/fan/user/change_password', 'FanUserController@setFanUserPassword');
+        
+        // Get Event Activity participants
+        $app->get('/fan/events/activities/{eventActivityId}/users', 'EventController@getEventActivityParticipants');
+
+        // Add user to Event Activity
+        $app->post('/fan/events/activities/users', 'EventController@postUsersToEventActivity');
+        
+        // Remove user from Event Activity
+        $app->delete('/fan/events/activities/users', 'EventController@deleteUsersFromEventActivity');
+
+        // Authorize user for Event Activity
+        $app->post('/fan/events/activities/users/authorize', 'EventController@authorizeUserForEventActivity');
+
+        // Store event activity sessoins' punches data
+        $app->post('/fan/events/activities/sessions', 'EventController@storeEventSessions');
+        
+        // Get event activity leaderboard 
+        $app->get('/fan/events/activities/{eventActivityId}/leaderboard', 'EventController@getLeaderboardByEventActivity');
+         
+        // Update activity status
+        $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
+    });
+//});

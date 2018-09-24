@@ -67,8 +67,6 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": "PRO",
      *          "photo_url": "http://example.com/profile/pic.jpg",
-     *          "login_count": 1,
-     *          "has_sensors": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {
@@ -99,12 +97,7 @@ class AuthController extends Controller
      *              "spectator_monthly ": true,
      *              "spectator_yearly ": false
      *          },
-     *          "subscription_check": false,
-     *          "has_membership": true,
-     *          "membership": {
-     *              "is_limited": true,
-     *              "membership_days_left": 182
-     *          }
+     *          "subscription_check": false
      *      }
      *    }
      * @apiErrorExample {json} Login error (Invalid credentials)
@@ -140,8 +133,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $_user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id());
-        $user = $_user->toArray();
+        $user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find(\Auth::id())->toArray();
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
@@ -152,36 +144,8 @@ class AuthController extends Controller
         // Subscription check flag for app to check user's subscription status on google/appstore 
         $subscriptionCheck = User::select('id as subscription_check')->where('id', $user['id'])->pluck('subscription_check')->first();
         $user['subscription_check'] = (bool) $subscriptionCheck;
-
-        // Membership plan info
-        $user['has_membership'] = $_user->hasMembership();
         
-        if ($_user->hasMembership()) {
-            $membershipPlan = $_user->membership;
-            
-            $membershipDaysLeft = '';
-
-            if ($membershipPlan->isLimited()) {
-                $effectiveDate = strtotime("+".$membershipPlan->duration, strtotime($_user->membership_plan_assigned_at));
-
-                $effectiveDate = \Carbon\Carbon::createFromTimestamp($effectiveDate);
-
-                $now = \Carbon\Carbon::now();
-                $membershipDaysLeft = $now->diffInDays($effectiveDate); // Days
-            }
-            
-            $membership = [
-                'is_limited' => $membershipPlan->isLimited(),
-                'membership_days_left' => $membershipDaysLeft
-            ];
-
-            $user['membership'] = $membership;   
-        }
-        
-        // Hiding membership related fields
-        unset($user['membership_plan_id']);
-        unset($user['membership_plan_assigned_at']);
-
+        \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }
 
@@ -228,8 +192,6 @@ class AuthController extends Controller
      *          "show_tip": 1,
      *          "skill_level": null,
      *          "photo_url": "http://example.com/profile/pic.jpg",
-     *          "login_count": 1,
-     *          "has_sensors": 1,
      *          "updated_at": "2016-02-10 15:46:51",
      *          "created_at": "2016-02-10 15:46:51",
      *          "preferences": {

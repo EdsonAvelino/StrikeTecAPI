@@ -3,7 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Helpers\StorageHelper;
 class Videos extends Model
 {
     protected $fillable = [
@@ -25,17 +25,17 @@ class Videos extends Model
 
     public function combo()
     {
-        return $this->belongsTo('App\Combos', 'plan_id');
+        return $this->belongsTo('App\Combos', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function comboSet()
     {
-        return $this->belongsTo('App\ComboSets', 'plan_id');
+        return $this->belongsTo('App\ComboSets', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function workout()
     {
-        return $this->belongsTo('App\Workouts', 'plan_id');
+        return $this->belongsTo('App\Workouts', 'plan_id')->with(['trainer', 'tag']);
     }
 
     public function trainer()
@@ -45,7 +45,7 @@ class Videos extends Model
 
     public function filters()
     {
-        return $this->hasMany('App\VideoTagFilters', 'video_id');
+        return $this->belongsTo('App\VideoTagFilters', 'video_id');
     }
 
     public function getFilterAttribute($videoId)
@@ -89,17 +89,14 @@ class Videos extends Model
                 }
             }
         } else {
-            return env('STORAGE_URL') . config('striketec.storage.videos') . $value;
+            return ($value) ? ( StorageHelper::getFile('videos/'.$value) ) : null;
         }
     }
 
     public function getThumbnailAttribute($value)
     {
-        if (empty($value)) {
-            return null;
-        }
-        
-        return env('STORAGE_URL') . config('striketec.storage.videos_thumb') . $value;
+
+        return ($value) ? ( StorageHelper::getFile('videos/thumbnails/'.$value) ) : null;
     }
 
     public function getThumbWidthAttribute($thumb)
@@ -139,5 +136,10 @@ class Videos extends Model
     public function getIsFeaturedAttribute($isFeatured)
     {
         return (bool) $isFeatured;
+    }
+
+    public function getUserWatchedVideo($videoId)
+    {
+        return \App\VideoView::where('user_id', \Auth::id())->where('video_id', $videoId)->first(['watched_count']);
     }
 }

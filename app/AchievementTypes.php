@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Helpers\StorageHelper;
 
 class AchievementTypes extends Model
 {
@@ -35,6 +36,7 @@ class AchievementTypes extends Model
 
     public function getImageAttribute($image)
     {
-        return ($image) ? (env('STORAGE_URL') . config('striketec.storage.badges') . $image) : null;
+
+        return ($image) ? ( StorageHelper::getFile('badges/'.$image) ) : null;
     }
 }

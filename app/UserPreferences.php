@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserPreferences extends Model
 {
-    const UNIT_ENGLISH = 0;
-    const UNIT_METRIC = 1;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'user_id',
         'public_profile',
@@ -16,8 +19,7 @@ class UserPreferences extends Model
         'show_training_stats',
         'show_challenges_history',
         'badge_notification',
-        'show_tutorial',
-        'unit'
+        'show_tutorial'
     ];
 
     protected $hidden = [

@@ -60,18 +60,16 @@ class ChatController extends Controller
 
         $chatId = $this->getChatid($userId);
 
-        $chatMessageId = ChatMessages::create([
+        $chatId = ChatMessages::create([
                     'user_id' => $senderId,
                     'read_flag' => false,
                     'message' => $message,
                     'chat_id' => $chatId
                 ])->id;
 
-        $chatResponse = ChatMessages::where('id', $chatMessageId)
+        $chatResponse = ChatMessages::where('id', $chatId)
                 ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
                 ->first();
-
-        $chat = Chat::where('id', $chatId)->update(['updated_at' => $chatResponse->send_time]);
 
         $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
         $chatResponse->send_time = strtotime($chatResponse->send_time);
@@ -132,9 +130,10 @@ class ChatController extends Controller
             $pushMessage = 'Read message';
 
             $chatResponse = ChatMessages::where('id', $messageId)
-                            ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')->first();
+                            ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited', 'created_at as send_time')->first();
 
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+            $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->send_time = strtotime($chatResponse->send_time);
 
             Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
@@ -179,98 +178,13 @@ class ChatController extends Controller
         if (!ChatMessages::where('id', $messageId)->exists()) {
             return response()->json(['error' => 'true', 'message' => 'Message does not exists']);
         }
-
         ChatMessages::find($messageId)->delete();
-
         return response()->json([
             'error' => 'false',
             'message' => 'Message has been deleted'
         ]);
     }
-
-    /**
-     * @api {get} /chat/history Get all the messages of chat
-     * @apiGroup Chat
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} user_id Connection user ID
-     * @apiParam {Number} message_id Message ID if -1 list recent else record listed which created less then this time
-     * @apiParam {Number} limit Limit number of records
-     * @apiParamExample {json} Input
-     *    {
-     *      "user_id": 6,
-     *      "message_id": 20,
-     *      "limit": 50
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *         {
-     *              "message_id": 27,
-     *              "sender_id": 7,
-     *              "read": false,
-     *              "message": "this is the test message 2",
-     *              "send_time": 1510136168
-     *         },
-     *         {
-     *              "message_id": 27,
-     *              "sender_id": 7,
-     *              "read": false,
-     *              "message": "this is the test message 2",
-     *              "send_time": 1510136168
-     *         },
-     *         {
-     *              "message_id": 27,
-     *              "sender_id": 7,
-     *              "read": false,
-     *              "message": "this is the test message 2",
-     *              "send_time": 1510136168
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
-     */
-    public function chatHistory(Request $request)
-    {
-        $offsetMessageIid = (int) ($request->get('message_id') ? $request->get('message_id') : 0);
-        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
-        $connectionId = (int) $request->get('user_id');
-        $chatId = $this->getChatid($connectionId);
-        $chatDetail = ChatMessages::select('chat_messages.id as message_id', 'user_id as sender_id', 'read_flag as read', 'chat_id', 'message', 'chat_messages.created_at as send_time')
-                        ->join('users', 'users.id', '=', 'chat_messages.user_id')->where('chat_id', $chatId)
-                        ->where(function($query) use ($offsetMessageIid) {
-                            if ($offsetMessageIid === -1) {
-                                $query->where('chat_messages.id', '>=', $offsetMessageIid);
-                            } else {
-                                $query->where('chat_messages.id', '<=', $offsetMessageIid);
-                            }
-                        })->orderBy('chat_messages.created_at', 'desc')->limit($limit)->get();
-
-        $chat = array();
-        foreach ($chatDetail as $chatDetails) {
-            $chat[] = ['message_id' => $chatDetails['message_id'],
-                'sender_id' => $chatDetails['sender_id'],
-                'read' => (bool) $chatDetails['read'],
-                'message' => $chatDetails['message'],
-                'send_time' => strtotime($chatDetails['send_time'])];
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
-    }
-
+    
     /**
      * @api {get} /chat Get all the chats 
      * @apiGroup Chat
@@ -356,14 +270,12 @@ class ChatController extends Controller
                 $chatCount++;
             }
         }
-
         usort($chat, function ($a, $b) {
             if ($a['msg_time'] == $b['msg_time']) {
                 return 0;
             }
             return ($a['msg_time'] > $b['msg_time']) ? -1 : 1;
         });
-
         return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
     }
 
@@ -388,4 +300,146 @@ class ChatController extends Controller
                 ])->id;
     }
 
+        /**
+     * @api {get} /chat/history Get all the messages of chat
+     * @apiGroup Chat
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiParam {Number} user_id Connection user ID
+     * @apiParam {Number} message_id Message ID if -1 list recent else record listed which created less then this time
+     * @apiParam {Number} limit Limit number of records
+     * @apiParamExample {json} Input
+     *    {
+     *      "user_id": 6,
+     *      "message_id": 20,
+     *      "limit": 50
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "",
+     *      "data": [
+     *         {
+     *              "message_id": 27,
+     *              "sender_id": 7,
+     *              "read": false,
+     *              "message": "this is the test message 2",
+     *              "send_time": 1510136168
+     *         },
+     *         {
+     *              "message_id": 27,
+     *              "sender_id": 7,
+     *              "read": false,
+     *              "message": "this is the test message 2",
+     *              "send_time": 1510136168
+     *         },
+     *         {
+     *              "message_id": 27,
+     *              "sender_id": 7,
+     *              "read": false,
+     *              "message": "this is the test message 2",
+     *              "send_time": 1510136168
+     *         }
+     *      ]
+     *    }
+     * @apiErrorExample {json} Error response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function chatHistory(Request $request)
+    {
+        $offsetMessageIid = (int) ($request->get('message_id') ? $request->get('message_id') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        $connectionId = (int) $request->get('user_id');
+        $chatId = $this->getChatid($connectionId);
+        $chatDetail = ChatMessages::select('chat_messages.id as message_id', 'user_id as sender_id', 'read_flag as read', 'edited', 'chat_id', 'message', 'chat_messages.created_at as send_time')
+                        ->join('users', 'users.id', '=', 'chat_messages.user_id')->where('chat_id', $chatId)
+                        ->where(function($query) use ($offsetMessageIid) {
+                            if ($offsetMessageIid === -1) {
+                                $query->where('chat_messages.id', '>=', $offsetMessageIid);
+                            } else {
+                                $query->where('chat_messages.id', '<=', $offsetMessageIid);
+                            }
+                        })->orderBy('chat_messages.created_at', 'desc')->limit($limit)->get();
+        $chat = array();
+        foreach ($chatDetail as $chatDetails) {
+            $chat[] = ['message_id' => $chatDetails['message_id'],
+                'sender_id' => $chatDetails['sender_id'],
+                'read' => (bool) $chatDetails['read'],
+                'edited' => (bool) $chatDetails['edited'],
+                'message' => $chatDetails['message'],
+                'send_time' => strtotime($chatDetails['send_time'])];
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $chat]);
+    }
+
+
+    /**
+     * @api {get} /chat/edit Get all the messages of chat
+     * @apiVersion 1.0.0
+     */
+    public function chatEdit(Request $request)
+    {
+        
+        $validator = \Validator::make($request->all(), [
+            'message' => 'required', 
+            'message_id' => 'required|exists:chat_messages,id'
+        ]);
+ 
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
+        }
+
+        try {
+
+            $updatedChatQuery = ChatMessages::where( 'id', $request->get('message_id'))->where('user_id', \Auth::user()->id)->with('chat');
+            $oponentUser = $updatedChatQuery->first();
+
+
+            if ($oponentUser) {
+                $opponentId = $oponentUser->chat->user_one;
+
+                $updatedChatQuery = $updatedChatQuery->update(['message' => $request->get('message'), 'edited' => true]);
+
+                if ($updatedChatQuery) {
+                    
+                    $pushMessage = 'Edit message';
+
+                    $chatResponse = ChatMessages::where('id', $request->get('message_id'))
+                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited as edited', 'updated_at as updated_time')->first();
+
+                    $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
+                    $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+                    $chatResponse->updated_time = strtotime($chatResponse->updated_time);
+
+                    Push::send(PushTypes::CHAT_EDIT_MESSAGE, $opponentId, \Auth::user()->id, $pushMessage, ['message' => $chatResponse]);
+
+                    return response()->json(['error' => 'false', 'message' => 'Succesfully updated !', 'data' => $chatResponse]);
+
+                 } else {
+
+                     return response()->json(['error' => 'true', 'message' => 'Found some issue with update']);
+                 }
+
+            } else {
+                return response()->json(['error' => 'true', 'message' => 'Not valid Auth user Id and message Id']);
+            }
+            
+           
+        } catch (\Exception $e) {
+
+            return response()->json(['error' => 'true', 'message' => $e->getMessage()]);
+        } 
+    }
 }

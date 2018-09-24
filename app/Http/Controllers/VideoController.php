@@ -7,70 +7,20 @@ use App\Videos;
 use App\UserFavVideos;
 use App\Tags;
 use App\VideoCategory;
+use App\VideoView;
+use App\VideoTagFilters;
 
 class VideoController extends Controller
 {
+
     /**
-     * @api {get} /videos Get videos by category
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} category_id Category Id e.g. 1 = Workout Routines, 2 = Tutorials, 3 = Drills, 4 = Essentials 
-     * @apiParam {String} [filter_id] Filter Ids separated by comma e.g. 1,2,3 or just 1
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "category_id": 1,
-     *      "filter_id": 1,
-     *      "start": 0,
-     *      "limit": 10
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "videos": [
-     *          {
-     *              "id": 1,
-     *              "title": "Sample Video",
-     *              "file": "http://example.com/videos/SampleVideo.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo.png",
-     *              "views": 250,
-     *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02",
-     *              "user_favourited": true,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          {
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "http://example.com/videos/video_ScMzIvxBSi4.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "views": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
+     * @api GET /videos 
+     * 
+     * Get videos by category
+     * 
+     * @param Request $request
+     *
+     * @return json
      */
     public function getVideos(Request $request)
     {
@@ -116,63 +66,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /videos/search Search videos
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {String} query Search term e.g. "boxing+stance+and+footwork"
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "query": "boxing+stance+and+footwork",
-     *      "start": 0,
-     *      "limit": 10,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "videos": [
-     *          {
-     *              "id": 1,
-     *              "title": "Sample Video",
-     *              "file": "http://example.com/videos/SampleVideo_1280x720_10mb.mp4",
-     *              "thumbnail": "http://example.com/videos/thumb/SampleVideo_1280x720_10mb.png",
-     *              "views": 250,
-     *              "author_name": "Limer Waughts",
-     *              "duration": "00:01:02",
-     *              "user_favourited": true,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          {
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "views": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function searchVideos(Request $request)
     {
@@ -205,6 +98,554 @@ class VideoController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
     }
 
+    public function videosCount(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'featured' => 'sometimes|required|boolean', 
+            'my_favorites' => 'sometimes|required|boolean', 
+            'is_watched' => 'sometimes|required|boolean',
+            'video_length_type' => 'sometimes|required|in:1,2,3,4',
+            'skill_level' => 'sometimes|required|in:1,2,3',
+            'trainer_id' => 'sometimes|required|exists:trainers,id',
+            'sort_by' => 'sometimes|required|in:1,2,3',
+            'type_id' => 'sometimes|required|in:3,4,5,6',
+        ]);
+ 
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
+        }
+
+        try {
+            
+            $videos = Videos::query()->with(['trainer']);
+
+            if ($request->get('type_id') != 6) {
+
+                // Filter is_featured videos or no
+                if ($request->get('featured') !== null) {
+                    $featured = $request->get('featured');
+                    $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
+                }
+
+                // Filter auth user favorite videos
+                if ($request->get('my_favorites') !== null ) {
+                    $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+                    $videos = $request->get('my_favorites') ? $videos->whereIn('id', $favVideosId) : $videos->whereNotIn('id', $favVideosId);   
+                }
+
+                // Filter viewed videos or no
+                if ($request->get('is_watched') !== null) {
+                    $isWatched = $request->get('is_watched');
+
+                    $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
+
+                    $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
+                }
+
+
+                // Filter video duration
+                if ($request->get('video_length_type')) {
+
+                    $videoLength = $request->get('video_length_type');
+
+                    switch ($videoLength) {
+                        case 1 :
+                            
+                            $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                            
+                            break;
+                        case 2 :
+                            
+                            $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                            
+                            break;
+                        case 3 :
+                            
+                            $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                            
+                            break;
+                        case 4 :
+                            
+                            $videos = $videos->where('duration' , '>', '30:00');   
+                            
+                            break;
+                    }
+                }
+
+                // Filter with the skill level
+                if ($request->get('type_id')) {
+                    
+                    $typeId = $request->get('type_id');
+                    $videos = $videos->where('type_id', $typeId);   
+                }
+
+                // Filter with the skill level
+                if ($request->get('sort_by')) {
+
+                    $sortBy = $request->get('sort_by');
+
+                    switch ($sortBy) {
+                        case 1 :
+                            
+                            $videos = $videos->orderBy('updated_at', 'DESC');   
+                            
+                            break;
+                        case 2 :
+                            
+                            $videos = $videos->orderBy('duration', 'ASC');   
+                            
+                            break;
+                        case 3 :
+                            
+                            $videos = $videos->orderBy('type_id', 'ASC');
+                            
+                            break;
+                    }  
+                }
+                
+            } else {
+
+                // Filter with the type
+                if ($request->get('type_id')) {
+                    
+                    $typeId = $request->get('type_id');
+                    $videos = $videos->where('type_id', $typeId);   
+                }
+
+            }
+
+            $videoData = $videos->get();
+            $responseData = [];
+            
+            foreach ($videoData as $key => $value) {
+
+                        if ($value->type_id == 3) {
+
+                            $combo = $value->combo;
+                            $title = $combo->name;
+                            $trainer = $combo->trainer ?['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name] : null ;
+
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+
+                                if ($combo->trainer_id != $trainerId) {
+
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+                        }
+                            
+                        if ($value->type_id == 4) {
+
+                            $comboSet = $value->comboSet;
+                            $title = $comboSet->name;
+                            $trainer = $comboSet->trainer ? ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($comboSet->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($comboSet->tag && $comboSet->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+ 
+                        }
+                        
+                        if ($value->type_id == 5) {
+
+                            $workout = $value->workout;
+                            $title = $workout->name;
+                            $trainer = $workout->trainer ? ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($workout->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($workout->tag && $workout->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+
+                        }
+                        
+                        if ($value->type_id == 6) {   
+
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+
+                        }
+
+
+                        $responseData[$key]['video_id'] = $value->id;                  
+
+                }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => ['count' => count($responseData)] ]);
+        
+        } catch (\Exception $e) {
+
+            return response()->json(['error' => 'true', 'message' => $e->getMessage()]);
+        }    
+    }
+
+    /**
+     * @api {get} /videos/filter
+     * 
+     */
+    public function videosFilter(Request $request)
+    {
+
+        $validator = \Validator::make($request->all(), [
+            'featured' => 'sometimes|required|boolean', 
+            'my_favorites' => 'sometimes|required|boolean', 
+            'is_watched' => 'sometimes|required|boolean',
+            'video_length_type' => 'sometimes|required|in:1,2,3,4',
+            'skill_level' => 'sometimes|required|in:1,2,3',
+            'trainer_id' => 'sometimes|required|exists:trainers,id',
+            'sort_by' => 'sometimes|required|in:1,2,3',
+            'type_id' => 'sometimes|required|in:3,4,5,6',
+            'start' => 'sometimes|required',
+            'limit' => 'sometimes|required'
+        ]);
+        
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $validator->messages()->all()]);
+        }
+
+        try {
+
+                $videos = Videos::query()->with(['trainer', 'filters']);
+
+                if ($request->get('type_id') != 6) {
+
+                    // Filter is_featured videos or no
+                    if ($request->get('featured') !== null) {
+                        $featured = $request->get('featured');
+
+                        $videos = $featured ?  $videos->where('is_featured', true) : $videos->whereNull('is_featured');   
+                    }
+
+                    // Filter auth user favorite videos
+                    if ($request->get('my_favorites') !== null ) {
+                        $favVideosId = UserFavVideos::where('user_id', \Auth::user()->id)->get(['video_id'])->toArray();
+                        $videos = $request->get('my_favorites') ? $videos->whereIn('id', $favVideosId) : $videos->whereNotIn('id', $favVideosId);   
+                    }
+
+                    // Filter viewed videos or no
+                    if ($request->get('is_watched') !== null) {
+                        $isWatched = $request->get('is_watched');
+
+                        $userWatched = VideoView::where('user_id', \Auth::user()->id)->get(['video_id']);
+
+                        $videos = $isWatched ?  $videos->whereIn('id', $userWatched) : $videos->whereNotIn('id', $userWatched);   
+                    }
+
+                    // Filter video duration
+                    if ($request->get('video_length_type')) {
+
+                        $videoLength = $request->get('video_length_type');
+
+                        switch ($videoLength) {
+                            case 1 :
+                                
+                                $videos = $videos->where('duration' , '>', '00:00')->where('duration' , '<=', '10:00');   
+                                
+                                break;
+                            case 2 :
+                                
+                                $videos = $videos->where('duration' , '>', '10:00')->where('duration' , '<=', '20:00');   
+                                
+                                break;
+                            case 3 :
+                                
+                                $videos = $videos->where('duration' , '>', '20:00')->where('duration' , '<=', '30:00');   
+                                
+                                break;
+                            case 4 :
+                                
+                                $videos = $videos->where('duration' , '>', '30:00');   
+                                
+                                break;
+                        }
+                    }
+
+                    // Filter with the type
+                    if ($request->get('type_id')) {                        
+                        $typeId = $request->get('type_id');
+                        $videos = $videos->where('type_id', $typeId);   
+                    }
+
+                    // Filter with the skill level
+                    if ($request->get('sort_by')) {
+
+                        $sortBy = $request->get('sort_by');
+
+                        switch ($sortBy) {
+                            case 1 :
+                                
+                                $videos = $videos->orderBy('updated_at', 'DESC');   
+                                
+                                break;
+                            case 2 :
+                                
+                                $videos = $videos->orderBy('videos.duration', 'asc');   
+                                
+                                break;
+                        }  
+                    }
+
+                    // // Filter with the skill level
+                    // if ($request->get('start')) {                
+                    //     $offset = (int) ($request->get('start') ?? 0);
+                    //     $videos = $videos->offset($offset);   
+                    // }
+
+                    // if ($request->get('limit')) {
+                    //     $limit = (int) ($request->get('limit') ?? 20);
+                    //     $videos = $videos->limit($limit);   
+                    // }
+
+                } else {
+
+                    // Filter with the type
+                    if ($request->get('type_id')) {
+                        
+                        $typeId = $request->get('type_id');
+                        $videos = $videos->where('type_id', $typeId);   
+                    }
+
+                    // // Filter with the skill level
+                    // if ($request->get('start')) {                
+                    //     $offset = $offset = (int) ($request->get('start') ?? 0);
+                    //     $videos = $videos->offset($offset);   
+                    // }
+
+                    // if ($request->get('limit')) {
+                    //     $limit = (int) ($request->get('limit') ?? 20);
+                    //     $videos = $videos->limit($limit);   
+                    // }
+                }
+                
+                $offset = (int) $request->get('start') ? $request->get('start') : 0;
+                $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
+                
+                $videoData = $videos->offset($offset)->limit($limit)->get();
+                $responseData = [];
+
+                foreach ($videoData as $key => $value) {
+
+                        if ($value->type_id == 3) {
+
+                            $combo = $value->combo;
+                            $title = $combo->name;
+                            $trainer = $combo->trainer ?['id' => $combo->trainer->id, 'type' => $combo->trainer->type, 'first_name' => $combo->trainer->first_name, 'last_name' => $combo->trainer->last_name] : null ;
+
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+
+                                if ($combo->trainer_id != $trainerId) {
+
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($combo->tag && $combo->tag->filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+
+                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $combo->tag) { 
+                                $responseData[$key]['skill'] = $combo->tag->filter_id;
+                            }  
+                        }
+                            
+                        if ($value->type_id == 4) {
+
+                            $comboSet = $value->comboSet;
+                            $title = $comboSet->name;
+                            $trainer = $comboSet->trainer ? ['id' => $comboSet->trainer->id, 'type' => $comboSet->trainer->type, 'first_name' => $comboSet->trainer->first_name, 'last_name' => $comboSet->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($comboSet->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($comboSet->tag && $comboSet->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+
+                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $comboSet->tag) { 
+                                $responseData[$key]['skill'] = $comboSet->tag->filter_id;
+                            }  
+                        }
+                        
+                        if ($value->type_id == 5) {
+
+                            $workout = $value->workout;
+                            $title = $workout->name;
+                            $trainer = $workout->trainer ? ['id' => $workout->trainer->id, 'type' => $workout->trainer->type, 'first_name' => $workout->trainer->first_name, 'last_name' => $workout->trainer->last_name] : null ; 
+                            
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($workout->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($workout->tag && $workout->tag->filter_id != $skillLevelId){
+                                    continue;
+                                }
+                            }
+
+                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $workout->tag) { 
+                                $responseData[$key]['skill'] = $workout->tag->filter_id;
+                            }
+                        }
+                        
+                        if ($value->type_id == 6) {   
+
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+
+                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $value->filters) { 
+                                $responseData[$key]['skill'] = $value->filters->tag_filter_id;
+                            }
+                        }
+
+
+                        $responseData[$key]['video_id'] = $value->id;
+                        $responseData[$key]['type_id'] = $value->type_id;
+                        $responseData[$key]['plan_id'] = $value->plan_id;
+                        $responseData[$key]['title'] = $title ? $title : null;
+                        $responseData[$key]['video_title'] = $value->title;
+                        $responseData[$key]['thumbnail'] = $value->thumbnail;
+                        $responseData[$key]['duration'] = $value->duration;
+                        $responseData[$key]['favorite'] = $value->getUserFavoritedAttribute($value->id);
+                        $responseData[$key]['trainer'] = $trainer ? $trainer : null;                    
+
+                }
+
+                if ($request->get('sort_by') && $request->get('sort_by') == 3) {
+
+                    usort($responseData, function($a, $b) {
+                        if(isset($a['skill']) && isset($b['skill'])) {
+                             return $a['skill'] <=> $b['skill'];
+                        }
+                       
+                    });
+
+                    foreach ($responseData as $key => $value) {
+                        if (isset($responseData[$key]['skill'])) {                            
+                            unset($responseData[$key]['skill']);
+                        }
+                    }
+                }
+
+                $dataRes = [];
+
+                foreach ($responseData as $key => $value) {
+                    array_push($dataRes, $value);
+                }
+
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $dataRes]);
+        
+        } catch (\Exception $e) {
+
+            return response()->json(['error' => 'true', 'message' => $e->getMessage()]);
+        }    
+    }
+
+    private static function merchantSort($a,$b) {
+        if ( $a['skill'] == $b['skill'] ) {
+            return 0;
+        }
+        return ($a['skill'] > $b['skill'])? 1: -1;
+    }
+
+
     /**
      * Alter param
      */
@@ -215,27 +656,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/favourite/{videoId} Add video to Favourite
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Successfully saved in favourite list",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function setVideoFav($videoId)
     {
@@ -250,27 +670,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/unfavourite/{videoId} Remove video from Favourite
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Successfully removed from favourite list",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function setVideoUnFav($videoId)
     {
@@ -285,26 +684,6 @@ class VideoController extends Controller
 
     /**
      * @api {post} /videos/add_view/{videoId} Add views to video
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "Added successfully",
-     *    }
-     * @apiErrorExample {json} Error
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
      * @apiVersion 1.0.0
      */
     public function addViewCount($videoId)
@@ -312,10 +691,19 @@ class VideoController extends Controller
         $videoId = (int) $videoId;
 
         if ($videoId) {
+
             $video = Videos::find($videoId);
 
             $video->views = $video->views + 1;
             $video->save();
+
+            $userWatched = VideoView::where('video_id', $videoId)->where('user_id', \Auth::user()->id)->first();
+
+            if ($userWatched) {
+                VideoView::where('video_id', $videoId)->where('user_id', \Auth::user()->id)->update(['watched_count' => $userWatched->watched_count + 1]);
+            } else {
+                VideoView::create(['user_id' =>  \Auth::user()->id, 'video_id' => $videoId,  'watched_count' => 1]);
+            }
 
             return response()->json(['error' => 'false', 'message' => 'Added successfully']);
         }
@@ -323,69 +711,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /user/fav_videos Get user's fav videos
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiParam {Number} start Start offset
-     * @apiParam {Number} limit Limit number of videos
-     * @apiParamExample {json} Input
-     *    {
-     *      "start": 20,
-     *      "limit": 50,
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} videos List of videos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *           {
-     *             "type_id": 3,
-     *             "plan_id": 1,
-     *             "title": "Jab-Jab-Cross",
-     *             "video_title": "Susan Kocab's Jab-Jab-Cross",
-     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734899.jpg",
-     *             "duration": "00:49",
-     *             "trainer": {
-     *                 "id": 1,
-     *                 "type": 1,
-     *                 "first_name": "Susan",
-     *                 "last_name": "Kocab"
-     *             },
-     *             "rating": "0.0",
-     *             "filter": 1
-     *         },
-     *         {
-     *             "type_id": 3,
-     *             "plan_id": 4,
-     *             "title": "Jab-Cross-Roll Right",
-     *             "video_title": "Susan Kocab's Jab-Cross-Roll Right",
-     *             "thumbnail": "http://example.com/videos/thumbnails/thumb_video_1523734966.jpg",
-     *             "duration": "00:34",
-     *             "trainer": {
-     *                 "id": 1,
-     *                 "type": 1,
-     *                 "first_name": "Susan",
-     *                 "last_name": "Kocab"
-     *             },
-     *             "rating": "0.0",
-     *             "filter": 1
-     *         }
-     *      ]
-     *    }
-     * @apiErrorExample {json} Error Response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getUserFavVideos(Request $request)
     {
@@ -431,40 +756,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /videos/tags list of video's tags
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of video's tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                      {
-     *                          "id": 1,
-     *                          "type": 1,
-     *                          "name": "Boxing Videos"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "type": 1,
-     *                          "name": "Kickboxing Videos"
-     *                      }
-     *                  ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getVideoTags(Request $request)
     {
@@ -475,46 +766,6 @@ class VideoController extends Controller
 
     /**
      * @api {get}/videos/category Get list of videos categories
-     * @apiGroup Videos
-     * @apiHeader {String} authorization Authorization value
-     * @apiHeaderExample {json} Header-Example:
-     *     {
-     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
-     *     }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of videos categories
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Workout Routines"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Tutorials"
-     *                      }
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Drills"
-     *                      }
-     *                      {
-     *                          "id": 4,
-     *                          "name": "Essentials"
-     *                      }
-     *                  ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getVideoCategories(Request $request)
     {
@@ -524,39 +775,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /trainers Get list of trainers
-     * @apiGroup Videos
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *          {
-     *              "id": 1,
-     *              "type": 1,
-     *              "first_name": "Susan",
-     *              "last_name": "Kocab",
-     *              "gender": "female"
-     *          },
-     *          {
-     *              "id": 2,
-     *              "type": 1,
-     *              "first_name": "Pete",
-     *              "last_name": "V",
-     *              "gender": "male"
-     *          }
-     *      ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getTrainers(Request $request)
     {
@@ -567,66 +785,6 @@ class VideoController extends Controller
 
     /**
      * @api {get} /tags Get list of tags and filters
-     * @apiGroup Videos
-     * @apiParam {Number="1-Videos","2-Combos",'3-Workouts','4-Sets'} [type_id] Type Id
-     * @apiParamExample {json} Input
-     *    {
-     *      "type_id": 2
-     *    }
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of tags
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *   {
-     *      "error": "false",
-     *      "message": "",
-     *      "data":[
-     *                {
-     *                    "id": 1,
-     *                    "type": 2,
-     *                    "name": "Boxing"
-     *                    "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Beginner"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Intermediate"
-     *                      },
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Advanced"
-     *                      }
-     *                 },
-     *                {
-     *                     "id": 2,
-     *                     "type": 2,
-     *                     "name": "Kickboxing"
-     *                     "filters":
-     *                      {
-     *                          "id": 1,
-     *                          "name": "Beginner"
-     *                      },
-     *                      {
-     *                          "id": 2,
-     *                          "name": "Intermediate"
-     *                      },
-     *                      {
-     *                          "id": 3,
-     *                          "name": "Advanced"
-     *                      }
-     *               }
-     *        ]
-     *  }
-     * @apiErrorExample {json} Error response
-     *    HTTP/1.1 200 OK
-     *      {
-     *          "error": "true",
-     *          "message": "Invalid request"
-     *      }
-     * @apiVersion 1.0.0
      */
     public function getTags(Request $request)
     {

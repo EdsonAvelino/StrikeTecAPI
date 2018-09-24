@@ -387,16 +387,10 @@ class GuidanceController extends Controller
         }
 
         // Filter by skill-level
-        if ( count($filterIds) && \Auth::user()->hasMembership() ) {
+        if (count($filterIds)) {
             $_planVideos->whereHas($planType, function($query) use($filterIds) {
                 $query->whereHas('tag', function($q) use($filterIds) {
                     $q->whereIn('filter_id', $filterIds);
-                });
-            });
-        } else {
-            $_planVideos->whereHas($planType, function($query) use($filterIds) {
-                $query->whereHas('tag', function($q) use($filterIds) {
-                    $q->where('filter_id', 1); // Beginner only
                 });
             });
         }
@@ -703,7 +697,7 @@ class GuidanceController extends Controller
 
         $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
-                $query->whereNull('type_id')->orWhere('type_id', 0);
+                $query->whereNull('type_id')->orWhere('type_id', 6);
             })->where('id', $id)->first();
 
         if (!$essentialVideo) {
@@ -715,7 +709,7 @@ class GuidanceController extends Controller
 
         unset($_essentialVideo['trainer_id']);
 
-        $data = ['type_id' => 0, 'data' => json_encode($_essentialVideo)];
+        $data = ['type_id' => 6, 'data' => json_encode($_essentialVideo)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }

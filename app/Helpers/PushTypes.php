@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 class PushTypes
 {
+
     const BATTLE_INVITE = 1;
     const BATTLE_RESEND = 2;
     const BATTLE_ACCEPT = 3;
@@ -16,6 +17,8 @@ class PushTypes
     const BATTLE_FINISHED = 8;
     
     const TOURNAMENT_ACTIVITY_INVITE = 9;
+
+    const CHAT_EDIT_MESSAGE = 10;
 
     public static function getSilentPushListForIOS()
     {

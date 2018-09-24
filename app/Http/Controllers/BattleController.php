@@ -402,87 +402,6 @@ class BattleController extends Controller
     /**
      * @api {get} /battles/combos Get list of available combos
      * @apiGroup Battles
-     * @apiSuccess {Boolean} error Error flag 
-     * @apiSuccess {String} message Error message
-     * @apiSuccess {Object} data List of combos
-     * @apiSuccessExample {json} Success
-     *    HTTP/1.1 200 OK
-     *    {
-     *      "error": "false",
-     *      "message": "",
-     *      "data": [
-     *      {
-     *          "id": 1,
-     *          "name": "Attack",
-     *          "key_set": "1-2-SR-2-3-2-5-6-3-2",
-     *              "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          "keys": [
-     *              "1", "2", "SR", "2", "3", "2", "5", "6", "3", "2"
-     *          ]
-     *      },
-     *      {
-     *          "id": 2,
-     *          "name": "Crafty",
-     *          "key_set": "1-2-5-7-3-2-SR-5-3-1",
-     *          "tags": [
-     *                             {
-     *                                 "tag_id": 5,
-     *                                 "filters": [
-     *                                     1
-     *                                 ]
-     *                             },
-     *                             {
-     *                                 "tag_id": 6,
-     *                                 "filters": [
-     *                                     2,
-     *                                     3
-     *                                 ]
-     *                             }
-     *                         ],
-     *          "videos":{
-     *              "id": 2,
-     *              "title": "Another Sample Video",
-     *              "file": "https://youtu.be/ScMzIvxBSi4",
-     *              "thumbnail": "http://example.com/videos/thumb/ScMzIvxBSi4.png",
-     *              "view_counts": 360,
-     *              "author_name": "Aeron Emeatt",
-     *              "duration": "00:01:27",
-     *              "user_favourited": false,
-     *              "thumb_width": 342,
-     *              "thumb_height": 185
-     *          },
-     *          "keys": [
-     *              "1", "2", "5", "7", "3", "2", "SR", "5", "3", "1"
-     *          ]
-     *      }
-     *      ]
-     *    }
      * @apiErrorExample {json} Error response
      *    HTTP/1.1 200 OK
      *      {
@@ -493,15 +412,17 @@ class BattleController extends Controller
      */
     public function getCombos()
     {
+
         $combos = Combos::select('*', \DB::raw('id as key_set'), \DB::raw('id as tags'))->get()->toArray();
 
         foreach ($combos as $i => $combo) {
+
             $keySet = $combo['key_set'];
 
             $combos[$i]['keys'] = explode('-', $keySet);
             $combos[$i]['videos'] = \App\Videos::where('type_id', \App\Types::COMBO)->where('plan_id', $combo['id'])->first();
         }
-
+        
         return response()->json(['error' => 'false', 'message' => '', 'data' => $combos]);
     }
 
