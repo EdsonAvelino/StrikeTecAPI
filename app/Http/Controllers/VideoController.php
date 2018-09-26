@@ -476,7 +476,8 @@ class VideoController extends Controller
                 $offset = (int) $request->get('start') ? $request->get('start') : 0;
                 $limit = (int) $request->get('limit') ? $request->get('limit') : 20;
                 
-                $videoData = $videos->offset($offset)->limit($limit)->get();
+                $videoData = $videos->get();
+                //$videoData = $videos->offset($offset)->limit($limit)->get();
                 $responseData = [];
 
                 foreach ($videoData as $key => $value) {
@@ -629,8 +630,10 @@ class VideoController extends Controller
                 foreach ($responseData as $key => $value) {
                     array_push($dataRes, $value);
                 }
+            
+            $dataResNew = array_splice($dataRes,$offset,$limit); 
 
-            return response()->json(['error' => 'false', 'message' => '', 'data' => $dataRes]);
+            return response()->json(['error' => 'false', 'message' => '', 'data' => $dataResNew]);
         
         } catch (\Exception $e) {
 
