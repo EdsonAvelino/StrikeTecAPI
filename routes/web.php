@@ -11,6 +11,8 @@
   |
  */
 
+
+
 $app->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($app) {
     $app->get('/logs', 'LogViewerController@index');
 });
@@ -49,7 +51,7 @@ $app->get('/', function () use ($app) {
         $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
         //Subscription plans
-        $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+        //$app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 
         // Get FAQs
@@ -465,3 +467,4 @@ $app->get('/', function () use ($app) {
         $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
     });
 //});
+
