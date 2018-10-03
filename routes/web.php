@@ -58,7 +58,7 @@ $app->get('/', function () use ($app) {
         $app->get('/faqs', 'UserController@getFaqs');
 
         // Get all available tags
-        $app->get('/tags', 'VideoController@getTags');
+        //$app->get('/tags', 'VideoController@getTags');
 
         // Get list of trainers
         $app->get('/trainers', 'VideoController@getTrainers');
@@ -183,7 +183,7 @@ $app->get('/', function () use ($app) {
         $app->get('/videos/tags', 'VideoController@getVideoTags');
 
         // Get Categories
-        $app->get('/videos/category', 'VideoController@getVideoCategories');
+        //$app->get('/videos/category', 'VideoController@getVideoCategories');
 
         // Get list of videos available on server
         $app->get('/videos/filter', 'VideoController@videosFilter');
