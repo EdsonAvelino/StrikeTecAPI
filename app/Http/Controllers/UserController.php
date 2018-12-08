@@ -79,7 +79,7 @@ class UserController extends Controller
         $user['points'] = (int) $userPoints;
 
          //Create a connection with Wes
-        $wesUserId = User::where('email', 'wes@efdsports.com')->first()->id;
+        $wesUserId = User::where('email', 'wes_elliott@elliottfightdynamics.com')->first()->id;
         UserConnections::create([
             'user_id' => $wesUserId,
             'follow_user_id' => $user['id']
@@ -317,6 +317,15 @@ class UserController extends Controller
             $user->country_id = $request->get('country_id') ?? $user->country_id;
 
             $user->save();
+
+            if( null !== $request->get('unit') ) {
+                $userPreferences = $user->preferences;
+                $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+                $userPreferences->unit = $request->get('unit');
+                $userPreferences->save();
+            }
+
+            \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
 
             return response()->json([
                         'error' => 'false',
@@ -1060,10 +1069,47 @@ class UserController extends Controller
         $userData['points'] = (int) $userPoints;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
-        $data = $this->getAvgSpeedAndForce($userId);
-        $user = array_merge($userData, $data);
+        
+        //$data = $this->getAvgSpeedAndForce($userId);
 
-        $user['punches_count'] = $leaderboard->punches_count;
+
+        //$user = array_merge($userData, $data);
+        if(!empty($leaderboard->total_time_trained))
+        	$avgCount = $leaderboard->punches_count * 1000 * 60 / $leaderboard->total_time_trained;
+        else
+        	$avgCount = 0;
+
+        $data = array();
+
+        if(!empty($leaderboard)){
+            if(!empty($leaderboard->total_time_trained))
+                $totalTimeTrained = floor($leaderboard->total_time_trained/1000);
+            else
+                $totalTimeTrained = 0;
+            $data['total_time_trained'] = $totalTimeTrained;
+
+            $data['total_day_trained'] = floor($leaderboard->total_days_trained);
+            $data['avg_count'] = floor($avgCount);
+            $data['avg_speed'] = floor($leaderboard->avg_speed);
+            $data['avg_force'] = floor($leaderboard->avg_force);
+        }
+        else{
+            $data['total_time_trained'] = 0;
+            $data['total_day_trained'] = 0;
+            $data['avg_count'] = 0;
+            $data['avg_speed'] = 0;
+            $data['avg_force'] = 0;
+        }
+
+        $user = array_merge($userData, $data);
+        
+        if(!empty($leaderboard->punches_count))
+            $punchesCount = $leaderboard->punches_count;
+        else
+            $punchesCount = 0;
+        
+        $user['punches_count'] = $punchesCount;
+
 
         $battles = Battles::getFinishedBattles($userId);
 
@@ -1155,6 +1201,11 @@ class UserController extends Controller
 
         $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
+
+         if( null !== $request->get('unit') ) {
+            $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
+            $userPreferences->unit = $request->get('unit');
+        }
         
         $userPreferences->save();
 
@@ -2344,8 +2395,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function runSomethingInServer()
+    /*public function runSomethingInServer()
     {
         UserConnections::where('user_id', 164);  
-    }
+    }*/
 }

@@ -83,7 +83,7 @@ class UserAchievements extends Model
         if ($userAchievements) {
             foreach ($achievements as $key => $checkData) {
                 $resultData = [];
-                if ($key == 1) {
+               /* if ($key == 1) {
                     $resultData['achievement_id'] = $belts['id'];
                     $resultData['achievement_name'] = $belts['name'];
                     $beltBadge = $belts['achievement_type'][0];
@@ -94,7 +94,7 @@ class UserAchievements extends Model
                     $resultData['awarded'] = false;
                     $resultData['count'] = 0;
                     $resultData['shared'] = false;
-                }
+                }*/
                 if (isset($userAchievements[$key])) {
                     $userData = $userAchievements[$key];
                     $resultData['achievement_id'] = $userData['achievement_id'];
@@ -111,7 +111,7 @@ class UserAchievements extends Model
                 if ($resultData)
                     $result[] = $resultData;
             }
-        } else {
+        } /*else {
             $resultData['achievement_id'] = $belts['id'];
             $resultData['achievement_name'] = $belts['name'];
             $beltBadge = $belts['achievement_type'][0];
@@ -123,7 +123,8 @@ class UserAchievements extends Model
             $resultData['count'] = 0;
             $resultData['shared'] = false;
             $result[] = $resultData;
-        }
+
+        }*/
         return $result;
     }
 

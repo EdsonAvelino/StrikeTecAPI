@@ -56,6 +56,7 @@ class AchievementController extends Controller
      */
     public function getAchievementList(Request $request)
     {
+	
         $userId = \Auth::user()->id;
         $gender = \Auth::user()->gender;
 
@@ -112,7 +113,7 @@ class AchievementController extends Controller
             
             $result[] = $resultFinalData;
         }
-
+      
         return response()->json([
             'error' => 'false',
             'message' => '',

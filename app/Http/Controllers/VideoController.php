@@ -9,6 +9,7 @@ use App\Tags;
 use App\VideoCategory;
 use App\VideoView;
 use App\VideoTagFilters;
+use Illuminate\Support\Facades\DB;
 
 class VideoController extends Controller
 {
@@ -108,7 +109,7 @@ class VideoController extends Controller
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
             'sort_by' => 'sometimes|required|in:1,2,3',
-            'type_id' => 'sometimes|required|in:3,4,5,6',
+            'type_id' => 'sometimes|required|in:3,4,5,6,7',
         ]);
  
         if ($validator->fails()) {
@@ -321,6 +322,30 @@ class VideoController extends Controller
 
                         }
 
+                        if ($value->type_id == 7) {   
+
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+
+                        }
+
 
                         $responseData[$key]['video_id'] = $value->id;                  
 
@@ -349,7 +374,7 @@ class VideoController extends Controller
             'skill_level' => 'sometimes|required|in:1,2,3',
             'trainer_id' => 'sometimes|required|exists:trainers,id',
             'sort_by' => 'sometimes|required|in:1,2,3',
-            'type_id' => 'sometimes|required|in:3,4,5,6',
+            'type_id' => 'sometimes|required|in:3,4,5,6,7',
             'start' => 'sometimes|required',
             'limit' => 'sometimes|required'
         ]);
@@ -440,7 +465,9 @@ class VideoController extends Controller
                                 break;
                         }  
                     }
-
+                    else{
+                        $videos = $videos->orderByRaw('-videos.order desc');
+                    }
                     // // Filter with the skill level
                     // if ($request->get('start')) {                
                     //     $offset = (int) ($request->get('start') ?? 0);
@@ -596,7 +623,33 @@ class VideoController extends Controller
                             }
                         }
 
+                        if ($value->type_id == 7) {   
 
+                            $title = $value->name;
+                            $trainer = $value->trainer ? ['id' => $value->trainer->id, 'type' => $value->trainer->type, 'first_name' => $value->trainer->first_name, 'last_name' => $value->trainer->last_name] : null ; 
+
+                            if ($request->get('trainer_id') && $request->get('type_id') != 6) {
+                        
+                                $trainerId = $request->get('trainer_id');
+                                if ($value->trainer_id != $trainerId) {
+                                    continue;
+                                };
+                            }
+
+                            if ($request->get('skill_level') && $request->get('type_id') != 6) {
+                        
+                                $skillLevelId = $request->get('skill_level');
+
+                                if ($value->filters && $value->filters->tag_filter_id != $skillLevelId) {
+                                    continue;
+                                }
+                            }
+
+                            if ($request->get('sort_by') && $request->get('sort_by') == 3 && $value->filters) { 
+                                $responseData[$key]['skill'] = $value->filters->tag_filter_id;
+                            }
+                        }
+                        
                         $responseData[$key]['video_id'] = $value->id;
                         $responseData[$key]['type_id'] = $value->type_id;
                         $responseData[$key]['plan_id'] = $value->plan_id;

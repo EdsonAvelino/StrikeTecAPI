@@ -16,7 +16,7 @@ class StorageHelper
      */
     public static function saveFile($file, $dirName, $fileName){
 
-        
+dd('23');        
         #If $file is instance of an uploaded file
         if($file instanceof UploadedFile){
 

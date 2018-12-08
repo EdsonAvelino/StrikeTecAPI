@@ -11,8 +11,6 @@
   |
  */
 
-
-
 $app->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($app) {
     $app->get('/logs', 'LogViewerController@index');
 });
@@ -21,7 +19,7 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
-//$app->group(['prefix' => 'api/v1'], function () use ($app) {
+//$app->group(['prefix' => 'v1'], function () use ($app) {
 
 
         // Check for app update
@@ -51,14 +49,14 @@ $app->get('/', function () use ($app) {
         $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
         //Subscription plans
-        //$app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+        $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 
         // Get FAQs
         $app->get('/faqs', 'UserController@getFaqs');
 
         // Get all available tags
-        //$app->get('/tags', 'VideoController@getTags');
+        $app->get('/tags', 'VideoController@getTags');
 
         // Get list of trainers
         $app->get('/trainers', 'VideoController@getTrainers');
@@ -110,7 +108,7 @@ $app->get('/', function () use ($app) {
             $app->get('/user/{userId}/following', 'UserController@getFollowingOfUser');
 
             $app->get('/user/unread_counts', 'UserController@getUnreadCounts');
-            $app->get('/user/runSomethingInServer', 'UserController@runSomethingInServer');
+            //$app->get('/user/runSomethingInServer', 'UserController@runSomethingInServer');
 
             $app->get('/user/notifications', 'UserController@getNotifications');
             $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
@@ -183,7 +181,7 @@ $app->get('/', function () use ($app) {
         $app->get('/videos/tags', 'VideoController@getVideoTags');
 
         // Get Categories
-        //$app->get('/videos/category', 'VideoController@getVideoCategories');
+        $app->get('/videos/category', 'VideoController@getVideoCategories');
 
         // Get list of videos available on server
         $app->get('/videos/filter', 'VideoController@videosFilter');
@@ -467,4 +465,3 @@ $app->get('/', function () use ($app) {
         $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
     });
 //});
-
