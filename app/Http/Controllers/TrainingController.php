@@ -359,7 +359,7 @@ class TrainingController extends Controller
                         
                         // Update battle details, if any
                         if ($_session->battle_id) {
-                            $this->updateBattle($_session->battleId);
+                            $this->updateBattle($_session->battle_id);
                         }
                         // Game stuff
                         elseif ($_session->game_id) {
