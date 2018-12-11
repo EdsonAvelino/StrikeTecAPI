@@ -1113,7 +1113,7 @@ class TrainingController extends Controller
             $pushToUserId = $battle->user_id;
             $pushOpponentUserId = $battle->opponent_user_id;
         }
-
+        $battle->update();
         // Push to opponent, about battle is finished by current user
         $pushMessage = 'User has finished battle';
 
@@ -1135,7 +1135,7 @@ class TrainingController extends Controller
 
         \App\UserNotifications::generate(\App\UserNotifications::BATTLE_FINISHED, $pushToUserId, $pushOpponentUserId, $battle->id);
 
-        $battle->update();
+        
     }
 
     // Calculate & update game leaderboard
