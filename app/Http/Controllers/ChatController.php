@@ -135,6 +135,7 @@ class ChatController extends Controller
             $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
             $chatResponse->send_time = strtotime($chatResponse->send_time);
+            $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
 
             Push::send(PushTypes::CHAT_READ_MESSAGE, $chatMessage->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
         }
@@ -175,10 +176,20 @@ class ChatController extends Controller
      */
     public function deleteMessage(Request $request, $messageId)
     {
+        $userId = \Auth::user()->id;
+
         if (!ChatMessages::where('id', $messageId)->exists()) {
             return response()->json(['error' => 'true', 'message' => 'Message does not exists']);
         }
+        
+        $chatResponse = ChatMessages::where('id', $messageId)->first();
+
+        $pushMessage = 'Message is deleted with message id ' . $messageId;
+
+        Push::send(PushTypes::CHAT_DELETE_MESSAGE, $chatResponse->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+
         ChatMessages::find($messageId)->delete();
+
         return response()->json([
             'error' => 'false',
             'message' => 'Message has been deleted'
@@ -417,10 +428,11 @@ class ChatController extends Controller
                     $pushMessage = 'Edit message';
 
                     $chatResponse = ChatMessages::where('id', $request->get('message_id'))
-                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited as edited', 'updated_at as updated_time')->first();
+                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited as edited','created_at as created_time' ,'updated_at as updated_time')->first();
 
                     $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
                     $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+                    $chatResponse->send_time = strtotime($chatResponse->created_time);
                     $chatResponse->updated_time = strtotime($chatResponse->updated_time);
 
                     Push::send(PushTypes::CHAT_EDIT_MESSAGE, $opponentId, \Auth::user()->id, $pushMessage, ['message' => $chatResponse]);
