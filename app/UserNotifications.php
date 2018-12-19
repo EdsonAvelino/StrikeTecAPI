@@ -28,6 +28,7 @@ class UserNotifications extends Model
     const FEED_POST_LIKE = 4;
     const FEED_POST_COMMENT = 5;
     const TOURNAMENT_ACTIVITY_INVITE = 6;
+    const UNFOLLOW = 7;
     
     protected static $textTemplates = [
         1 => '_USER1_ is now following you',
@@ -35,7 +36,8 @@ class UserNotifications extends Model
         3 => '_USER1_ has finished battle',
         4 => '_USER1_ likes your post',
         5 => '_USER1_ has commented on your post',
-        6 => '_USER1_ has invited you to event activity'
+        6 => '_USER1_ has invited you to event activity',
+        7 => '_USER1_ has unfollowed you'
     ];
 
     public static function boot()

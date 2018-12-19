@@ -182,11 +182,25 @@ class ChatController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Message does not exists']);
         }
         
-        $chatResponse = ChatMessages::where('id', $messageId)->first();
+        $updatedChatQuery = ChatMessages::where( 'id', $messageId)->where('user_id', \Auth::user()->id)->with('chat');
+        $oponentUser = $updatedChatQuery->first();
+
+        if($oponentUser->user_one == \Auth::user()->id)
+            $opponentId = $oponentUser->chat->user_one;
+        else
+            $opponentId = $oponentUser->chat->user_two;
 
         $pushMessage = 'Message is deleted with message id ' . $messageId;
 
-        Push::send(PushTypes::CHAT_DELETE_MESSAGE, $chatResponse->user_id, $userId, $pushMessage, ['message' => $chatResponse]);
+        $chatResponse = ChatMessages::where('id', $messageId)
+                                    ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'edited as edited','created_at as created_time' ,'updated_at as updated_time')->first();
+
+        $chatResponse->edited = filter_var($chatResponse->edited, FILTER_VALIDATE_BOOLEAN);
+        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+        $chatResponse->send_time = strtotime($chatResponse->created_time);
+        $chatResponse->updated_time = strtotime($chatResponse->updated_time);                                    
+
+        Push::send(PushTypes::CHAT_DELETE_MESSAGE, $opponentId, $userId, $pushMessage, ['message' => $chatResponse]);
 
         ChatMessages::find($messageId)->delete();
 
@@ -419,7 +433,10 @@ class ChatController extends Controller
 
 
             if ($oponentUser) {
-                $opponentId = $oponentUser->chat->user_one;
+                if($oponentUser->user_one == \Auth::user()->id)
+                    $opponentId = $oponentUser->chat->user_one;
+                else
+                    $opponentId = $oponentUser->chat->user_two;
 
                 $updatedChatQuery = $updatedChatQuery->update(['message' => $request->get('message'), 'edited' => true]);
 

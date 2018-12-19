@@ -20,6 +20,12 @@ class PushTypes
 
     const CHAT_EDIT_MESSAGE = 10;
 
+    const FOLLOW_USER = 11;
+
+    const UNFOLLOW_USER = 12;
+
+    const CHAT_DELETE_MESSAGE = 13;
+
     public static function getSilentPushListForIOS()
     {
     	return [
