@@ -150,7 +150,6 @@ class UserAchievements extends Model
                         if ($achievementType) {
                             $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($userParticpation > 0) {
                                 if ($userParticpationData) {
@@ -190,7 +189,6 @@ class UserAchievements extends Model
                         if ($achievementType) {
                             $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($accuracy > 0) {
                                 if ($accuracyData) {
@@ -228,8 +226,8 @@ class UserAchievements extends Model
                     if ($strongMan) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $strongMan)
-                                ->where('max', '>', $strongMan)
+                                ->where('min', '<=', $strongMan)
+                                ->where('max', '>=', $strongMan)
                                 ->first();
                         if ($achievementType) {
                             $strongManData = UserAchievements::where('achievement_id', $achievement->id)
@@ -272,13 +270,12 @@ class UserAchievements extends Model
                     if ($speedDemon) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $strongMan)
-                                ->where('max', '>', $strongMan)
+                                ->where('min', '<=', $strongMan)
+                                ->where('max', '>=', $strongMan)
                                 ->first();
                         if ($achievementType) {
                             $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($speedDemon > 0) {
                                 if ($speedDemonData) {
@@ -313,14 +310,13 @@ class UserAchievements extends Model
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
                                 ->where('gender', $gender)
-                                ->where('min', '<', $ironFirst)
-                                ->where('max', '>', $ironFirst)
+                                ->where('min', '<=', $ironFirst)
+                                ->where('max', '>=', $ironFirst)
                                 ->first();
 
                         if ($achievementType) {
                             $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($ironFirst > 0) {
                                 if ($ironFirstData) {
