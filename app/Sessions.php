@@ -81,7 +81,13 @@ class Sessions extends Model
 
     public static function getPunchCount()
     {
-        $createdDate = date('Y-m-d');
+        //$createdDate = date('Y-m-d');
+        if(strtolower(date('l'))=='monday'){
+            $createdDate = date('Y-m-d');
+        }
+        else{
+            $createdDate = date('Y-m-d',strtotime('Previous Monday'));
+        }
         $punchesCount = self::select(\DB::raw('SUM(punches_count) as punch_count'))->where('user_id', \Auth::user()->id)
                         ->where(function ($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
@@ -145,32 +151,34 @@ class Sessions extends Model
         return $ironFirst->max_force;
     }
 
-    public static function getAccuracy($perviousMonday)
+    public static function getAccuracy($userId,$perviousMonday)
     {
         $sessionsData = \App\Sessions::with('rounds')
+        				->where('user_id', $userId)
                         ->where('start_time', '>', ($perviousMonday * 1000))
                         ->where(function($query) {
                             $query->whereNull('battle_id')->orWhere('battle_id', '0');
                         })->get();
+
+         //\Log::info(print_r($sessionsData,true));
+
         // In case of no sessoins found for battle (would be very rare case)
         if ($sessionsData->isEmpty())
             return null;
+        
+        $finalData = 0;
+        
         foreach ($sessionsData as $sessions) {
-            switch ($sessions->type_id) {
-                case 3: // Combo
+
+        		if($sessions->type_id==3){
                     $data = @self::compareSessionBattleCombos($sessions);
-                    break;
-
-                case 4: // Combo-Sets
-                    $data = @self::compareSessionComboSets($sessions);
-                    break;
-
-                case 5: // Workouts
-                    // TODO compare for combo-sets and workouts
-                    break;
-            }
+                    if(is_int($data)){
+                    	$finalData += $data;
+                    }
+                }
         }
-        return $data;
+        
+        return $finalData;
     }
 
     private static function doSessionComparison($comboPunches, $session)

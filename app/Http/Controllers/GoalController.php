@@ -61,6 +61,12 @@ class GoalController extends Controller
         $endAt = ($request->end_date) ? $request->end_date : null;
         $startChk = date('Y-m-d', (int) $startAt);
         $endChk = date('Y-m-d', (int) $startAt);
+        
+        \Log::info('start date default ::'.$startAt);
+        \Log::info('start date ::'.date('Y-m-d H:i:s', (int) $startAt));
+
+        \Log::info('end date default ::'.$endAt);
+        \Log::info('end date ::'.date('Y-m-d H:i:s', (int) $endAt));
 
         if ($startChk >= date('Y-m-d') && $endChk >= date('Y-m-d')) {
             if ($endChk < $startChk) {

@@ -16,6 +16,8 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
 use App\UserNotifications;
+use App\Chat;
+use App\ChatMessages;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -93,8 +95,58 @@ class UserController extends Controller
         // Generates new notification for user
         UserNotifications::generate(UserNotifications::FOLLOW, $user['id'], $wesUserId);
         UserNotifications::generate(UserNotifications::FOLLOW, $wesUserId, $user['id']);
+
+        //send welcome message from wes account
+        $senderId = $wesUserId;
+        $userId = $user['id'];
+        $message = 'Welcome to Striketec!';
+
+        $chatId = $this->getChatid($senderId,$userId);
+
+        $chatId = ChatMessages::create([
+                    'user_id' => $senderId,
+                    'read_flag' => false,
+                    'message' => $message,
+                    'chat_id' => $chatId
+                ])->id;
+
+        $chatResponse = ChatMessages::where('id', $chatId)
+                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                ->first();
+
+        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+        $chatResponse->send_time = strtotime($chatResponse->send_time);
+
+        $senderUser = User::get($senderId);
+
+        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
+
+        Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
+
         
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
+    }
+
+
+    public function getChatid($senderId,$userId)
+    {
+       
+        $existingChatId = Chat::select('id')
+                        ->where(function ($query) use ($senderId, $userId) {
+                            $query->where('user_one', $senderId)->where('user_two', $userId);
+                        })
+                        ->orwhere(function ($query) use ($senderId, $userId) {
+                            $query->where('user_one', $userId)->where('user_two', $senderId);
+                        })
+                        ->get()->first();
+
+        if (!empty($existingChatId->id)) {
+            return $existingChatId->id;
+        }
+        return Chat::create([
+                    'user_one' => $senderId,
+                    'user_two' => $userId,
+                ])->id;
     }
 
     /**
@@ -221,6 +273,35 @@ class UserController extends Controller
 
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
+
+        $wesUserId = User::where('email', 'wes_elliott@elliottfightdynamics.com')->first()->id;
+
+        //send welcome message from wes account
+        $senderId = $wesUserId;
+        $userId = $user['id'];
+        $message = 'Welcome to Striketec!';
+
+        $chatId = $this->getChatid($senderId,$userId);
+
+        $chatId = ChatMessages::create([
+                    'user_id' => $senderId,
+                    'read_flag' => false,
+                    'message' => $message,
+                    'chat_id' => $chatId
+                ])->id;
+
+        $chatResponse = ChatMessages::where('id', $chatId)
+                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
+                ->first();
+
+        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
+        $chatResponse->send_time = strtotime($chatResponse->send_time);
+
+        $senderUser = User::get($senderId);
+
+        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
+
+        Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
 
         return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => $user]);
     }
@@ -1094,9 +1175,9 @@ class UserController extends Controller
 
         //$user = array_merge($userData, $data);
         if(!empty($leaderboard->total_time_trained))
-        	$avgCount = $leaderboard->punches_count * 1000 * 60 / $leaderboard->total_time_trained;
+            $avgCount = $leaderboard->punches_count * 1000 * 60 / $leaderboard->total_time_trained;
         else
-        	$avgCount = 0;
+            $avgCount = 0;
 
         $data = array();
 

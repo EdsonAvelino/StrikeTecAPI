@@ -364,12 +364,14 @@ class Battles extends Model
                     $winCount = 0;
                 }
             }
+            
+
             if ($winCount == 5) {
                 $winCount = 0;
                 $beltCount++;
             }
         }
-
+        
         return $beltCount;
     }
 

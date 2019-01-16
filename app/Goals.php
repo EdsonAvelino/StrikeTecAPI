@@ -42,9 +42,11 @@ class Goals extends Model
         $goal = self::where('user_id', \Auth::user()->id)
                         ->where('awarded', '!=', 1)
                         ->where('followed', 1)->first();
+         
         $progress = 0;
         if ($goal) {
             $goalData = (int) $goal->done_count * 100 / $goal->target;
+            
             if ($goalData >= 100) {
                 $progress = 1;
                 $goal->awarded = 1;
