@@ -82,15 +82,35 @@ class UserAchievements extends Model
 
         $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
                 ->where('user_id', $userId)
+                ->where('created_at','>=',$perviousMonday)
+                ->whereIn('achievement_id',['2','3','5','6','7','9','10','11','12'])
                 ->groupBy('achievement_id')
                 ->orderBy('achievement_id', 'desc')
                 ->get()
                 ->keyBy('achievement_id')
                 ->toArray();
+
+         $userAchievements2 = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
+                ->where('user_id', $userId)
+                //->where('created_at','>=',$perviousMonday)
+                ->whereIn('achievement_id',['1','4'])
+                ->groupBy('achievement_id')
+                ->orderBy('achievement_id', 'desc')
+                ->get()
+                ->keyBy('achievement_id')
+                ->toArray();
+
+		 /*$userAchievements2 = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
+                ->where('user_id', $userId)
+                ->groupBy('achievement_id')
+                ->orderBy('achievement_id', 'desc')
+                ->get()
+                ->keyBy('achievement_id')
+                ->toArray();                */
       
         //$belts = Achievements::with('achievementType')->find(1)->toArray();
         $result = [];
-        if ($userAchievements) {
+        if ($userAchievements || $userAchievements2) {
             foreach ($achievements as $key => $checkData) {
                 $resultData = [];
                /* if ($key == 1) {
@@ -105,9 +125,12 @@ class UserAchievements extends Model
                     $resultData['count'] = 0;
                     $resultData['shared'] = false;
                 }*/
-                if (isset($userAchievements[$key])) {
-                    $userData = $userAchievements[$key];
-
+                if (isset($userAchievements[$key]) || isset($userAchievements2[$key])) {
+                	
+                	if(!empty($userAchievements[$key]))
+                    	$userData = $userAchievements[$key];
+                	if(!empty($userAchievements2[$key]))
+                    	$userData = $userAchievements2[$key];
               
                     $achievementArr = array('2','3','5','6','7','9','10','11','12');
 
@@ -118,7 +141,7 @@ class UserAchievements extends Model
                         $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
                     }
 
-                    if((in_array($key,$achievementArr) && $userData['created_at']>=$perviousMonday) || !in_array($key,$achievementArr)){
+                    //if((in_array($key,$achievementArr) && $userData['created_at']>=$perviousMonday) || !in_array($key,$achievementArr)){
                         $resultData['achievement_id'] = $userData['achievement_id'];
                         $resultData['achievement_name'] = $checkData['name'];
                         $badge = $userData['achievement_type'];
@@ -129,7 +152,7 @@ class UserAchievements extends Model
                         $resultData['awarded'] = (boolean) $userData['awarded'];
                         $resultData['count'] = $userData['count'];
                         $resultData['shared'] = (boolean) $userData['shared'];
-                    }
+                    //}
                     }
                    
 
