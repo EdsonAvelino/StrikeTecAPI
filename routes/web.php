@@ -1,4 +1,4 @@
-<?php
+aSE<?php
 
 /*
   |--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ $app->get('/', function () use ($app) {
     return response(['error' => 'Not found'], 404);
 });
 
-//$app->group(['prefix' => 'v1'], function () use ($app) {
+$app->group(['prefix' => 'api/v1'], function () use ($app) {
 
 
         // Check for app update
@@ -49,14 +49,14 @@ $app->get('/', function () use ($app) {
         $app->get('/cities_by_state/{stateId}', 'WorldController@getCitiesByState');
 
         //Subscription plans
-        $app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
+        //$app->get('/subscriptions', 'SubscriptionController@getSubscriptionList');
 
 
         // Get FAQs
         $app->get('/faqs', 'UserController@getFaqs');
 
         // Get all available tags
-        $app->get('/tags', 'VideoController@getTags');
+        //$app->get('/tags', 'VideoController@getTags');
 
         // Get list of trainers
         $app->get('/trainers', 'VideoController@getTrainers');
@@ -156,6 +156,8 @@ $app->get('/', function () use ($app) {
             // Get Tips data
             $app->get('/tips', 'TrainingController@tips');
 
+            //$app->get('calculatebadges/{user_id}/{session_id}/{battle_id}','TrainingController@achievements');
+
             // Get Achievement List
             $app->get('/achievements', 'AchievementController@getAchievementList');
         });
@@ -181,7 +183,7 @@ $app->get('/', function () use ($app) {
         $app->get('/videos/tags', 'VideoController@getVideoTags');
 
         // Get Categories
-        $app->get('/videos/category', 'VideoController@getVideoCategories');
+        //$app->get('/videos/category', 'VideoController@getVideoCategories');
 
         // Get list of videos available on server
         $app->get('/videos/filter', 'VideoController@videosFilter');
@@ -237,6 +239,9 @@ $app->get('/', function () use ($app) {
 
             // Get my battles
             $app->get('/battles/my_battles', 'BattleController@getMyBattles');
+
+            // Get sent battles
+            $app->get('/battles/sent', 'BattleController@getSentBattles');
 
             // Get finished battles
             $app->get('/battles/finished', 'BattleController@getAllFinishedBattles');
@@ -464,4 +469,4 @@ $app->get('/', function () use ($app) {
         // Update activity status
         $app->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
     });
-//});
+});
