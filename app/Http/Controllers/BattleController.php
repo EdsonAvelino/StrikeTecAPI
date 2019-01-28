@@ -775,7 +775,7 @@ class BattleController extends Controller
                             });
                         })
                         ->orWhere(function ($query) use($userId) {
-                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
+                            $query->where('user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
@@ -1113,7 +1113,7 @@ class BattleController extends Controller
                             });
                         })
                         ->orWhere(function ($query) use($userId) {
-                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
+                            $query->where('user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })->count();

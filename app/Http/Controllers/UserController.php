@@ -1211,11 +1211,16 @@ class UserController extends Controller
         $user['punches_count'] = $punchesCount;
 
 
-        $battles = Battles::getFinishedBattles($userId);
+        //$battles = Battles::getFinishedBattles($userId);
 
-        $user['lose_counts'] = $battles['lost'];
-        $user['win_counts'] = $battles['won'];
-        $user['finished_battles'] = $battles['finished'];
+        $won = \App\Battles::where('winner_user_id', $userId)->count();
+        $lost = \App\Battles::where(function($query) use($userId) {
+                    $query->where('user_id', $userId)->orWhere('opponent_user_id', $userId);
+                })->where('winner_user_id', '!=', $userId)->count();
+
+        $user['lose_counts'] = $lost;
+        $user['win_counts'] = $won;
+        //$user['finished_battles'] = $battles['finished'];
 
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)

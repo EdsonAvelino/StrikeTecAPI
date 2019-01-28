@@ -29,12 +29,123 @@ class Battles extends Model
     {
         $battle = self::find($battleId);
 
-        $result = self::getResult($battleId);
+        $result = self::getResultForWinner($battleId);
 
-        if (!is_null($result['winner']) && !is_null($result['loser'])) {
-            $battle->winner_user_id = $result['winner']['id'];
+        if (!is_null($result['winnerUserId'])) {
+            $battle->winner_user_id = $result['winnerUserId'];
             $battle->save();
         }
+    }
+
+    public static function getResultForWinner($battleId)
+    {
+        /*
+         * SCENARIO
+         * The man who has more correct punches will be winner
+         * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+         * If avg speed is also same, then will determine with power of all correct punches
+         * If both user don't have any correct punches, then will calculate with Speed of all punches
+         */
+
+        $battle = self::find($battleId);
+
+        // When battle not found
+        if (!$battle)
+            return null;
+
+        // Check battle is finished from both side
+        if (!$battle->user_finished || !$battle->opponent_finished)
+            return null;
+
+        $winnerUserId = null;
+        $loserUserId = null;
+
+        switch ($battle->type_id) {
+            case 3: // Combo
+                $winnerUserId = @self::compareBattleCombos($battle);
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
+                break;
+
+            case 4: // Combo-Sets
+                $winnerUserId = @self::compareComboSets($battle);
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
+                break;
+
+            case 5: // Workouts
+                // TODO compare for combo-sets and workouts
+                break;
+        }
+
+        $winner = $loser = null;
+
+        if ($winnerUserId && $loserUserId) {
+            return ['winnerUserId' => $winnerUserId, 'loserUserId' => $loserUserId];
+        }
+        else{
+            return false;
+        }
+        
+    }
+
+    public static function getResultForBattleDetails($battleId)
+    {
+        /*
+         * SCENARIO
+         * The man who has more correct punches will be winner
+         * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+         * If avg speed is also same, then will determine with power of all correct punches
+         * If both user don't have any correct punches, then will calculate with Speed of all punches
+         */
+
+        $battle = self::find($battleId);
+
+        // When battle not found
+        if (!$battle)
+            return null;
+
+        // Check battle is finished from both side
+        if (!$battle->user_finished || !$battle->opponent_finished)
+            return null;
+
+        $winner = $loser = null;
+
+        $winnerUserId = $battle->winner_user_id;
+
+        if($winnerUserId==$battle->user_id){
+            $loserUserId = $battle->opponent_user_id;
+        }
+        else{
+            $loserUserId = $battle->userId;
+        }
+
+        if ($winnerUserId && $loserUserId) {
+
+            // Winner
+            $winner = \App\User::get($winnerUserId)->toArray();
+
+            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
+            $winner['avg_speed'] = (int) self::$result[$winnerUserId]['avg_speed'];
+            $winner['avg_force'] = (int) self::$result[$winnerUserId]['avg_force'];
+            $winner['max_speed'] = (float) self::$result[$winnerUserId]['max_speed'];
+            $winner['max_force'] = (float) self::$result[$winnerUserId]['max_force'];
+            $winner['best_time'] = $_session->best_time;
+            $winner['punches_count'] = (int) self::$result[$winnerUserId]['punches_count'];
+
+            // loser
+            $loser = \App\User::get($loserUserId)->toArray();
+
+            $_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $loserUserId)->first();
+            $loser['avg_speed'] = (int) self::$result[$loserUserId]['avg_speed'];
+            $loser['avg_force'] = (int) self::$result[$loserUserId]['avg_force'];
+            $loser['max_speed'] = (float) self::$result[$loserUserId]['max_speed'];
+            $loser['max_force'] = (float) self::$result[$loserUserId]['max_force'];
+            $loser['best_time'] = $_session->best_time;
+            $loser['punches_count'] = (int) self::$result[$loserUserId]['punches_count'];
+        }
+
+        return ['winner' => $winner, 'loser' => $loser];
     }
 
     public static function getResult($battleId)
@@ -107,6 +218,80 @@ class Battles extends Model
 
         return ['winner' => $winner, 'loser' => $loser];
     }
+
+    public static function getResultForFinishedBattle($battleId)
+    {
+        /*
+         * SCENARIO
+         * The man who has more correct punches will be winner
+         * If correct is same, then server will calculate avg speed of all correct punches, and higher speed will be winner.
+         * If avg speed is also same, then will determine with power of all correct punches
+         * If both user don't have any correct punches, then will calculate with Speed of all punches
+         */
+
+        $battle = self::find($battleId);
+
+        // When battle not found
+        if (!$battle)
+            return null;
+
+        // Check battle is finished from both side
+        if (!$battle->user_finished || !$battle->opponent_finished)
+            return null;
+
+        $winnerUserId = null;
+        $loserUserId = null;
+
+        switch ($battle->type_id) {
+            case 3: // Combo
+                $winnerUserId = $battle->winner_user_id;
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
+                break;
+
+            case 4: // Combo-Sets
+                $winnerUserId = $battle->winner_user_id;
+                $loserUserId = ( $winnerUserId == $battle->user_id) ? $battle->opponent_user_id :
+                        ( ($winnerUserId == $battle->opponent_user_id) ? $battle->user_id : null );
+                break;
+
+            case 5: // Workouts
+                // TODO compare for combo-sets and workouts
+                break;
+        }
+
+        $winner = $loser = null;
+
+        if ($winnerUserId && $loserUserId) {
+
+            // Winner
+            $winner = \App\User::get($winnerUserId)->toArray();
+
+            //$_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $winnerUserId)->first();
+            $winner['avg_speed'] = 0;
+            $winner['avg_force'] = 0;
+            $winner['max_speed'] = 0;
+            $winner['max_force'] = 0;
+            $winner['best_time'] = 0;
+            $winner['punches_count'] = 0;
+
+            // loser
+            $loser = \App\User::get($loserUserId)->toArray();
+
+            //$_session = \App\Sessions::where('battle_id', $battle->id)->where('user_id', $loserUserId)->first();
+            $loser['avg_speed'] = 0;
+            $loser['avg_force'] = 0;
+            $loser['max_speed'] = 0;
+            $loser['max_force'] = 0;
+            $loser['best_time'] = 0;
+            $loser['punches_count'] = 0;
+        }
+
+        return ['winner' => $winner, 'loser' => $loser];
+    }
+
+
+
 
     // Compare combos type #3
     private static function compareBattleCombos($battle)
@@ -315,7 +500,7 @@ class Battles extends Model
         $lost = $won = 0;
 
         foreach ($finishedBattles as $battle) {
-            $battleResult = self::getResult($battle->battle_id);
+            $battleResult = self::getResultForFinishedBattle($battle->battle_id);
 
             if (!$battleResult['winner'] || !$battleResult['loser']) {
                 continue;
