@@ -330,73 +330,72 @@ class TrainingController extends Controller
 
             try {
 
-                    // Checking if session already exists
-                    $_session = Sessions::where('start_time', $session['start_time'])->first();
+                // Checking if session already exists
+                $_session = Sessions::where('start_time', $session['start_time'])->first();
 
-                    $sessionStartTime = $session['start_time'];
-                    $sessionPunchesCount += $session['punches_count'];
-                    $sessionCount++;
-                    $maxForceArr[] = $session['max_force'];
-                    $maxSpeedArr[] = $session['max_speed'];
+                $sessionStartTime = $session['start_time'];
+                $sessionPunchesCount += $session['punches_count'];
+                $sessionCount++;
+                $maxForceArr[] = $session['max_force'];
+                $maxSpeedArr[] = $session['max_speed'];
 
-                    if (!$_session) {
-
-
-                        $_session = Sessions::create([
-                            'user_id' => \Auth::user()->id,
-                            'battle_id' => ($session['battle_id']) ?? null,
-                            'game_id' => ($session['game_id']) ?? null,
-                            'type_id' => $session['type_id'],
-                            'start_time' => $session['start_time'],
-                            'end_time' => $session['end_time'],
-                            'plan_id' => $session['plan_id'],
-                            'avg_speed' => $session['avg_speed'],
-                            'avg_force' => $session['avg_force'],
-                            'punches_count' => $session['punches_count'],
-                            'max_force' => $session['max_force'],
-                            'max_speed' => $session['max_speed'],
-                            'best_time' => $session['best_time']
-                        ]);
-                        $sessionIdArr[] = $_session->id;
-                        SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
-                        
-                        // Update battle details, if any
-                        if ($_session->battle_id) {
-                            $this->updateBattle($_session->battle_id);
-                        }
-                        // Game stuff
-                        elseif ($_session->game_id) {
-                            $gameSession = true;
-                            $this->updateGameLeaderboard($_session->game_id, $_session->id);
-                        }
-                        // Goal updates
-                        else {
-                            $this->updateGoal($_session);
-                        }
-                        
-                    } else {
-                        SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
-                    }
-                    // Process through achievements (badges) and assign 'em to user
+                if (!$_session) {
+                    $_session = Sessions::create([
+                        'user_id' => \Auth::user()->id,
+                        'battle_id' => ($session['battle_id']) ?? null,
+                        'game_id' => ($session['game_id']) ?? null,
+                        'type_id' => $session['type_id'],
+                        'start_time' => $session['start_time'],
+                        'end_time' => $session['end_time'],
+                        'plan_id' => $session['plan_id'],
+                        'avg_speed' => $session['avg_speed'],
+                        'avg_force' => $session['avg_force'],
+                        'punches_count' => $session['punches_count'],
+                        'max_force' => $session['max_force'],
+                        'max_speed' => $session['max_speed'],
+                        'best_time' => $session['best_time']
+                    ]);
+                    $sessionIdArr[] = $_session->id;
+                    SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
                     
-                    // skipping Achievements for now as they are not working properly
-                    // $achievements = $this->processAchievements($_session->id, $_session->battle_id);
-                    // Generating sessions' list for response
-                    $sessions[] = [
-                        'session_id' => $_session->id,
-                        'start_time' => $_session->start_time,
-                        'achievements' => $this->achievements($_session->id, $_session->battle_id)
-                        
-                    ];
-                  
-                    // Sending response back if session is of game
-                    if ($gameSession) {
-                        return response()->json([
-                            'error' => 'false',
-                            'message' => 'Training sessions saved successfully',
-                            'data' => $sessions
-                        ]);
+                    // Update battle details, if any
+                    if ($_session->battle_id) {
+                        $this->updateBattle($_session->battle_id);
                     }
+                    // Game stuff
+                    elseif ($_session->game_id) {
+                        $gameSession = true;
+                        $this->updateGameLeaderboard($_session->game_id, $_session->id);
+                    }
+                    // Goal updates
+                    else {
+                        $this->updateGoal($_session);
+                    }
+                    
+                } else {
+                    SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
+                }
+                // Process through achievements (badges) and assign 'em to user
+                
+                // skipping Achievements for now as they are taking much time
+                // the logic of achievements calcuation should be revised
+                // $achievements = $this->achievements($_session->id, $_session->battle_id);
+                // Generating sessions' list for response
+                $sessions[] = [
+                    'session_id' => $_session->id,
+                    'start_time' => $_session->start_time,
+                    //'achievements' => $this->achievements($_session->id, $_session->battle_id)
+                    'achievements' => []
+                ];
+                
+                // Sending response back if session is of game
+                if ($gameSession) {
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Training sessions saved successfully',
+                        'data' => $sessions
+                    ]);
+                }
 
             } catch (\Exception $e) {
                
@@ -929,7 +928,7 @@ class TrainingController extends Controller
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
                 case 1:
-                //\Log::info('in 1');
+                    //\Log::info('in 1');
                     if($battleId){
                         $battle = Battles::where('id', $battleId)->first();
                         //updating belt of user
@@ -995,7 +994,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 2:
-                //\Log::info('in 2');
+                    //\Log::info('in 2');
                     $punchCount = Sessions::getPunchCount();
                     if ($punchCount > 0) {
                         $achievementTypes = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
@@ -1024,7 +1023,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 3:
-                //\Log::info('in 3');
+                    //\Log::info('in 3');
                     $mostPunches = 0;
                     if (empty($battleId)) {
                         $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
@@ -1054,7 +1053,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 4:
-                //\Log::info('in 4');
+                    //\Log::info('in 4');
                     $goal = Goals::getAccomplishedGoal();
                     if ($goal == 1) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
@@ -1084,7 +1083,7 @@ class TrainingController extends Controller
                     break;
                 case 5:
                 case 6:
-                //\Log::info('in 6');
+                    //\Log::info('in 6');
                     $speedAndPunch = $mostPowefulSpeed;
                     if ($achievement->id == 5) {
                         $speedAndPunch = $mostPowefulPunch;
@@ -1117,7 +1116,7 @@ class TrainingController extends Controller
                         }
                     }
                     break;
-                    case 7:
+                case 7:
                     //\Log::info('in 7');
                     $userParticpation = Sessions::getUserParticpation($userId, $perviousMonday);
                     if ($userParticpation) {
@@ -1150,7 +1149,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 9:
-                //\Log::info('in 9');
+                    //\Log::info('in 9');
                     $accuracy = Sessions::getAccuracy($userId,$perviousMonday);
                     if ($accuracy) {
                         $achievementTypes = AchievementTypes::select('id')
@@ -1180,7 +1179,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 10:
-                //\Log::info('in 10');
+                    //\Log::info('in 10');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
@@ -1214,7 +1213,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 11:
-                //\Log::info('in 11');
+                    //\Log::info('in 11');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
@@ -1250,7 +1249,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 12:
-                //\Log::info('in 12');
+                    //\Log::info('in 12');
                     $ironFirst = Sessions::ironFirst($userId, $perviousMonday);
 
                     if ($ironFirst) {
