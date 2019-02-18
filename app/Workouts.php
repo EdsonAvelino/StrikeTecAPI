@@ -3,28 +3,40 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Workouts extends Model
 {
     public static function get($workoutId)
     {
-        $workout = self::find($workoutId);
+         $workout = self::find($workoutId);
+
+        $response = DB::table('workouts')
+                ->where('id', $workoutId)->get();
+
+        
+        $workout1 = $response->toArray();
+        
 
         if (!$workout) return null;
 
-        $_workout = $workout->toArray();
 
+        $_workout =(array)$workout1[0];
+        
+        //$_workout =(array)$workout;
+        
         // Loop thru rounds and get combos of round
-        $datail = [];
+        /*$datail = [];
         foreach ($workout->rounds as $round) {
             $_round = [];
             foreach ($round->combos as $combo) {
                 $_round[] = \App\Combos::get($combo->combo_id);
             }
             $datail[] = $_round;
-        };
+        };*/
         
-        $_workout['detail'] = $datail;
+        //$_workout['detail'] = $datail;
+        $_workout['detail'] = '';
 
         unset($_workout['trainer_id']);
         

@@ -142,7 +142,15 @@ class LeaderboardController extends Controller
     	$ageRange = ($age) ? explode('-', $age) : [];
     	$weightRange = ($weight) ? explode('-', $weight) : [];
 
-        $limit = 100;
+    	if(empty($request->get('limit')))
+        	$limit = 50;
+        else
+        	$limit = $request->get('limit');
+
+        if(empty($request->get('start')))
+        	$start = 0;
+        else
+        	$start = $request->get('start');
 
 		\DB::statement(\DB::raw('SET @rank = 0'));
 
@@ -159,14 +167,15 @@ class LeaderboardController extends Controller
 		$currentUserRank = $this->getCurrentUserRank($_leadersRanksList->get()->toArray());
 		
 		// If current user's in top 100, will return result
-		if ($currentUserRank <= 100) {
+		//if ($currentUserRank <= 100) {
 			\DB::statement(\DB::raw('SET @rank = 0'));
 
 			$leadersList = Leaderboard::with(['user' => function ($query) {
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
-            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
+            //->where('avg_speed', '>', '8')->where('avg_force', '>', 100)
+            ->where('punches_count', '>', 0)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -188,18 +197,29 @@ class LeaderboardController extends Controller
 	            	$query->where('gender', $gender);
 	            }
 
-	            $query->where(function($q) {
+	            /*$query->where(function($q) {
 	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
-	            });
+	            });*/
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
 				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
-        	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
-        	->orderBy('punches_count', 'desc')
-        	->limit(100)->get()->toArray();
-		} 
+        	->select('leaderboard.id','leaderboard.user_id','leaderboard.sessions_count','leaderboard.avg_speed','leaderboard.avg_force','leaderboard.punches_count','leaderboard.max_speed','leaderboard.max_force',\DB::raw('floor(leaderboard.total_time_trained/1000) as total_time_trained'),'leaderboard.last_training_date','leaderboard.total_days_trained', \DB::raw('@rank:=@rank+1 AS rank'))
+        	//->orderBy('punches_count', 'desc')
+        	->orderBy('punches_count','desc')
+        	//->offset($start)->limit($limit)->get()->toArray();
+        	->get()->toArray();
+
+        	
+        	$leadersList = $this->showCurrentUserFirst($leadersList,'user_id',\Auth::user()->id);
+
+        	$leadersList = array_splice($leadersList,$start,$limit);	
+
+
+
+        	//->get()->toArray();
+		/*} 
 		// Else, will break down current result set to get current user's rank is in list
 		// e.g., if current user's rank is 500, then return 1 to 50 and 475 to 525
 		else {
@@ -209,7 +229,8 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender', 'city_id', 'state_id', 'country_id')
                 	->with(['country', 'state', 'city']);
             }])
-            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
+            //->where('avg_speed', '>', '8')->where('avg_force', '>', 100)
+             ->where('punches_count', '>', 0)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -231,17 +252,18 @@ class LeaderboardController extends Controller
 	            	$query->where('gender', $gender);
 	            }
 
-	            $query->where(function($q) {
-	            	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
-	            });
+	            //$query->where(function($q) {
+	            //	$q->whereNull('is_spectator')->orWhere('is_spectator', 0);
+	            //});
         	})
         	->whereHas('user.preferences', function($q) {
 				$q->where('public_profile', 1);
 				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
-        	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
-        	->orderBy('punches_count', 'desc')
-        	->limit(50)->get();
+        	->select('leaderboard.id','leaderboard.user_id','leaderboard.sessions_count','leaderboard.avg_speed','leaderboard.avg_force','leaderboard.punches_count','leaderboard.max_speed','leaderboard.max_force',\DB::raw('floor(leaderboard.total_time_trained/1000) as total_time_trained'),'leaderboard.last_training_date','leaderboard.total_days_trained', \DB::raw('@rank:=@rank+1 AS rank'))
+        	->orderBy('punches_count','desc')
+        	->offset($start)->limit($limit)->get();
+        	//->get();
 
         	// Another set of result, this will include current user
         	\DB::statement(\DB::raw('SET @rank = ' . ($currentUserRank - 25) ));
@@ -249,7 +271,8 @@ class LeaderboardController extends Controller
                 $query->select('id', 'first_name', 'last_name', 'skill_level', 'weight', 'city_id', 'state_id', 'country_id', \DB::raw('birthday as age'), \DB::raw('id as user_following'), \DB::raw('id as user_follower'), 'photo_url', 'gender')
                 	->with(['country', 'state', 'city']);
             }])
-            ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
+            //->where('avg_speed', '>', '8')->where('avg_force', '>', 100)
+            ->where('punches_count', '>', 0)
         	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender) {
         		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -279,18 +302,38 @@ class LeaderboardController extends Controller
 				$q->where('public_profile', 1);
 				$q->orWhere('user_preferences.user_id', \Auth::user()->id);
         	})
-        	->select('*', \DB::raw('@rank:=@rank+1 AS rank'))
-        	->orderBy('punches_count', 'desc')
-        	->offset(($currentUserRank - 25))->limit(50)->get();
+        	->select('leaderboard.id','leaderboard.user_id','leaderboard.sessions_count','leaderboard.avg_speed','leaderboard.avg_force','leaderboard.punches_count','leaderboard.max_speed','leaderboard.max_force',\DB::raw('floor(leaderboard.total_time_trained/1000) as total_time_trained'),'leaderboard.last_training_date','leaderboard.total_days_trained', \DB::raw('@rank:=@rank+1 AS rank'))
+        	->orderBy('punches_count','desc')
+        	->offset(($currentUserRank - 25))->limit($limit)->get();
 
         	$leadersList = array_merge($leadersListFirstSet->toArray(), $leadersListSecondSet->toArray());
-		}
+        	$leadersList = $this->showCurrentUserFirst($leadersList,'user_id',\Auth::user()->id);
+		}*/
 
 		// ->orderByRaw('(user_id = '. \Auth::user()->id .') desc')
         // dd(\DB::getQueryLog());
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
+
+    function showCurrentUserFirst($array, $key, $value){
+
+     $finalArr = array();
+     $k = 1;
+     foreach($array as $subKey => $subArray){
+          if($subArray[$key] == $value){
+          	  $finalArr[0] = $array[$subKey];
+              unset($array[$subKey]);
+		 } 
+		 else{    
+			 $finalArr[$k] = $subArray;
+			 $k++;
+		 }
+	}
+	ksort($finalArr);
+
+	return $finalArr;
+	}
 
     /**
      * @api {get} /trending Get Trending data
@@ -439,7 +482,7 @@ class LeaderboardController extends Controller
 		// filter with session count this week.
 		// but will change per day when we have lots of users
 		
-		$leadersList = Leaderboard::select('leaderboard.*', 'week_sessions.week_sessions_count')
+		$leadersList = Leaderboard::select('leaderboard.id','leaderboard.user_id','leaderboard.sessions_count','leaderboard.avg_speed','leaderboard.avg_force','leaderboard.punches_count','leaderboard.max_speed','leaderboard.max_force',\DB::raw('floor(leaderboard.total_time_trained/1000) as total_time_trained'),'leaderboard.last_training_date','leaderboard.total_days_trained', 'week_sessions.week_sessions_count')
 			->leftJoin(\DB::raw('( SELECT user_id, COUNT(*) AS "week_sessions_count" FROM `sessions` WHERE YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1) GROUP BY user_id ) week_sessions'),  function($join) {
 	           		$join->on('leaderboard.user_id', '=', 'week_sessions.user_id');
 	        })->with(['user' => function ($query) {
@@ -460,7 +503,8 @@ class LeaderboardController extends Controller
 	            	\DB::raw('id as number_of_challenges')
 	            )->with(['country', 'state', 'city']);
 	        }])
-	        ->where('avg_speed', '>', '15')->where('avg_force', '>', 250)
+	        //->where('avg_speed', '>', '8')->where('avg_force', '>', 100)
+	        ->where('sessions_count', '>', 0)
 	    	->whereHas('user', function($query) use ($countryId, $stateId, $ageRange, $weightRange, $gender, $searchQuery) {
 	    		if ($countryId) {
 	    			$query->where('country_id', $countryId);
@@ -506,13 +550,12 @@ class LeaderboardController extends Controller
 	    	->orderBy('week_sessions_count', 'desc')
 	    	->orderBy('sessions_count', 'desc')
 	    	->offset($offset)->limit($limit)->get();
-		
-        // print_r(\DB::getQueryLog());
-
+	
 	    foreach ($leadersList as $idx => $row) {
 	    	$row->rank = $offset + $idx + 1;
 	    }
-	    
+
+	 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $leadersList]);
     }
 

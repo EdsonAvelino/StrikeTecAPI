@@ -24,11 +24,10 @@ class UserAchievements extends Model
         'metric_value',
         'count',
         'session_id',
-        'goal_id'
+        'goal_id',
     ];
 
     protected $hidden = [
-        'created_at',
         'updated_at'
     ];
 
@@ -65,25 +64,56 @@ class UserAchievements extends Model
             $resultData['awarded'] = (boolean) $achievements['awarded'];
             $result[] = $resultData;
         }
+        
         return $result;
     }
 
     public static function getUsersAchievements($userId)
     {
         $achievements = Achievements::orderBy('sequence')->get()->keyBy('id');
-        $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared')->with('achievementType')
+        
+        
+        if(strtolower(date('l'))=='monday'){
+            $perviousMonday = date('Y-m-d');
+        }
+        else{
+            $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
+        }
+
+        $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
                 ->where('user_id', $userId)
+                ->where('created_at','>=',$perviousMonday)
+                ->whereIn('achievement_id',['2','3','5','6','7','9','10','11','12'])
                 ->groupBy('achievement_id')
                 ->orderBy('achievement_id', 'desc')
                 ->get()
                 ->keyBy('achievement_id')
                 ->toArray();
-        $belts = Achievements::with('achievementType')->find(1)->toArray();
+
+         $userAchievements2 = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
+                ->where('user_id', $userId)
+                //->where('created_at','>=',$perviousMonday)
+                ->whereIn('achievement_id',['1','4'])
+                ->groupBy('achievement_id')
+                ->orderBy('achievement_id', 'desc')
+                ->get()
+                ->keyBy('achievement_id')
+                ->toArray();
+
+		 /*$userAchievements2 = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
+                ->where('user_id', $userId)
+                ->groupBy('achievement_id')
+                ->orderBy('achievement_id', 'desc')
+                ->get()
+                ->keyBy('achievement_id')
+                ->toArray();                */
+      
+        //$belts = Achievements::with('achievementType')->find(1)->toArray();
         $result = [];
-        if ($userAchievements) {
+        if ($userAchievements || $userAchievements2) {
             foreach ($achievements as $key => $checkData) {
                 $resultData = [];
-                if ($key == 1) {
+               /* if ($key == 1) {
                     $resultData['achievement_id'] = $belts['id'];
                     $resultData['achievement_name'] = $belts['name'];
                     $beltBadge = $belts['achievement_type'][0];
@@ -94,24 +124,42 @@ class UserAchievements extends Model
                     $resultData['awarded'] = false;
                     $resultData['count'] = 0;
                     $resultData['shared'] = false;
-                }
-                if (isset($userAchievements[$key])) {
-                    $userData = $userAchievements[$key];
-                    $resultData['achievement_id'] = $userData['achievement_id'];
-                    $resultData['achievement_name'] = $checkData['name'];
-                    $badge = $userData['achievement_type'];
-                    $resultData['badge_name'] = $badge['name'];
-                    $resultData['description'] = $badge['description'];
-                    $resultData['image'] =  $badge['image'];
-                    $resultData['badge_value'] = $userData['metric_value'];
-                    $resultData['awarded'] = (boolean) $userData['awarded'];
-                    $resultData['count'] = $userData['count'];
-                    $resultData['shared'] = (boolean) $userData['shared'];
+                }*/
+                if (isset($userAchievements[$key]) || isset($userAchievements2[$key])) {
+                	
+                	if(!empty($userAchievements[$key]))
+                    	$userData = $userAchievements[$key];
+                	if(!empty($userAchievements2[$key]))
+                    	$userData = $userAchievements2[$key];
+              
+                    $achievementArr = array('2','3','5','6','7','9','10','11','12');
+
+                    if(strtolower(date('l'))=='monday'){
+                        $perviousMonday = date('Y-m-d');
                     }
+                    else{
+                        $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
+                    }
+
+                    //if((in_array($key,$achievementArr) && $userData['created_at']>=$perviousMonday) || !in_array($key,$achievementArr)){
+                        $resultData['achievement_id'] = $userData['achievement_id'];
+                        $resultData['achievement_name'] = $checkData['name'];
+                        $badge = $userData['achievement_type'];
+                        $resultData['badge_name'] = $badge['name'];
+                        $resultData['description'] = $badge['description'];
+                        $resultData['image'] =  $badge['image'];
+                        $resultData['badge_value'] = $userData['metric_value'];
+                        $resultData['awarded'] = (boolean) $userData['awarded'];
+                        $resultData['count'] = $userData['count'];
+                        $resultData['shared'] = (boolean) $userData['shared'];
+                    //}
+                    }
+                   
+
                 if ($resultData)
                     $result[] = $resultData;
             }
-        } else {
+        } /*else {
             $resultData['achievement_id'] = $belts['id'];
             $resultData['achievement_name'] = $belts['name'];
             $beltBadge = $belts['achievement_type'][0];
@@ -123,7 +171,10 @@ class UserAchievements extends Model
             $resultData['count'] = 0;
             $resultData['shared'] = false;
             $result[] = $resultData;
-        }
+
+        }*/
+        \Log::info(print_r($result,true));
+
         return $result;
     }
 
@@ -143,13 +194,12 @@ class UserAchievements extends Model
                     if ($userParticpation) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $userParticpation)
-                                ->where('max', '>', $userParticpation)
+                                ->where('min', '<=', $userParticpation)
+                                ->where('max', '>=', $userParticpation)
                                 ->first();
                         if ($achievementType) {
                             $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($userParticpation > 0) {
                                 if ($userParticpationData) {
@@ -179,17 +229,16 @@ class UserAchievements extends Model
                     break;
 
                 case 9:
-                    $accuracy = Sessions::getAccuracy($perviousMonday);
+                    $accuracy = Sessions::getAccuracy($userId,$perviousMonday);
                     if ($accuracy) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $accuracy)
-                                ->where('max', '>', $accuracy)
+                                ->where('min', '<=', $accuracy)
+                                ->where('max', '>=', $accuracy)
                                 ->first();
                         if ($achievementType) {
                             $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($accuracy > 0) {
                                 if ($accuracyData) {
@@ -227,8 +276,8 @@ class UserAchievements extends Model
                     if ($strongMan) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $strongMan)
-                                ->where('max', '>', $strongMan)
+                                ->where('min', '<=', $strongMan)
+                                ->where('max', '>=', $strongMan)
                                 ->first();
                         if ($achievementType) {
                             $strongManData = UserAchievements::where('achievement_id', $achievement->id)
@@ -271,13 +320,12 @@ class UserAchievements extends Model
                     if ($speedDemon) {
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
-                                ->where('min', '<', $strongMan)
-                                ->where('max', '>', $strongMan)
+                                ->where('min', '<=', $speedDemon)
+                                ->where('max', '>=', $speedDemon)
                                 ->first();
                         if ($achievementType) {
                             $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($speedDemon > 0) {
                                 if ($speedDemonData) {
@@ -312,14 +360,13 @@ class UserAchievements extends Model
                         $achievementType = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
                                 ->where('gender', $gender)
-                                ->where('min', '<', $ironFirst)
-                                ->where('max', '>', $ironFirst)
+                                ->where('min', '<=', $ironFirst)
+                                ->where('max', '>=', $ironFirst)
                                 ->first();
 
                         if ($achievementType) {
                             $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
                                     ->where('user_id', $userId)
-                                    ->where('achievement_id', $achievement->id)
                                     ->first();
                             if ($ironFirst > 0) {
                                 if ($ironFirstData) {

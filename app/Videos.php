@@ -15,7 +15,8 @@ class Videos extends Model
         'views',
         'duration',
         'is_featured',
-        'author_name'
+        'author_name',
+        'order'
     ];
 
     protected $hidden = [

@@ -23,6 +23,8 @@ class Leaderboard extends Model
         'max_speed',
         'max_force',
         'total_time_trained',
+        'last_training_date',
+        'total_days_trained'
     ];
 
     protected $hidden = ['created_at', 'updated_at'];

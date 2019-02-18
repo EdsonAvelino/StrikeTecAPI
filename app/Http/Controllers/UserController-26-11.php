@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Validator;
 use App\User;
-use App\Helpers\Push;
-use App\Helpers\PushTypes;
 use App\UserConnections;
 use App\UserSubscriptions;
 use App\Faqs;
@@ -16,8 +14,6 @@ use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\UserAchievements;
 use App\UserNotifications;
-use App\Chat;
-use App\ChatMessages;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -62,7 +58,12 @@ class UserController extends Controller
             'show_tip' => 1,
             'is_spectator' => 1,
             'login_count' => 0,
-            'has_sensors' => 0
+            'has_sensors' => 0,
+            /*'birthday'=> '1985-01-01',
+            'weight'=>300,
+            'stance'=>'Traditional',
+            'skill_level'=>'Beginner',
+            'photo_url'=>$request->get('img')*/
         ]);
 
         try {
@@ -83,7 +84,7 @@ class UserController extends Controller
         $user['points'] = (int) $userPoints;
 
          //Create a connection with Wes
-        $wesUserId = User::where('email', 'wes_elliott@elliottfightdynamics.com')->first()->id;
+        $wesUserId = User::where('email', 'wes@efdsports.com')->first()->id;
         UserConnections::create([
             'user_id' => $wesUserId,
             'follow_user_id' => $user['id']
@@ -95,58 +96,8 @@ class UserController extends Controller
         // Generates new notification for user
         UserNotifications::generate(UserNotifications::FOLLOW, $user['id'], $wesUserId);
         UserNotifications::generate(UserNotifications::FOLLOW, $wesUserId, $user['id']);
-
-        //send welcome message from wes account
-        $senderId = $wesUserId;
-        $userId = $user['id'];
-        $message = 'Welcome to Striketec!';
-
-        $chatId = $this->getChatid($senderId,$userId);
-
-        $chatId = ChatMessages::create([
-                    'user_id' => $senderId,
-                    'read_flag' => false,
-                    'message' => $message,
-                    'chat_id' => $chatId
-                ])->id;
-
-        $chatResponse = ChatMessages::where('id', $chatId)
-                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
-                ->first();
-
-        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
-        $chatResponse->send_time = strtotime($chatResponse->send_time);
-
-        $senderUser = User::get($senderId);
-
-        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
-
-        Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
-
         
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
-    }
-
-
-    public function getChatid($senderId,$userId)
-    {
-       
-        $existingChatId = Chat::select('id')
-                        ->where(function ($query) use ($senderId, $userId) {
-                            $query->where('user_one', $senderId)->where('user_two', $userId);
-                        })
-                        ->orwhere(function ($query) use ($senderId, $userId) {
-                            $query->where('user_one', $userId)->where('user_two', $senderId);
-                        })
-                        ->get()->first();
-
-        if (!empty($existingChatId->id)) {
-            return $existingChatId->id;
-        }
-        return Chat::create([
-                    'user_one' => $senderId,
-                    'user_two' => $userId,
-                ])->id;
     }
 
     /**
@@ -274,35 +225,6 @@ class UserController extends Controller
         $userPoints = User::select('id as points')->where('id', $user['id'])->pluck('points')->first();
         $user['points'] = (int) $userPoints;
 
-        $wesUserId = User::where('email', 'wes_elliott@elliottfightdynamics.com')->first()->id;
-
-        //send welcome message from wes account
-        $senderId = $wesUserId;
-        $userId = $user['id'];
-        $message = 'Welcome to Striketec!';
-
-        $chatId = $this->getChatid($senderId,$userId);
-
-        $chatId = ChatMessages::create([
-                    'user_id' => $senderId,
-                    'read_flag' => false,
-                    'message' => $message,
-                    'chat_id' => $chatId
-                ])->id;
-
-        $chatResponse = ChatMessages::where('id', $chatId)
-                ->select('id as message_id', 'user_id as sender_id', 'message', 'read_flag as read', 'created_at as send_time')
-                ->first();
-
-        $chatResponse->read = filter_var($chatResponse->read, FILTER_VALIDATE_BOOLEAN);
-        $chatResponse->send_time = strtotime($chatResponse->send_time);
-
-        $senderUser = User::get($senderId);
-
-        $pushMessage = 'You received new message from ' . $senderUser->first_name . ' ' . $senderUser->last_name;
-
-        Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
-
         return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => $user]);
     }
 
@@ -401,15 +323,6 @@ class UserController extends Controller
 
             $user->save();
 
-            if( null !== $request->get('unit') ) {
-                $userPreferences = $user->preferences;
-                $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
-                $userPreferences->unit = $request->get('unit');
-                $userPreferences->save();
-            }
-
-            \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
-
             return response()->json([
                         'error' => 'false',
                         'message' => 'User details have been updated successfully'
@@ -466,32 +379,15 @@ class UserController extends Controller
             $query->where('left_hand_sensor', $leftHandSensor)->orWhere('right_hand_sensor', $leftHandSensor);
         })->where(function($query) use ($rightHandSensor) {
             $query->where('left_hand_sensor', $rightHandSensor)->orWhere('right_hand_sensor', $rightHandSensor);
-        })->where('is_sharing_sensors','1');
+        });
 
         // In case, user exists with requested mac address of sensors and sharing sensors
         // then no need to store into db, just success response
         if ( $_user->exists() && (($_user = $_user->first())->is_sharing_sensors) ) {
-             try {
-                $user = \Auth::user();
-                $user->left_hand_sensor = ($request->get('left_hand_sensor')) ?? $user->left_hand_sensor;
-                $user->right_hand_sensor = ($request->get('right_hand_sensor')) ?? $user->right_hand_sensor;
-                $user->left_kick_sensor = ($request->get('left_kick_sensor')) ?? $user->left_kick_sensor;
-                $user->right_kick_sensor = ($request->get('right_kick_sensor')) ?? $user->right_kick_sensor;
-                
-                $user->is_spectator = 0;
-                $user->has_sensors = 1;
-                
-                $user->save();
-                return response()->json([
-                    'error' => 'false',
-                    'message' => 'Updated successfully'
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'error' => 'true',
-                    'message' => $e->getMessage()
-                ]);
-            }
+            return response()->json([
+                'error' => 'false',
+                'message' => 'Updated successfully'
+            ]);
         }
 
         $validator = Validator::make($request->all(), [
@@ -1169,58 +1065,16 @@ class UserController extends Controller
         $userData['points'] = (int) $userPoints;
 
         $leaderboard = Leaderboard::where('user_id', $userId)->first();
-        
-        //$data = $this->getAvgSpeedAndForce($userId);
-
-
-        //$user = array_merge($userData, $data);
-        if(!empty($leaderboard->total_time_trained))
-            $avgCount = $leaderboard->punches_count * 1000 * 60 / $leaderboard->total_time_trained;
-        else
-            $avgCount = 0;
-
-        $data = array();
-
-        if(!empty($leaderboard)){
-            if(!empty($leaderboard->total_time_trained))
-                $totalTimeTrained = floor($leaderboard->total_time_trained/1000);
-            else
-                $totalTimeTrained = 0;
-            $data['total_time_trained'] = $totalTimeTrained;
-
-            $data['total_day_trained'] = floor($leaderboard->total_days_trained);
-            $data['avg_count'] = floor($avgCount);
-            $data['avg_speed'] = floor($leaderboard->avg_speed);
-            $data['avg_force'] = floor($leaderboard->avg_force);
-        }
-        else{
-            $data['total_time_trained'] = 0;
-            $data['total_day_trained'] = 0;
-            $data['avg_count'] = 0;
-            $data['avg_speed'] = 0;
-            $data['avg_force'] = 0;
-        }
-
+        $data = $this->getAvgSpeedAndForce($userId);
         $user = array_merge($userData, $data);
-        
-        if(!empty($leaderboard->punches_count))
-            $punchesCount = $leaderboard->punches_count;
-        else
-            $punchesCount = 0;
-        
-        $user['punches_count'] = $punchesCount;
 
+        $user['punches_count'] = $leaderboard->punches_count;
 
-        //$battles = Battles::getFinishedBattles($userId);
+        $battles = Battles::getFinishedBattles($userId);
 
-        $won = \App\Battles::where('winner_user_id', $userId)->count();
-        $lost = \App\Battles::where(function($query) use($userId) {
-                    $query->where('user_id', $userId)->orWhere('opponent_user_id', $userId);
-                })->where('winner_user_id', '!=', $userId)->count();
-
-        $user['lose_counts'] = $lost;
-        $user['win_counts'] = $won;
-        //$user['finished_battles'] = $battles['finished'];
+        $user['lose_counts'] = $battles['lost'];
+        $user['win_counts'] = $battles['won'];
+        $user['finished_battles'] = $battles['finished'];
 
         $userFollowing = 'SELECT follow_user_id FROM user_connections WHERE user_id = ?';
         $connections = UserConnections::where('follow_user_id', $userId)
@@ -1306,11 +1160,6 @@ class UserController extends Controller
 
         $showTutorial = filter_var($request->get('show_tutorial'), FILTER_VALIDATE_BOOLEAN);
         $userPreferences->show_tutorial = $request->get('show_tutorial') ? $showTutorial : $userPreferences->show_tutorial;
-
-         if( null !== $request->get('unit') ) {
-            $unit = filter_var($request->get('unit'), FILTER_VALIDATE_INT);
-            $userPreferences->unit = $request->get('unit');
-        }
         
         $userPreferences->save();
 
@@ -1368,12 +1217,6 @@ class UserController extends Controller
 
             $followUser = User::find($userId);
 
-            $currentUser = User::find(\Auth::user()->id);
-
-            $pushMessage = $currentUser->first_name . ' ' . $currentUser->last_name. 'is now following you';
-
-            Push::send(PushTypes::FOLLOW_USER, $userId, \Auth::user()->id, $pushMessage, ['follow_user_id' =>\Auth::user()->id]);
-
             return response()->json([
                 'error' => 'false',
                 'message' => 'User now following ' . $followUser->first_name . ' ' . $followUser->last_name,
@@ -1417,15 +1260,6 @@ class UserController extends Controller
 
         $connection = UserConnections::where('user_id', \Auth::user()->id)
                         ->where('follow_user_id', $userId)->delete();
-
-        /*UserNotifications::generate(UserNotifications::UNFOLLOW, $userId, \Auth::user()->id);
-
-        $followUser = User::find($userId);
-
-        $pushMessage = $followUser->first_name . ' ' . $followUser->last_name. ' has unfollowed you';
-
-        Push::send(PushTypes::UNFOLLOW_USER, $userId, \Auth::user()->id, $pushMessage, ['follow_user_id' =>$userId]);*/
-
 
         return response()->json([
                     'error' => 'false',
@@ -2395,21 +2229,19 @@ class UserController extends Controller
         $_notifications = UserNotifications::with(['opponentUser' => function ($query) {
                         $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
                     }])->where('user_id', \Auth::user()->id)
-                    /*->where(function($q) {
+                    ->where(function($q) {
                         $q->whereNull('is_read')->orWhere('is_read', 0);
-                    })*/
+                    })
                     ->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-                    ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
                     ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
         $_tournamentInviteNotifications = UserNotifications::with(['opponentUser' => function ($query) {
                         $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
                     }])->where('user_id', \Auth::user()->id)
-                    /*->where(function($q) {
+                    ->where(function($q) {
                         $q->whereNull('is_read')->orWhere('is_read', 0);
-                    })*/
+                    })
                     ->where('notification_type_id', '=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-                    ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
                     ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
 
         $notifications = [];

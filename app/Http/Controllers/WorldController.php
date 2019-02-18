@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 class WorldController extends Controller
@@ -140,3 +139,4 @@ class WorldController extends Controller
         return response()->json(['error' => 'false', 'message' => '', 'data' => $cities->toArray()]);
     }
 }
+

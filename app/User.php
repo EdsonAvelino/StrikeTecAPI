@@ -44,7 +44,8 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'state_id',
         'country_id',
         'login_count',
-        'has_sensors'
+        'has_sensors',
+        'skill_level'
     ];
 
     /**
@@ -127,7 +128,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         static::creating(function ($model) {
             if ($fbId = $model->facebook_id) {
-                $model->photo_url = "http://graph.facebook.com/$fbId/picture?type=large";
+                $model->photo_url = "http://graph.facebook.com/$fbId/picture?width=600&height=600";
             }
         });
 

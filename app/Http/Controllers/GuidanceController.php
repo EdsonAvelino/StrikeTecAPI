@@ -697,7 +697,7 @@ class GuidanceController extends Controller
 
         $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
-                $query->whereNull('type_id')->orWhere('type_id', 6);
+                $query->where('type_id', 6)->orWhere('type_id', 7);
             })->where('id', $id)->first();
 
         if (!$essentialVideo) {
@@ -709,7 +709,7 @@ class GuidanceController extends Controller
 
         unset($_essentialVideo['trainer_id']);
 
-        $data = ['type_id' => 6, 'data' => json_encode($_essentialVideo)];
+        $data = ['type_id' => $_essentialVideo['type_id'], 'data' => json_encode($_essentialVideo)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
@@ -732,7 +732,7 @@ class GuidanceController extends Controller
 
             // Workout
             case \App\Types::WORKOUT:
-                $plan = \App\Workouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'))->withCount('rounds')->where('id', $video->plan_id)->first();
+                $plan = \App\Workouts::select('name', 'trainer_id', \DB::raw('id as rating'), \DB::raw('id as filter'),'round_count')->where('id', $video->plan_id)->first();
                 break;
 
             default:
@@ -756,7 +756,7 @@ class GuidanceController extends Controller
         if ($video->type_id == \App\Types::COMBO_SET) {
             $data['combos_count'] = $plan->combos_count;
         } elseif ($video->type_id == \App\Types::WORKOUT) {
-            $data['rounds_count'] = $plan->rounds_count;
+            $data['rounds_count'] = $plan->round_count;
         }
 
         return $data;
