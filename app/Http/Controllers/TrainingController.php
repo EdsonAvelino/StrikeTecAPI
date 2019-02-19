@@ -324,7 +324,7 @@ class TrainingController extends Controller
 
         $gameSession = false;
 
-        // $sessionCount = $sessionPunchesCount = 0;
+        $sessionCount = $sessionPunchesCount = 0;
         
         foreach ($data as $session) {
 
@@ -333,11 +333,11 @@ class TrainingController extends Controller
                 // Checking if session already exists
                 $_session = Sessions::where('start_time', $session['start_time'])->first();
 
-                // $sessionStartTime = $session['start_time'];
-                // $sessionPunchesCount += $session['punches_count'];
-                // $sessionCount++;
-                // $maxForceArr[] = $session['max_force'];
-                // $maxSpeedArr[] = $session['max_speed'];
+                $sessionStartTime = $session['start_time'];
+                $sessionPunchesCount += $session['punches_count'];
+                $sessionCount++;
+                $maxForceArr[] = $session['max_force'];
+                $maxSpeedArr[] = $session['max_speed'];
 
                 if (!$_session) {
                     $_session = Sessions::create([
@@ -355,7 +355,7 @@ class TrainingController extends Controller
                         'max_speed' => $session['max_speed'],
                         'best_time' => $session['best_time']
                     ]);
-                    // $sessionIdArr[] = $_session->id;
+                    $sessionIdArr[] = $_session->id;
                     SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
                     
                     // Update battle details, if any
@@ -417,13 +417,12 @@ class TrainingController extends Controller
         }
 
         try {
+
             // User's total sessions count
-            $sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
-            $punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
-            
+            //$sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
+            //$punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
             // Create / Update Leaderboard entry for this user
             $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
-            
             // Set all old averate data to 0
             $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = $oldTotalDaysTrained = 0;
              
@@ -435,20 +434,18 @@ class TrainingController extends Controller
             $oldMaxSpeed = $leaderboardStatus->max_speed;
             $oldMaxForce = $leaderboardStatus->max_force;
 
-            // $maxSpeedArr[] = $oldMaxSpeed;
-            // $maxMaxForce[] = $oldMaxForce;
+            $maxSpeedArr[] = $oldMaxSpeed;
+            $maxMaxForce[] = $oldMaxForce;
 
-            $leaderboardStatus->sessions_count = $sessionsCount;
-            $leaderboardStatus->punches_count = $punchesCount;
-            // $leaderboardStatus->sessions_count = $oldSessionCount + $sessionCount;
-            // $leaderboardStatus->punches_count = $oldPunchesCount + $sessionPunchesCount;
+            $leaderboardStatus->sessions_count = $oldSessionCount + $sessionCount;
+            $leaderboardStatus->punches_count = $oldPunchesCount + $sessionPunchesCount;
+            
+            $sessionDate = date('Y-m-d',$sessionStartTime/1000);
 
-            // $sessionDate = date('Y-m-d',$sessionStartTime/1000);
-
-            // if($leaderboardStatus->last_training_date!=$sessionDate){
-            //     $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
-            //     $leaderboardStatus->last_training_date = $sessionDate;
-            // }
+            if($leaderboardStatus->last_training_date!=$sessionDate){
+                $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
+                $leaderboardStatus->last_training_date = $sessionDate;
+            }
             
             $leaderboardStatus->save();
 
@@ -466,30 +463,30 @@ class TrainingController extends Controller
             $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
             $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
 
-            $temp = SessionRounds::select(
+            /*$temp = SessionRounds::select(
                                     \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
                             )
-                            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();
-            // $sessionIds = join("','",$sessionIdArr);
-            /*$temp = SessionRounds::select(
+                            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();*/
+            
+            $sessionIds = join("','",$sessionIdArr);   
+
+            $temp = SessionRounds::select(
                                     \DB::raw('SUM(pause_duration) as pause_duration')
                             )
-                            ->whereRaw('session_id IN ("'.$sessionIds.'")', [\Auth::user()->id])->first();*/
-            // $pauseDuration = $temp->pause_duration;                            
+                            ->whereRaw('session_id IN ("'.$sessionIds.'")', [\Auth::user()->id])->first();
 
-            $leaderboardStatus->max_speed = $temp->max_speed;
-            $leaderboardStatus->max_force = $temp->max_force;
-            // $leaderboardStatus->max_speed = max($maxSpeedArr);
-            // $leaderboardStatus->max_force = max($maxForceArr);
+            $pauseDuration = $temp->pause_duration;                            
+
+            $leaderboardStatus->max_speed = max($maxSpeedArr);
+            $leaderboardStatus->max_force = max($maxForceArr);
             
-            $totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
-            // $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->whereRaw('session_id IN ("'.$sessionIds.'")')->first();
+            //$totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+            $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->whereRaw('session_id IN ("'.$sessionIds.'")')->first();
 
-            $leaderboardStatus->total_time_trained = $totalTimeTrained;
-            // $leaderboardStatus->total_time_trained = $leaderboardStatus->total_time_trained + (abs($totalTimeTrained->duration_in_sec) * 1000) - $pauseDuration;
+            $leaderboardStatus->total_time_trained = $leaderboardStatus->total_time_trained + (abs($totalTimeTrained->duration_in_sec) * 1000) - $pauseDuration;
             $leaderboardStatus->save();
-
             // Finally sending response back to request
+            
             return response()->json([
                 'error' => 'false',
                 'message' => 'Training sessions saved successfully',
@@ -633,11 +630,11 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $punches = [];
         
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+        /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
-        }
+        }*/
 
         try {
 
@@ -648,13 +645,12 @@ class TrainingController extends Controller
                 if ($sessionRound) {
 
                     // Check if punches already exists
-                    $testPunches = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id);
-                    $_punch = $testPunches->first();
+                    $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                         \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
                         \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
-                    }
+                    }*/
 
                     if (!$_punch) {
 
@@ -677,9 +673,9 @@ class TrainingController extends Controller
                             'is_correct' => $isCorrect,
                         ]);
 
-                        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                        /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                             \Log::info('Created NEW Round Punches data- '.$_punch);
-                        }    
+                        }*/
                     }
 
                     $punches[] = ['start_time' => $_punch->punch_time];
