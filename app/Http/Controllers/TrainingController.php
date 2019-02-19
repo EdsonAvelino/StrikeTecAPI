@@ -417,7 +417,6 @@ class TrainingController extends Controller
         }
 
         try {
-
             // User's total sessions count
             //$sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
             //$punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
@@ -462,28 +461,25 @@ class TrainingController extends Controller
             $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
             $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
 
-            /*$temp = SessionRounds::select(
-                                    \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
-                            )
-                            ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();*/
-            
-            $sessionIds = join("','",$sessionIdArr);   
-
-            $temp = SessionRounds::select(
-                                    \DB::raw('SUM(pause_duration) as pause_duration')
-                            )
-                            ->whereRaw('session_id IN ("'.$sessionIds.'")', [\Auth::user()->id])->first();
-                          
-
-            $pauseDuration = $temp->pause_duration;                            
+            /*$temp = SessionRounds::select(\DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force'))
+                                        ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])
+                                        ->first();*/
+            $temp = SessionRounds::select(\DB::raw('SUM(pause_duration) as pause_duration'))
+                                    ->whereIn('session_id', $sessionIds)
+                                    ->first();
+            $pauseDuration = $temp->pause_duration;
 
             $leaderboardStatus->max_speed = max($maxSpeedArr);
             $leaderboardStatus->max_force = max($maxForceArr);
             
-            //$totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
-
-            $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->whereRaw('session_id IN ("'.$sessionIds.'")')->first();
-
+            /*$totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
+                                            ->groupBy('user_id')
+                                            ->where('user_id', \Auth::user()->id)
+                                            ->pluck('duration_in_sec')
+                                            ->first();*/
+            $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))
+                                                ->whereIn('session_id', $sessionIds)
+                                                ->first();
 
             $leaderboardStatus->total_time_trained = $leaderboardStatus->total_time_trained + (abs($totalTimeTrained->duration_in_sec) * 1000) - $pauseDuration;
             $leaderboardStatus->save();
