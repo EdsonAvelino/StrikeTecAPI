@@ -636,6 +636,7 @@ class TrainingController extends Controller
             \Log::info('Auth User ID - ' . \Auth::user()->id);
         }
 
+        /*
         foreach ($data as $punch) {
 
             $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
@@ -645,10 +646,10 @@ class TrainingController extends Controller
                 // Check if punches already exists
                 $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                     \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
                     \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
-                }*/
+                }
 
                 if (!$_punch) {
 
@@ -659,7 +660,7 @@ class TrainingController extends Controller
                         $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
                     }
 
-                    /*$_punch = SessionRoundPunches::create([
+                    $_punch = SessionRoundPunches::create([
                         'session_round_id' => $sessionRound->id,
                         'punch_time' => $punch['punch_time'],
                         'punch_duration' => $punch['punch_duration'],
@@ -669,31 +670,57 @@ class TrainingController extends Controller
                         'hand' => strtoupper($punch['hand']),
                         'distance' => $punch['distance'],
                         'is_correct' => $isCorrect,
-                    ]);*/
-                    $_newPunches[] = [
-                        'session_round_id' => $sessionRound->id,
-                        'punch_time' => $punch['punch_time'],
-                        'punch_duration' => $punch['punch_duration'],
-                        'force' => $punch['force'],
-                        'speed' => $punch['speed'],
-                        'punch_type' => strtoupper($punch['punch_type']),
-                        'hand' => strtoupper($punch['hand']),
-                        'distance' => $punch['distance'],
-                        'is_correct' => $isCorrect,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
+                    ]);
 
-                    /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
                         \Log::info('Created NEW Round Punches data- '.$_punch);
-                    }*/
+                    }
                 }
 
-                //$punches[] = ['start_time' => $_punch->punch_time];
-                $punches[] = ['start_time' => $punch['punch_time']];
-            }            
+                $punches[] = ['start_time' => $_punch->punch_time];
+            }
+        }
+        */
+
+        foreach ($data as $punch) {
+            $arrRoundStartTime[] = $punch['round_start_time'];
+            $arrPunchTime[] = $punch['punch_time'];
+            $punches[] = ['start_time' => $punch['punch_time']];
         }
 
+        $sessionRounds = SessionRounds::whereIn('start_time', array_unique($arrRoundStartTime));
+        foreach ($sessionRounds as $sessionRound) {
+            $arrRoundID[] = $sessionRound->id;
+        }
+
+        $roundPunches = SessionRoundPunches::whereIn('punch_time', array_unique($arrPunchTime));
+        foreach ($roundPunches as $roundPunch) {
+            if (in_array($roundPunch->session_round_id, $arrRoundID)) {
+                continue;
+            }
+
+            // To prevent errors on Prod
+            $isCorrect = null;
+
+            if (isset($punch['is_correct'])) {
+                $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            $_newPunches[] = [
+                'session_round_id' => $sessionRound->id,
+                'punch_time' => $punch['punch_time'],
+                'punch_duration' => $punch['punch_duration'],
+                'force' => $punch['force'],
+                'speed' => $punch['speed'],
+                'punch_type' => strtoupper($punch['punch_type']),
+                'hand' => strtoupper($punch['hand']),
+                'distance' => $punch['distance'],
+                'is_correct' => $isCorrect,
+                'created_at' => now(),
+                'updated_at' => now()
+            ];
+        }
+        
         try {
             SessionRoundPunches::insert($_newPunches);
 
