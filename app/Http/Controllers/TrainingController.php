@@ -679,7 +679,9 @@ class TrainingController extends Controller
                         'punch_type' => strtoupper($punch['punch_type']),
                         'hand' => strtoupper($punch['hand']),
                         'distance' => $punch['distance'],
-                        'is_correct' => $isCorrect
+                        'is_correct' => $isCorrect,
+                        'created_at' => now(),
+                        'updated_at' => now()
                     ];
 
                     /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
