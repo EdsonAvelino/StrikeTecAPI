@@ -629,7 +629,8 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $punches = [];
-        
+        $_newPunches = [];
+
         if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
