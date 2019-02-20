@@ -630,61 +630,75 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $punches = [];
         
-        /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
-        }*/
+        }
 
-        try {
+        foreach ($data as $punch) {
 
-            foreach ($data as $punch) {
+            $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-                $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
+            if ($sessionRound) {
 
-                if ($sessionRound) {
+                // Check if punches already exists
+                $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                    // Check if punches already exists
-                    $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
+                /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
+                    \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
+                }*/
 
-                    /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                        \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
-                        \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
-                    }*/
+                if (!$_punch) {
 
-                    if (!$_punch) {
+                    // To prevent errors on Prod
+                    $isCorrect = null;
 
-                        // To prevent errors on Prod
-                        $isCorrect = null;
-
-                        if (isset($punch['is_correct'])) {
-                            $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
-                        }
-
-                        $_punch = SessionRoundPunches::create([
-                            'session_round_id' => $sessionRound->id,
-                            'punch_time' => $punch['punch_time'],
-                            'punch_duration' => $punch['punch_duration'],
-                            'force' => $punch['force'],
-                            'speed' => $punch['speed'],
-                            'punch_type' => strtoupper($punch['punch_type']),
-                            'hand' => strtoupper($punch['hand']),
-                            'distance' => $punch['distance'],
-                            'is_correct' => $isCorrect,
-                        ]);
-
-                        /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                            \Log::info('Created NEW Round Punches data- '.$_punch);
-                        }*/
+                    if (isset($punch['is_correct'])) {
+                        $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
                     }
 
-                    $punches[] = ['start_time' => $_punch->punch_time];
+                    /*$_punch = SessionRoundPunches::create([
+                        'session_round_id' => $sessionRound->id,
+                        'punch_time' => $punch['punch_time'],
+                        'punch_duration' => $punch['punch_duration'],
+                        'force' => $punch['force'],
+                        'speed' => $punch['speed'],
+                        'punch_type' => strtoupper($punch['punch_type']),
+                        'hand' => strtoupper($punch['hand']),
+                        'distance' => $punch['distance'],
+                        'is_correct' => $isCorrect,
+                    ]);*/
+                    $_newPunches[] = [
+                        'session_round_id' => $sessionRound->id,
+                        'punch_time' => $punch['punch_time'],
+                        'punch_duration' => $punch['punch_duration'],
+                        'force' => $punch['force'],
+                        'speed' => $punch['speed'],
+                        'punch_type' => strtoupper($punch['punch_type']),
+                        'hand' => strtoupper($punch['hand']),
+                        'distance' => $punch['distance'],
+                        'is_correct' => $isCorrect
+                    ];
 
-                } else {
-                    
-                    continue;
+                    /*if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                        \Log::info('Created NEW Round Punches data- '.$_punch);
+                    }*/
                 }
-                
+
+                //$punches[] = ['start_time' => $_punch->punch_time];
+                $punches[] = ['start_time' => $punch['punch_time']];
+            }            
+        }
+
+        try {
+            SessionRoundPunches::insert($_newPunches);
+
+            if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+                \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Uploaded rounds punches)');
+                \Log::info('The Response Data (rounds punches) - ' , $punches);
+                \Log::info('Auth User ID - ' . \Auth::user()->id);
             }
 
             return response()->json([
@@ -692,7 +706,7 @@ class TrainingController extends Controller
                 'message' => 'Rounds punches saved successfully',
                 'data' => $punches
             ]);
-            
+    
         } catch (Exception $e) {
 
             return response()->json([
