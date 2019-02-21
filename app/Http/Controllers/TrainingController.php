@@ -532,11 +532,10 @@ class TrainingController extends Controller
      */
     public function getSessionsRound($roundId)
     {
-        $round = SessionRounds::where('id', $roundId)->first();
-        $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
+        $rounds = SessionRounds::where('id', $roundId);
 
         // If round not found, it will return null
-        if (empty($round)) {
+        if (empty($rounds)) {
             return response()->json([
                         'error' => 'false',
                         'message' => '',
@@ -545,10 +544,12 @@ class TrainingController extends Controller
             ]);
         }
 
+        $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
+
         return response()->json([
                     'error' => 'false',
                     'message' => '',
-                    'round' => $round->toArray(),
+                    'round' => $rounds->toArray(),
                     'punches' => $punches->toArray()
         ]);
     }
