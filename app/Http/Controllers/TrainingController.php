@@ -689,47 +689,57 @@ class TrainingController extends Controller
             $punches[] = ['start_time' => $punch['punch_time']];
         }
 
-        $sessionRounds = SessionRounds::whereIn('start_time', array_unique($arrRoundStartTime));
+        $sessionRounds = SessionRounds::whereIn('start_time', array_unique($arrRoundStartTime))->get();
+        $roundPunches = SessionRoundPunches::whereIn('punch_time', array_unique($arrPunchTime))->get();
+
+        $arrRoundStartTime = $arrRoundID = $arrPunchTime = $arrPunchID = [];
+        
         foreach ($sessionRounds as $sessionRound) {
             $arrRoundID[] = $sessionRound->id;
+            $arrRoundStartTime[] = $sessionRound->start_time;
         }
 
-        $roundPunches = SessionRoundPunches::whereIn('punch_time', array_unique($arrPunchTime));
         foreach ($roundPunches as $roundPunch) {
-            if (in_array($roundPunch->session_round_id, $arrRoundID)) {
-                continue;
-            }
-
-            // To prevent errors on Prod
-            $isCorrect = null;
-
-            if (isset($punch['is_correct'])) {
-                $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
-            }
-
-            $_newPunches[] = [
-                'session_round_id' => $sessionRound->id,
-                'punch_time' => $punch['punch_time'],
-                'punch_duration' => $punch['punch_duration'],
-                'force' => $punch['force'],
-                'speed' => $punch['speed'],
-                'punch_type' => strtoupper($punch['punch_type']),
-                'hand' => strtoupper($punch['hand']),
-                'distance' => $punch['distance'],
-                'is_correct' => $isCorrect,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
+            $arrPunchID[] = $roundPunch->id;
+            $arrPunchTime[] = $roundPunch->punch_time;
         }
-        
+
+        foreach ($data as $punch) {
+            if (in_array($punch['round_start_time'], $arrRoundStartTime)) {
+                $roundID = $arrRoundID[array_search($punch['round_start_time'], $arrRoundStartTime)];
+
+                if (in_array($punch['punch_time'], $arrPunchTime)) {
+                    $roundPunch = $roundPunches[array_search($punch['round_start_time'], $arrRoundStartTime)];
+
+                    if ($roundPunch->session_round_id == $roundID) {
+                        continue;
+                    }
+                }
+
+                if (isset($punch['is_correct'])) {
+                    $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+                }
+
+                $createdAt = \Carbon\Carbon::now();
+
+                $_newPunches[] = [
+                    'session_round_id' => $roundID,
+                    'punch_time' => $punch['punch_time'],
+                    'punch_duration' => $punch['punch_duration'],
+                    'force' => $punch['force'],
+                    'speed' => $punch['speed'],
+                    'punch_type' => strtoupper($punch['punch_type']),
+                    'hand' => strtoupper($punch['hand']),
+                    'distance' => $punch['distance'],
+                    'is_correct' => $isCorrect,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt
+                ];
+            }
+        }
+
         try {
             SessionRoundPunches::insert($_newPunches);
-
-            if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
-                \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Uploaded rounds punches)');
-                \Log::info('The Response Data (rounds punches) - ' , $punches);
-                \Log::info('Auth User ID - ' . \Auth::user()->id);
-            }
 
             return response()->json([
                 'error' => 'false',
