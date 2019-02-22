@@ -558,7 +558,7 @@ class TrainingController extends Controller
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
         if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
-            \Log::info('The Round Data - ' , $punches->toArray());
+            \Log::info('The Round Punches Data - ' , $punches->toArray());
             \Log::info('Auth User ID - ' . \Auth::user()->id);
         }
 
