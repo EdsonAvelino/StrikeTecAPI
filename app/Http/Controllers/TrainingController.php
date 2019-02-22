@@ -532,7 +532,18 @@ class TrainingController extends Controller
      */
     public function getSessionsRound($roundId)
     {
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('Api Url {get} /user/training/sessions/rounds/{round_id}  (Get rounds and its punches)');
+            \Log::info('The Round ID - ' , $roundId);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
+
         $rounds = SessionRounds::where('id', $roundId);
+
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('The Round Data - ' , $rounds->toArray());
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
 
         // If round not found, it will return null
         if (empty($rounds)) {
@@ -545,6 +556,11 @@ class TrainingController extends Controller
         }
 
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
+
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('The Round Data - ' , $punches->toArray());
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
 
         return response()->json([
                     'error' => 'false',
