@@ -2,7 +2,7 @@
 SQLyog Community v11.28 (64 bit)
 MySQL - 5.6.35-1+deb.sury.org~xenial+0.1 : Database - striketec_db
 *********************************************************************
-*/
+*/
 
 /*!40101 SET NAMES utf8 */;
 

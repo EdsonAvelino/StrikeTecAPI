@@ -697,7 +697,7 @@ class GuidanceController extends Controller
 
         $essentialVideo = \App\Videos::select('*', \DB::raw('id as user_favorited'), \DB::raw('id as likes'))
             ->where(function($query) {
-                 $query->where('type_id',6)->orWhere('type_id', 7);
+                $query->where('type_id', 6)->orWhere('type_id', 7);
             })->where('id', $id)->first();
 
         if (!$essentialVideo) {
@@ -709,7 +709,7 @@ class GuidanceController extends Controller
 
         unset($_essentialVideo['trainer_id']);
 
-        $data = ['type_id' =>  $_essentialVideo['type_id'], 'data' => json_encode($_essentialVideo)];
+        $data = ['type_id' => $_essentialVideo['type_id'], 'data' => json_encode($_essentialVideo)];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }

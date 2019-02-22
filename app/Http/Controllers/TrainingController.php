@@ -330,73 +330,72 @@ class TrainingController extends Controller
 
             try {
 
-                    // Checking if session already exists
-                    $_session = Sessions::where('start_time', $session['start_time'])->first();
+                // Checking if session already exists
+                $_session = Sessions::where('start_time', $session['start_time'])->first();
 
-                    $sessionStartTime = $session['start_time'];
-                    $sessionPunchesCount += $session['punches_count'];
-                    $sessionCount++;
-                    $maxForceArr[] = $session['max_force'];
-                    $maxSpeedArr[] = $session['max_speed'];
+                $sessionStartTime = $session['start_time'];
+                $sessionPunchesCount += $session['punches_count'];
+                $sessionCount++;
+                $maxForceArr[] = $session['max_force'];
+                $maxSpeedArr[] = $session['max_speed'];
 
-                    if (!$_session) {
-
-
-                        $_session = Sessions::create([
-                            'user_id' => \Auth::user()->id,
-                            'battle_id' => ($session['battle_id']) ?? null,
-                            'game_id' => ($session['game_id']) ?? null,
-                            'type_id' => $session['type_id'],
-                            'start_time' => $session['start_time'],
-                            'end_time' => $session['end_time'],
-                            'plan_id' => $session['plan_id'],
-                            'avg_speed' => $session['avg_speed'],
-                            'avg_force' => $session['avg_force'],
-                            'punches_count' => $session['punches_count'],
-                            'max_force' => $session['max_force'],
-                            'max_speed' => $session['max_speed'],
-                            'best_time' => $session['best_time']
-                        ]);
-                        $sessionIdArr[] = $_session->id;
-                        SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
-                        
-                        // Update battle details, if any
-                        if ($_session->battle_id) {
-                            $this->updateBattle($_session->battle_id);
-                        }
-                        // Game stuff
-                        elseif ($_session->game_id) {
-                            $gameSession = true;
-                            $this->updateGameLeaderboard($_session->game_id, $_session->id);
-                        }
-                        // Goal updates
-                        else {
-                            $this->updateGoal($_session);
-                        }
-                        
-                    } else {
-                        SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
-                    }
-                    // Process through achievements (badges) and assign 'em to user
+                if (!$_session) {
+                    $_session = Sessions::create([
+                        'user_id' => \Auth::user()->id,
+                        'battle_id' => ($session['battle_id']) ?? null,
+                        'game_id' => ($session['game_id']) ?? null,
+                        'type_id' => $session['type_id'],
+                        'start_time' => $session['start_time'],
+                        'end_time' => $session['end_time'],
+                        'plan_id' => $session['plan_id'],
+                        'avg_speed' => $session['avg_speed'],
+                        'avg_force' => $session['avg_force'],
+                        'punches_count' => $session['punches_count'],
+                        'max_force' => $session['max_force'],
+                        'max_speed' => $session['max_speed'],
+                        'best_time' => $session['best_time']
+                    ]);
+                    $sessionIdArr[] = $_session->id;
+                    SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
                     
-                    // skipping Achievements for now as they are not working properly
-                    // $achievements = $this->processAchievements($_session->id, $_session->battle_id);
-                    // Generating sessions' list for response
-                    $sessions[] = [
-                        'session_id' => $_session->id,
-                        'start_time' => $_session->start_time,
-                        'achievements' => $this->achievements($_session->id, $_session->battle_id)
-                        
-                    ];
-                  
-                    // Sending response back if session is of game
-                    if ($gameSession) {
-                        return response()->json([
-                            'error' => 'false',
-                            'message' => 'Training sessions saved successfully',
-                            'data' => $sessions
-                        ]);
+                    // Update battle details, if any
+                    if ($_session->battle_id) {
+                        $this->updateBattle($_session->battle_id);
                     }
+                    // Game stuff
+                    elseif ($_session->game_id) {
+                        $gameSession = true;
+                        $this->updateGameLeaderboard($_session->game_id, $_session->id);
+                    }
+                    // Goal updates
+                    else {
+                        $this->updateGoal($_session);
+                    }
+                    
+                } else {
+                    SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
+                }
+                // Process through achievements (badges) and assign 'em to user
+                
+                // skipping Achievements for now as they are taking much time
+                // the logic of achievements calcuation should be revised
+                // $achievements = $this->achievements($_session->id, $_session->battle_id);
+                // Generating sessions' list for response
+                $sessions[] = [
+                    'session_id' => $_session->id,
+                    'start_time' => $_session->start_time,
+                    //'achievements' => $this->achievements($_session->id, $_session->battle_id)
+                    'achievements' => []
+                ];
+                
+                // Sending response back if session is of game
+                if ($gameSession) {
+                    return response()->json([
+                        'error' => 'false',
+                        'message' => 'Training sessions saved successfully',
+                        'data' => $sessions
+                    ]);
+                }
 
             } catch (\Exception $e) {
                
@@ -449,6 +448,7 @@ class TrainingController extends Controller
             }
             
             $leaderboardStatus->save();
+
             // Formula
             // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
             $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
@@ -474,7 +474,6 @@ class TrainingController extends Controller
                                     \DB::raw('SUM(pause_duration) as pause_duration')
                             )
                             ->whereRaw('session_id IN ("'.$sessionIds.'")', [\Auth::user()->id])->first();
-                          
 
             $pauseDuration = $temp->pause_duration;                            
 
@@ -482,13 +481,12 @@ class TrainingController extends Controller
             $leaderboardStatus->max_force = max($maxForceArr);
             
             //$totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
-
             $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->whereRaw('session_id IN ("'.$sessionIds.'")')->first();
-
 
             $leaderboardStatus->total_time_trained = $leaderboardStatus->total_time_trained + (abs($totalTimeTrained->duration_in_sec) * 1000) - $pauseDuration;
             $leaderboardStatus->save();
             // Finally sending response back to request
+            
             return response()->json([
                 'error' => 'false',
                 'message' => 'Training sessions saved successfully',
@@ -534,11 +532,21 @@ class TrainingController extends Controller
      */
     public function getSessionsRound($roundId)
     {
-        $round = SessionRounds::where('id', $roundId)->first();
-        $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('Api Url {get} /user/training/sessions/rounds/{round_id}  (Get rounds and its punches)');
+            \Log::info('The Round ID - ' . $roundId);
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
+
+        $rounds = SessionRounds::where('id', $roundId)->get();
+
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('The Round Data - ' , $rounds->toArray());
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
 
         // If round not found, it will return null
-        if (empty($round)) {
+        if (empty($rounds)) {
             return response()->json([
                         'error' => 'false',
                         'message' => '',
@@ -547,10 +555,17 @@ class TrainingController extends Controller
             ]);
         }
 
+        $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
+
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+            \Log::info('The Round Punches Data - ' , $punches->toArray());
+            \Log::info('Auth User ID - ' . \Auth::user()->id);
+        }
+
         return response()->json([
                     'error' => 'false',
                     'message' => '',
-                    'round' => $round->toArray(),
+                    'round' => $rounds->first(),
                     'punches' => $punches->toArray()
         ]);
     }
@@ -631,71 +646,124 @@ class TrainingController extends Controller
     {
         $data = $request->get('data');
         $punches = [];
-        
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+        $_newPunches = [];
+
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
         }
 
-        try {
+        /*
+        foreach ($data as $punch) {
 
-            foreach ($data as $punch) {
+            $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
 
-                $sessionRound = SessionRounds::where('start_time', $punch['round_start_time'])->first();
+            if ($sessionRound) {
 
-                if ($sessionRound) {
+                // Check if punches already exists
+                $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                    // Check if punches already exists
-                    $testPunches = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id);
-                    $_punch = $testPunches->first();
+                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
+                    \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
+                }
+
+                if (!$_punch) {
+
+                    // To prevent errors on Prod
+                    $isCorrect = null;
+
+                    if (isset($punch['is_correct'])) {
+                        $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+                    }
+
+                    $_punch = SessionRoundPunches::create([
+                        'session_round_id' => $sessionRound->id,
+                        'punch_time' => $punch['punch_time'],
+                        'punch_duration' => $punch['punch_duration'],
+                        'force' => $punch['force'],
+                        'speed' => $punch['speed'],
+                        'punch_type' => strtoupper($punch['punch_type']),
+                        'hand' => strtoupper($punch['hand']),
+                        'distance' => $punch['distance'],
+                        'is_correct' => $isCorrect,
+                    ]);
 
                     if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                        \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
-                        \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
+                        \Log::info('Created NEW Round Punches data- '.$_punch);
                     }
-
-                    if (!$_punch) {
-
-                        // To prevent errors on Prod
-                        $isCorrect = null;
-
-                        if (isset($punch['is_correct'])) {
-                            $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
-                        }
-
-                        $_punch = SessionRoundPunches::create([
-                            'session_round_id' => $sessionRound->id,
-                            'punch_time' => $punch['punch_time'],
-                            'punch_duration' => $punch['punch_duration'],
-                            'force' => $punch['force'],
-                            'speed' => $punch['speed'],
-                            'punch_type' => strtoupper($punch['punch_type']),
-                            'hand' => strtoupper($punch['hand']),
-                            'distance' => $punch['distance'],
-                            'is_correct' => $isCorrect,
-                        ]);
-
-                        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
-                            \Log::info('Created NEW Round Punches data- '.$_punch);
-                        }    
-                    }
-
-                    $punches[] = ['start_time' => $_punch->punch_time];
-
-                } else {
-                    
-                    continue;
                 }
-                
+
+                $punches[] = ['start_time' => $_punch->punch_time];
             }
+        }
+        */
+
+        foreach ($data as $punch) {
+            $arrRoundStartTime[] = $punch['round_start_time'];
+            $arrPunchTime[] = $punch['punch_time'];
+            $punches[] = ['start_time' => $punch['punch_time']];
+        }
+
+        $sessionRounds = SessionRounds::whereIn('start_time', array_unique($arrRoundStartTime))->get();
+        $roundPunches = SessionRoundPunches::whereIn('punch_time', array_unique($arrPunchTime))->get();
+
+        $arrRoundStartTime = $arrRoundID = $arrPunchTime = $arrPunchID = [];
+        
+        foreach ($sessionRounds as $sessionRound) {
+            $arrRoundID[] = $sessionRound->id;
+            $arrRoundStartTime[] = $sessionRound->start_time;
+        }
+
+        foreach ($roundPunches as $roundPunch) {
+            $arrPunchID[] = $roundPunch->id;
+            $arrPunchTime[] = $roundPunch->punch_time;
+        }
+
+        foreach ($data as $punch) {
+            if (in_array($punch['round_start_time'], $arrRoundStartTime)) {
+                $roundID = $arrRoundID[array_search($punch['round_start_time'], $arrRoundStartTime)];
+
+                if (in_array($punch['punch_time'], $arrPunchTime)) {
+                    $roundPunch = $roundPunches[array_search($punch['round_start_time'], $arrRoundStartTime)];
+
+                    if ($roundPunch->session_round_id == $roundID) {
+                        continue;
+                    }
+                }
+
+                if (isset($punch['is_correct'])) {
+                    $isCorrect = filter_var($punch['is_correct'], FILTER_VALIDATE_BOOLEAN);
+                }
+
+                $createdAt = \Carbon\Carbon::now();
+
+                $_newPunches[] = [
+                    'session_round_id' => $roundID,
+                    'punch_time' => $punch['punch_time'],
+                    'punch_duration' => $punch['punch_duration'],
+                    'force' => $punch['force'],
+                    'speed' => $punch['speed'],
+                    'punch_type' => strtoupper($punch['punch_type']),
+                    'hand' => strtoupper($punch['hand']),
+                    'distance' => $punch['distance'],
+                    'is_correct' => $isCorrect,
+                    'created_at' => $createdAt,
+                    'updated_at' => $createdAt
+                ];
+            }
+        }
+
+        try {
+            SessionRoundPunches::insert($_newPunches);
 
             return response()->json([
                 'error' => 'false',
                 'message' => 'Rounds punches saved successfully',
                 'data' => $punches
             ]);
-            
+    
         } catch (Exception $e) {
 
             return response()->json([
@@ -929,7 +997,7 @@ class TrainingController extends Controller
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
                 case 1:
-                //\Log::info('in 1');
+                    //\Log::info('in 1');
                     if($battleId){
                         $battle = Battles::where('id', $battleId)->first();
                         //updating belt of user
@@ -995,7 +1063,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 2:
-                //\Log::info('in 2');
+                    //\Log::info('in 2');
                     $punchCount = Sessions::getPunchCount();
                     if ($punchCount > 0) {
                         $achievementTypes = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
@@ -1024,7 +1092,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 3:
-                //\Log::info('in 3');
+                    //\Log::info('in 3');
                     $mostPunches = 0;
                     if (empty($battleId)) {
                         $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
@@ -1054,7 +1122,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 4:
-                //\Log::info('in 4');
+                    //\Log::info('in 4');
                     $goal = Goals::getAccomplishedGoal();
                     if ($goal == 1) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
@@ -1084,7 +1152,7 @@ class TrainingController extends Controller
                     break;
                 case 5:
                 case 6:
-                //\Log::info('in 6');
+                    //\Log::info('in 6');
                     $speedAndPunch = $mostPowefulSpeed;
                     if ($achievement->id == 5) {
                         $speedAndPunch = $mostPowefulPunch;
@@ -1117,7 +1185,7 @@ class TrainingController extends Controller
                         }
                     }
                     break;
-                    case 7:
+                case 7:
                     //\Log::info('in 7');
                     $userParticpation = Sessions::getUserParticpation($userId, $perviousMonday);
                     if ($userParticpation) {
@@ -1150,7 +1218,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 9:
-                //\Log::info('in 9');
+                    //\Log::info('in 9');
                     $accuracy = Sessions::getAccuracy($userId,$perviousMonday);
                     if ($accuracy) {
                         $achievementTypes = AchievementTypes::select('id')
@@ -1180,7 +1248,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 10:
-                //\Log::info('in 10');
+                    //\Log::info('in 10');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
@@ -1214,7 +1282,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 11:
-                //\Log::info('in 11');
+                    //\Log::info('in 11');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
@@ -1250,7 +1318,7 @@ class TrainingController extends Controller
                     }
                     break;
                 case 12:
-                //\Log::info('in 12');
+                    //\Log::info('in 12');
                     $ironFirst = Sessions::ironFirst($userId, $perviousMonday);
 
                     if ($ironFirst) {

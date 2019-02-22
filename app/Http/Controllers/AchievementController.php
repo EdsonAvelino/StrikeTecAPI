@@ -109,8 +109,6 @@ class AchievementController extends Controller
 
                 }
 
-               
-
                 //if((in_array($checkData['id'],$achievementArr) && $createdAt>=$perviousMonday) || !in_array($checkData['id'],$achievementArr)){
                     $resultData['id'] = $userBadgeID;
                     $resultData['achievement_name'] = $checkData['name'];
