@@ -565,7 +565,7 @@ class TrainingController extends Controller
         return response()->json([
                     'error' => 'false',
                     'message' => '',
-                    'round' => $rounds->toArray(),
+                    'round' => $rounds->first(),
                     'punches' => $punches->toArray()
         ]);
     }
