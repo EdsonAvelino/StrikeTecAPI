@@ -132,6 +132,7 @@ class Battles extends Model
             $winner['max_force'] = (float) self::$result[$winnerUserId]['max_force'];
             $winner['best_time'] = $_session->best_time;
             $winner['punches_count'] = (int) self::$result[$winnerUserId]['punches_count'];
+            $winner['id'] = $winnerUserId;
 
             // loser
             $loser = \App\User::get($loserUserId)->toArray();
@@ -143,6 +144,7 @@ class Battles extends Model
             $loser['max_force'] = (float) self::$result[$loserUserId]['max_force'];
             $loser['best_time'] = $_session->best_time;
             $loser['punches_count'] = (int) self::$result[$loserUserId]['punches_count'];
+            $loser['id'] = $loserUserId;
         }
 
         return ['winner' => $winner, 'loser' => $loser];

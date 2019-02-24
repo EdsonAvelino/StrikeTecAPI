@@ -9,7 +9,7 @@ class Workouts extends Model
 {
     public static function get($workoutId)
     {
-         $workout = self::find($workoutId);
+        $workout = self::find($workoutId);
 
         $response = DB::table('workouts')
                 ->where('id', $workoutId)->get();
