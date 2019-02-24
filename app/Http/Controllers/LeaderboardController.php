@@ -318,21 +318,21 @@ class LeaderboardController extends Controller
 
     function showCurrentUserFirst($array, $key, $value){
 
-     $finalArr = array();
-     $k = 1;
-     foreach($array as $subKey => $subArray){
-          if($subArray[$key] == $value){
-          	  $finalArr[0] = $array[$subKey];
-              unset($array[$subKey]);
-		 } 
-		 else{    
-			 $finalArr[$k] = $subArray;
-			 $k++;
-		 }
-	}
-	ksort($finalArr);
+		$finalArr = array();
+		$k = 1;
+		foreach($array as $subKey => $subArray){
+			if($subArray[$key] == $value){
+				$finalArr[0] = $array[$subKey];
+				unset($array[$subKey]);
+			}
+			else {
+				$finalArr[$k] = $subArray;
+				$k++;
+			}
+		}
+		ksort($finalArr);
 
-	return $finalArr;
+		return $finalArr;
 	}
 
     /**

@@ -20,6 +20,7 @@ $app->get('/', function () use ($app) {
 });
 
 $app->group(['prefix' => 'api/v1'], function () use ($app) {
+//$app->group(['prefix' => 'v1'], function () use ($app) {
 
 
         // Check for app update

@@ -355,6 +355,7 @@ class TrainingController extends Controller
                         'max_speed' => $session['max_speed'],
                         'best_time' => $session['best_time']
                     ]);
+                    
                     $sessionIdArr[] = $_session->id;
                     SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
                     

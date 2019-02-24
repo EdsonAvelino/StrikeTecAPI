@@ -27,9 +27,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        /*$schedule->call(function () {
+        $schedule->call(function () {
             UserAchievements::achievementsSchedulerRun();
-        })->weekly()->mondays()->at('00:00');*/
+        })->weekly()->mondays()->at('00:00');
 
         // Clear game-leaderboard every monday at 00:01 AM
         $schedule->call(function () {
