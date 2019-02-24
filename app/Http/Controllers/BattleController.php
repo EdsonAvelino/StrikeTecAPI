@@ -775,7 +775,7 @@ class BattleController extends Controller
                             });
                         })
                         ->orWhere(function ($query) use($userId) {
-                            $query->where('user_id', $userId)->where(function ($query1) use($userId) {
+                            $query->where('user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
                             });
                         })
@@ -791,6 +791,30 @@ class BattleController extends Controller
         }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
     }
+
+    public function getSentBattles(Request $request)
+    {
+        $offset = (int) ($request->get('start') ? $request->get('start') : 0);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
+        $userId = \Auth::user()->id;
+        $sentRequest = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+                       ->where('user_id', $userId)
+                        ->where(function ($query) {
+                            $query->whereNull('accepted')->orWhere('accepted', 0);
+                        })->orderBy('battles.updated_at', 'desc')->offset($offset)->limit($limit)->get()->toArray();
+
+        $data = [];
+        $i = 0;
+        foreach ($sentRequest as $battle_request) {
+            $data[$i]['battle_id'] = $battle_request['battle_id'];
+            $data[$i]['time'] = strtotime($battle_request['time']);
+            $battle_request['opponent_user_id'] = ($battle_request['opponent_user_id'] == $userId) ? $battle_request['user_id'] : $battle_request['opponent_user_id'];
+            $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
+            $i++;
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+    }
+
 
     /**
      * @api {get} /battles/finished  Get list of finished battles 
@@ -1051,24 +1075,52 @@ class BattleController extends Controller
         $useBattleData = array();
         $userId = \Auth::user()->id;
 
-        $battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
+        /*$battle_requests = Battles::select('battles.id as battle_id', 'user_id as opponent_user_id', 'first_name', 'last_name', 'photo_url', 'battles.created_at as time')
                         ->join('users', 'users.id', '=', 'battles.user_id')
                         ->where('opponent_user_id', $userId)
                         ->where(function ($query) {
                             $query->whereNull('accepted')->orWhere('accepted', 0);
                         })
-                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();
-        $data = [];
+                        ->orderBy('battles.updated_at', 'desc')->get()->toArray();*/
+
+        $receivedCount = Battles::select('battles.id as battle_id')
+                        ->where('opponent_user_id', $userId)
+                        ->where(function ($query) {
+                            $query->whereNull('accepted')->orWhere('accepted', 0);
+                        })->count();
+        /*$data = [];
         $i = 0;
         foreach ($battle_requests as $battle_request) {
-            $data[$i]['battle_id'] = $battle_request['battle_id'];
+            /*$data[$i]['battle_id'] = $battle_request['battle_id'];
             $data[$i]['time'] = strtotime($battle_request['time']);
             $data[$i]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $i++;
-        }
-        $useBattleData['received'] = $data;
+        }*/
+        $useBattleData['received'] = $receivedCount;
 
-        $requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
+        $sentCount = Battles::select('battles.id as battle_id')
+                        ->where('user_id', $userId)
+                        ->where(function ($query) {
+                            $query->whereNull('accepted')->orWhere('accepted', 0);
+                        })->count();
+
+        $useBattleData['sent'] = $sentCount;
+
+        $myBattlesCount = Battles::select('battles.id as battle_id')
+                        ->where(function ($query) use($userId) {
+                            $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
+                        })
+                        ->orWhere(function ($query) use($userId) {
+                            $query->where('user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
+                                $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
+                            });
+                        })->count();
+                        
+        $useBattleData['my_battles'] = $myBattlesCount;
+
+        /*$requested_by_opponent = Battles::select('battles.id as battle_id', 'user_id', 'opponent_user_id', 'battles.created_at  as time')
                         ->where(function ($query) use($userId) {
                             $query->where('opponent_user_id', $userId)->where('accepted', TRUE)->where(function ($query1) use($userId) {
                                 $query1->where('user_finished', 0)->orWhereNull('user_finished')->orWhere('opponent_finished', 0)->orWhereNull('opponent_finished');
@@ -1089,9 +1141,9 @@ class BattleController extends Controller
             $my_battle_data[$j]['opponent_user'] = User::get($battle_request['opponent_user_id']);
             $j++;
         }
-        $useBattleData['my_battles'] = $my_battle_data;
+        $useBattleData['my_battles'] = $j;
         $finished = Battles::getFinishedBattles($userId);
-        $useBattleData['finished'] = $finished['finished'];
+        $useBattleData['finished'] = $finished['finished'];*/
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $useBattleData]);
     }
@@ -1317,6 +1369,7 @@ class BattleController extends Controller
         $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         $userId = $request->get('user_id');
+        //$userId = \Auth::user()->id;
 
         $data = Battles::getFinishedBattles($userId, null, $offset, $limit);
 

@@ -10,6 +10,9 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\JWTAuth;
 
+ini_set('display_errors',1);
+error_reporting(E_ALL);
+
 class AuthController extends Controller
 {
     /**
@@ -147,7 +150,6 @@ class AuthController extends Controller
         // Subscription check flag for app to check user's subscription status on google/appstore 
         $subscriptionCheck = User::select('id as subscription_check')->where('id', $user['id'])->pluck('subscription_check')->first();
         $user['subscription_check'] = (bool) $subscriptionCheck;
-        
         //\Auth::user()->update(['login_count' => $user['login_count'] + 1]);
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'user' => $user]);
     }

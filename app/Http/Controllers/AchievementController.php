@@ -88,27 +88,42 @@ class AchievementController extends Controller
                 $userBadgeID = NULL;
                 $achievementTypeID = $data['id'];
 
-                if (isset($userAchievements[$achievementTypeID])) {
-                    $count = $userAchievements[$achievementTypeID]['count'];
-                    $userBadgeID = $userAchievements[$achievementTypeID]['id'];
-                    $userBadgeValue = $userAchievements[$achievementTypeID]['metric_value'];
-                    $shared = filter_var($userAchievements[$achievementTypeID]['shared'], FILTER_VALIDATE_BOOLEAN);
-                    $awarded = filter_var($userAchievements[$achievementTypeID]['awarded'], FILTER_VALIDATE_BOOLEAN);
+                $achievementArr = array('2','3','5','6','7','9','10','11','12');
+
+                if(strtolower(date('l'))=='monday'){
+                    $perviousMonday = date('Y-m-d');
+                }
+                else{
+                    $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
                 }
 
-                $resultData['id'] = $userBadgeID;
-                $resultData['achievement_name'] = $checkData['name'];
-                $resultData['badge_name'] = $data['name'];
-                $resultData['description'] = $data['description'];
-                $resultData['image'] = $data['image'];
-                $resultData['badge_value'] = $userBadgeValue;
-                $resultData['min'] = $data['min'];
-                $resultData['max'] = $data['max'];
-                $resultData['count'] = $count;
-                $resultData['shared'] = $shared;
-                $resultData['awarded'] = $awarded;
+                if (isset($userAchievements[$achievementTypeID])) {
+                    
+                    if((in_array($checkData['id'],$achievementArr) && $userAchievements[$achievementTypeID]['created_at']>=$perviousMonday) || !in_array($checkData['id'],$achievementArr)){
+                        $count = $userAchievements[$achievementTypeID]['count'];
+                        $userBadgeID = $userAchievements[$achievementTypeID]['id'];
+                        $userBadgeValue = $userAchievements[$achievementTypeID]['metric_value'];
+                        $shared = filter_var($userAchievements[$achievementTypeID]['shared'], FILTER_VALIDATE_BOOLEAN);
+                        $awarded = filter_var($userAchievements[$achievementTypeID]['awarded'], FILTER_VALIDATE_BOOLEAN);
+                    }
 
-                $resultFinalData['badges'][] = $resultData;
+                }
+
+                //if((in_array($checkData['id'],$achievementArr) && $createdAt>=$perviousMonday) || !in_array($checkData['id'],$achievementArr)){
+                    $resultData['id'] = $userBadgeID;
+                    $resultData['achievement_name'] = $checkData['name'];
+                    $resultData['badge_name'] = $data['name'];
+                    $resultData['description'] = $data['description'];
+                    $resultData['image'] = $data['image'];
+                    $resultData['badge_value'] = $userBadgeValue;
+                    $resultData['min'] = $data['min'];
+                    $resultData['max'] = $data['max'];
+                    $resultData['count'] = $count;
+                    $resultData['shared'] = $shared;
+                    $resultData['awarded'] = $awarded;
+
+                    $resultFinalData['badges'][] = $resultData;
+                //}
             }
             
             $result[] = $resultFinalData;
