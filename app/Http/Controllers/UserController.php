@@ -43,18 +43,22 @@ class UserController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-                    'email' => 'required|max:64|unique:users',
-                        // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
+            'facebook_id' => 'facebook_id',
+            'email' => 'required|max:64|unique:users',
+            // 'password' => 'required|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*[~!@#$%^&*+_-])(?=.*\d)[A-Za-z0-9~!@#$%^&*+_-]{8,}$/',
         ]);
 
         if ($validator->fails()) {
             $errors = $validator->errors();
 
-            return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
+            if ($errors->get('facebook_id'))
+                return response()->json(['error' => 'true', 'message' => 'User already registered']);
+            elseif ($errors->get('email'))
+                return response()->json(['error' => 'true', 'message' => $errors->first('email')]);
         }
 
         // Creates a new user
-        $user = User::create([
+        $newUser = [
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
             'email' => $request->get('email'),
@@ -63,7 +67,13 @@ class UserController extends Controller
             'is_spectator' => 1,
             'login_count' => 0,
             'has_sensors' => 0
-        ]);
+        ];
+        
+        if ($request->get('facebook_id')) {
+            $newUser['facebook_id'] = $request->get('facebook_id');
+        }
+
+        $user = User::create($newUser);
 
         try {
             if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
@@ -123,7 +133,6 @@ class UserController extends Controller
 
         Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
 
-        
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'user' => $user]);
     }
 
@@ -247,7 +256,8 @@ class UserController extends Controller
                 return response()->json(['error' => 'true', 'message' => 'Email already registered']);
         }
 
-        $user = User::create(['facebook_id' => $request->get('facebook_id'),
+        $user = User::create([
+            'facebook_id' => $request->get('facebook_id'),
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
             'email' => $request->get('email'),
