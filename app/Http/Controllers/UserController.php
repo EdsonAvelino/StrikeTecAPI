@@ -2432,12 +2432,15 @@ class UserController extends Controller
         // Tournament invite notifications
         foreach ($_tournamentInviteNotifications as $notification) {
             $temp = $notification->toArray();
-            $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
 
-            $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
-            $temp['event_activity_id'] = $notification->data_id;
+            if ($notification->opponentUser) {
+                $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
+                $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
 
-            $notifications[] = $temp;
+                $temp['event_activity_id'] = $notification->data_id;
+
+                $notifications[] = $temp;
+            }
         }
 
         // Rest of all notifications
@@ -2447,30 +2450,27 @@ class UserController extends Controller
             if ($notification->opponentUser) {
                 $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
                 $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+
+                switch ($notification->notification_type_id) {
+                    case UserNotifications::BATTLE_CHALLENGED:
+                        $temp['battle_id'] = $notification->data_id;
+                        break;
+    
+                    case UserNotifications::BATTLE_FINISHED:
+                        $temp['battle_id'] = $notification->data_id;
+    
+                        $battle = \App\Battles::find($notification->data_id);
+                        $temp['battle_finished'] = ($battle) ? filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN) : null;
+                        break;
+    
+                    case UserNotifications::FEED_POST_LIKE:
+                    case UserNotifications::FEED_POST_COMMENT:
+                        $temp['post_id'] = $notification->data_id;
+                        break;
+                }
+    
+                $notifications[] = $temp;
             }
-            else {
-                $temp['opponent_user'] = new class{};
-            }
-            
-            switch ($notification->notification_type_id) {
-                case UserNotifications::BATTLE_CHALLENGED:
-                    $temp['battle_id'] = $notification->data_id;
-                    break;
-
-                case UserNotifications::BATTLE_FINISHED:
-                    $temp['battle_id'] = $notification->data_id;
-
-                    $battle = \App\Battles::find($notification->data_id);
-                    $temp['battle_finished'] = ($battle) ? filter_var((($battle->user_id == \Auth::id()) ? $battle->user_finished : $battle->opponent_finished), FILTER_VALIDATE_BOOLEAN) : null;
-                    break;
-
-                case UserNotifications::FEED_POST_LIKE:
-                case UserNotifications::FEED_POST_COMMENT:
-                    $temp['post_id'] = $notification->data_id;
-                    break;
-            }
-
-            $notifications[] = $temp;
         }
 
         return response()->json([
