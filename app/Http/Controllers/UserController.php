@@ -2186,11 +2186,23 @@ class UserController extends Controller
 
         $messagesCount = (int) @$chats->sum('messages_count');
 
-        $notificationsCount = UserNotifications::where('user_id', $userId)->where(function ($query) {
-                    $query->whereNull('is_read')->orWhere('is_read', 0);
-                })->orderBy('created_at', 'desc')->count();
+        $_notifications = UserNotifications::where('user_id', $userId)
+                    ->with(['opponentUser' => function ($query) {
+                        $query->select(['id', 'first_name', 'last_name']);
+                    }])
+                    ->where(function ($query) {
+                        $query->whereNull('is_read')->orWhere('is_read', 0);
+                    })
+                    ->orderBy('created_at', 'desc')->get();
+        
+        $notificationCount = 0;
+        foreach ($_notifications as $notification) {
+            if ($notification->opponentUser) {
+                $notificationCount++;
+            }
+        }
 
-        $unreadCounts = ['chat_count' => $messagesCount, 'notif_count' => $notificationsCount];
+        $unreadCounts = ['chat_count' => $messagesCount, 'notif_count' => $notificationCount];
 
         return response()->json(['error' => 'false', 'message' => '', 'data' => $unreadCounts]);
     }
@@ -2363,7 +2375,7 @@ class UserController extends Controller
     public function getNotifications(Request $request)
     {
         $offset = (int) ($request->get('start') ? $request->get('start') : 0);
-        $limit = (int) ($request->get('limit') ? $request->get('start') : 20);
+        $limit = (int) ($request->get('limit') ? $request->get('limit') : 20);
 
         // Current week's monday(start) to sunday(ends)
         $currentWeekStart = strtotime("last monday midnight");
@@ -2402,25 +2414,29 @@ class UserController extends Controller
 
         $percentage = @(($currentWeekMaxAvgForce / $lastWeekMaxAvgForce) * 100);
 
-        $_notifications = UserNotifications::with(['opponentUser' => function ($query) {
+        $_notifications = UserNotifications::where('user_id', \Auth::user()->id)
+                    ->with(['opponentUser' => function ($query) {
                         $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
-                    }])->where('user_id', \Auth::user()->id)
+                    }])
                     /*->where(function($q) {
                         $q->whereNull('is_read')->orWhere('is_read', 0);
                     })*/
                     ->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-                    ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
-                    ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
+                    // ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
+                    ->orderBy('created_at', 'desc')
+                    ->offset($offset)->limit($limit)->get();
 
-        $_tournamentInviteNotifications = UserNotifications::with(['opponentUser' => function ($query) {
+        $_tournamentInviteNotifications = UserNotifications::where('user_id', \Auth::user()->id)
+                    ->with(['opponentUser' => function ($query) {
                         $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
-                    }])->where('user_id', \Auth::user()->id)
+                    }])
                     /*->where(function($q) {
                         $q->whereNull('is_read')->orWhere('is_read', 0);
                     })*/
                     ->where('notification_type_id', '=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-                    ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
-                    ->orderBy('created_at', 'desc')->offset($offset)->limit($limit)->get();
+                    // ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
+                    ->orderBy('created_at', 'desc')
+                    ->offset($offset)->limit($limit)->get();
 
         $notifications = [];
 
