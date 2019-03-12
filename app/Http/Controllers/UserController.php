@@ -2443,9 +2443,15 @@ class UserController extends Controller
         // Rest of all notifications
         foreach ($_notifications as $notification) {
             $temp = $notification->toArray();
-            $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
 
-            $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+            if ($notification->opponentUser) {
+                $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
+                $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
+            }
+            else {
+                $temp['opponent_user'] = new class{};
+            }
+            
             switch ($notification->notification_type_id) {
                 case UserNotifications::BATTLE_CHALLENGED:
                     $temp['battle_id'] = $notification->data_id;
