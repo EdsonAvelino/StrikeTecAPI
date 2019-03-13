@@ -2587,6 +2587,42 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * @api {get} /user/notifications/read/all Mark all notifications read
+     * @apiGroup Users
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
+     *     }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "false",
+     *          "message": "Marked all notifications read",
+     *      }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function readAllNotifications(Request $request)
+    {
+        UserNotifications::where('user_id', \Auth::id())
+            ->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
+            ->update(['is_read' => 1, 'is_new' => 0, 'read_at' => date('Y-m-d H:i:s')]);
+        
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Marked all notifications read'
+        ]);
+    }
+
     /*public function runSomethingInServer()
     {
         UserConnections::where('user_id', 164);  
