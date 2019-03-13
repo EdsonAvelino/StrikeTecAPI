@@ -2212,6 +2212,8 @@ class UserController extends Controller
             ->where(function ($query) {
                 $query->whereNull('is_read')->orWhere('is_read', 0);
             })
+            ->where('is_new', 1)
+            ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
             ->orderBy('created_at', 'desc')->get();
 
         $notificationCount = 0;
@@ -2442,11 +2444,8 @@ class UserController extends Controller
             ->with(['opponentUser' => function ($query) {
                 $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
             }])
-            /*->where(function($q) {
-                        $q->whereNull('is_read')->orWhere('is_read', 0);
-                    })*/
             ->where('notification_type_id', '!=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-            // ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
+            ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
             ->orderBy('created_at', 'desc')
             ->offset($offset)->limit($limit)->get();
 
@@ -2454,11 +2453,8 @@ class UserController extends Controller
             ->with(['opponentUser' => function ($query) {
                 $query->select(['id', 'first_name', 'last_name', 'photo_url', \DB::raw('id as user_following'), \DB::raw('id as user_follower'), \DB::raw('id as points')]);
             }])
-            /*->where(function($q) {
-                        $q->whereNull('is_read')->orWhere('is_read', 0);
-                    })*/
             ->where('notification_type_id', '=', UserNotifications::TOURNAMENT_ACTIVITY_INVITE)
-            // ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
+            ->where('created_at','>=',date('Y-m-d 00:00:00',strtotime('-30 days')))
             ->orderBy('created_at', 'desc')
             ->offset($offset)->limit($limit)->get();
 
@@ -2473,11 +2469,20 @@ class UserController extends Controller
         foreach ($_tournamentInviteNotifications as $notification) {
             $temp = $notification->toArray();
 
+            if ($notification->is_new == true) {
+                $notification->is_new = false;
+                $notification->save();
+            }
+
             if ($notification->opponentUser) {
                 $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
                 $temp['text'] = str_replace('_USER1_', $opponentUserFullName, $notification->text);
 
                 $temp['event_activity_id'] = $notification->data_id;
+
+                if ($notification->is_read) {
+                    $temp['is_new'] = 0;
+                }
 
                 $notifications[] = $temp;
             }
@@ -2486,6 +2491,11 @@ class UserController extends Controller
         // Rest of all notifications
         foreach ($_notifications as $notification) {
             $temp = $notification->toArray();
+
+            if ($notification->is_new == true) {
+                $notification->is_new = false;
+                $notification->save();
+            }
 
             if ($notification->opponentUser) {
                 $opponentUserFullName = $notification->opponentUser->first_name . ' ' . $notification->opponentUser->last_name;
@@ -2507,6 +2517,10 @@ class UserController extends Controller
                     case UserNotifications::FEED_POST_COMMENT:
                         $temp['post_id'] = $notification->data_id;
                         break;
+                }
+
+                if ($notification->is_read) {
+                    $temp['is_new'] = 0;
                 }
 
                 $notifications[] = $temp;
