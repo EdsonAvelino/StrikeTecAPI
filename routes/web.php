@@ -113,6 +113,7 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
 
             $app->get('/user/notifications', 'UserController@getNotifications');
             $app->get('/user/notifications/read/{notificationId}', 'UserController@readNotifications');
+            $app->get('/user/notifications/read_all', 'UserController@readAllNotifications');
         });
 
 

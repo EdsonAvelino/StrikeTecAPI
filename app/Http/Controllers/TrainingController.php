@@ -315,7 +315,7 @@ class TrainingController extends Controller
 
         $sessions = []; //Will be use for response
 
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
             \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
             \Log::info('The Request Data - ' , $data);
             \Log::info('Auth User ID - ' . \Auth::user()->id);
@@ -579,7 +579,7 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $rounds = [];
 
-        if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
 
             \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
             \Log::info('The Request Data - ' , $data); 
@@ -595,7 +595,7 @@ class TrainingController extends Controller
                 
                 $_round = $testRound->first();
 
-                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {                    
+                if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
                     \Log::info('storeSessionsRounds() Session Start Time - ' . $round['session_start_time']);
                     \Log::info('Count For Get sessions Rounds - '. $testRound->count());
                 }
@@ -615,7 +615,7 @@ class TrainingController extends Controller
                         'best_time' => $round['best_time'],
                     ]);
 
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
                         \Log::info('Create NEW Session Round Data - ' , [$_round]);
                     }
                 }
@@ -665,7 +665,7 @@ class TrainingController extends Controller
                 // Check if punches already exists
                 $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
                     \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
                     \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
                 }
@@ -691,7 +691,7 @@ class TrainingController extends Controller
                         'is_correct' => $isCorrect,
                     ]);
 
-                    if (\Auth::user()->id == 1 || \Auth::user()->id == 236 || \Auth::user()->id == 7) {
+                    if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
                         \Log::info('Created NEW Round Punches data- '.$_punch);
                     }
                 }
@@ -1369,7 +1369,7 @@ class TrainingController extends Controller
 
             $pushToUserId = $battle->opponent_user_id;
             $pushOpponentUserId = $battle->user_id;
-        } elseif (\Auth::user()->id == $battle->opponent_user_id) {
+        } else if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
             $battle->opponent_finished = 1;
             $battle->opponent_finished_at = date('Y-m-d H:i:s');
 
