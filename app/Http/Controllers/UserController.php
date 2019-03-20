@@ -2588,7 +2588,7 @@ class UserController extends Controller
     }
 
     /**
-     * @api {get} /user/notifications/read/all Mark all notifications read
+     * @api {get} /user/notifications/read_all Mark all notifications read
      * @apiGroup Users
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
