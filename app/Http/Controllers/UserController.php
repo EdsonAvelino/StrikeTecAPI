@@ -65,6 +65,7 @@ class UserController extends Controller
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
             'is_spectator' => 1,
+            'is_coach' => 0,
             'login_count' => 0,
             'has_sensors' => 0
         ];
@@ -205,6 +206,7 @@ class UserController extends Controller
      *          "is_spectator": 0,
      *          "stance": null,
      *          "show_tip": 1,
+     *          "is_coach": 0,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
@@ -263,7 +265,8 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'is_coach' => 0
         ]);
 
         try {
@@ -338,6 +341,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [is_spectator] Spectator true / false
      * @apiParam {String} [stance] Stance
      * @apiParam {Boolean} [show_tip] Show tips true / false
+     * @apiParam {Boolean} [is_coach] Coach/Boxer (Coach: true, Boxer: false)
      * @apiParam {String} [skill_level] Skill level of user
      * @apiParam {String} [photo_url] User profile photo-url
      * @apiParam {Number} [city_id] City ID
@@ -355,6 +359,7 @@ class UserController extends Controller
      *      "height_inches": 11,
      *      "is_spectator": true,
      *      "stance": "traditional",
+     *      "is_coach": false,
      *    }
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
@@ -401,6 +406,9 @@ class UserController extends Controller
 
             $showTip = filter_var($request->get('show_tip'), FILTER_VALIDATE_BOOLEAN);
             $user->show_tip = $request->get('show_tip') ? $showTip : $user->show_tip;
+
+            $isCoach = filter_var($request->get('is_coach'), FILTER_VALIDATE_BOOLEAN);
+            $user->is_coach = $request->get('is_coach') ? $isCoach : $user->is_coach;
 
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
@@ -1029,6 +1037,7 @@ class UserController extends Controller
      *              "is_spectator": 0,
      *              "stance": null,
      *              "show_tip": 1,
+     *              "is_coach": 0,
      *              "skill_level": null,
      *              "photo_url": "http://image.example.com/profile/pic.jpg",
      *              "updated_at": "2016-02-10 15:46:51",

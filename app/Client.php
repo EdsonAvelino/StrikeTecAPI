@@ -36,7 +36,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'right_kick_sensor',
         'is_spectator',
         'stance',
-        'is_spectator',
+        'is_coach',
         'show_tip',
         'photo_url',
         'city_id',
@@ -189,6 +189,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
             'first_name',
             'last_name',
             'photo_url',
+            'is_coach',
             \DB::raw('id as user_following'),
             \DB::raw('id as user_follower'),
             \DB::raw('id as points')
