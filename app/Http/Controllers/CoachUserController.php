@@ -336,7 +336,7 @@ class CoachUserController extends Controller
 
         $gameId = (int)$request->get('game_id');
 
-        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('user_id', $request->get('client_id'))->where('game_id', $gameId)->first();
+        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('client_id', $request->get('client_id'))->where('game_id', $gameId)->first();
 
         $data = new \stdClass;
 
@@ -422,7 +422,7 @@ class CoachUserController extends Controller
             $combos = \App\ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
 
             $clientTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))
-                ->where('user_id', $request->get('client_id'))->where('type_id', \App\Types::COMBO)
+                ->where('client_id', $request->get('client_id'))->where('type_id', \App\Types::COMBO)
                 ->whereIn('plan_id', $combos)
                 // ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
                 ->groupBy('plan_id')->get()->count();
@@ -681,9 +681,9 @@ class CoachUserController extends Controller
         }
 
         $clientPoints = Client::select('id as points')->where('id', $clientId)->pluck('points')->first();
-        $clientData['points'] = (int)$userPoints;
+        $clientData['points'] = (int)$clientPoints;
 
-        $leaderboard = Leaderboard::where('user_id', $clientId)->first();
+        $leaderboard = Leaderboard::where('client_id', $clientId)->first();
 
         //$data = $this->getAvgSpeedAndForce($clientId);
 
@@ -726,11 +726,11 @@ class CoachUserController extends Controller
 
         //$battles = Battles::getFinishedBattles($clientId);
 
-        $won = \App\Battles::where('winner_user_id', $clientId)->count();
+        $won = \App\Battles::where('winner_client_id', $clientId)->count();
         $lost = \App\Battles::where(function ($query) use ($clientId) {
-                $query->where('user_id', $clientId)->orWhere('opponent_user_id', $clientId);
+                $query->where('client_id', $clientId)->orWhere('opponent_client_id', $clientId);
             })
-            ->where('winner_user_id', '!=', $clientId)->count();
+            ->where('winner_client_id', '!=', $clientId)->count();
 
         $client['lose_counts'] = $lost;
         $client['win_counts'] = $won;
@@ -750,7 +750,7 @@ class CoachUserController extends Controller
     private function getAvgSpeedAndForce($clientId)
     {
         $session = Sessions::select('id', 'start_time', 'end_time')
-            ->where('user_id', $clientId)
+            ->where('client_id', $clientId)
             ->where(function ($query) {
                 $query->whereNull('battle_id')->orWhere('battle_id', '0');
             })->get()->toArray();
@@ -770,7 +770,7 @@ class CoachUserController extends Controller
                 \DB::raw('AVG(avg_force) as avg_forces'),
                 \DB::raw('MAX(punches_count) as avg_punch')
             )
-            ->where('user_id', $clientId)->where(function ($query) {
+            ->where('_id', $clientId)->where(function ($query) {
                 $query->whereNull('battle_id')->orWhere('battle_id', '0');
             })->first();
 
