@@ -149,10 +149,8 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             // Get rounds by Training-Type
             $app->get('/user/training/sessions/rounds_by_training', 'TrainingController@getSessionsRoundsByTrainingType');
 
-
             // Get particular session
             $app->get('/user/training/sessions/for_comparison', 'TrainingController@getSessionForComparison');
-
 
                 // Training sessions list
                 $app->get('/user/training/sessions', 'TrainingController@getSessions');
@@ -160,11 +158,17 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
                 // Get particular session
                 $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
 
+                // Get particular client session
+                $app->get('/user/training/sessions/client/{sessionId}', 'TrainingController@getClientSession');
+
                 // Save Training sessions
                 $app->post('/user/training/sessions', 'TrainingController@storeSessions');
 
                 // Archive Traning session
                 $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
+
+                // Archive Client's Traning session
+                $app->patch('/user/training/sessions/{sessionId}/client/{clientId}/archive', 'TrainingController@archiveClientSession');
 
                 // Get round and its punches
                 $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');

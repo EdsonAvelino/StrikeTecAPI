@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 
 use App\Sessions;
+use App\ClientSessions;
 use App\SessionRounds;
 use App\SessionRoundPunches;
 use App\Leaderboard;
@@ -39,6 +40,7 @@ class TrainingController extends Controller
      * @apiParamExample {json} Input
      *    {
      *      "data_file": "csv_file_to_upload.csv",
+     *      "client_id": 54
      *    }
      * @apiSuccess {Boolean} error Error flag 
      * @apiSuccess {String} message Error message
@@ -96,8 +98,6 @@ class TrainingController extends Controller
      */
     public function getSessions(Request $request)
     {
-        $userId = \Auth::user()->id;
-
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         $trainingTypeId = (int) $request->get('type_id');
@@ -108,7 +108,12 @@ class TrainingController extends Controller
         $startDate = ($startDate) ? $startDate * 1000 : null;
         $endDate = ($endDate) ? ($endDate * 1000) - 1 : null;
 
-        $_sessions = Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'shared', 'created_at', 'updated_at'])->where('user_id', $userId);
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
+
+        $_sessions = ($clientId == null)
+            ? Sessions::select(['id', 'user_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'shared', 'created_at', 'updated_at'])->where('user_id', $userId)
+            : ClientSessions::select(['id', 'client_id', 'type_id', 'start_time', 'end_time', 'plan_id', 'avg_speed', 'avg_force', 'punches_count', 'max_speed', 'max_force', 'best_time', 'shared', 'created_at', 'updated_at'])->where('client_id', $clientId);
 
         // Exclude battle & game sessions
         $_sessions->where(function ($query) {
@@ -138,12 +143,15 @@ class TrainingController extends Controller
             switch ($_session->type_id) {
                 case \App\Types::COMBO:
                     $plan = \App\Combos::get($_session->plan_id);
+                    // $plan = \App\Combos::get($_session->plan_id, $clientId);
                     break;
                 case \App\Types::COMBO_SET:
                     $plan = \App\ComboSets::get($_session->plan_id);
+                    // $plan = \App\ComboSets::get($_session->plan_id, $clientId);
                     break;
                 case \App\Types::WORKOUT:
                     $plan = \App\Workouts::getOptimized($_session->plan_id);
+                    // $plan = \App\Workouts::get($_session->plan_id, $clientId);
                     break;
                 default:
                     $plan = null;
@@ -187,8 +195,6 @@ class TrainingController extends Controller
      */
     public function getSession($sessionId)
     {
-        $userId = \Auth::user()->id;
-
         $session = Sessions::where('id', $sessionId)->first();
         $rounds = SessionRounds::where('session_id', $sessionId)->get();
 
@@ -238,6 +244,63 @@ class TrainingController extends Controller
     }
 
     /**
+     * @api {get} /user/training/sessions/client/<session_id> Get client session and its rounds
+     * @apiVersion 1.0.0
+     */
+    public function getClientSession($sessionId)
+    {
+        $session = ClientSessions::where('id', $sessionId)->first();
+        $rounds = SessionRounds::where('session_id', $sessionId)->get();
+
+        if (empty($session)) {
+            return response()->json([
+                'error' => 'false',
+                'message' => '',
+                'session' => null,
+                'rounds' => null
+            ]);
+        }
+
+        $_session = $session->toArray();
+
+        switch ($session->type_id) {
+            case \App\Types::COMBO:
+                $plan = \App\Combos::get($session->plan_id);
+                // $plan = \App\Combos::get($_session->plan_id, $clientId);
+                break;
+            case \App\Types::COMBO_SET:
+                $plan = \App\ComboSets::get($session->plan_id);
+                // $plan = \App\ComboSets::get($_session->plan_id, $clientId);
+                break;
+            case \App\Types::WORKOUT:
+                $plan = \App\Workouts::get($session->plan_id);
+                // $plan = \App\Workouts::get($_session->plan_id, $clientId);
+                break;
+            default:
+                $plan = null;
+        }
+
+        if ($plan) {
+            $planDetail = [
+                'id' => $plan['id'],
+                'name' => $plan['name'],
+                'description' => $plan['description'],
+                'detail' => $plan['detail']
+            ];
+
+            $_session['plan_detail'] = ['type_id' => (int) $session->type_id, 'data' => json_encode($planDetail)];
+        }
+        
+
+        return response()->json([
+            'error' => 'false',
+            'message' => '',
+            'session' => $_session,
+            'rounds' => $rounds->toArray()
+        ]);
+    }
+
+    /**
      * @api {get} /user/training/sessions/for_comparison Get session of particular type to compare with last
      * @apiVersion 1.0.0
      */
@@ -246,13 +309,24 @@ class TrainingController extends Controller
         $sessionId = $request->get('session_id');
         $typeId = $request->get('type_id');
 
-        $_sessions = Sessions::where(function($query) use ($sessionId) {
-            $query->where('id', $sessionId)->orWhere('id', '<', $sessionId);
-        })->where('type_id', $typeId)->where(function($query) {
-            $query->whereNull('is_archived')->orWhere('is_archived', 0);
-        })->where('user_id', \Auth::id())
-        ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
-        ->orderBy('id', 'desc')->limit(2)->get();
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
+
+        $_sessions = ($clientId == null)
+            ? Sessions::where(function($query) use ($sessionId) {
+                            $query->where('id', $sessionId)->orWhere('id', '<', $sessionId);
+                        })->where('type_id', $typeId)->where(function($query) {
+                            $query->whereNull('is_archived')->orWhere('is_archived', 0);
+                        })->where('user_id', $userId)
+                        ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+                        ->orderBy('id', 'desc')->limit(2)->get()
+            : ClientSessions::where(function($query) use ($sessionId) {
+                            $query->where('id', $sessionId)->orWhere('id', '<', $sessionId);
+                        })->where('type_id', $typeId)->where(function($query) {
+                            $query->whereNull('is_archived')->orWhere('is_archived', 0);
+                        })->where('client_id', $clientId)
+                        ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
+                        ->orderBy('id', 'desc')->limit(2)->get();
 
         if (empty($_sessions)) {
             return response()->json([
@@ -270,12 +344,15 @@ class TrainingController extends Controller
             switch ($_session->type_id) {
                 case \App\Types::COMBO:
                     $plan = \App\Combos::get($_session->plan_id);
+                    // $plan = \App\Combos::get($_session->plan_id, $clientId);
                     break;
                 case \App\Types::COMBO_SET:
                     $plan = \App\ComboSets::get($_session->plan_id);
+                    // $plan = \App\ComboSets::get($_session->plan_id, $clientId);
                     break;
                 case \App\Types::WORKOUT:
                     $plan = \App\Workouts::get($_session->plan_id);
+                    // $plan = \App\Workouts::get($_session->plan_id, $clientId);
                     break;
                 default:
                     $plan = null;
@@ -310,38 +387,38 @@ class TrainingController extends Controller
      */
     public function storeSessions(Request $request)
     {
-
         $data = $request->get('data');
+        
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
 
         $sessions = []; //Will be use for response
 
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        if ($userId == 342 || $userId == 361) {
             \Log::info('Api Url {post} /user/training/sessions  (Training - Upload sessions)');
             \Log::info('The Request Data - ' , $data);
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
-        
 
         $gameSession = false;
 
         $sessionCount = $sessionPunchesCount = 0;
         
         foreach ($data as $session) {
-
             try {
-
-                // Checking if session already exists
-                $_session = Sessions::where('start_time', $session['start_time'])->first();
-
                 $sessionStartTime = $session['start_time'];
                 $sessionPunchesCount += $session['punches_count'];
                 $sessionCount++;
                 $maxForceArr[] = $session['max_force'];
                 $maxSpeedArr[] = $session['max_speed'];
 
+                // Checking if session already exists
+                $_session = ($clientId == null)
+                    ? Sessions::where('start_time', $session['start_time'])->first()
+                    : ClientSessions::where('start_time', $session['start_time'])->first();
+
                 if (!$_session) {
-                    $_session = Sessions::create([
-                        'user_id' => \Auth::user()->id,
+                    $newSession = [
                         'battle_id' => ($session['battle_id']) ?? null,
                         'game_id' => ($session['game_id']) ?? null,
                         'type_id' => $session['type_id'],
@@ -354,23 +431,36 @@ class TrainingController extends Controller
                         'max_force' => $session['max_force'],
                         'max_speed' => $session['max_speed'],
                         'best_time' => $session['best_time']
-                    ]);
+                    ];
+
+                    if ($clientId == null) {
+                        $newSession['user_id'] = $userId;
+                    }
+                    else {
+                        $newSession['client_id'] = $clientId;
+                    }
+                    
+                    $_session = ($clientId == null)
+                        ? Sessions::create($newSession)
+                        : ClientSessions::create($newSession);
                     
                     $sessionIdArr[] = $_session->id;
                     SessionRounds::where('session_start_time', $_session->start_time)->update(['session_id' => $_session->id]);
                     
                     // Update battle details, if any
-                    if ($_session->battle_id) {
-                        $this->updateBattle($_session->battle_id);
-                    }
-                    // Game stuff
-                    elseif ($_session->game_id) {
-                        $gameSession = true;
-                        $this->updateGameLeaderboard($_session->game_id, $_session->id);
-                    }
-                    // Goal updates
-                    else {
-                        $this->updateGoal($_session);
+                    if ($clientId != null) {
+                        if ($_session->battle_id) {
+                            $this->updateBattle($_session->battle_id);
+                        }
+                        // Game stuff
+                        elseif ($_session->game_id) {
+                            $gameSession = true;
+                            $this->updateGameLeaderboard($_session->game_id, $_session->id);
+                        }
+                        // Goal updates
+                        else {
+                            $this->updateGoal($_session);
+                        }
                     }
                     
                 } else {
@@ -423,8 +513,11 @@ class TrainingController extends Controller
             //$sessionsCount = Sessions::where('user_id', \Auth::user()->id)->count();
             //$punchesCount = Sessions::select(\DB::raw('SUM(punches_count) as punches_count'))->where('user_id', \Auth::user()->id)->pluck('punches_count')->first();
             // Create / Update Leaderboard entry for this user
-            $leaderboardStatus = Leaderboard::where('user_id', \Auth::user()->id)->first();
-            // Set all old averate data to 0
+            $leaderboardStatus = ($clientId == null)
+                ? Leaderboard::where('user_id', $userId)->first()
+                : Leaderboard::where('client_id', $clientId)->first();
+            
+                // Set all old averate data to 0
             $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = $oldTotalDaysTrained = 0;
              
             $oldAvgSpeed = $leaderboardStatus->avg_speed;
@@ -471,10 +564,8 @@ class TrainingController extends Controller
             
             $sessionIds = join("','",$sessionIdArr);   
 
-            $temp = SessionRounds::select(
-                                    \DB::raw('SUM(pause_duration) as pause_duration')
-                            )
-                            ->whereRaw('session_id IN ("'.$sessionIds.'")', [\Auth::user()->id])->first();
+            $temp = SessionRounds::select(\DB::raw('SUM(pause_duration) as pause_duration'))
+                            ->whereRaw('session_id IN ("'.$sessionIds.'")', [$clientId ?? $userId])->first();
 
             $pauseDuration = $temp->pause_duration;                            
 
@@ -529,21 +620,48 @@ class TrainingController extends Controller
     }
 
     /**
+     * @api {patch} /user/training/sessions/<session_id>/client/<client_id>/archive Archive session
+     */
+    public function archiveClientSession($sessionId, $clientId)
+    {
+        $sessionId = (int) $sessionId;
+        
+        $session = ClientSessions::where('id', $sessionId)->where('client_id', $clientId)->first();
+
+        if (!$sessionId || !$session) {
+            return response()->json([
+                'error' => 'true',
+                'message' => 'Invalid request or session not found',
+            ]);
+        }
+
+        $session->is_archived = true;
+        $session->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Session has been archived',
+        ]);
+    }
+
+    /**
      * @api {get} /user/training/sessions/rounds/{round_id} Get rounds and its punches
      */
     public function getSessionsRound($roundId)
     {
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        $userId = \Auth::user()->id;
+
+        if ($userId == 342 || $userId == 361) {
             \Log::info('Api Url {get} /user/training/sessions/rounds/{round_id}  (Get rounds and its punches)');
             \Log::info('The Round ID - ' . $roundId);
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
 
         $rounds = SessionRounds::where('id', $roundId)->get();
 
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        if ($userId == 342 || $userId == 361) {
             \Log::info('The Round Data - ' , $rounds->toArray());
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
 
         // If round not found, it will return null
@@ -558,9 +676,9 @@ class TrainingController extends Controller
 
         $punches = SessionRoundPunches::where('session_round_id', $roundId)->get();
 
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        if ($userId == 342 || $userId == 361) {
             \Log::info('The Round Punches Data - ' , $punches->toArray());
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
 
         return response()->json([
@@ -579,11 +697,13 @@ class TrainingController extends Controller
         $data = $request->get('data');
         $rounds = [];
 
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
 
+        if ($userId == 342 || $userId == 361) {
             \Log::info('Api Url {post} /user/training/sessions/rounds  (Training - Upload sessions rounds)');
             \Log::info('The Request Data - ' , $data); 
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
 
         try {
@@ -595,13 +715,12 @@ class TrainingController extends Controller
                 
                 $_round = $testRound->first();
 
-                if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+                if ($userId == 342 || $userId == 361) {
                     \Log::info('storeSessionsRounds() Session Start Time - ' . $round['session_start_time']);
                     \Log::info('Count For Get sessions Rounds - '. $testRound->count());
                 }
 
                 if (!$_round) {
-
                     $_round = SessionRounds::create([
                         'session_start_time' => $round['session_start_time'],
                         'start_time' => $round['start_time'],
@@ -615,14 +734,12 @@ class TrainingController extends Controller
                         'best_time' => $round['best_time'],
                     ]);
 
-                    if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+                    if ($userId == 342 || $userId == 361) {
                         \Log::info('Create NEW Session Round Data - ' , [$_round]);
                     }
                 }
 
                 $rounds[] = ['start_time' => $_round->start_time];
-
-                    
             }
 
             return response()->json([
@@ -632,7 +749,6 @@ class TrainingController extends Controller
             ]);
 
         } catch (Exception $e) {
-
             return response()->json([
                 'error' => 'true',
                 'message' => 'Invalid request',
@@ -646,13 +762,17 @@ class TrainingController extends Controller
     public function storeSessionsRoundsPunches(Request $request)
     {
         $data = $request->get('data');
+        
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
+
         $punches = [];
         $_newPunches = [];
 
-        if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        if ($userId == 342 || $userId->id == 361) {
             \Log::info('Api Url {post} /user/training/sessions/rounds/punches  (Training - Training - Upload rounds punches)');
             \Log::info('The Request Data - ' , $data);
-            \Log::info('Auth User ID - ' . \Auth::user()->id);
+            \Log::info('Auth User ID - ' . $userId);
         }
 
         /*
@@ -665,7 +785,7 @@ class TrainingController extends Controller
                 // Check if punches already exists
                 $_punch = SessionRoundPunches::where('punch_time', $punch['punch_time'])->where('session_round_id', $sessionRound->id)->first();
 
-                if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+                if ($userId == 342 || $userId == 361) {
                     \Log::info('Count For Get sessions Rounds Punches  - '. $testPunches->count());
                     \Log::info('storeSessionsRoundsPunches() Punch Time - ' . $punch['punch_time']);
                 }
@@ -691,7 +811,7 @@ class TrainingController extends Controller
                         'is_correct' => $isCorrect,
                     ]);
 
-                    if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+                    if ($userId == 342 || $userId == 361) {
                         \Log::info('Created NEW Round Punches data- '.$_punch);
                     }
                 }
@@ -841,7 +961,11 @@ class TrainingController extends Controller
     public function tips(Request $request)
     {
         $sessionId = (int) $request->get('session_id');
-        $data = $this->getTipsData($sessionId);
+
+        $userId = \Auth::user()->id;
+        $clientId = $request->get('client_id') ?? null;
+
+        $data = $this->getTipsData($sessionId, $userId, $clientId);
 
         if ($data === false) {
             return response()->json([
@@ -858,49 +982,77 @@ class TrainingController extends Controller
     }
 
     // Get data calculated for tips
-    private function getTipsData($sessionId)
+    private function getTipsData($sessionId, $userId, $clientId)
     {
-        $session = Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
+        $session = ($clientId == null)
+            ? Sessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
                         ->where(function ($query) use($sessionId) {
-                            $query->where('id', $sessionId)->where('user_id', \Auth::user()->id);
+                            $query->where('id', $sessionId)->where('user_id', $userId);
+                        })->first()
+            : ClientSessions::select('id', 'plan_id', 'type_id', 'avg_speed', 'avg_force')
+                        ->where(function ($query) use($sessionId) {
+                            $query->where('id', $sessionId)->where('client_id', $clientId);
                         })->first();
 
         if ($session) {
             $sessionType = $session->type_id;
             $sessionPlan = $session->plan_id;
             $sessionIds = $data = $force = [];
+
             if ($sessionType == 1 or $sessionType == 2) {
-                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->get()->toArray();
+                $sessionIds = ($clientId == null)
+                    ? Sessions::select('id')->where('user_id', $userId)
+                    : ClientSessions::select('id')->where('client_id', $clientId);
+                
+                $sessionIds->where('type_id', $sessionType)->where(function ($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })->get()->toArray();
 
-                $sessionData = Sessions::select(
-                                \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
-                        )->where('user_id', \Auth::user()->id)->where('type_id', $sessionType)->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->first();
-            } else {
-                $sessionIds = Sessions::select('id')->where('user_id', \Auth::user()->id)
-                                ->where(function ($query)use($sessionType, $sessionPlan) {
-                                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                                })->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->get()->toArray();
-
-                $sessionData = Sessions::select(
-                                \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
-                        )->where('user_id', \Auth::user()->id)->where(function ($query)use($sessionType, $sessionPlan) {
-                            $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
-                        })->where(function ($query) {
-                            $query->whereNull('battle_id')->orWhere('battle_id', '0');
-                        })->first();
+                $sessionData = ($clientId == null)
+                    ? Sessions::select(
+                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('user_id', $userId)
+                    : ClientSessions::select(
+                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('client_id', $clientId);
+                        
+                    $sessionData->where('type_id', $sessionType)->where(function ($query) {
+                        $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                    })->first();
             }
+            else {
+                $sessionIds = ($clientId == null)
+                    ? Sessions::select('id')->where('user_id', $userId)
+                    : ClientSessions::select('id')->where('client_id', $clientId);
+
+                $sessionIds->where(function ($query)use($sessionType, $sessionPlan) {
+                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                })->where(function ($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })->get()->toArray();
+
+                $sessionData = ($clientId == null)
+                    ? Sessions::select(
+                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('user_id', $userId)
+                    : ClientSessions::select(
+                            \DB::raw('MAX(avg_speed) as highest_speed'), \DB::raw('MIN(avg_speed) as lowest_speed'), \DB::raw('MAX(avg_force) as highest_force'), \DB::raw('MIN(avg_force) as lowest_force')
+                        )->where('client_id', $clientId);
+                        
+                $sessionData->where(function ($query)use($sessionType, $sessionPlan) {
+                    $query->where('type_id', $sessionType)->where('plan_id', $sessionPlan);
+                })->where(function ($query) {
+                    $query->whereNull('battle_id')->orWhere('battle_id', '0');
+                })->first();
+            }
+
             $data['current_speed'] = $session->avg_speed;
             $data['highest_speed'] = $sessionData->highest_speed;
             $data['lowest_speed'] = $sessionData->lowest_speed;
             $data['current_force'] = $session->avg_force;
             $data['highest_force'] = $sessionData->highest_force;
             $data['lowest_force'] = $sessionData->lowest_force;
+            
             $sessionRounds = SessionRounds::with('punches')->select('id', 'session_id')->whereIn('session_id', $sessionIds)->get()->toArray();
             $roundForcesSum = [];
             $forceCount = 0;
@@ -922,7 +1074,11 @@ class TrainingController extends Controller
             $data['current_damage'] = (int) $sessionForce[$sessionId];
             $data['highest_damage'] = max($sessionForce);
             $data['lowest_damage'] = min($sessionForce);
-            $missingPunches = Sessions::getMissingPunches($session);
+            
+            $missingPunches = ($clientId == null)
+                ? Sessions::getMissingPunches($session)
+                : ClientSessions::getMissingPunches($session);
+
             $data['missing_punches'] = $missingPunches;
 
             $tag = [];
