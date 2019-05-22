@@ -2,19 +2,10 @@
 
 namespace App;
 
-use Illuminate\Auth\Authenticatable;
-use Laravel\Lumen\Auth\Authorizable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
-use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
-class User extends Model implements AuthenticatableContract, AuthenticatableUserContract, AuthorizableContract
+class Client extends Model
 {
-
-    use Authenticatable,
-        Authorizable;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -24,8 +15,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'facebook_id',
         'first_name',
         'last_name',
-        'email',
-        'password',
+        'coach_user',
         'gender',
         'birthday',
         'weight',
@@ -36,7 +26,6 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'right_kick_sensor',
         'is_spectator',
         'stance',
-        'is_coach',
         'show_tip',
         'photo_url',
         'city_id',
@@ -50,27 +39,10 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
      * @var array
      */
     protected $hidden = [
-        'password',
         'country_id',
         'state_id',
         'city_id'
     ];
-
-    /**
-     * @return mixed
-     */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey(); // Eloquent model method
-    }
-
-    /**
-     * @return array
-     */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
 
     public function leaderboard()
     {
@@ -79,17 +51,7 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
     public function preferences()
     {
-        return $this->hasOne('App\UserPreferences', 'user_id');
-    }
-
-    public function followers()
-    {
-        return $this->hasMany('App\UserConnections', 'follow_user_id');
-    }
-
-    public function following()
-    {
-        return $this->hasMany('App\UserConnections', 'user_id');
+        return $this->hasOne('App\ClientPreferences', 'client_id');
     }
 
     public function country()
@@ -117,38 +79,24 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
             }
         });
 
-        static::created(function ($user) {
-            UserPreferences::create([
-                'user_id' => $user->id,
+        static::created(function ($client) {
+            ClientPreferences::create([
+                'client_id' => $client->id,
                 'public_profile' => true,
                 'show_achivements' => true,
                 'show_training_stats' => true,
                 'show_challenges_history' => true,
             ]);
             
-            Settings::create([
-                'user_id' => $user->id,
-                'new_challenges' => true,
-                'battle_update' => true,
-                'tournaments_update' => true,
-                'games_update' => true,
-                'new_message' => true,
-                'friend_invites' => true,
-                'sensor_connectivity' => true,
-                'app_updates' => true,
-                'striketec_promos' => true,
-                'striketec_news' => true
-            ]);
-
             Leaderboard::create([
-                'user_id' => $user->id,
+                'user_id' => $client->id,
                 'sessions_count' => 0,
                 'punches_count' => 0
             ]);
         });
 
-        static::deleting(function($user) {
-            // TODO Cleanup when user deleted, delete all their data & settings 
+        static::deleting(function($client) {
+            // TODO Cleanup when client deleted, delete all their data & settings 
         });
     }
 
@@ -157,42 +105,24 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         return ($birthday) ? \Carbon\Carbon::parse($birthday)->age : null;
     }
 
-    public function getUserFollowingAttribute($userId)
+    public function getPointsAttribute($clientId)
     {
-        $following = UserConnections::where('follow_user_id', $userId)
-                        ->where('user_id', \Auth::user()->id)->exists();
-
-        return (bool) $following;
-    }
-
-    public function getUserFollowerAttribute($userId)
-    {
-        $follower = UserConnections::where('user_id', $userId)
-                        ->where('follow_user_id', \Auth::user()->id)->exists();
-
-        return (bool) $follower;
-    }
-
-    public function getPointsAttribute($userId)
-    {
-        $leaderboard = Leaderboard::where('user_id', $userId)->first();
+        $leaderboard = Leaderboard::where('client_id', $clientId)->first();
 
         return ( (!empty($leaderboard)) ? $leaderboard->punches_count : 0 );
     }
 
-    // return minimum fields of user
-    // first_name, last_name, photo_url, user_following, user_follower and points
-    public static function get($userId)
+    // return minimum fields of client
+    // first_name, last_name, photo_url, and points
+    public static function get($clientId)
     {
         return self::select([
             'id',
             'first_name',
             'last_name',
+            'coach_user',
             'photo_url',
-            'is_coach',
-            \DB::raw('id as user_following'),
-            \DB::raw('id as user_follower'),
             \DB::raw('id as points')
-        ])->where('id', $userId)->first();
+        ])->where('id', $clientId)->first();
     }
 }

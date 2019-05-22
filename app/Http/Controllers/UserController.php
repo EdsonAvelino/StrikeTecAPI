@@ -347,7 +347,6 @@ class UserController extends Controller
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
-
      * @apiParamExample {json} Input
      *    {
      *      "first_name": "John",
