@@ -116,6 +116,29 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             $app->get('/user/notifications/read_all', 'UserController@readAllNotifications');
         });
 
+        // Coach User APIs
+        $app->group(['middleware' => 'auth:api'], function () use ($app) {
+            // Update client's profile data
+            $app->post('/coach/clients', 'CoachUserController@addClient');
+
+            // Search clients
+            $app->get('/coach/clients', 'CoachUserController@getClientsList');
+
+            // Update client's sensor data
+            $app->post('/coach/sensors', 'CoachUserController@updateSensors');
+
+            // Update client's preferences
+            $app->post('/coach/preferences', 'CoachUserController@updatePreferences');
+
+            // Get client's game score
+            $app->get('/coach/score', 'CoachUserController@getClientGameScores');
+
+            // Get client's progress
+            $app->get('/coach/progress', 'CoachUserController@getClientProgress');
+
+            // Get client's information
+            $app->get('/coach/{clientId}', 'CoachUserController@getClient');
+        });
 
         // Training APIs
         $app->group(['middleware' => 'auth:api'], function () use ($app) {

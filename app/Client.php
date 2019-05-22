@@ -46,7 +46,7 @@ class Client extends Model
 
     public function leaderboard()
     {
-        return $this->hasOne('App\Leaderboard', 'id', 'user_id');
+        return $this->hasOne('App\Leaderboard', 'id', 'client_id');
     }
 
     public function preferences()
@@ -89,7 +89,7 @@ class Client extends Model
             ]);
             
             Leaderboard::create([
-                'user_id' => $client->id,
+                'client_id' => $client->id,
                 'sessions_count' => 0,
                 'punches_count' => 0
             ]);

@@ -16,6 +16,7 @@ class Leaderboard extends Model
      */
     protected $fillable = [
         'user_id',
+        'client_id',
         'sessions_count',
         'avg_speed',
         'avg_force',
@@ -32,5 +33,10 @@ class Leaderboard extends Model
     public function user()
     {
         return $this->belongsTo('App\User');
+    }
+
+    public function client()
+    {
+        return $this->belongsTo('App\Client');
     }
 }
