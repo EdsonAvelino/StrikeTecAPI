@@ -14,7 +14,8 @@
         "guzzlehttp/guzzle": "~6.0",
         "google/apiclient": "^2.2",
         "rap2hpoutre/laravel-log-viewer": "^0.20.0",
-        "league/flysystem-aws-s3-v3": "^1.0"
+        "league/flysystem-aws-s3-v3": "^1.0",
+        "doctrine/dbal": "^2.9"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
