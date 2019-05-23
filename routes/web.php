@@ -124,20 +124,8 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
             // Search clients
             $app->get('/coach/clients', 'CoachUserController@getClientsList');
 
-            // Update client's sensor data
-            $app->post('/coach/client/sensors', 'CoachUserController@updateSensors');
-
-            // Update client's preferences
-            $app->post('/coach/client/preferences', 'CoachUserController@updatePreferences');
-
-            // Get client's game score
-            $app->get('/coach/client/score', 'CoachUserController@getClientGameScores');
-
-            // Get client's progress
-            $app->get('/coach/client/progress', 'CoachUserController@getClientProgress');
-
             // Get client's information
-            $app->get('/coach/client/{clientId}', 'CoachUserController@getClient');
+            $app->get('/coach/client/{userId}', 'UserController@getUser');
         });
 
         // Training APIs
@@ -158,17 +146,11 @@ $app->group(['prefix' => 'api/v1'], function () use ($app) {
                 // Get particular session
                 $app->get('/user/training/sessions/{sessionId}', 'TrainingController@getSession');
 
-                // Get particular client session
-                $app->get('/user/training/sessions/client/{sessionId}', 'TrainingController@getClientSession');
-
                 // Save Training sessions
                 $app->post('/user/training/sessions', 'TrainingController@storeSessions');
 
                 // Archive Traning session
                 $app->patch('/user/training/sessions/{sessionId}/archive', 'TrainingController@archiveSession');
-
-                // Archive Client's Traning session
-                $app->patch('/user/training/sessions/{sessionId}/client/{clientId}/archive', 'TrainingController@archiveClientSession');
 
                 // Get round and its punches
                 $app->get('/user/training/sessions/rounds/{round_id}', 'TrainingController@getSessionsRound');

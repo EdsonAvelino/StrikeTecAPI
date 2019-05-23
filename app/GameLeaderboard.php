@@ -16,7 +16,6 @@ class GameLeaderboard extends Model
      */
     protected $fillable = [
         'user_id',
-        'client_id',
         'game_id',
         'score',
         'distance'
@@ -29,8 +28,4 @@ class GameLeaderboard extends Model
         return $this->belongsTo('App\User');
     }
 
-    public function client()
-    {
-        return $this->belongsTo('App\Client');
-    }
 }

@@ -66,6 +66,7 @@ class UserController extends Controller
             'show_tip' => 1,
             'is_spectator' => 1,
             'is_coach' => 0,
+            'is_client' => 0,
             'login_count' => 0,
             'has_sensors' => 0
         ];
@@ -207,6 +208,8 @@ class UserController extends Controller
      *          "stance": null,
      *          "show_tip": 1,
      *          "is_coach": 0,
+     *          "is_client": 0,
+     *          "coach_user": null,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
@@ -266,7 +269,8 @@ class UserController extends Controller
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
             'is_spectator' => 1,
-            'is_coach' => 0
+            'is_coach' => 0,
+            'is_client' => 0
         ]);
 
         try {
@@ -722,7 +726,9 @@ class UserController extends Controller
                 \DB::raw('id as user_follower'),
                 \DB::raw('id as points')
             ])
-            ->where('id', '<>', \Auth::id())->offset($offset)->limit($limit);
+            ->where('id', '<>', \Auth::id())
+            ->where('is_client', '<>', 1)
+            ->offset($offset)->limit($limit);
 
         if (!empty($firstname) && !empty($lastname)) {
             $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
@@ -1037,6 +1043,8 @@ class UserController extends Controller
      *              "stance": null,
      *              "show_tip": 1,
      *              "is_coach": 0,
+     *              "is_client": 0,
+     *              "coach_user": 464,
      *              "skill_level": null,
      *              "photo_url": "http://image.example.com/profile/pic.jpg",
      *              "updated_at": "2016-02-10 15:46:51",
@@ -1284,6 +1292,7 @@ class UserController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Boolean} [user_id] User ID, if not given, it will be logged in user's ID
      * @apiParam {Boolean} [public_profile] Profile show public
      * @apiParam {Boolean} [show_achivements] Show achivements on to public profile or not
      * @apiParam {Boolean} [show_training_stats] Show training statistics on to public profile or not
@@ -1292,6 +1301,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_tutorial] Show Tutorials
      * @apiParamExample {json} Input
      *    {
+     *      "user_id": 464
      *      "public_profile": true,
      *      "badge_notification": true
      *    }
@@ -1313,7 +1323,7 @@ class UserController extends Controller
      */
     public function updatePreferences(Request $request)
     {
-        $userId = \Auth::user()->id;
+        $userId = $request->get('user_id') ?? \Auth::user()->id;
 
         $user = User::find($userId);
         $userPreferences = $user->preferences;

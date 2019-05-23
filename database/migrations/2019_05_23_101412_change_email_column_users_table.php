@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddClientIdLeaderboardTable extends Migration
+class ChangeEmailColumnUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddClientIdLeaderboardTable extends Migration
      */
     public function up()
     {
-        Schema::table('leaderboard', function (Blueprint $table) {
-            $table->unsignedInteger('client_id')->nullable();
+        Schema::table('users', function (Blueprint $table) {
+            // $table->string('email',64)->nullable()->change();
         });
     }
 
@@ -25,8 +25,8 @@ class AddClientIdLeaderboardTable extends Migration
      */
     public function down()
     {
-        Schema::table('leaderboard', function (Blueprint $table) {
-            $table->dropColumn('client_id');
-        });
+        // Schema::table('leaderboard', function (Blueprint $table) {
+        //     $table->dropColumn('email');
+        // });
     }
 }
