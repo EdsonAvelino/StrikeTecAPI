@@ -3,6 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Client;
+use App\ClientSessions;
+use App\Leaderboard;
+use App\Battles;
+use App\SessionRounds;
+use App\SessionRoundPunches;
+use App\GameLeaderboard;
+use App\ComboTags;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -170,7 +177,7 @@ class CoachUserController extends Controller
     }
 
     /**
-     * @api {post} /coach/sensors Update client's sensor
+     * @api {post} /coach/client/sensors Update client's sensor
      * @apiGroup Coach
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization value
@@ -211,6 +218,7 @@ class CoachUserController extends Controller
         $rightHandSensor = $request->get('right_hand_sensor');
 
         $_client = Client::select('id', 'is_sharing_sensors')
+            ->where('coach_user', \Auth::id())
             ->where(function ($query) use ($leftHandSensor) {
                 $query->where('left_hand_sensor', $leftHandSensor)->orWhere('right_hand_sensor', $leftHandSensor);
             })->where(function ($query) use ($rightHandSensor) {
@@ -289,7 +297,7 @@ class CoachUserController extends Controller
     }
 
     /**
-     * @api {get} /coach/score Get client's score
+     * @api {get} /coach/client/score Get client's score
      * @apiGroup Game
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -336,7 +344,7 @@ class CoachUserController extends Controller
 
         $gameId = (int)$request->get('game_id');
 
-        $leaderboardData = \App\GameLeaderboard::select('game_id', 'score', 'distance')->where('client_id', $request->get('client_id'))->where('game_id', $gameId)->first();
+        $leaderboardData = GameLeaderboard::select('game_id', 'score', 'distance')->where('client_id', $request->get('client_id'))->where('game_id', $gameId)->first();
 
         $data = new \stdClass;
 
@@ -370,7 +378,7 @@ class CoachUserController extends Controller
     }
 
     /**
-     * @api {get} /coach/progress Get client's training progress
+     * @api {get} /coach/client/progress Get client's training progress
      * @apiGroup Coach
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -414,15 +422,16 @@ class CoachUserController extends Controller
      */
     public function getClientProgress(Request $request)
     {
-        $totalCombos = \App\ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
+        $totalCombos = ComboTags::select('filter_id', \DB::raw('COUNT(combo_id) as combos_count'))->groupBy('filter_id')->get();
 
         $result = [];
 
         foreach ($totalCombos as $row) {
-            $combos = \App\ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
+            $combos = ComboTags::select('combo_id')->where('filter_id', $row->filter_id)->get()->pluck('combo_id')->toArray();
 
-            $clientTrained = \App\Sessions::select('plan_id', \DB::raw('COUNT(id) as total'))
-                ->where('client_id', $request->get('client_id'))->where('type_id', \App\Types::COMBO)
+            $clientTrained = ClientSessions::select('plan_id', \DB::raw('COUNT(id) as total'))
+                ->where('client_id', $request->get('client_id'))
+                ->where('type_id', \App\Types::COMBO)
                 ->whereIn('plan_id', $combos)
                 // ->whereRaw('YEARWEEK(FROM_UNIXTIME(start_time / 1000), 1) = YEARWEEK(CURDATE(), 1)')
                 ->groupBy('plan_id')->get()->count();
@@ -497,7 +506,8 @@ class CoachUserController extends Controller
         
         $query = trim($request->get('query') ?? NULL);
 
-        $_clients = \App\Client::select('id', 'first_name', 'last_name', 'photo_url', 'skill_level', 'weight');
+        $_clients = Client::select('id', 'first_name', 'last_name', 'photo_url', 'skill_level', 'weight')
+                                ->where('coach_user', \Auth::id());
 
         if ($query) {
             $_clients->where(function ($q) use ($query) {
@@ -512,7 +522,7 @@ class CoachUserController extends Controller
     }
 
     /**
-     * @api {get} /coach/<client_id> Get client information
+     * @api {get} /coach/client/<client_id> Get client information
      * @apiGroup Coach
      * @apiHeader {String} authorization Authorization value
      * @apiHeaderExample {json} Header-Example:
@@ -670,7 +680,9 @@ class CoachUserController extends Controller
     {
         $clientId = (int)$clientId;
 
-        $clientData = Client::with(['photo_url', 'preferences', 'country', 'state', 'city'])->find($clientId);
+        // $clientData = Client::with(['photo_url', 'preferences', 'country', 'state', 'city'])->find($clientId);
+        $clientData = Client::with(['preferences', 'country', 'state', 'city'])->find($clientId);
+        $clientData = $clientData->toArray();
 
         // Validation
         if (!$clientId || !$clientData) {
@@ -713,7 +725,10 @@ class CoachUserController extends Controller
             $data['avg_speed'] = 0;
             $data['avg_force'] = 0;
         }
-
+        
+        // \Log::info("client data -- data");
+        // \Log::info($clientData);
+        // \Log::info($data);
         $client = array_merge($clientData, $data);
 
         if (!empty($leaderboard->punches_count))
@@ -726,11 +741,13 @@ class CoachUserController extends Controller
 
         //$battles = Battles::getFinishedBattles($clientId);
 
-        $won = \App\Battles::where('winner_client_id', $clientId)->count();
-        $lost = \App\Battles::where(function ($query) use ($clientId) {
-                $query->where('client_id', $clientId)->orWhere('opponent_client_id', $clientId);
-            })
-            ->where('winner_client_id', '!=', $clientId)->count();
+        // $won = Battles::where('winner_client_id', $clientId)->count();
+        // $lost = Battles::where(function ($query) use ($clientId) {
+        //         $query->where('client_id', $clientId)->orWhere('opponent_client_id', $clientId);
+        //     })
+        //     ->where('winner_client_id', '!=', $clientId)->count();
+        $won = 0;
+        $lost = 0;
 
         $client['lose_counts'] = $lost;
         $client['win_counts'] = $won;
@@ -749,7 +766,7 @@ class CoachUserController extends Controller
 
     private function getAvgSpeedAndForce($clientId)
     {
-        $session = Sessions::select('id', 'start_time', 'end_time')
+        $session = ClientSessions::select('id', 'start_time', 'end_time')
             ->where('client_id', $clientId)
             ->where(function ($query) {
                 $query->whereNull('battle_id')->orWhere('battle_id', '0');
@@ -765,7 +782,7 @@ class CoachUserController extends Controller
             }
         }
 
-        $getAvgSession = Sessions::select(
+        $getAvgSession = ClientSessions::select(
                 \DB::raw('AVG(avg_speed) as avg_speeds'),
                 \DB::raw('AVG(avg_force) as avg_forces'),
                 \DB::raw('MAX(punches_count) as avg_punch')
@@ -796,7 +813,7 @@ class CoachUserController extends Controller
     }
 
     /**
-     * @api {post} /coach/preferences Update client's preferences
+     * @api {post} /coach/client/preferences Update client's preferences
      * @apiGroup Coach
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
      * @apiHeader {String} Authorization Authorization value
