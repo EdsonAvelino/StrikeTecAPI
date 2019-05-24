@@ -405,11 +405,31 @@ class CoachUserController extends Controller
             if (!empty($leaderboard->last_training_date)) {
                 $date = Carbon::parse($leaderboard->last_training_date);
                 $now = Carbon::now();
-                $diffTraningDate = $date->diffInDays($now);
+                $diff = $date->diffInMinutes($now);
+
+                if ($diff > 0 && $diff < 2) {
+                    $diffTraningMins = "1 min from last traning";
+                }
+                elseif ($diff < 60) {
+                    $diffTraningMins = strval(intval($diff))." mins from last traning";
+                }
+                elseif ($diff < 120) {
+                    $diffTraningMins = "1 hour from last traning";
+                }
+                elseif ($diff < 1440) {
+                    $diffTraningMins = strval(intval($diff/60))." hours from last traning";
+                }
+                elseif ($diff < 2880) {
+                    $diffTraningMins = "1 day from last traning";
+                }
+                else {
+                    $diffTraningMins = strval(intval($diff/1440))." days from last traning";
+                }
             }
-            else
-                $diffTraningDate = 0;
-            $data['diff_days_last_training'] = $diffTraningDate;
+            else {
+                $diffTraningMins = "new client";
+            }
+            $data['diff_times_last_training'] = $diffTraningMins;
             
             $data['avg_count'] = floor($avgCount);
             $data['avg_speed'] = floor($leaderboard->avg_speed);
