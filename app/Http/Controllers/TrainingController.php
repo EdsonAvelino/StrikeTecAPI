@@ -468,7 +468,11 @@ class TrainingController extends Controller
                 
                 // $sessionIds = join("','",$sessionIdArr);
                 $sessionIds = [$_session->id];
+                $sessionIds = join("','",$sessionIdArr);
     
+                // \Log::info('The Request Data - ' . $sessionIds);
+                // \Log::info('The Request Data - ' . $userId);
+
                 $temp = SessionRounds::select(\DB::raw('SUM(pause_duration) as pause_duration'))
                                 ->whereRaw('session_id IN ("'.$sessionIds.'")', [$userId])->first();
     
