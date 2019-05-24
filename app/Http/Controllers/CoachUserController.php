@@ -408,26 +408,26 @@ class CoachUserController extends Controller
                 $diff = $date->diffInMinutes($now);
 
                 if ($diff > 0 && $diff < 2) {
-                    $diffTraningMins = "1 min from last traning";
+                    $diffTraningMins = "Last training 1 min ago";
                 }
                 elseif ($diff < 60) {
-                    $diffTraningMins = strval(intval($diff))." mins from last traning";
+                    $diffTraningMins = "Last training ".strval(intval($diff))." mins ago";
                 }
                 elseif ($diff < 120) {
-                    $diffTraningMins = "1 hour from last traning";
+                    $diffTraningMins = "Last training 1 hour ago";
                 }
                 elseif ($diff < 1440) {
-                    $diffTraningMins = strval(intval($diff/60))." hours from last traning";
+                    $diffTraningMins = "Last training ".strval(intval($diff/60))." hours ago";
                 }
                 elseif ($diff < 2880) {
-                    $diffTraningMins = "1 day from last traning";
+                    $diffTraningMins = "Last training 1 day ago";
                 }
                 else {
-                    $diffTraningMins = strval(intval($diff/1440))." days from last traning";
+                    $diffTraningMins = "Last training ".strval(intval($diff/1440))." days ago";
                 }
             }
             else {
-                $diffTraningMins = "new client";
+                $diffTraningMins = "0 training sessions";
             }
             $data['diff_times_last_training'] = $diffTraningMins;
             
