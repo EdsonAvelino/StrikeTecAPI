@@ -333,12 +333,25 @@ class CoachUserController extends Controller
         }
         
         $clients = $_clients->offset($offset)->limit($limit)->get();
+        
         $data = [];
         foreach ($clients as $client) {
             $data[] = self::getClient($client['id']);
         }
+        $data = collect($data)->sortBy('punches_count')->reverse()->toArray();
+        
+        // \Log::info(print_r($data, true));
+        // \Log::info(print_r(array_keys($data), true));
 
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $data]);
+        $results = [];
+        foreach (array_keys($data) as $key => $index) {
+            $data[$index]['rank'] = $key + 1;
+            $results[$key] = $data[$index];
+        }
+
+        // \Log::info(print_r($results, true));
+        
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $results]);
     }
 
     private function getClient($clientId)
