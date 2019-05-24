@@ -209,20 +209,12 @@ class CoachUserController extends Controller
         try {
             $client = User::create($newClient);
 
-            $user = User::with(['preferences', 'country', 'state', 'city', 'company'])->find($client->id)->toArray();
-            
-            $userPoints = User::select('id as points')->where('id', $client->id)->pluck('points')->first();
-            $user['points'] = (int) $userPoints;
-            
-            $user['subscription'] = User::getSubscription($client->id);
-    
-            $subscriptionCheck = User::select('id as subscription_check')->where('id', $client->id)->pluck('subscription_check')->first();
-            $user['subscription_check'] = (bool) $subscriptionCheck;
+            $data = self::getClient($client->id);
 
             return response()->json([
                 'error' => 'false',
                 'message' => 'Client has been added successfully',
-                'client' => $user
+                'client' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
