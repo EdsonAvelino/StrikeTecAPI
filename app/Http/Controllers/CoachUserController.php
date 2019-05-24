@@ -8,6 +8,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\JWTAuth;
+use Carbon\Carbon;
 
 class CoachUserController extends Controller
 {
@@ -298,6 +299,7 @@ class CoachUserController extends Controller
      *             "total_time_trained": 5235,
      *             "total_time_trained": 15090,
      *             "total_day_trained": 32,
+     *             "diff_days_last_training": 23,
      *             "avg_speed": 438,
      *             "avg_force": 7992,
      *             "punches_count": 5854,
@@ -390,6 +392,16 @@ class CoachUserController extends Controller
             $data['total_time_trained'] = $totalTimeTrained;
 
             $data['total_day_trained'] = floor($leaderboard->total_days_trained);
+
+            if (!empty($leaderboard->last_training_date)) {
+                $date = Carbon::parse($leaderboard->last_training_date);
+                $now = Carbon::now();
+                $diffTraningDate = $date->diffInDays($now);
+            }
+            else
+                $diffTraningDate = 0;
+            $data['diff_days_last_training'] = $diffTraningDate;
+            
             $data['avg_count'] = floor($avgCount);
             $data['avg_speed'] = floor($leaderboard->avg_speed);
             $data['avg_force'] = floor($leaderboard->avg_force);
