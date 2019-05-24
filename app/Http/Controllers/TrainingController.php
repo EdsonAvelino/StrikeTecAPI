@@ -444,14 +444,14 @@ class TrainingController extends Controller
                     
                     if ($lastTrainedDateTime->toDateString() != $sessionDateTime->toDateString()) {
                         $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
-                        $leaderboardStatus->last_training_date = $sessionDateTime;
                     }
                 }
                 else {
                     $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
-                    $leaderboardStatus->last_training_date = $sessionDateTime;
                 }
-                
+
+                $leaderboardStatus->last_training_date = $sessionDateTime;
+
                 $leaderboardStatus->save();
     
                 // Formula
