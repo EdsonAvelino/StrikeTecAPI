@@ -345,10 +345,19 @@ class CoachUserController extends Controller
         // \Log::info(print_r($data, true));
         // \Log::info(print_r(array_keys($data), true));
 
-        $results = [];
+        $rankSort = [];
         foreach (array_keys($data) as $key => $index) {
             $data[$index]['rank'] = $key + 1;
-            $results[$key] = $data[$index];
+            $rankSort[$key] = $data[$index];
+        }
+
+        // \Log::info(print_r($rankSort, true));
+
+        $nameSort = collect($rankSort)->sortBy('first_name')->toArray();
+
+        $results = [];
+        foreach (array_keys($nameSort) as $key => $index) {
+            $results[$key] = $nameSort[$index];
         }
 
         // \Log::info(print_r($results, true));
