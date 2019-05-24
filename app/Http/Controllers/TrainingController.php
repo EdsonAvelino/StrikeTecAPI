@@ -19,6 +19,7 @@ use App\GoalAchievements;
 use App\GoalSession;
 use App\Goals;
 use App\User;
+use Carbon\Carbon;
 
 use App\Helpers\Push;
 use App\Helpers\PushTypes;
@@ -435,11 +436,20 @@ class TrainingController extends Controller
                 $leaderboardStatus->sessions_count = $oldSessionCount + 1;
                 $leaderboardStatus->punches_count = $oldPunchesCount + $session['punches_count'];
                 
-                $sessionDate = date('Y-m-d', $sessionStartTime / 1000);
-    
-                if ($leaderboardStatus->last_training_date!=$sessionDate) {
+                $sessionDateTime = Carbon::parse(date('Y-m-d H:i:s', $sessionStartTime / 1000));
+                \Log::info("session time:", [$sessionDateTime]);
+                
+                if (!empty($leaderboardStatus->last_training_date)) {
+                    $lastTrainedDateTime = Carbon::parse($leaderboardStatus->last_training_date);
+                    
+                    if ($lastTrainedDateTime->toDateString() != $sessionDateTime->toDateString()) {
+                        $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
+                        $leaderboardStatus->last_training_date = $sessionDateTime;
+                    }
+                }
+                else {
                     $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
-                    $leaderboardStatus->last_training_date = $sessionDate;
+                    $leaderboardStatus->last_training_date = $sessionDateTime;
                 }
                 
                 $leaderboardStatus->save();
