@@ -339,7 +339,7 @@ class TrainingController extends Controller
 
                 if (!$_session) {
                     $newSession = [
-                        'user_id' => $userId,
+                        'user_id' => ($session['user_id']) ?? \Auth::user()->id,
                         'battle_id' => ($session['battle_id']) ?? null,
                         'game_id' => ($session['game_id']) ?? null,
                         'type_id' => $session['type_id'],
