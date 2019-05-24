@@ -214,7 +214,7 @@ class CoachUserController extends Controller
             return response()->json([
                 'error' => 'false',
                 'message' => 'Client has been added successfully',
-                'client' => $data
+                'data' => $data
             ]);
         } catch (\Exception $e) {
             return response()->json([
