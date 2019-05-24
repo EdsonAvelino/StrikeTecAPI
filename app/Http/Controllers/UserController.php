@@ -389,8 +389,10 @@ class UserController extends Controller
         \Log::info($request->get('birthday'));
         \Log::info(json_encode($request->all()));
         try {
-            $user = \Auth::user();
-
+            // $user = \Auth::user();
+            $userId = $request->get('user_id') ?? \Auth::id();
+            $user = User::find($userId);
+            
             $user->first_name = ($request->get('first_name')) ?? $user->first_name;
             $user->last_name = ($request->get('last_name')) ?? $user->last_name;
             $user->gender = ($request->get('gender')) ?? $user->gender;
@@ -430,7 +432,9 @@ class UserController extends Controller
                 $userPreferences->save();
             }
 
-            \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
+            if ($request->get('user_id') == null && $userId == \Auth::id()) {
+                \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
+            }
 
             return response()->json([
                 'error' => 'false',
