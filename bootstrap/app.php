@@ -105,7 +105,7 @@ $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
   |
  */
 
-$app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
+$app->group(['namespace' => 'App\Http\Controllers'], function ($router) {
     require __DIR__ . '/../routes/web.php';
 });
 
