@@ -9,14 +9,15 @@
   | and give it the Closure to call when that URI is requested.
   |
  */
-$router->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($app) {
+$router->group(['namespace' => '\Rap2hpoutre\LaravelLogViewer'], function() use ($router) {
     $router->get('/logs', 'LogViewerController@index');
 });
-$router->get('/', function () use ($app) {
+$router->get('', function () use ($router) {
     return response(['error' => 'Not found'], 404);
 });
-//$router->group(['prefix' => 'api/v1'], function () use ($app) {
-//$router->group(['prefix' => 'v1'], function () use ($app) {
+
+$router->group(['prefix' => 'api/v1'], function () use ($router) {
+//$router->group(['prefix' => 'v1'], function () use ($router) {
         // Check for app update
         $router->post('/check_update', 'AppController@checkForUpdate');
         // Check for app update
@@ -45,7 +46,7 @@ $router->get('/', function () use ($app) {
         $router->get('/trainers', 'VideoController@getTrainers');
         // Rest of all APIs are secured with access-token
         // User APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Update user's profile data
             $router->post('/users', 'UserController@update');
             // Know or update user's subscription
@@ -83,7 +84,7 @@ $router->get('/', function () use ($app) {
             $router->get('/user/notifications/read_all', 'UserController@readAllNotifications');
         });
         // Coach User APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Update client's profile data
             $router->post('/coach/clients', 'CoachUserController@addClient');
             // Search clients
@@ -92,7 +93,7 @@ $router->get('/', function () use ($app) {
             $router->get('/coach/client/{userId}', 'UserController@getUser');
         });
         // Training APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             
             // Save training (sensor) data
             $router->post('/user/training/data', 'TrainingController@storeData');
@@ -142,7 +143,7 @@ $router->get('/', function () use ($app) {
         // Get list of videos available on server
         $router->get('/videos/count', 'VideoController@videosCount');
         // Leaderboard APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get list of leaderboard data
             $router->get('/leaderboard', 'LeaderboardController@getList');
             // Trending data
@@ -151,12 +152,12 @@ $router->get('/', function () use ($app) {
             $router->get('/leaderboard/game', 'LeaderboardController@getGameLeaderboardData');
         });
         // Push notifications APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Save customer token for push notifications
             $router->post('/user/app_token', 'PushController@storeAppToken');
         });
         // Push notifications settings APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             $router->post('/notification/settings', 'SettingController@updateSettings');
             $router->get('/notification/settings', 'SettingController@getSettings');
         });
@@ -172,7 +173,7 @@ $router->get('/', function () use ($app) {
         // list of combos with audios
         // $router->get('/battles/combos/audio', 'BattleController@getCombosAudio');
         // Battle APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get battle Request
             $router->get('/battles/received', 'BattleController@getReceivedRequests');
             // Get my battles
@@ -197,7 +198,7 @@ $router->get('/', function () use ($app) {
             $router->get('/battles/user/finished', 'BattleController@getUsersFinishedBattles');
         });
         // Goals APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get list of activities
             $router->get('/activities', 'ActivityController@getActivityList');
             // Get list of activity type
@@ -218,7 +219,7 @@ $router->get('/', function () use ($app) {
             $router->get('/goal', 'GoalController@goal');
         });
         // Feed APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get list of feed-posts
             $router->get('/feed/posts', 'FeedController@getPosts');
             // Add new feed-post
@@ -232,7 +233,7 @@ $router->get('/', function () use ($app) {
             $router->post('/feed/posts/{postId}/comment', 'FeedController@postComment');
         });
         // Chat APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Send message
             $router->post('/chat/send', 'ChatController@sendMessage');
             // Read message
@@ -247,7 +248,7 @@ $router->get('/', function () use ($app) {
             $router->delete('/chat/{messageId}', 'ChatController@deleteMessage');
         });
         // Tournaments APIs
-        $router->group(['middleware' => 'auth:api'], function () use ($app) {
+        $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get all new / joined / finished tournaments
             $router->get('/tournaments/all', 'TournamentController@getAllEventsList');
             // Get all new tournaments user didn't join
@@ -271,7 +272,7 @@ $router->get('/', function () use ($app) {
             $router->post('/user/tournaments/invite', 'TournamentController@getUserTournamentInvite');
     });
     // Guidance APIs
-    $router->group(['middleware' => 'auth:api'], function () use ($app) {
+    $router->group(['middleware' => 'auth:api'], function () use ($router) {
         // Guidance home screen
         $router->get('/guidance/home', 'GuidanceController@home');
         
@@ -297,7 +298,7 @@ $router->get('/', function () use ($app) {
     // FAN App admin login
     $router->post('/fan/auth/login', 'FanUserController@authenticate');
     // FAN App APIs
-    $router->group(['middleware' => 'auth:fan'], function() use ($app) {
+    $router->group(['middleware' => 'auth:fan'], function() use ($router) {
         // Get my events list
         $router->get('/fan/events', 'EventController@getMyEventsList');
         // Get list of all of the events
@@ -346,5 +347,5 @@ $router->get('/', function () use ($app) {
          
         // Update activity status
         $router->post('/fan/events/activities/status', 'EventController@postStatusUpdateEventActivity');
-  //  });
+    });
 });
