@@ -127,7 +127,7 @@ class AuthController extends Controller
         }
 
         try {
-            if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
+            if (! $token = $this->jwt->attempt($request->all('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid credentials or user is not registered'], 200);
             }
         } catch (TokenExpiredException $e) {
