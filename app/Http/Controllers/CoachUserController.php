@@ -138,6 +138,7 @@ class CoachUserController extends Controller
             'last_name' => 'required',
             'gender' => 'nullable|in:male,female',
             'birthday' => 'nullable|date',
+		'email'=>'required|email|unique:users',
             // 'profile_image' => 'nullable|mimes:jpeg,jpg,png'
         ]);
 
@@ -174,6 +175,7 @@ class CoachUserController extends Controller
         $newClient = [
             'first_name' => $request->get('first_name'),
             'last_name' => $request->get('last_name'),
+	    'email' => $request->get('email'),
             'is_coach' => 0,
             'is_client' => 1,
             'coach_user' => \Auth::id(),
