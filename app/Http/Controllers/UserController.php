@@ -326,6 +326,79 @@ class UserController extends Controller
     }
 
     /**
+     * @api {post} /users/uploadpicture Upload Photo
+     * @apiGroup Users
+     * @apiDescription Used to upload a picture for user on mobile
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "multipart/form-data"
+     *     }
+     * @apiParam {File} image_file image file to store on server
+     * @apiParamExample {json} Input
+     *    {
+     *      "image_file": "Photo.jpg",
+     *      "user_id": 54
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Stored",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or what error message is"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function uploadPicture(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'image_file' => 'required|mimes:jpg,png,bmp',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors->first('image_file')]);
+        }
+        $file = trim($request->file('image_file')->getClientOriginalName());
+        
+        // Getting date from timestamp in filename
+        $exploded = explode('_', $file);
+        $timestamp = (int) end($exploded);
+        $dt = date('Y_m_d', ($timestamp/1000));
+        $uploadDir = env('DATA_STORAGE_URL').\Auth::id().DIRECTORY_SEPARATOR.$dt;
+        
+        // Create dir if not created
+        if (!is_dir(env('DATA_STORAGE_URL').\Auth::id())) {
+            mkdir(env('DATA_STORAGE_URL').\Auth::id());
+        }
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir);
+        }
+        
+        $file = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
+        $file = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
+        $request->file('image_file')->move($uploadDir, $file);
+        $image_path = url() . '/' . $uploadDir . '/' . $file; // path to be inserted in table
+
+        $userId = $request->get('user_id') ?? \Auth::id();
+        $user = User::find($userId);
+        $user->photo_url = $image_path ?? $user->photo_url;
+        $user->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Stored',
+        ]);
+    }
+
+    /**
      * @api {post} /users Update a user
      * @apiGroup Users
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
