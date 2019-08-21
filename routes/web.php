@@ -49,6 +49,8 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
         $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Update user's profile data
             $router->post('/users', 'UserController@update');
+            // Update user's picture
+            $router->post('/users/uploadpicture', 'UserController@uploadPicture');
             // Know or update user's subscription
             $router->post('/users/subscription', 'UserController@postUserSubscription');
             
