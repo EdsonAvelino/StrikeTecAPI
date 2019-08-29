@@ -356,7 +356,6 @@ class Battles extends Model
                     break; // ROLL LEFT
             }
         }
-
         return $comboPunches;
     }
 
@@ -551,7 +550,6 @@ class Battles extends Model
                     $winCount = 0;
                 }
             }
-            
 
             if ($winCount == 5) {
                 $winCount = 0;

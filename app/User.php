@@ -298,8 +298,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         // Fetch all IAP Products 
         $products = \App\IapProducts::select('id', 'key')->where('platform', $userSubscription->platform)->get();
+
         
-        $data = [];
+        $data = [
+            "empty" => "empty",
+        ];
         foreach ($products as $product) {
             $data[$product->key] = ($product->id == $userSubscription->iap_product_id) ? true : false;
         }

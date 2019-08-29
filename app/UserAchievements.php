@@ -41,28 +41,28 @@ class UserAchievements extends Model
         return $this->hasOne('App\Achievements', 'id', 'achievement_id');
     }
 
-    public static function getSessionAchievements($userId, $sessionId)
+    public static function getSessionAchievements($userId, $sessionId, $newArchievements)
     {
         $userAchievements = UserAchievements::with(['achievementType', 'achievement'])
                 ->where('user_id', $userId)
                 ->where('session_id', $sessionId)
                 ->get()
                 ->toArray();
-
         $result = [];
-        
         foreach ($userAchievements as $achievements) {
-            $resultData['id'] = $achievements['id'];
-            $resultData['achievement_id'] = $achievements['achievement']['id'];
-            $resultData['achievement_name'] = $achievements['achievement']['name'];
-            $resultData['badge_name'] = $achievements['achievement_type']['name'];
-            $resultData['description'] = $achievements['achievement_type']['description'];
-            $resultData['image'] =  $achievements['achievement_type']['image'];
-            $resultData['badge_value'] = $achievements['metric_value'];
-            $resultData['count'] = $achievements['count'];
-            $resultData['shared'] = (boolean) $achievements['shared'];
-            $resultData['awarded'] = (boolean) $achievements['awarded'];
-            $result[] = $resultData;
+            if (in_array($achievements['id'], $newArchievements)) {
+                $resultData['id'] = $achievements['id'];
+                $resultData['achievement_id'] = $achievements['achievement']['id'];
+                $resultData['achievement_name'] = $achievements['achievement']['name'];
+                $resultData['badge_name'] = $achievements['achievement_type']['name'];
+                $resultData['description'] = $achievements['achievement_type']['description'];
+                $resultData['image'] =  $achievements['achievement_type']['image'];
+                $resultData['badge_value'] = $achievements['metric_value'];
+                $resultData['count'] = $achievements['count'];
+                $resultData['shared'] = (boolean) $achievements['shared'];
+                $resultData['awarded'] = (boolean) $achievements['awarded'];
+                $result[] = $resultData;
+            }
         }
         
         return $result;
@@ -79,11 +79,13 @@ class UserAchievements extends Model
         else{
             $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
         }
-
-        $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), 'awarded', 'count', 'shared','created_at')->with('achievementType')
+        //
+        $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), \DB::raw('MAX(achievement_type_id) as achievement_type_id'), 'awarded', 'count', 'shared','created_at')
+                ->with('achievementType')
                 ->where('user_id', $userId)
-                ->where('created_at','>=',$perviousMonday)
+                ->where('updated_at','>=',$perviousMonday)
                 ->whereIn('achievement_id',['2','3','5','6','7','9','10','11','12'])
+                ->orderBy('achievement_type_id', 'desc')
                 ->groupBy('achievement_id')
                 ->orderBy('achievement_id', 'desc')
                 ->get()

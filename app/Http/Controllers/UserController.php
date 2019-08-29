@@ -23,6 +23,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\JWTAuth;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -323,6 +324,78 @@ class UserController extends Controller
         Push::send(PushTypes::CHAT_SEND_MESSAGE, $userId, $senderId, $pushMessage, ['message' => $chatResponse]);
 
         return response()->json(['error' => 'false', 'message' => 'Facebook registration successful', 'token' => $token, 'user' => $user]);
+    }
+
+    /**
+     * @api {post} /users/uploadpicture Upload Photo
+     * @apiGroup Users
+     * @apiDescription Used to upload a picture for user on mobile
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "multipart/form-data"
+     *     }
+     * @apiParam {File} image_file image file to store on server
+     * @apiParamExample {json} Input
+     *    {
+     *      "image_file": "Photo.jpg",
+     *      "user_id": 54
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Stored",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or what error message is"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function uploadPicture(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'image_file' => 'required|mimes:jpeg,jpg,png,bmp',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors->first('image_file')]);
+        }
+        $filename = trim($request->file('image_file')->getClientOriginalName());
+        $info = pathinfo($filename);
+        $ext = $info['extension'];
+        
+        $timestamp = Carbon::now()->timestamp;
+        $uploadDir = env('USER_STORAGE_URL');
+        
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir);
+        }
+        
+        //$filename = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
+        //$filename = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
+        $filename = 'u' . \Auth::id() . '_' . $timestamp . '.' . $ext;
+        $request->file('image_file')->move($uploadDir, $filename);
+        $image_url = url() . '/' . 'storage/users' . '/' . $filename; // path to be inserted in table
+
+        $userId = $request->get('user_id') ?? \Auth::id();
+        $user = User::find($userId);
+        $user->photo_url = $image_url ?? $user->photo_url;
+        $user->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Stored',
+            'data' => [
+                'image' => $image_url
+            ]
+        ]);
     }
 
     /**

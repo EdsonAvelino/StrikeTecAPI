@@ -388,8 +388,8 @@ class TrainingController extends Controller
                 $sessions[] = [
                     'session_id' => $_session->id,
                     'start_time' => $_session->start_time,
-                    //'achievements' => $this->achievements($_session->id, $_session->battle_id)
-                    'achievements' => []
+                    'achievements' => $this->achievements($_session->id, $_session->battle_id)
+                    //'achievements' => []
                 ];
                 $sessionIdArr[] = $_session->id;
                 
@@ -456,20 +456,32 @@ class TrainingController extends Controller
     
                 // Formula
                 // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
-                $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
-                $avgForceData[] = $oldAvgForce * $oldPunchesCount;
-                $division = $oldPunchesCount;
-                // foreach ($data as $session) {
-                //     $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-                //     $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-                //     $division += $session['punches_count'];
-                // }
-                $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
-                $avgForceData[] = $session['avg_force'] * $session['punches_count'];
-                $division += $session['punches_count'];
+                // $avgSpeedData[] = $oldAvgSpeed * $oldPunchesCount;
+                // $avgForceData[] = $oldAvgForce * $oldPunchesCount;
+                // $division = $oldPunchesCount;
+                // // foreach ($data as $session) {
+                // //     $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                // //     $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+                // //     $division += $session['punches_count'];
+                // // }
+                // $avgSpeedData[] = $session['avg_speed'] * $session['punches_count'];
+                // $avgForceData[] = $session['avg_force'] * $session['punches_count'];
+                // $division += $session['punches_count'];
             
-                $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
-                $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
+                // if ($division !== 0) {
+                //     $leaderboardStatus->avg_speed = array_sum($avgSpeedData) / $division;
+                //     $leaderboardStatus->avg_force = array_sum($avgForceData) / $division;
+                // }
+                $oldTotalSpeedData = $oldAvgSpeed * $oldPunchesCount;
+                $oldTotalForceData = $oldAvgForce * $oldPunchesCount;
+                $curSpeedData = $session['avg_speed'] * $session['punches_count'];
+                $curForceData = $session['avg_force'] * $session['punches_count'];
+                $totalCount = $oldPunchesCount + $session['punches_count'];
+            
+                if ($totalCount !== 0) {
+                    $leaderboardStatus->avg_speed = ($oldTotalSpeedData + $curSpeedData) / $totalCount;
+                    $leaderboardStatus->avg_force = ($oldTotalForceData + $curForceData) / $totalCount;
+                }
     
                 /*$temp = SessionRounds::select(
                                         \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
@@ -984,6 +996,110 @@ class TrainingController extends Controller
         return false;
     }
 
+    public function test(Request $request)
+    {
+        $userId = 5;
+        $sessions = [172, 173, 174];
+        foreach($sessions as $sessionId) {
+            $session = Sessions::where('id', $sessionId)->first();
+            $_session = $session;
+            $sessionStartTime = $session['start_time'];
+            try {
+                $leaderboardStatus = Leaderboard::where('user_id', $userId)->first();
+                
+                    // Set all old averate data to 0
+                $oldAvgSpeed = $oldAvgForce = $oldPunchesCount = $oldTotalDaysTrained = 0;
+                
+                $oldAvgSpeed = $leaderboardStatus->avg_speed;
+                $oldAvgForce = $leaderboardStatus->avg_force;
+                $oldSessionCount = $leaderboardStatus->sessions_count;
+                $oldPunchesCount = $leaderboardStatus->punches_count;
+                $oldTotalDaysTrained = $leaderboardStatus->total_days_trained;
+                $oldMaxSpeed = $leaderboardStatus->max_speed;
+                $oldMaxForce = $leaderboardStatus->max_force;
+
+                $maxSpeedArr[] = $oldMaxSpeed;
+                $maxMaxForce[] = $oldMaxForce;
+
+                // $leaderboardStatus->sessions_count = $oldSessionCount + $sessionCount;
+                // $leaderboardStatus->punches_count = $oldPunchesCount + $sessionPunchesCount;
+                $leaderboardStatus->sessions_count = $oldSessionCount + 1;
+                $leaderboardStatus->punches_count = $oldPunchesCount + $session['punches_count'];
+                
+                $sessionDateTime = Carbon::parse(date('Y-m-d H:i:s', $sessionStartTime / 1000));
+                \Log::info("session time:", [$sessionDateTime]);
+                
+                if (!empty($leaderboardStatus->last_training_date)) {
+                    $lastTrainedDateTime = Carbon::parse($leaderboardStatus->last_training_date);
+                    
+                    if ($lastTrainedDateTime->toDateString() != $sessionDateTime->toDateString()) {
+                        $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
+                    }
+                }
+                else {
+                    $leaderboardStatus->total_days_trained = $oldTotalDaysTrained + 1;
+                }
+
+                $leaderboardStatus->last_training_date = $sessionDateTime;
+
+                //$leaderboardStatus->save();
+
+                // Formula
+                // (old avg speed x old total punches + session1's speed x session1's punch count + session2's speed x session2's punch count) / (old total punches + session1's punch count + session2's punchcount)
+                $oldTotalSpeedData = $oldAvgSpeed * $oldPunchesCount;
+                $oldTotalForceData = $oldAvgForce * $oldPunchesCount;
+                $curSpeedData = $session['avg_speed'] * $session['punches_count'];
+                $curForceData = $session['avg_force'] * $session['punches_count'];
+                $totalCount = $oldPunchesCount + $session['punches_count'];
+            
+                if ($totalCount !== 0) {
+                    $leaderboardStatus->avg_speed = ($oldTotalSpeedData + $curSpeedData) / $totalCount;
+                    $leaderboardStatus->avg_force = ($oldTotalForceData + $curForceData) / $totalCount;
+                }
+                var_dump($leaderboardStatus->avg_force);
+
+                /*$temp = SessionRounds::select(
+                                        \DB::raw('MAX(max_speed) as max_speed'), \DB::raw('MAX(max_force) as max_force')
+                                )
+                                ->whereRaw('session_id IN (SELECT id from sessions WHERE user_id = ?)', [\Auth::user()->id])->first();*/
+                
+                // $sessionIds = join("','",$sessionIdArr);
+                // $sessionIds = [$_session->id];
+                // $sessionIds = join("','",$sessionIdArr);
+
+                // // \Log::info('The Request Data - ' . $sessionIds);
+                // // \Log::info('The Request Data - ' . $userId);
+
+                // $temp = SessionRounds::select(\DB::raw('SUM(pause_duration) as pause_duration'))
+                //                 ->whereRaw('session_id IN ("'.$sessionIds.'")', [$userId])->first();
+
+                // $pauseDuration = $temp->pause_duration;                            
+
+                // $leaderboardStatus->max_speed = max($maxSpeedArr);
+                // $leaderboardStatus->max_force = max($maxForceArr);
+                
+                // //$totalTimeTrained = Sessions::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->groupBy('user_id')->where('user_id', \Auth::user()->id)->pluck('duration_in_sec')->first();
+                // $totalTimeTrained = SessionRounds::select(\DB::raw('SUM(TIMESTAMPDIFF(SECOND, FROM_UNIXTIME(start_time / 1000), FROM_UNIXTIME(end_time / 1000))) AS duration_in_sec'))->whereRaw('session_id IN ("'.$sessionIds.'")')->first();
+
+                // $leaderboardStatus->total_time_trained = $leaderboardStatus->total_time_trained + (abs($totalTimeTrained->duration_in_sec) * 1000) - $pauseDuration;
+                // // $leaderboardStatus->save();
+                
+            } catch(\Exception $e) {
+                return response()->json([
+                    'error' => 'true',
+                    'message' => $e->getMessage()
+                ]);
+            }
+        }
+        return;
+
+        return $this->achievements(134, 0);
+    }
+    
+    public function IsInThisWeek($dateTime)
+    {
+    }
+    
     public function achievements($sessionId, $battleId)
     {
        $userId = \Auth::user()->id;
@@ -1012,7 +1128,14 @@ class TrainingController extends Controller
         else{
             $perviousMonday = strtotime('Previous Monday');
         }
+        if(strtolower(date('l'))=='monday'){
+            $timeThisMonday = date('Y-m-d');
+        }
+        else{
+            $timeThisMonday = date('Y-m-d', strtotime('Previous Monday'));
+        }
         
+        $newArchievements = [];
         foreach ($achievements as $achievement) {
             switch ($achievement->id) {
                 case 1:
@@ -1036,7 +1159,9 @@ class TrainingController extends Controller
                                         $beltsData->shared = false;
                                         $beltsData->session_id = $sessionId;
                                         $beltsData->awarded = true;
+                                        $beltsData->updated_at = \Carbon\Carbon::now();
                                         $beltsData->save();
+                                        $newArchievements[] = $beltsData->id;
                                     }
                                 } else {
                                     $userAchievements = UserAchievements::Create(['user_id' => $battle->user_id,
@@ -1046,6 +1171,7 @@ class TrainingController extends Controller
                                                 'count' => $belts,
                                                 'awarded' => true,
                                                 'session_id' => $sessionId]);
+                                    $newArchievements[] = $userAchievements->id;
                                 }
                             }
                         }
@@ -1066,7 +1192,9 @@ class TrainingController extends Controller
                                         $beltsData->shared = false;
                                         $beltsData->session_id = $sessionId;
                                         $beltsData->awarded = true;
+                                        $beltsData->updated_at = \Carbon\Carbon::now();
                                         $beltsData->save();
+                                        $newArchievements[] = $beltsData->id;
                                     }
                                 } else {
                                     $userAchievements = UserAchievements::Create(['user_id' => $battle->opponent_user_id,
@@ -1076,13 +1204,14 @@ class TrainingController extends Controller
                                                 'count' => $belts,
                                                 'awarded' => true,
                                                 'session_id' => $sessionId]);
+                                    $newArchievements[] = $userAchievements->id;
                                 }
                             }
                         }
                     }
                     break;
                 case 2:
-                    //\Log::info('in 2');
+                    \Log::info('in 2');
                     $punchCount = Sessions::getPunchCount();
                     if ($punchCount > 0) {
                         $achievementTypes = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $punchCount)
@@ -1093,7 +1222,8 @@ class TrainingController extends Controller
                                 $getUserPunchData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
                                         ->where('achievement_id', $achievement->id)
-                                        ->where('metric_value', $achievementType->max_val)
+                                        // ->where('metric_value', $achievementType->max_val)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
 
                                 if (empty($getUserPunchData)) {
@@ -1105,25 +1235,38 @@ class TrainingController extends Controller
                                                 'awarded' => true,
                                                 'goal_id' => $goalId,
                                                 'session_id' => $sessionId]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else {
+                                    if ($timeThisMonday > $getUserPunchData->updated_at) {
+                                        $getUserPunchData->count ++;
+                                        $getUserPunchData->metric_value = $achievementType->max_val;
+                                        $getUserPunchData->goal_id = $goalId;
+                                        $getUserPunchData->session_id = $sessionId;
+                                        $getUserPunchData->shared = false;
+                                        $getUserPunchData->updated_at = \Carbon\Carbon::now();
+                                        $getUserPunchData->save();
+                                        $newArchievements[] = $getUserPunchData->id;
+                                    }
                                 }
                             }
                         }
                     }
                     break;
                 case 3:
-                    //\Log::info('in 3');
-                    $mostPunches = 0;
+                    \Log::info('in 3');
+                    $averPunchesPerMin = 0;
                     if (empty($battleId)) {
-                        $mostPunches = SessionRounds::getMostPunchesPerMinute($sessionId);
-                        if ($mostPunches > 0) {
-                            $achievementTypes = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $mostPunches)
+                        $averPunchesPerMin = SessionRounds::getMostPunchesPerMinute($sessionId);
+                        if ($averPunchesPerMin > 0) {
+                            $achievementTypes = AchievementTypes::select(\DB::raw('MAX(config) as max_val'), 'id')->where('config', '<=', $averPunchesPerMin)
                                             ->where('achievement_id', $achievement->id)->groupBy('id')->get();
-                            foreach($achievementTypes as $achievementType){
+                            foreach($achievementTypes as $achievementType) {
                                 if ($achievementType->id) {
                                     $mostPunchesData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                             ->where('user_id', $userId)
                                             ->where('achievement_id', $achievement->id)
                                             ->where('metric_value', $achievementType->max_val)
+                                            ->orderBy('updated_at', 'desc')
                                             ->first();
                                     if (empty($mostPunchesData)) {
                                         $userAchievements = UserAchievements::Create(['user_id' => $userId,
@@ -1134,14 +1277,26 @@ class TrainingController extends Controller
                                                     'metric_value' => $achievementType->max_val,
                                                     'goal_id' => $goalId,
                                                     'session_id' => $sessionId]);
+                                        $newArchievements[] = $userAchievements->id;
+                                    } else {
+                                        if ($timeThisMonday > $mostPunchesData->updated_at) {
+                                            $mostPunchesData->count ++;
+                                            $mostPunchesData->metric_value = $achievementType->max_val;
+                                            $mostPunchesData->goal_id = $goalId;
+                                            $mostPunchesData->session_id = $sessionId;
+                                            $mostPunchesData->shared = false;
+                                            $mostPunchesData->updated_at = \Carbon\Carbon::now();
+                                            $mostPunchesData->save();
+                                            $newArchievements[] = $mostPunchesData->id;
+                                        }
                                     }
+                                }
                             }
-                        }
                         }
                     }
                     break;
                 case 4:
-                    //\Log::info('in 4');
+                    \Log::info('in 4');
                     $goal = Goals::getAccomplishedGoal();
                     if ($goal == 1) {
                         $achievementType = AchievementTypes::select('id')->where('achievement_id', $achievement->id)->first();
@@ -1149,6 +1304,7 @@ class TrainingController extends Controller
                         $goalData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
                                 ->where('achievement_id', $achievement->id)
+                                ->orderBy('updated_at', 'desc')
                                 ->first();
                         if ($goalData) {
                             $goalMatrix = $goalData->metric_value + 1;
@@ -1157,7 +1313,9 @@ class TrainingController extends Controller
                             $goalData->count = $goalMatrix;
                             $goalData->shared = false;
                             $goalData->awarded = true;
+                            $goalData->updated_at = \Carbon\Carbon::now();
                             $goalData->save();
+                            $newArchievements[] = $goalData->id;
                         } else {
                             $userAchievements = UserAchievements::Create(['user_id' => $userId,
                                         'achievement_id' => $achievement->id,
@@ -1166,6 +1324,7 @@ class TrainingController extends Controller
                                         'awarded' => true,
                                         'count' => $goal,
                                         'session_id' => $sessionId]);
+                            $newArchievements[] = $userAchievements->id;
                         }
                     }
                     break;
@@ -1180,17 +1339,28 @@ class TrainingController extends Controller
                     if ($speedAndPunch > $achievementType->min) {
                         $mostPowefulSpeedData = UserAchievements::where('achievement_type_id', $achievementType->id)
                                 ->where('user_id', $userId)
-                                ->where('goal_id', $goalId)
+                                // ->where('goal_id', $goalId)
                                 ->where('achievement_id', $achievement->id)
+                                ->orderBy('updated_at', 'desc')
                                 ->first();
                         if ($mostPowefulSpeedData) {
+                            $isSave = false;
                             if ($mostPowefulSpeedData->metric_value < $speedAndPunch) {
                                 $mostPowefulSpeedData->metric_value = $speedAndPunch;
-                                $mostPowefulSpeedData->count = 1;
+                                $isSave = true;
+                            }
+                            if ($timeThisMonday > $mostPowefulSpeedData->updated_at) {
+                                $mostPowefulSpeedData->count ++;
+                                $isSave = true;
+                            }
+                            if ($isSave) {
+                                $mostPowefulSpeedData->goal_Id = $goalId;
                                 $mostPowefulSpeedData->session_id = $sessionId;
                                 $mostPowefulSpeedData->shared = false;
                                 $mostPowefulSpeedData->awarded = true;
-                                $mostPowefulSpeedData->save();
+                                $mostPowefulSpeedData->updated_at = \Carbon\Carbon::now();
+                                $mostPowefulSpeedData->Save();
+                                $newArchievements[] = $mostPowefulSpeedData->id;
                             }
                         } else {
                             $userAchievements = UserAchievements::Create(['user_id' => $userId,
@@ -1201,11 +1371,12 @@ class TrainingController extends Controller
                                         'metric_value' => $speedAndPunch,
                                         'goal_id' => $goalId,
                                         'session_id' => $sessionId]);
+                            $newArchievements[] = $userAchievements->id;
                         }
                     }
                     break;
                 case 7:
-                    //\Log::info('in 7');
+                    \Log::info('in 7');
                     $userParticpation = Sessions::getUserParticpation($userId, $perviousMonday);
                     if ($userParticpation) {
                         $achievementTypes = AchievementTypes::select('id')
@@ -1213,32 +1384,42 @@ class TrainingController extends Controller
                                 ->where('min', '<=', $userParticpation)
                                 //->where('max', '>=', $userParticpation)
                                 ->get();
-
-                        foreach($achievementTypes as $achievementType){
-                            
+                        foreach($achievementTypes as $achievementType) {
                             if ($achievementType->id) {
-
                                 $userParticpationData = UserAchievements::where('achievement_id', $achievement->id)
                                         ->where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
                                 
-                                    if (empty($userParticpationData)) {
-                                       $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                    'achievement_id' => $achievement->id,
-                                                    'achievement_type_id' => $achievementType->id,
-                                                    'metric_value' => $userParticpation,
-                                                    'count' => 1,
-                                                    'awarded' => true,
-                                        ]);
-                                 } 
+                                if (empty($userParticpationData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $userParticpation,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                                'session_id' => $sessionId
+                                    ]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else {
+                                    if ($timeThisMonday > $userParticpationData->updated_at) {
+                                        $userParticpationData->count ++;
+                                        $userParticpationData->metric_value = $userParticpation;
+                                        $userParticpationData->session_id = $sessionId;
+                                        $userParticpationData->shared = false;
+                                        $userParticpationData->updated_at = \Carbon\Carbon::now();
+                                        $userParticpationData->save();
+                                        $newArchievements[] = $userParticpationData->id;
+                                    }
+                                }
                             }
                         }
                     }
                     break;
                 case 9:
-                    //\Log::info('in 9');
-                    $accuracy = Sessions::getAccuracy($userId,$perviousMonday);
+                    \Log::info('in 9');
+                    $accuracy = Sessions::getAccuracy($userId, $perviousMonday);
                     if ($accuracy) {
                         $achievementTypes = AchievementTypes::select('id')
                                 ->where('achievement_id', $achievement->id)
@@ -1246,32 +1427,44 @@ class TrainingController extends Controller
                                 //->where('max', '>=', $accuracy)
                                 ->get();
                         foreach($achievementTypes as $achievementType){
-                                
                             if ($achievementType) {
                                 $accuracyData = UserAchievements::where('achievement_id', $achievement->id)
                                         ->where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
                                 
-                                    if (empty($accuracyData)) {
-                                        $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                    'achievement_id' => $achievement->id,
-                                                    'achievement_type_id' => $achievementType->id,
-                                                    'metric_value' => $accuracy,
-                                                    'count' => 1,
-                                                    'awarded' => true,
-                                        ]);
-                                } 
+                                if (empty($accuracyData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $accuracy,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                                'session_id' => $sessionId
+                                    ]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else {
+                                    if ($timeThisMonday > $accuracyData->updated_at) {
+                                        $accuracyData->count ++;
+                                        $accuracyData->metric_value = $accuracy;
+                                        $accuracyData->session_id = $sessionId;
+                                        $accuracyData->shared = false;
+                                        $accuracyData->updated_at = \Carbon\Carbon::now();
+                                        $accuracyData->save();
+                                        $newArchievements[] = $accuracyData->id;
+                                    }
+                                }
                             }
                         }
                     }
                     break;
                 case 10:
-                    //\Log::info('in 10');
+                    \Log::info('in 10');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
-                    }
+                    };
                     $strongMan = Sessions::getStrongMen($config, $userId, $perviousMonday);
                     if ($strongMan) {
                         $achievementTypes = AchievementTypes::select('id')
@@ -1280,28 +1473,40 @@ class TrainingController extends Controller
                                 //->where('max', '>=', $strongMan)
                                 ->get();
                         foreach($achievementTypes as $achievementType){
-
                             if ($achievementType) {
                                 $strongManData = UserAchievements::where('achievement_id', $achievement->id)
                                         ->where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
                                 
-                                    if (empty($strongManData)) {
-                                        $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                    'achievement_id' => $achievement->id,
-                                                    'achievement_type_id' => $achievementType->id,
-                                                    'metric_value' => $strongMan,
-                                                    'count' => 1,
-                                                    'awarded' => true,
-                                        ]);
-                                } 
+                                if (empty($strongManData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $strongMan,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                                'session_id' => $sessionId
+                                    ]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else {
+                                    if ($timeThisMonday > $strongManData->updated_at) {
+                                        $strongManData->count ++;
+                                        $strongManData->metric_value = $strongMan;
+                                        $strongManData->shared = false;
+                                        $strongManData->session_id = session_id;
+                                        $strongManData->updated_at = \Carbon\Carbon::now();
+                                        $strongManData->Save();
+                                        $newArchievements[] = $strongManData->id;
+                                    }
+                                }
                             }
                         }
                     }
                     break;
                 case 11:
-                    //\Log::info('in 11');
+                    \Log::info('in 11');
                     $config = $achievement->male;
                     if ($gender == 'female') {
                         $config = $achievement->female;
@@ -1321,23 +1526,34 @@ class TrainingController extends Controller
                                 $speedDemonData = UserAchievements::where('achievement_id', $achievement->id)
                                         ->where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
                                 
-                                    if (empty($speedDemonData)) {
-                                        $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                    'achievement_id' => $achievement->id,
-                                                    'achievement_type_id' => $achievementType->id,
-                                                    'metric_value' => $speedDemon,
-                                                    'count' => 1,
-                                                    'awarded' => true,
-                                        ]);
+                                if (empty($speedDemonData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                                'achievement_id' => $achievement->id,
+                                                'achievement_type_id' => $achievementType->id,
+                                                'metric_value' => $speedDemon,
+                                                'count' => 1,
+                                                'awarded' => true,
+                                                'session_id' => $sessionId
+                                    ]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else if ($timeThisMonday > $speedDemonData->updated_at) {
+                                    $speedDemonData->count ++;
+                                    $speedDemonData->metric_value = $speedDemon;
+                                    $speedDemonData->session_id = $sessionId;
+                                    $speedDemonData->shared = false;
+                                    $speedDemonData->updated_at = \Carbon\Carbon::now();
+                                    $speedDemonData->Save();
+                                    $newArchievements[] = $speedDemonData->id;
                                 }
                             }
                         }
                     }
                     break;
                 case 12:
-                    //\Log::info('in 12');
+                    \Log::info('in 12');
                     $ironFirst = Sessions::ironFirst($userId, $perviousMonday);
 
                     if ($ironFirst) {
@@ -1348,22 +1564,31 @@ class TrainingController extends Controller
                                 //->where('max', '>=', $ironFirst)
                                 ->get();
                       
-                        foreach($achievementTypes as $achievementType){
-
-                        if ($achievementType->id) {
-
+                        foreach($achievementTypes as $achievementType) {
+                            if ($achievementType->id) {
                                 $ironFirstData = UserAchievements::where('achievement_id', $achievement->id)
                                         ->where('achievement_type_id', $achievementType->id)
                                         ->where('user_id', $userId)
+                                        ->orderBy('updated_at', 'desc')
                                         ->first();
-                                    if (empty($ironFirstData)) {
-                                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
-                                                    'achievement_id' => $achievement->id,
-                                                    'achievement_type_id' => $achievementType->id,
-                                                    'metric_value' => $ironFirst,
-                                                    'count' => 1,
-                                                    'awarded' => true,
-                                        ]);
+                                if (empty($ironFirstData)) {
+                                    $userAchievements = UserAchievements::Create(['user_id' => $userId,
+                                        'achievement_id' => $achievement->id,
+                                        'achievement_type_id' => $achievementType->id,
+                                        'metric_value' => $ironFirst,
+                                        'count' => 1,
+                                        'awarded' => true,
+                                        'session_id' => $sessionId
+                                    ]);
+                                    $newArchievements[] = $userAchievements->id;
+                                } else if ($timeThisMonday > $ironFirstData->updated_at) {
+                                    $ironFirstData->count ++;
+                                    $ironFirstData->metric_value = $ironFirst;
+                                    $ironFirstData->session_id = $sessionId;
+                                    $ironFirstData->shared = false;
+                                    $ironFirstData->updated_at = \Carbon\Carbon::now();
+                                    $ironFirstData->Save();
+                                    $newArchievements[] = $ironFirstData->id;
                                 }
                             }
                         }
@@ -1373,7 +1598,7 @@ class TrainingController extends Controller
         }
         //\Log::info('USER ID>>>'.$userId);
         //\Log::info('SESSION ID>>>'.$sessionId);
-        return UserAchievements::getSessionAchievements($userId, $sessionId);
+        return UserAchievements::getSessionAchievements($userId, $sessionId, $newArchievements);
     }
 
     // Update battle
@@ -1387,7 +1612,7 @@ class TrainingController extends Controller
 
             $pushToUserId = $battle->opponent_user_id;
             $pushOpponentUserId = $battle->user_id;
-        } else if (\Auth::user()->id == 342 || \Auth::user()->id == 361) {
+        } else {
             $battle->opponent_finished = 1;
             $battle->opponent_finished_at = date('Y-m-d H:i:s');
 

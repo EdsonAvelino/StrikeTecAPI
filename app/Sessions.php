@@ -167,15 +167,13 @@ class Sessions extends Model
             return null;
         
         $finalData = 0;
-        
         foreach ($sessionsData as $sessions) {
-
-        		if($sessions->type_id==3){
-                    $data = @self::compareSessionBattleCombos($sessions);
-                    if(is_int($data)){
-                    	$finalData += $data;
-                    }
+        	if ($sessions->type_id == 3) {
+                $data = @self::compareSessionBattleCombos($sessions);
+                if (is_int($data)) {
+                $finalData += $data;
                 }
+            }
         }
         
         return $finalData;
@@ -200,12 +198,33 @@ class Sessions extends Model
             $rounds = $session->rounds()->get();
             foreach ($rounds as $round) {
                 $roundPunches[$session->user_id] = [];
-                foreach ($_punches = $round->punches as $key => $punch) {
-                    $roundPunch = $punch->hand . $punch->punch_type;
-                    if (@strpos($comboPunches[$key], $roundPunch) !== false) {
+                $section_index = 0;
+                $combo_cnt = count($comboPunches);
+                $punch_cnt = count($round->punches);
+                $punch_index = 0;
+                for ($punch_index = 0; $punch_index < $punch_cnt; $punch_index += $combo_cnt) {
+                    $isMatch = true;
+                    foreach ($comboPunches as $key => $combo) {
+                        $punch = $round->punches[$punch_index + $key];
+                        $strPunch = $punch->hand . $punch->punch_type;
+                        if (@strpos($combo, $strPunch) !== false) {
+                        } else {
+                            $isMatch = false;
+                        }
+                    }
+                    if ($isMatch) {
                         $userMarks += 1;
                     }
                 }
+                // foreach ($_punches = $round->punches as $key => $punch) {
+                //     $roundPunch = $punch->hand . $punch->punch_type;
+                //     var_dump(json_encode($roundPunch));
+                //     var_dump(json_encode($comboPunches));
+                //     $section_index = $key / $section_len;
+                //     if (@strpos($comboPunches[$section_index], $roundPunch) !== false) {
+                //         $userMarks += 1;
+                //     }
+                // }
             }
         }
         return $userMarks;
