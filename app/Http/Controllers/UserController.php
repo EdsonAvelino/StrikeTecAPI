@@ -1486,7 +1486,7 @@ class UserController extends Controller
 
             $currentUser = User::find(\Auth::user()->id);
 
-            $pushMessage = $currentUser->first_name . ' ' . $currentUser->last_name . 'is now following you';
+            $pushMessage = $currentUser->first_name . ' ' . $currentUser->last_name . ' is now following you';
 
             Push::send(PushTypes::FOLLOW_USER, $userId, \Auth::user()->id, $pushMessage, ['follow_user_id' => \Auth::user()->id]);
 

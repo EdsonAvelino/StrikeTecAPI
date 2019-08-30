@@ -18,7 +18,7 @@ class CreatePostCommentsTable extends Migration
                 $table->increments('id');
                 $table->unsignedBigInteger('post_id');
                 $table->integer('user_id')->nullable();
-                $table->integer('text')->nullable();
+                $table->string('text')->nullable();
                 $table->timestamps();
             });
         }
