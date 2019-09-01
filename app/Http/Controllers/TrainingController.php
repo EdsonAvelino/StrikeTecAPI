@@ -1495,7 +1495,7 @@ class TrainingController extends Controller
                                         $strongManData->count ++;
                                         $strongManData->metric_value = $strongMan;
                                         $strongManData->shared = false;
-                                        $strongManData->session_id = session_id;
+                                        $strongManData->session_id = $sessionId;
                                         $strongManData->updated_at = \Carbon\Carbon::now();
                                         $strongManData->Save();
                                         $newArchievements[] = $strongManData->id;
