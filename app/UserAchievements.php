@@ -83,7 +83,7 @@ class UserAchievements extends Model
         $userAchievements = UserAchievements::select('achievement_id', 'achievement_type_id', \DB::raw('MAX(metric_value) as metric_value'), \DB::raw('MAX(achievement_type_id) as achievement_type_id'), 'awarded', 'count', 'shared','created_at')
                 ->with('achievementType')
                 ->where('user_id', $userId)
-                ->where('updated_at','>=',$perviousMonday)
+//                ->where('updated_at','>=',$perviousMonday)
                 ->whereIn('achievement_id',['2','3','5','6','7','9','10','11','12'])
                 ->orderBy('achievement_type_id', 'desc')
                 ->groupBy('achievement_id')
