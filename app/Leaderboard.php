@@ -33,4 +33,5 @@ class Leaderboard extends Model
     {
         return $this->belongsTo('App\User');
     }
+
 }

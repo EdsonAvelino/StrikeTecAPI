@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 try {
-    (new Dotenv\Dotenv(__DIR__ . '/../'))->load();
+    (new Dotenv\Dotenv(dirname(__DIR__)))->load();
 } catch (Dotenv\Exception\InvalidPathException $e) {
     //
 }
@@ -20,7 +20,7 @@ try {
  */
 
 $app = new Laravel\Lumen\Application(
-        realpath(__DIR__ . '/../')
+        dirname(__DIR__)
 );
 
 $app->withFacades();
@@ -67,7 +67,6 @@ $app->middleware([
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
 ]);
-
 /*
   |--------------------------------------------------------------------------
   | Register Service Providers
@@ -105,7 +104,7 @@ $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
   |
  */
 
-$app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
+$app->router->group(['namespace' => 'App\Http\Controllers'], function ($router) {
     require __DIR__ . '/../routes/web.php';
 });
 

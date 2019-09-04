@@ -56,7 +56,6 @@ class AchievementController extends Controller
      */
     public function getAchievementList(Request $request)
     {
-	
         $userId = \Auth::user()->id;
         $gender = \Auth::user()->gender;
 
@@ -64,9 +63,10 @@ class AchievementController extends Controller
             $gender = 'male';
         }
         
-        $achievements = Achievements::with('achievementType')->orderBy('sequence')->get();
+        $achievements = Achievements::with('achievementType')
+            ->orderBy('sequence')->get();
         $userAchievements = UserAchievements::where('user_id', $userId)->get()->keyBy('achievement_type_id')->toArray();
-
+        
         foreach ($achievements as $checkData) {
             $achievementType = $checkData['achievementType'];
             $resultFinalData = [];
@@ -90,16 +90,20 @@ class AchievementController extends Controller
 
                 $achievementArr = array('2','3','5','6','7','9','10','11','12');
 
-                if(strtolower(date('l'))=='monday'){
-                    $perviousMonday = date('Y-m-d');
-                }
-                else{
-                    $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
-                }
+                // $perviousMonday = 0;
+                // if ($checkData['id'] == 2 || $checkData['id'] == 3) {
+                // }
+                // else {
+                //     if(strtolower(date('l'))=='monday'){
+                //         $perviousMonday = date('Y-m-d');
+                //     }
+                //     else{
+                //         $perviousMonday = date('Y-m-d',strtotime('Previous Monday'));
+                //     }
+                // }
 
                 if (isset($userAchievements[$achievementTypeID])) {
-                    
-                    if((in_array($checkData['id'],$achievementArr) && $userAchievements[$achievementTypeID]['created_at']>=$perviousMonday) || !in_array($checkData['id'],$achievementArr)){
+                    if((in_array($checkData['id'],$achievementArr) /*&& $userAchievements[$achievementTypeID]['created_at']>=$perviousMonday*/) || !in_array($checkData['id'],$achievementArr)){
                         $count = $userAchievements[$achievementTypeID]['count'];
                         $userBadgeID = $userAchievements[$achievementTypeID]['id'];
                         $userBadgeValue = $userAchievements[$achievementTypeID]['metric_value'];

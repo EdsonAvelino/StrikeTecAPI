@@ -27,4 +27,5 @@ class GameLeaderboard extends Model
     {
         return $this->belongsTo('App\User');
     }
+
 }

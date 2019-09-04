@@ -23,6 +23,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\JWTAuth;
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
@@ -65,6 +66,8 @@ class UserController extends Controller
             'password' => app('hash')->make($request->get('password')),
             'show_tip' => 1,
             'is_spectator' => 1,
+            'is_coach' => 0,
+            'is_client' => 0,
             'login_count' => 0,
             'has_sensors' => 0
         ];
@@ -205,6 +208,9 @@ class UserController extends Controller
      *          "is_spectator": 0,
      *          "stance": null,
      *          "show_tip": 1,
+     *          "is_coach": 0,
+     *          "is_client": 0,
+     *          "coach_user": null,
      *          "skill_level": "PRO",
      *          "photo_url": "http://image.example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
@@ -263,7 +269,9 @@ class UserController extends Controller
             'email' => $request->get('email'),
             'password' => app('hash')->make(strrev($request->get('facebook_id'))),
             'show_tip' => 1,
-            'is_spectator' => 1
+            'is_spectator' => 1,
+            'is_coach' => 0,
+            'is_client' => 0
         ]);
 
         try {
@@ -319,6 +327,78 @@ class UserController extends Controller
     }
 
     /**
+     * @api {post} /users/uploadpicture Upload Photo
+     * @apiGroup Users
+     * @apiDescription Used to upload a picture for user on mobile
+     * @apiHeader {String} authorization Authorization value
+     * @apiHeaderExample {json} Header-Example:
+     *     {
+     *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM",
+     *       "Content-Type": "multipart/form-data"
+     *     }
+     * @apiParam {File} image_file image file to store on server
+     * @apiParamExample {json} Input
+     *    {
+     *      "image_file": "Photo.jpg",
+     *      "user_id": 54
+     *    }
+     * @apiSuccess {Boolean} error Error flag 
+     * @apiSuccess {String} message Error message
+     * @apiSuccessExample {json} Success
+     *    HTTP/1.1 200 OK
+     *    {
+     *      "error": "false",
+     *      "message": "Stored",
+     *    }
+     * @apiErrorExample {json} Error Response
+     *    HTTP/1.1 200 OK
+     *      {
+     *          "error": "true",
+     *          "message": "Invalid request or what error message is"
+     *      }
+     * @apiVersion 1.0.0
+     */
+    public function uploadPicture(Request $request)
+    {
+        $validator = \Validator::make($request->all(), [
+            'image_file' => 'required|mimes:jpeg,jpg,png,bmp',
+        ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return response()->json(['error' => 'true', 'message' => $errors->first('image_file')]);
+        }
+        $filename = trim($request->file('image_file')->getClientOriginalName());
+        $info = pathinfo($filename);
+        $ext = $info['extension'];
+        
+        $timestamp = Carbon::now()->timestamp;
+        $uploadDir = env('USER_STORAGE_URL');
+        
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir);
+        }
+        
+        //$filename = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
+        //$filename = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
+        $filename = 'u' . \Auth::id() . '_' . $timestamp . '.' . $ext;
+        $request->file('image_file')->move($uploadDir, $filename);
+        $image_url = url() . '/' . 'storage/users' . '/' . $filename; // path to be inserted in table
+
+        $userId = $request->get('user_id') ?? \Auth::id();
+        $user = User::find($userId);
+        $user->photo_url = $image_url ?? $user->photo_url;
+        $user->save();
+
+        return response()->json([
+            'error' => 'false',
+            'message' => 'Stored',
+            'data' => [
+                'image' => $image_url
+            ]
+        ]);
+    }
+
+    /**
      * @api {post} /users Update a user
      * @apiGroup Users
      * @apiHeader {String} Content-Type application/x-www-form-urlencoded
@@ -338,12 +418,12 @@ class UserController extends Controller
      * @apiParam {Boolean} [is_spectator] Spectator true / false
      * @apiParam {String} [stance] Stance
      * @apiParam {Boolean} [show_tip] Show tips true / false
+     * @apiParam {Boolean} [is_coach] Coach/Boxer (Coach: true, Boxer: false)
      * @apiParam {String} [skill_level] Skill level of user
      * @apiParam {String} [photo_url] User profile photo-url
      * @apiParam {Number} [city_id] City ID
      * @apiParam {Number} [state_id] State ID
      * @apiParam {Number} [country_id] Country ID
-
      * @apiParamExample {json} Input
      *    {
      *      "first_name": "John",
@@ -355,6 +435,7 @@ class UserController extends Controller
      *      "height_inches": 11,
      *      "is_spectator": true,
      *      "stance": "traditional",
+     *      "is_coach": false,
      *    }
      * @apiSuccessExample {json} Success
      *    HTTP/1.1 200 OK
@@ -381,8 +462,10 @@ class UserController extends Controller
         \Log::info($request->get('birthday'));
         \Log::info(json_encode($request->all()));
         try {
-            $user = \Auth::user();
-
+            // $user = \Auth::user();
+            $userId = $request->get('user_id') ?? \Auth::id();
+            $user = User::find($userId);
+            
             $user->first_name = ($request->get('first_name')) ?? $user->first_name;
             $user->last_name = ($request->get('last_name')) ?? $user->last_name;
             $user->gender = ($request->get('gender')) ?? $user->gender;
@@ -402,6 +485,9 @@ class UserController extends Controller
             $showTip = filter_var($request->get('show_tip'), FILTER_VALIDATE_BOOLEAN);
             $user->show_tip = $request->get('show_tip') ? $showTip : $user->show_tip;
 
+            $isCoach = filter_var($request->get('is_coach'), FILTER_VALIDATE_BOOLEAN);
+            $user->is_coach = $request->get('is_coach') ? $isCoach : $user->is_coach;
+
             $user->skill_level = $request->get('skill_level') ?? $user->skill_level;
             $user->stance = $request->get('stance') ?? $user->stance;
             $user->photo_url = $request->get('photo_url') ?? $user->photo_url;
@@ -419,7 +505,9 @@ class UserController extends Controller
                 $userPreferences->save();
             }
 
-            \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
+            if ($request->get('user_id') == null && $userId == \Auth::id()) {
+                \Auth::user()->update(['login_count' => $user['login_count'] + 1]);
+            }
 
             return response()->json([
                 'error' => 'false',
@@ -715,7 +803,9 @@ class UserController extends Controller
                 \DB::raw('id as user_follower'),
                 \DB::raw('id as points')
             ])
-            ->where('id', '<>', \Auth::id())->offset($offset)->limit($limit);
+            ->where('id', '<>', \Auth::id())
+            ->where('is_client', '<>', 1)
+            ->offset($offset)->limit($limit);
 
         if (!empty($firstname) && !empty($lastname)) {
             $_users->where('first_name', 'like', "%$firstname%")->where('last_name', 'like', "%$lastname%");
@@ -1029,6 +1119,9 @@ class UserController extends Controller
      *              "is_spectator": 0,
      *              "stance": null,
      *              "show_tip": 1,
+     *              "is_coach": 0,
+     *              "is_client": 0,
+     *              "coach_user": 464,
      *              "skill_level": null,
      *              "photo_url": "http://image.example.com/profile/pic.jpg",
      *              "updated_at": "2016-02-10 15:46:51",
@@ -1276,6 +1369,7 @@ class UserController extends Controller
      *       "Content-Type": "application/x-www-form-urlencoded",
      *       "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3Mi....LBR173t-aE9lURmUP7_Y4YB1zSIV1_AN7kpGoXzfaXM"
      *     }
+     * @apiParam {Boolean} [user_id] User ID, if not given, it will be logged in user's ID
      * @apiParam {Boolean} [public_profile] Profile show public
      * @apiParam {Boolean} [show_achivements] Show achivements on to public profile or not
      * @apiParam {Boolean} [show_training_stats] Show training statistics on to public profile or not
@@ -1284,6 +1378,7 @@ class UserController extends Controller
      * @apiParam {Boolean} [show_tutorial] Show Tutorials
      * @apiParamExample {json} Input
      *    {
+     *      "user_id": 464
      *      "public_profile": true,
      *      "badge_notification": true
      *    }
@@ -1305,7 +1400,7 @@ class UserController extends Controller
      */
     public function updatePreferences(Request $request)
     {
-        $userId = \Auth::user()->id;
+        $userId = $request->get('user_id') ?? \Auth::user()->id;
 
         $user = User::find($userId);
         $userPreferences = $user->preferences;
@@ -1391,7 +1486,7 @@ class UserController extends Controller
 
             $currentUser = User::find(\Auth::user()->id);
 
-            $pushMessage = $currentUser->first_name . ' ' . $currentUser->last_name . 'is now following you';
+            $pushMessage = $currentUser->first_name . ' ' . $currentUser->last_name . ' is now following you';
 
             Push::send(PushTypes::FOLLOW_USER, $userId, \Auth::user()->id, $pushMessage, ['follow_user_id' => \Auth::user()->id]);
 

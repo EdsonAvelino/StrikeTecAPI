@@ -38,6 +38,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
         'is_spectator',
         'stance',
         'is_spectator',
+        'is_coach',
+        'is_client',
+        'coach_user',
         'show_tip',
         'photo_url',
         'city_id',
@@ -261,6 +264,9 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
                     'first_name',
                     'last_name',
                     'photo_url',
+                    'is_coach',
+                    'is_client',
+                    'coach_user',
                     'gender',
                     \DB::raw('id as user_following'),
                     \DB::raw('id as user_follower'),
@@ -292,8 +298,11 @@ class User extends Model implements AuthenticatableContract, AuthenticatableUser
 
         // Fetch all IAP Products 
         $products = \App\IapProducts::select('id', 'key')->where('platform', $userSubscription->platform)->get();
+
         
-        $data = [];
+        $data = [
+            "empty" => "empty",
+        ];
         foreach ($products as $product) {
             $data[$product->key] = ($product->id == $userSubscription->iap_product_id) ? true : false;
         }

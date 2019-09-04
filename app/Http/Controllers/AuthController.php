@@ -68,6 +68,7 @@ class AuthController extends Controller
      *          "is_spectator": 0,
      *          "stance": null,
      *          "show_tip": 1,
+     *          "is_coach": 0,
      *          "skill_level": "PRO",
      *          "photo_url": "http://example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
@@ -114,7 +115,6 @@ class AuthController extends Controller
 
     public function authenticate(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'email'    => 'required|email|max:255',
             'password' => 'required'
@@ -126,7 +126,7 @@ class AuthController extends Controller
         }
 
         try {
-            if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
+            if (! $token = $this->jwt->attempt($request->all('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid credentials or user is not registered'], 200);
             }
         } catch (TokenExpiredException $e) {
@@ -195,6 +195,7 @@ class AuthController extends Controller
      *          "is_spectator": 0,
      *          "stance": null,
      *          "show_tip": 1,
+     *          "is_coach": 0,
      *          "skill_level": null,
      *          "photo_url": "http://example.com/profile/pic.jpg",
      *          "updated_at": "2016-02-10 15:46:51",
