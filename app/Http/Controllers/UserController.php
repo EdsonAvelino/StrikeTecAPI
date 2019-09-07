@@ -24,6 +24,7 @@ use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\JWTAuth;
 use Carbon\Carbon;
+use App\Helpers\StorageHelper;
 
 class UserController extends Controller
 {
@@ -374,15 +375,19 @@ class UserController extends Controller
         $timestamp = Carbon::now()->timestamp;
         $uploadDir = env('USER_STORAGE_URL');
         
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir);
-        }
+        // if (!is_dir($uploadDir)) {
+        //     mkdir($uploadDir);
+        // }
         
         //$filename = str_replace([' ', '-'], '_', $file); // Replaces all spaces with underscore.
         //$filename = preg_replace('/[^A-Za-z0-9_.\-]/', '', $file); // Removing all special chars
         $filename = 'u' . \Auth::id() . '_' . $timestamp . '.' . $ext;
+
+        // $image_filename = StorageHelper::saveFile($request->file('image_file'), 'user-photo', $filename);
+        // $image_url = StorageHelper::getFile($image_filename);
         $request->file('image_file')->move($uploadDir, $filename);
         $image_url = url() . '/' . 'storage/users' . '/' . $filename; // path to be inserted in table
+        $image_url = str_replace('https://', 'http://', $image_url);
 
         $userId = $request->get('user_id') ?? \Auth::id();
         $user = User::find($userId);

@@ -998,6 +998,29 @@ class TrainingController extends Controller
 
     public function test(Request $request)
     {
+        // $user = User::select('email')->get();
+        // return $user;
+
+        $user = User::where('email', 'bradking@kc.rr.com')->first();
+ 
+        if ($user) {
+            $startDate = '2019-6-5';
+            $endDate = '2019-7-7';
+            $sessions = Sessions::where('created_at', '>=', $startDate)
+                ->where('created_at', '<=', $endDate)
+                ->get();
+        }
+        
+        $rounds = [];
+        foreach($sessions as $session) {
+            $round = SessionRounds::where('session_id', $session->id)->get();
+            $rounds[] = $round;
+        }
+        
+        $punchRound = SessionRoundPunches::where('session_round_id', 4860)->get();
+        return $punchRound;
+
+
         $userId = 5;
         $sessions = [172, 173, 174];
         foreach($sessions as $sessionId) {

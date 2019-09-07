@@ -15,7 +15,6 @@ class AddNewColumnsUsersTable extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // $table->string('email',64)->nullable()->change();
-            $table->boolean('is_coach')->after('password')->default(0);
             $table->boolean('is_client')->after('is_coach')->default(0);
             $table->integer('coach_user')->after('is_client')->nullable();
         });
