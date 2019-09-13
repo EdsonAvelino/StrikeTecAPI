@@ -2501,7 +2501,7 @@ class UserController extends Controller
     public function getNotifications(Request $request)
     {
         $offset = (int)($request->get('start') ? $request->get('start') : 0);
-        $limit = (int)($request->get('limit') ? $request->get('limit') : 20);
+        $limit = (int)($request->get('limit') ? $request->get('limit') : 1000);
 
         // Current week's monday(start) to sunday(ends)
         $currentWeekStart = strtotime("last monday midnight");
