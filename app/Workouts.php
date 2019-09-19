@@ -58,6 +58,8 @@ class Workouts extends Model
         // Skill levels
         $_workout['filters'] = \App\WorkoutTags::select('filter_id')->where('workout_id', $workout->id)->get()->pluck('filter_id');
 
+        $_workout['round_seek_times'] = $workout->getArySeekTimes();
+
         return $_workout;
     }
 
@@ -151,5 +153,19 @@ class Workouts extends Model
         $rating = ($_rating->total_ratings > 0) ? ($_rating->sum_of_ratings / $_rating->total_ratings) : 0;
         
         return number_format($rating, 1);
+    }
+
+    public function getArySeekTimes()
+    {
+        $arySeekTimes = [];
+        if (strlen($this->round_seek_times) > 0) {
+            $arySeekTimes = json_decode($this->round_seek_times);
+        }
+        if (count($arySeekTimes) == 0) {
+            for ($i = 0; $i < $this->round_count; $i++) {
+                $arySeekTimes[] = ($this->round_time + $this->rest_time) * $i;
+            }
+        }
+        return $arySeekTimes;
     }
 }
