@@ -387,7 +387,8 @@ class UserController extends Controller
         // $image_url = StorageHelper::getFile($image_filename);
         $request->file('image_file')->move($uploadDir, $filename);
         $image_url = url() . '/' . 'storage/users' . '/' . $filename; // path to be inserted in table
-        $image_url = str_replace('https://', 'http://', $image_url);
+        if (env('APP_ENV') =='prod')
+            $image_url = str_replace('https://', 'http://', $image_url);
 
         $userId = $request->get('user_id') ?? \Auth::id();
         $user = User::find($userId);
