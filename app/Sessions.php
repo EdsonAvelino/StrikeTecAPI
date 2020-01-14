@@ -25,6 +25,7 @@ class Sessions extends Model
         'max_force',
         'max_speed',
         'best_time',
+        'weight'
     ];
     protected $dateFormat = 'Y-m-d\TH:i:s.u';
 

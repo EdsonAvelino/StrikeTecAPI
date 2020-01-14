@@ -330,6 +330,7 @@ class TrainingController extends Controller
         
         foreach ($data as $session) {
             $userId = ($session['user_id']) ?? \Auth::user()->id;
+            $weight = ($session['user_id']) ?? \Auth::user()->weight;
 
             try {
                 $sessionStartTime = $session['start_time'];
@@ -355,7 +356,8 @@ class TrainingController extends Controller
                         'punches_count' => $session['punches_count'],
                         'max_force' => $session['max_force'],
                         'max_speed' => $session['max_speed'],
-                        'best_time' => $session['best_time']
+                        'best_time' => $session['best_time'],
+                        'weight' => $weight
                     ];
                     
                     $_session = Sessions::create($newSession);

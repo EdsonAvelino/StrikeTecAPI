@@ -145,6 +145,10 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
         $router->get('/videos/filter', 'VideoController@videosFilter');
         // Get list of videos available on server
         $router->get('/videos/count', 'VideoController@videosCount');
+        
+        // Get punch
+        $router->get('/videos/punches.json', 'VideoController@getVideoPunches');
+
         // Leaderboard APIs
         $router->group(['middleware' => 'auth:api'], function () use ($router) {
             // Get list of leaderboard data
