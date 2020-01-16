@@ -944,6 +944,6 @@ class VideoController extends Controller
             )->where('type_id', 100)->offset($offset)->limit($limit);
 
         $videos = $_videos->get();
-        return response()->json(['error' => 'false', 'message' => '', 'videos' => $videos]);
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $videos]);
     }
 }
