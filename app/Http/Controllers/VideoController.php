@@ -944,6 +944,9 @@ class VideoController extends Controller
             )->where('type_id', 100)->offset($offset)->limit($limit);
 
         $videos = $_videos->get();
+        foreach ($videos as $video) {
+            str_replace($video, "https://strike-tec-dev.s3.amazonaws.com", env(STORAGE_URL));
+        }
         return response()->json(['error' => 'false', 'message' => '', 'data' => $videos]);
     }
 }
