@@ -941,12 +941,18 @@ class VideoController extends Controller
                 'thumbnail as thumb_width',
                 'thumbnail as thumb_height'
                 ]
-            )->where('type_id', 100)->offset($offset)->limit($limit);
+            )->where('type_id', 100)->offset($offset)->limit($limit)->get();
 
-        $videos = $_videos->get();
-        foreach ($videos as $video) {
-            str_replace($video, "https://strike-tec-dev.s3.amazonaws.com", env(STORAGE_URL));
-        }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $videos]);
+        // $videos = [];
+        // $index = 0;
+        // foreach ($_videos as $video) {
+        //     $video->video = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
+        //     unset($video->file);
+        //     $video->image = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
+        //     unset($video->thumbnail);
+        //     $videos[$index] = $video;
+        //     $index++;
+        // }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $_videos]);
     }
 }
