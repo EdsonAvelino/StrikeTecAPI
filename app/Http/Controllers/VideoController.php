@@ -946,10 +946,10 @@ class VideoController extends Controller
         $videos = [];
         $index = 0;
         foreach ($_videos as $video) {
-            $video->file = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
-            // unset($video->file);
-            $video->thumbnail = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
-            // unset($video->thumbnail);
+            $video->video = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
+            unset($video->file);
+            $video->image = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
+            unset($video->thumbnail);
             $videos[$index] = $video;
             $index++;
         }
