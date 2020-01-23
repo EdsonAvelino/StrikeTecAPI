@@ -943,16 +943,16 @@ class VideoController extends Controller
                 ]
             )->where('type_id', 100)->offset($offset)->limit($limit)->get();
 
-        // $videos = [];
-        // $index = 0;
-        // foreach ($_videos as $video) {
-        //     $video->video = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
-        //     unset($video->file);
-        //     $video->image = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
-        //     unset($video->thumbnail);
-        //     $videos[$index] = $video;
-        //     $index++;
-        // }
-        return response()->json(['error' => 'false', 'message' => '', 'data' => $_videos]);
+        $videos = [];
+        $index = 0;
+        foreach ($_videos as $video) {
+            $video->video = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
+            unset($video->file);
+            $video->image = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
+            unset($video->thumbnail);
+            $videos[$index] = $video;
+            $index++;
+        }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $videos]);
     }
 }
