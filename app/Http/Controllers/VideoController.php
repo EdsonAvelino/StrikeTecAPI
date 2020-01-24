@@ -914,4 +914,45 @@ class VideoController extends Controller
 
         return $data;
     }
+    
+    
+    /**
+     * @api GET /videos/punches 
+     * 
+     * Get punches videos
+     * 
+     * @param Request $request
+     *
+     * @return json
+     */
+    public function getVideoPunches(Request $request)
+    {
+        $offset = (int) $request->get('start') ? $request->get('start') : 0;
+        $limit = (int) $request->get('limit') ? $request->get('limit') : 100;
+
+        $_videos = Videos::select([
+                'id',
+                'title',
+                'file',
+                'thumbnail',
+                'views',
+                'duration',
+                // 'author_name',
+                'thumbnail as thumb_width',
+                'thumbnail as thumb_height'
+                ]
+            )->where('type_id', 100)->offset($offset)->limit($limit)->get();
+
+        // $videos = [];
+        // $index = 0;
+        // foreach ($_videos as $video) {
+        //     $video->video = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->file);
+        //     unset($video->file);
+        //     $video->image = str_replace("https://strike-tec-dev.s3.amazonaws.com", env('STORAGE_URL'), $video->thumbnail);
+        //     unset($video->thumbnail);
+        //     $videos[$index] = $video;
+        //     $index++;
+        // }
+        return response()->json(['error' => 'false', 'message' => '', 'data' => $_videos]);
+    }
 }

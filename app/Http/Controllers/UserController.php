@@ -2215,10 +2215,12 @@ class UserController extends Controller
 
         if (app('hash')->check($oldPassword, $user->password)) {
             $user->where('id', $user->id)->update(['password' => app('hash')->make($request->get('password'))]);
-
+            $token = $this->jwt->attempt(['email' => $user->email,
+                    'password' => $request->get('password')]);
             return response()->json([
                 'error' => 'false',
-                'message' => 'Password changed successfully'
+                'message' => 'Password changed successfully',
+                'token' => $token
             ]);
         } else {
             return response()->json([
