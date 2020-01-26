@@ -117,7 +117,7 @@ class Push
                 ]);
 
         $respContent = json_decode($response->getBody()->getContents());
-        \Log::info("Push: !!!!" . $respContent);
+        \Log::info("Push: !!!!" . $response->getBody()->getContents());
 
         if (($response->getStatusCode() == 200) && ($respContent->failure == 1)) {
             
