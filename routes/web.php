@@ -44,6 +44,8 @@ $router->group(['prefix' => 'api/v1'], function () use ($router) {
         //$router->get('/tags', 'VideoController@getTags');
         // Get list of trainers
         $router->get('/trainers', 'VideoController@getTrainers');
+        
+        $router->post('/autoupdate', 'TrainingController@autoupdate');
         // Rest of all APIs are secured with access-token
         // User APIs
         $router->group(['middleware' => 'auth:api'], function () use ($router) {
