@@ -98,6 +98,7 @@ class Push
             $body['data']['body'] = array_merge($body['data']['body'], self::$data);
         }
         
+        \Log::info("Push: #####".json_encode($body));
         // \Log::info("Push: ".json_encode($body));
         // Save push notification to db
         PushNotifications::create([
@@ -116,6 +117,7 @@ class Push
                 ]);
 
         $respContent = json_decode($response->getBody()->getContents());
+        \Log::info("Push: !!!!" . $response->getBody()->getContents());
 
         if (($response->getStatusCode() == 200) && ($respContent->failure == 1)) {
             
