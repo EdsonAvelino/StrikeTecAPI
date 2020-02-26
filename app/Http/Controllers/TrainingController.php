@@ -1229,8 +1229,8 @@ class TrainingController extends Controller
 
     public function test(Request $request)
     {
-        // $user = User::select('email')->get();
-        // return $user;
+        $user = User::select('email')->get();
+        return $user;
 
         $user = User::where('email', 'test@test.com')->first();
         // if ($user) {

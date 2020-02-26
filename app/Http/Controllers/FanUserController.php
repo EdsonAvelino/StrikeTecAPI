@@ -11,6 +11,7 @@ use Tymon\JWTAuth\JWTAuth;
 
 use App\Mail\PasswordGenerateCodeEmail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
 
 class FanUserController extends Controller
 {
@@ -98,7 +99,7 @@ class FanUserController extends Controller
         ]);
 
         try {
-            if (!$token = $this->jwt->attempt($request->only('email', 'password'))) {
+            if (!$token = Auth::guard('fan')->attempt($request->only('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid request']);
             }
         } catch (TokenExpiredException $e) {
@@ -109,7 +110,7 @@ class FanUserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = AdminUsers::select('*', 'role')->with('company')->find(\Auth::id());
+        // $user = AdminUsers::select('*', 'role')->with('company')->find(\Auth::id());
 
         return response()->json(['error' => 'false', 'message' => 'Registration successful', 'token' => $token, 'data' => $user]);
     }
@@ -178,7 +179,7 @@ class FanUserController extends Controller
         }
 
         try {
-            if (! $token = $this->jwt->attempt($request->only('email', 'password'))) {
+            if (! $token = Auth::guard('fan')->attempt($request->only('email', 'password'))) {
                 return response()->json(['error' => 'true', 'message' => 'Invalid credentials or user is not registered'], 200);
             }
         } catch (TokenExpiredException $e) {
