@@ -190,7 +190,8 @@ class FanUserController extends Controller
             return response()->json(['error' => 'true', 'message' => 'Token does not exists'], $e->getStatusCode());
         }
 
-        $user = AdminUsers::select('*', \DB::Raw('id as role'))->with('company')->find(\Auth::id());
+        $fanUserId = \Auth::guard('fan')->id();
+        $user = AdminUsers::select('*', \DB::Raw('id as role'))->with('company')->find($fanUserId);
 
         return response()->json(['error' => 'false', 'message' => 'Authentication successful', 'token' => $token, 'data' => $user]);
     }
